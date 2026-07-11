@@ -21,25 +21,10 @@ import 'yet-another-react-lightbox/styles.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import 'maplibre-react-components/style.css';
 
-// google-fonts
-// Preload critical fonts (for example, Roboto) to reduce FOUC.
-// (In a real app, you might add a <link rel="preload" as="font" href="..." crossorigin="anonymous" /> tag in your HTML (or via a plugin) for each critical font.)
-// (Below is a dummy example – replace with your actual font URLs if needed.)
-// <link rel="preload" as="font" href="https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2" crossorigin="anonymous" />
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/700.css';
-
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/500.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/inter/700.css';
-
-import '@fontsource/poppins/400.css';
-import '@fontsource/poppins/500.css';
-import '@fontsource/poppins/600.css';
-import '@fontsource/poppins/700.css';
 
 // for arabic font
 import '@fontsource/cairo/300.css';

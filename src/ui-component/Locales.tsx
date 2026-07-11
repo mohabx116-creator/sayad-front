@@ -12,12 +12,6 @@ function loadLocaleData(i18n: I18n) {
   switch (i18n) {
     case 'ar':
       return import('utils/locales/ar.json');
-      case 'fr':
-      return import('utils/locales/fr.json');
-    case 'ro':
-      return import('utils/locales/ro.json');
-    case 'zh':
-      return import('utils/locales/zh.json');
     default:
       return import('utils/locales/en.json');
   }

@@ -81,7 +81,6 @@ export default function LocalizationSection() {
               color: theme.vars.palette.primary.light,
               background: theme.vars.palette.primary.main
             },
-
             ...theme.applyStyles('dark', {
               color: theme.vars.palette.primary.dark,
               background: theme.vars.palette.dark.main,
@@ -154,45 +153,9 @@ export default function LocalizationSection() {
                       <ListItemText
                         primary={
                           <Grid container>
-                            <Typography>العربيه</Typography>
+                            <Typography>العربية</Typography>
                             <Typography variant="caption" sx={{ ml: '8px' }}>
                               (AR)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                    <ListItemButton selected={i18n === 'fr'} onClick={(event) => handleListItemClick(event, 'fr')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography>français</Typography>
-                            <Typography variant="caption" sx={{ ml: '8px' }}>
-                              (French)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                    <ListItemButton selected={i18n === 'ro'} onClick={(event) => handleListItemClick(event, 'ro')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography>Română</Typography>
-                            <Typography variant="caption" sx={{ ml: '8px' }}>
-                              (Romanian)
-                            </Typography>
-                          </Grid>
-                        }
-                      />
-                    </ListItemButton>
-                    <ListItemButton selected={i18n === 'zh'} onClick={(event) => handleListItemClick(event, 'zh')}>
-                      <ListItemText
-                        primary={
-                          <Grid container>
-                            <Typography>中国人</Typography>
-                            <Typography variant="caption" sx={{ ml: '8px' }}>
-                              (Chinese)
                             </Typography>
                           </Grid>
                         }

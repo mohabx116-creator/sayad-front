@@ -5,10 +5,8 @@ import { IconDashboard } from '@tabler/icons-react';
 import { NavItemType } from 'types';
 
 const icons = {
-  IconDashboard: IconDashboard
+  IconDashboard
 };
-
-// ==============================|| MENU ITEMS - DASHBOARD ||============================== //
 
 const dashboard: NavItemType = {
   id: 'dashboard',

@@ -8,9 +8,6 @@ import Loadable from 'ui-component/Loadable';
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 
-// sample page routing
-const SamplePage = Loadable(lazy(() => import('views/sample-page')));
-
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -25,10 +22,6 @@ const MainRoutes = {
       path: '/dashboard',
       element: <DashboardDefault />
     },
-    {
-      path: '/sample-page',
-      element: <SamplePage />
-    }
   ]
 };
 

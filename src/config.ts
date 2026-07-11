@@ -22,20 +22,11 @@ export enum ThemeDirection {
   RTL = 'rtl'
 }
 
-export enum AuthProvider {
-  JWT = 'jwt',
-  FIREBASE = 'firebase',
-  AUTH0 = 'auth0',
-  AWS = 'aws',
-  SUPABASE = 'supabase'
-}
-
 export enum DropzopType {
   default = 'DEFAULT',
   standard = 'STANDARD'
 }
 
-export const APP_AUTH: AuthProvider = AuthProvider.JWT;
 export const DEFAULT_THEME_MODE: ThemeMode = ThemeMode.SYSTEM;
 
 const config: ConfigStates = {

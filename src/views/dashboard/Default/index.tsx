@@ -7,8 +7,6 @@ import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 
-// ==============================|| DEFAULT DASHBOARD ||============================== //
-
 export default function Dashboard() {
   const theme = useTheme();
 
@@ -19,9 +17,7 @@ export default function Dashboard() {
           <Typography variant="h3" color={theme.palette.primary.main} gutterBottom>
             SAYAD
           </Typography>
-          <Typography variant="body1">
-            النظام قيد التجهيز
-          </Typography>
+          <Typography variant="body1">المنصة الأساسية جاهزة ومؤمنة.</Typography>
         </MainCard>
       </Grid>
     </Grid>
