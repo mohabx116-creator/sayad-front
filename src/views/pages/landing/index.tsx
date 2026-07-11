@@ -27,7 +27,6 @@ const prefetchRoutes = () => {
   import('views/dashboard/Default');
   import('views/dashboard/Analytics');
   import('views/pages/authentication/Login');
-  import('views/pages/authentication/Register');
   import('views/application/e-commerce/Products');
   import('views/application/crm/LeadManagement/Overview');
   import('views/application/invoice/Dashboard');

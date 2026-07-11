@@ -44,19 +44,14 @@ export default function Login() {
                 </Box>
                 <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <Typography variant={downMD ? 'h3' : 'h2'} sx={{ color: 'secondary.main' }}>
-                    Hi, Welcome Back
+                    Sign in
                   </Typography>
                   <Typography variant="caption" sx={{ fontSize: '16px', textAlign: { xs: 'center', md: 'inherit' } }}>
-                    Enter your credentials to continue
+                    Use your administrator account to continue
                   </Typography>
                 </Stack>
                 <Box sx={{ width: 1 }}>{AuthLoginComponent && <AuthLoginComponent />}</Box>
                 <Divider sx={{ width: 1 }} />
-                <Stack sx={{ alignItems: 'center' }}>
-                  <Typography component={Link} to="/register" variant="subtitle1" sx={{ textDecoration: 'none' }}>
-                    Don&apos;t have an account?
-                  </Typography>
-                </Stack>
               </Stack>
             </AuthCardWrapper>
           </Box>

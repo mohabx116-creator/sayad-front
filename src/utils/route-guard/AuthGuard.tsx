@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import useAuth from 'hooks/useAuth';
 import { GuardProps } from 'types';
 import { useEffect } from 'react';
+import Loader from 'ui-component/Loader';
 
 // ==============================|| AUTH GUARD ||============================== //
 
@@ -12,14 +13,22 @@ import { useEffect } from 'react';
  * @param {PropTypes.node} children children element/node
  */
 export default function AuthGuard({ children }: GuardProps) {
-  const { isLoggedIn } = useAuth();
+  const { isInitialized, isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('login', { replace: true });
+    if (!isInitialized) {
+      return;
     }
-  }, [isLoggedIn, navigate]);
+
+    if (!isLoggedIn) {
+      navigate('/login', { replace: true });
+    }
+  }, [isInitialized, isLoggedIn, navigate]);
+
+  if (!isInitialized) {
+    return <Loader />;
+  }
 
   return children;
 }

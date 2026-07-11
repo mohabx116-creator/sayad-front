@@ -1,17 +1,12 @@
 import { MouseEvent, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
 
 // material-ui
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // third party
@@ -23,6 +18,7 @@ import AnimateButton from 'ui-component/extended/AnimateButton';
 import CustomFormControl from 'ui-component/extended/Form/CustomFormControl';
 import useAuth from 'hooks/useAuth';
 import useScriptRef from 'hooks/useScriptRef';
+import { getHttpErrorMessage } from 'utils/http-error';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -31,10 +27,8 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 // ===============================|| JWT - LOGIN ||=============================== //
 
 export default function JWTLogin({ ...others }) {
-  const { login, isLoggedIn } = useAuth();
+  const { login } = useAuth();
   const scriptedRef = useScriptRef();
-
-  const [checked, setChecked] = useState(true);
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
@@ -42,40 +36,33 @@ export default function JWTLogin({ ...others }) {
   };
 
   const handleMouseDownPassword = (event: MouseEvent) => {
-    event.preventDefault()!;
+    event.preventDefault();
   };
-
-  const [searchParams] = useSearchParams();
-  const authParam = searchParams.get('auth');
 
   return (
     <Formik
       initialValues={{
-        email: 'info@codedthemes.com',
-        password: '123456',
+        email: '',
+        password: '',
         submit: null
       }}
       validationSchema={Yup.object().shape({
         email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-        password: Yup.string()
-          .required('Password is required')
-          .test('no-leading-trailing-whitespace', 'Password can not start or end with spaces', (value) => value === value.trim())
-          .max(10, 'Password must be less than 10 characters')
+        password: Yup.string().required('Password is required').max(255)
       })}
       onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
         try {
           const trimmedEmail = values.email.trim();
-          await login?.(trimmedEmail, values.password);
+          await login(trimmedEmail, values.password);
 
           if (scriptedRef.current) {
             setStatus({ success: true });
             setSubmitting(false);
           }
         } catch (err: any) {
-          console.error(err);
           if (scriptedRef.current) {
             setStatus({ success: false });
-            setErrors({ submit: err.message });
+            setErrors({ submit: getHttpErrorMessage(err, 'Sign in failed') });
             setSubmitting(false);
           }
         }
@@ -130,33 +117,6 @@ export default function JWTLogin({ ...others }) {
               </FormHelperText>
             )}
           </CustomFormControl>
-
-          <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid>
-              <FormControlLabel
-                control={
-                  <Checkbox checked={checked} onChange={(event) => setChecked(event.target.checked)} name="checked" color="primary" />
-                }
-                label="Keep me logged in"
-              />
-            </Grid>
-            <Grid>
-              <Typography
-                variant="subtitle1"
-                component={Link}
-                to={
-                  isLoggedIn
-                    ? '/pages/forgot-password/forgot-password3'
-                    : authParam
-                      ? `/forgot-password?auth=${authParam}`
-                      : '/forgot-password'
-                }
-                sx={{ textDecoration: 'none', color: 'secondary.main' }}
-              >
-                Forgot Password?
-              </Typography>
-            </Grid>
-          </Grid>
 
           {errors.submit && (
             <Box sx={{ mt: 3 }}>

@@ -1,33 +1,53 @@
-/**
- * axios setup to use mock service
- */
-
 import axios, { AxiosRequestConfig } from 'axios';
 
-const axiosServices = axios.create({ baseURL: import.meta.env.VITE_APP_API_URL || 'http://localhost:3010/' });
+import { clearAccessToken, getAccessToken, refreshSession } from './auth-session';
+import { getHttpErrorMessage } from './http-error';
 
-// ==============================|| AXIOS - FOR MOCK SERVICES ||============================== //
+const axiosServices = axios.create({
+  baseURL: import.meta.env.VITE_APP_API_URL || 'http://localhost:3010/',
+  withCredentials: true
+});
 
 axiosServices.interceptors.request.use(
   async (config) => {
-    const accessToken = localStorage.getItem('serviceToken');
+    const accessToken = getAccessToken();
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 axiosServices.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response.status === 401 && !window.location.href.includes('/login')) {
+  async (error) => {
+    const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
+    const status = error.response?.status;
+    const requestUrl = originalRequest?.url ?? '';
+    const isAuthRequest = requestUrl.includes('/api/auth/');
+
+    if (status === 401 && originalRequest && !originalRequest._retry && !isAuthRequest) {
+      originalRequest._retry = true;
+
+      try {
+        const session = await refreshSession();
+        originalRequest.headers = {
+          ...(originalRequest.headers ?? {}),
+          Authorization: `Bearer ${session.accessToken}`
+        };
+        return axiosServices(originalRequest);
+      } catch {
+        clearAccessToken();
+      }
+    }
+
+    if (status === 401 && !window.location.pathname.startsWith('/login') && !isAuthRequest) {
       window.location.pathname = '/login';
     }
-    return Promise.reject((error.response && error.response.data) || 'Wrong Services');
+
+    return Promise.reject(new Error(getHttpErrorMessage(error, 'Wrong Services')));
   }
 );
 

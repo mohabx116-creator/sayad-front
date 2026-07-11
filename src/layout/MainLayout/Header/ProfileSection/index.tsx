@@ -59,6 +59,7 @@ export default function ProfileSection() {
   const handleLogout = async () => {
     try {
       await logout();
+      navigate('/login', { replace: true });
     } catch (err) {
       console.error(err);
     }
