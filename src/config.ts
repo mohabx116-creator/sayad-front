@@ -1,7 +1,7 @@
 // types
 import { ConfigStates } from 'types/config';
 
-export const DASHBOARD_PATH = '/dashboard/default';
+export const DASHBOARD_PATH = '/dashboard';
 export const HORIZONTAL_MAX_ITEM = 7;
 
 export const CSS_VAR_PREFIX = '';
@@ -41,12 +41,12 @@ export const DEFAULT_THEME_MODE: ThemeMode = ThemeMode.SYSTEM;
 const config: ConfigStates = {
   menuOrientation: MenuOrientation.VERTICAL,
   miniDrawer: false,
-  fontFamily: `'Roboto', sans-serif`,
+  fontFamily: `'Cairo', sans-serif`,
   borderRadius: 8,
   outlinedFilled: true,
   presetColor: 'default',
-  i18n: 'en',
-  themeDirection: ThemeDirection.LTR,
+  i18n: 'ar',
+  themeDirection: ThemeDirection.RTL,
   container: true
 };
 
