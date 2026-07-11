@@ -22,15 +22,11 @@ import useAuth from 'hooks/useAuth';
 import { APP_AUTH } from 'config';
 
 // Possible auth types
-type AuthType = 'firebase' | 'jwt' | 'aws' | 'auth0' | 'supabase';
+type AuthType = 'jwt';
 
 // A mapping of auth types to dynamic imports for AuthForgotPassword components
 const authForgotPasswordImports: Record<AuthType, () => Promise<any>> = {
-  firebase: () => import('./firebase/AuthForgotPassword'),
   jwt: () => import('./jwt/AuthForgotPassword'),
-  aws: () => import('./aws/AuthForgotPassword'),
-  auth0: () => import('./auth0/AuthForgotPassword'),
-  supabase: () => import('./supabase/AuthForgotPassword')
 };
 
 export default function ForgotPassword() {

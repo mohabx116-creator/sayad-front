@@ -22,15 +22,11 @@ import useAuth from 'hooks/useAuth';
 import { APP_AUTH } from 'config';
 
 // Possible auth types
-type AuthType = 'firebase' | 'jwt' | 'aws' | 'auth0' | 'supabase';
+type AuthType = 'jwt';
 
 // A mapping of auth types to dynamic imports
 const authRegisterImports: Record<AuthType, () => Promise<any>> = {
-  firebase: () => import('./firebase/AuthRegister'),
-  jwt: () => import('./jwt/AuthRegister'),
-  aws: () => import('./aws/AuthRegister'),
-  auth0: () => import('./auth0/AuthRegister'),
-  supabase: () => import('./supabase/AuthRegister')
+  jwt: () => import('./jwt/AuthRegister')
 };
 
 export default function Register() {

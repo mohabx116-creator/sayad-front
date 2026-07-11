@@ -16,17 +16,8 @@ export default function ViewOnlyAlert() {
   let documentationLink: string = 'https://codedthemes.gitbook.io/berry/authentication';
 
   switch (authParam) {
-    case 'auth0':
-      documentationLink = 'https://codedthemes.gitbook.io/berry/authentication/auth0';
-      break;
-    case 'firebase':
-      documentationLink = 'https://codedthemes.gitbook.io/berry/authentication/firebase';
-      break;
-    case 'aws':
-      documentationLink = 'https://codedthemes.gitbook.io/berry/authentication/aws-cognito';
-      break;
-    case 'supabase':
-      documentationLink = 'https://codedthemes.gitbook.io/berry/authentication/supabase';
+    case 'jwt':
+      documentationLink = 'https://codedthemes.gitbook.io/berry/authentication/jwt';
       break;
   }
 

@@ -21,15 +21,11 @@ import { APP_AUTH } from 'config';
 import useAuth from 'hooks/useAuth';
 
 // Possible auth types
-type AuthType = 'firebase' | 'jwt' | 'aws' | 'auth0' | 'supabase';
+type AuthType = 'jwt';
 
 // A mapping of auth types to dynamic imports for reset password
 const authResetPasswordImports: Record<AuthType, () => Promise<any>> = {
-  firebase: () => import('./firebase/AuthResetPassword'),
   jwt: () => import('./jwt/AuthResetPassword'),
-  aws: () => import('./aws/AuthResetPassword'),
-  auth0: () => import('./auth0/AuthResetPassword'),
-  supabase: () => import('./supabase/AuthResetPassword')
 };
 
 export default function ResetPassword() {
