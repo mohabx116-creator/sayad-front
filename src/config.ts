@@ -41,7 +41,7 @@ export const DEFAULT_THEME_MODE: ThemeMode = ThemeMode.SYSTEM;
 const config: ConfigStates = {
   menuOrientation: MenuOrientation.VERTICAL,
   miniDrawer: false,
-  fontFamily: `'Cairo', sans-serif`,
+  fontFamily: `'Cairo', 'Roboto', sans-serif`,
   borderRadius: 8,
   outlinedFilled: true,
   presetColor: 'default',
