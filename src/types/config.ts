@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from 'react';
 // project imports
 import { MenuOrientation, ThemeDirection } from 'config';
 
-export type FontFamily = `'Inter', sans-serif` | `'Poppins', sans-serif` | `'Roboto', sans-serif`;
+export type FontFamily = `'Inter', sans-serif` | `'Poppins', sans-serif` | `'Roboto', sans-serif` | `'Cairo', 'Roboto', sans-serif`;
 export type PresetColor = 'default' | 'theme1' | 'theme2' | 'theme3' | 'theme4' | 'theme5' | 'theme6';
 export type I18n = 'en' |'ar' | 'fr' | 'ro' | 'zh'; // 'en' - English, 'fr' - French, 'ro' - Romanian, 'zh' - Chinese
 

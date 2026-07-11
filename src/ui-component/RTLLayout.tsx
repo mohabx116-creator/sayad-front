@@ -60,8 +60,6 @@ export default function RTLLayout({ children }: Props) {
   }, [state.themeDirection, state.i18n]);
 
   return (
-    <CacheProvider value={state.themeDirection === ThemeDirection.RTL ? rtlCache : ltrCache}>
-      {children}
-    </CacheProvider>
+    <CacheProvider value={state.themeDirection === ThemeDirection.RTL ? rtlCache : ltrCache}>{children}</CacheProvider>
   );
 }
