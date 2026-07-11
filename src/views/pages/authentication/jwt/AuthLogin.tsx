@@ -12,6 +12,7 @@ import Box from '@mui/material/Box';
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
+import { useIntl } from 'react-intl';
 
 // project imports
 import AnimateButton from 'ui-component/extended/AnimateButton';
@@ -28,6 +29,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function JWTLogin({ ...others }) {
   const { login } = useAuth();
+  const intl = useIntl();
   const scriptedRef = useScriptRef();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +39,20 @@ export default function JWTLogin({ ...others }) {
 
   const handleMouseDownPassword = (event: MouseEvent) => {
     event.preventDefault();
+  };
+
+  const getLoginErrorMessage = (error: unknown) => {
+    const message = getHttpErrorMessage(error, '').toLowerCase();
+
+    if (message.includes('network') || message.includes('services') || message.includes('failed to fetch')) {
+      return intl.formatMessage({ id: 'auth-login-network-error' });
+    }
+
+    if (message.includes('invalid') || message.includes('authentication failed') || message.includes('unauthorized')) {
+      return intl.formatMessage({ id: 'auth-login-invalid-credentials' });
+    }
+
+    return intl.formatMessage({ id: 'auth-login-unexpected-error' });
   };
 
   return (
@@ -62,7 +78,7 @@ export default function JWTLogin({ ...others }) {
         } catch (err: any) {
           if (scriptedRef.current) {
             setStatus({ success: false });
-            setErrors({ submit: getHttpErrorMessage(err, 'Sign in failed') });
+            setErrors({ submit: getLoginErrorMessage(err) });
             setSubmitting(false);
           }
         }
@@ -126,7 +142,7 @@ export default function JWTLogin({ ...others }) {
           <Box sx={{ mt: 2 }}>
             <AnimateButton>
               <Button color="secondary" disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained">
-                Sign In
+                {isSubmitting ? intl.formatMessage({ id: 'auth-login-loading' }) : 'Sign In'}
               </Button>
             </AnimateButton>
           </Box>

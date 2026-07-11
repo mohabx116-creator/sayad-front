@@ -3,10 +3,14 @@ import { useEffect, useRef } from 'react';
 // ==============================|| ELEMENT REFERENCE HOOKS ||============================== //
 
 export default function useScriptRef() {
-  const scripted = useRef(true);
+  const scripted = useRef(false);
 
   useEffect(() => {
-    scripted.current = false;
+    scripted.current = true;
+
+    return () => {
+      scripted.current = false;
+    };
   }, []);
 
   return scripted;

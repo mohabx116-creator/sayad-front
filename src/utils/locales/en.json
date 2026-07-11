@@ -194,5 +194,9 @@
   "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiatnulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollitanim id est laborum.",
   "account-settings": "Account settings",
   "logout": "Logout",
+  "auth-login-invalid-credentials": "Invalid email or password.",
+  "auth-login-network-error": "Unable to connect to the server. Please try again.",
+  "auth-login-unexpected-error": "An unexpected error occurred.",
+  "auth-login-loading": "Signing in...",
   "more-items": "More Items"
 }
