@@ -57,6 +57,8 @@ export default function RTLLayout({ children }: Props) {
   useEffect(() => {
     document.documentElement.setAttribute('dir', state.themeDirection);
     document.documentElement.setAttribute('lang', state.i18n || 'en');
+    document.body.setAttribute('dir', state.themeDirection);
+    document.body.setAttribute('lang', state.i18n || 'en');
   }, [state.themeDirection, state.i18n]);
 
   return (

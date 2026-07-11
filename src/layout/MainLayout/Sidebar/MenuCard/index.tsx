@@ -12,6 +12,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import { FormattedMessage } from 'react-intl';
 
 // assets
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
@@ -35,7 +36,7 @@ function LinearProgressWithLabel({ value, ...others }: LinearProgressWithLabelPr
             ...theme.applyStyles('dark', { color: 'dark.light' })
           }}
         >
-          Progress
+          <FormattedMessage id="sidebar-progress" />
         </Typography>
         <Typography variant="h6" sx={{ color: 'inherit' }}>{`${Math.round(value)}%`}</Typography>
       </Stack>
@@ -114,7 +115,7 @@ function MenuCard() {
                     ...theme.applyStyles('dark', { color: 'dark.light' })
                   }}
                 >
-                  Get Extra Space
+                  <FormattedMessage id="sidebar-extra-space" />
                 </Typography>
               }
               secondary={<Typography variant="caption"> 28/23 GB</Typography>}

@@ -23,7 +23,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // third party
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 // project imports
 import UpgradePlanCard from './UpgradePlanCard';
@@ -40,6 +40,7 @@ import useConfig from 'hooks/useConfig';
 
 export default function ProfileSection() {
   const theme = useTheme();
+  const intl = useIntl();
   const {
     state: { borderRadius }
   } = useConfig();
@@ -144,19 +145,23 @@ export default function ProfileSection() {
                     <Box sx={{ p: 2, pb: 0 }}>
                       <Stack>
                         <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                          <Typography variant="h4">Good Morning,</Typography>
+                          <Typography variant="h4">
+                            <FormattedMessage id="profile-greeting" />
+                          </Typography>
                           <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
                             {user?.name}
                           </Typography>
                         </Stack>
-                        <Typography variant="subtitle2">Project Admin</Typography>
+                        <Typography variant="subtitle2">
+                          <FormattedMessage id="profile-project-admin" />
+                        </Typography>
                       </Stack>
                       <OutlinedInput
                         sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
                         id="input-search-profile"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
-                        placeholder="Search profile options"
+                        placeholder={intl.formatMessage({ id: 'profile-search-placeholder' })}
                         startAdornment={
                           <InputAdornment position="start">
                             <IconSearch stroke={1.5} size="16px" />
@@ -183,11 +188,15 @@ export default function ProfileSection() {
                         <CardContent>
                           <Stack sx={{ gap: 3 }}>
                             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                              <Typography variant="subtitle1">Start DND Mode</Typography>
+                              <Typography variant="subtitle1">
+                                <FormattedMessage id="profile-dnd-mode" />
+                              </Typography>
                               <Switch color="primary" checked={sdm} onChange={(e) => setSdm(e.target.checked)} name="sdm" size="small" />
                             </Stack>
                             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                              <Typography variant="subtitle1">Allow Notifications</Typography>
+                              <Typography variant="subtitle1">
+                                <FormattedMessage id="profile-allow-notifications" />
+                              </Typography>
                               <Switch checked={notification} onChange={(e) => setNotification(e.target.checked)} name="sdm" size="small" />
                             </Stack>
                           </Stack>

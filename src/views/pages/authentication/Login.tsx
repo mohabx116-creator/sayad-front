@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 
 // material-ui
 import { Theme } from '@mui/material/styles';
@@ -19,6 +20,7 @@ import AuthFooter from 'ui-component/cards/AuthFooter';
 const loadAuthLogin = () => import('./jwt/AuthLogin');
 
 export default function Login() {
+  const intl = useIntl();
   const downMD = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'));
   const [AuthLoginComponent, setAuthLoginComponent] = useState<React.ComponentType | null>(null);
 
@@ -44,10 +46,10 @@ export default function Login() {
                 </Box>
                 <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                   <Typography variant={downMD ? 'h3' : 'h2'} sx={{ color: 'secondary.main' }}>
-                    Sign in
+                    {intl.formatMessage({ id: 'auth-login-title' })}
                   </Typography>
                   <Typography variant="caption" sx={{ fontSize: '16px', textAlign: { xs: 'center', md: 'inherit' } }}>
-                    Use your administrator account to continue
+                    {intl.formatMessage({ id: 'auth-login-subtitle' })}
                   </Typography>
                 </Stack>
                 <Box sx={{ width: 1 }}>{AuthLoginComponent && <AuthLoginComponent />}</Box>

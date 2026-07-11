@@ -10,13 +10,13 @@ const icons = {
 
 const dashboard: NavItemType = {
   id: 'dashboard',
-  title: 'لوحة التحكم',
+  title: 'dashboard',
   icon: icons.IconDashboard,
   type: 'group',
   children: [
     {
       id: 'default',
-      title: 'لوحة التحكم',
+      title: 'dashboard',
       type: 'item',
       url: '/dashboard',
       icon: icons.IconDashboard,

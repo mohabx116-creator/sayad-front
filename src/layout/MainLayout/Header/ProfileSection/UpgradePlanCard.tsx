@@ -6,6 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { FormattedMessage } from 'react-intl';
 
 // project imports
 import AnimateButton from 'ui-component/extended/AnimateButton';
@@ -49,7 +50,9 @@ export default function UpgradePlanCard() {
     >
       <CardContent>
         <Stack sx={{ gap: 2 }}>
-          <Typography variant="h4">Upgrade your plan</Typography>
+          <Typography variant="h4">
+            <FormattedMessage id="profile-upgrade-plan" />
+          </Typography>
           <Typography
             variant="subtitle2"
             sx={{
@@ -58,8 +61,7 @@ export default function UpgradePlanCard() {
               ...theme.applyStyles('dark', { color: 'text.secondary', opacity: 1 })
             }}
           >
-            70% discount for 1 years <br />
-            subscriptions.
+            <FormattedMessage id="profile-upgrade-description" />
           </Typography>
           <Stack direction="row">
             <Link sx={{ textDecoration: 'none' }} href="https://links.codedthemes.com/hsqll" target="_blank">
@@ -69,7 +71,7 @@ export default function UpgradePlanCard() {
                   color="warning"
                   sx={{ boxShadow: 'none', ...theme.applyStyles('dark', { color: 'background.default' }) }}
                 >
-                  Go Premium
+                  <FormattedMessage id="profile-go-premium" />
                 </Button>
               </AnimateButton>
             </Link>

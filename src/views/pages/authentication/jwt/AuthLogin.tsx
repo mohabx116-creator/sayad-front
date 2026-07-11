@@ -63,8 +63,11 @@ export default function JWTLogin({ ...others }) {
         submit: null
       }}
       validationSchema={Yup.object().shape({
-        email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-        password: Yup.string().required('Password is required').max(255)
+        email: Yup.string()
+          .email(intl.formatMessage({ id: 'auth-login-email-invalid' }))
+          .max(255)
+          .required(intl.formatMessage({ id: 'auth-login-email-required' })),
+        password: Yup.string().required(intl.formatMessage({ id: 'auth-login-password-required' })).max(255)
       })}
       onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
         try {
@@ -87,7 +90,7 @@ export default function JWTLogin({ ...others }) {
       {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
         <form noValidate onSubmit={handleSubmit} {...others}>
           <CustomFormControl fullWidth error={Boolean(touched.email && errors.email)}>
-            <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
+            <InputLabel htmlFor="outlined-adornment-email-login">{intl.formatMessage({ id: 'auth-login-email-label' })}</InputLabel>
             <OutlinedInput
               id="outlined-adornment-email-login"
               type="email"
@@ -104,7 +107,7 @@ export default function JWTLogin({ ...others }) {
           </CustomFormControl>
 
           <CustomFormControl fullWidth error={Boolean(touched.password && errors.password)}>
-            <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
+            <InputLabel htmlFor="outlined-adornment-password-login">{intl.formatMessage({ id: 'auth-login-password-label' })}</InputLabel>
             <OutlinedInput
               id="outlined-adornment-password-login"
               type={showPassword ? 'text' : 'password'}
@@ -125,7 +128,7 @@ export default function JWTLogin({ ...others }) {
                   </IconButton>
                 </InputAdornment>
               }
-              label="Password"
+              label={intl.formatMessage({ id: 'auth-login-password-label' })}
             />
             {touched.password && errors.password && (
               <FormHelperText error id="standard-weight-helper-text-password-login">
@@ -142,7 +145,7 @@ export default function JWTLogin({ ...others }) {
           <Box sx={{ mt: 2 }}>
             <AnimateButton>
               <Button color="secondary" disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained">
-                {isSubmitting ? intl.formatMessage({ id: 'auth-login-loading' }) : 'Sign In'}
+                {isSubmitting ? intl.formatMessage({ id: 'auth-login-loading' }) : intl.formatMessage({ id: 'auth-login-submit' })}
               </Button>
             </AnimateButton>
           </Box>
