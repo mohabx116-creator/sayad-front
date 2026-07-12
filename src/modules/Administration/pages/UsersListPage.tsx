@@ -204,18 +204,42 @@ export default function UsersListPage() {
 
 function UserDialog({ dialog, roles, onClose, onSaved }: { dialog: UserDialogState; roles: any[]; onClose: () => void; onSaved: () => void }) {
   const intl = useIntl();
+  const dispatch = useDispatch();
+  const [isSaving, setIsSaving] = useState(false);
   const createForm = useForm<CreateUserRequest>({ resolver: zodResolver(createUserSchema), values: { displayName: '', email: '', password: '', confirmPassword: '', roleIds: [] } });
   const updateForm = useForm<UpdateUserRequest>({ resolver: zodResolver(updateUserSchema), values: { displayName: dialog?.user?.displayName ?? '', email: dialog?.user?.email ?? '', rowVersion: dialog?.user?.rowVersion ?? '' } });
   const resetForm = useForm<ResetPasswordRequest>({ resolver: zodResolver(resetPasswordSchema), values: { newPassword: '', confirmPassword: '' } });
   const rolesForm = useForm<{ roleIds: string[] }>({ values: { roleIds: dialog?.user?.roles.map((role) => role.id) ?? [] } });
 
-  const save = async () => {
+  const notifyError = (error: unknown) => {
+    dispatch(
+      openSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : intl.formatMessage({ id: 'administration-action-failed' }),
+        variant: 'alert',
+        severity: 'error'
+      })
+    );
+  };
+
+  const persist = async (action: () => Promise<unknown>) => {
+    try {
+      setIsSaving(true);
+      await action();
+      onSaved();
+    } catch (error) {
+      notifyError(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const save = () => {
     if (!dialog) return;
-    if (dialog.mode === 'create') await createUser(createForm.getValues());
-    if (dialog.mode === 'edit' && dialog.user) await updateUser(dialog.user.id, updateForm.getValues());
-    if (dialog.mode === 'reset' && dialog.user) await resetUserPassword(dialog.user.id, resetForm.getValues());
-    if (dialog.mode === 'roles' && dialog.user) await assignUserRoles(dialog.user.id, rolesForm.getValues());
-    onSaved();
+    if (dialog.mode === 'create') void createForm.handleSubmit((values) => persist(() => createUser(values)))();
+    if (dialog.mode === 'edit' && dialog.user) void updateForm.handleSubmit((values) => persist(() => updateUser(dialog.user!.id, values)))();
+    if (dialog.mode === 'reset' && dialog.user) void resetForm.handleSubmit((values) => persist(() => resetUserPassword(dialog.user!.id, values)))();
+    if (dialog.mode === 'roles' && dialog.user) void persist(() => assignUserRoles(dialog.user!.id, rolesForm.getValues()));
   };
 
   return (
@@ -248,8 +272,8 @@ function UserDialog({ dialog, roles, onClose, onSaved }: { dialog: UserDialogSta
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}><FormattedMessage id="cancel" /></Button>
-        <Button variant="contained" onClick={save}><FormattedMessage id="save" /></Button>
+        <Button onClick={onClose} disabled={isSaving}><FormattedMessage id="cancel" /></Button>
+        <Button variant="contained" onClick={save} disabled={isSaving}><FormattedMessage id={isSaving ? 'loading' : 'save'} /></Button>
       </DialogActions>
     </Dialog>
   );
