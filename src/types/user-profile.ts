@@ -12,6 +12,8 @@ export type UserProfile = {
   image?: string;
   name?: string;
   role?: string;
+  roles?: string[];
+  permissions?: string[];
   about?: string;
   email?: string;
   work_email?: string;

@@ -93,6 +93,8 @@ export type NavItemType = {
   children?: NavItemType[];
   elements?: NavItemType[];
   search?: string;
+  permission?: string;
+  anyPermissions?: string[];
 };
 
 export type AuthSliderProps = {

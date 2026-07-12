@@ -14,6 +14,8 @@ import NavGroup from './NavGroup';
 import { MenuOrientation } from 'config';
 import menuItem from 'menu-items';
 import useConfig from 'hooks/useConfig';
+import useAuth from 'hooks/useAuth';
+import { hasAnyPermission, hasPermission } from 'modules/Administration/utils/permission-utils';
 
 import { Menu } from 'menu-items/widget';
 import { HORIZONTAL_MAX_ITEM } from 'config';
@@ -31,6 +33,7 @@ function MenuList() {
     state: { menuOrientation }
   } = useConfig();
   const { menuLoading } = useGetMenu();
+  const { user } = useAuth();
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
   const isHorizontal = menuOrientation === MenuOrientation.HORIZONTAL && !downMD;
@@ -39,6 +42,19 @@ function MenuList() {
   const [menuItems, setMenuItems] = useState<{ items: NavItemType[] }>({ items: [] });
 
   let widgetMenu = Menu();
+
+  const filterMenuByPermissions = (items: NavItemType[]): NavItemType[] =>
+    items
+      .map((item) => ({
+        ...item,
+        children: item.children ? filterMenuByPermissions(item.children) : undefined
+      }))
+      .filter((item) => {
+        const permissionAllowed = item.permission ? hasPermission(user, item.permission) : true;
+        const anyPermissionAllowed = item.anyPermissions ? hasAnyPermission(user, item.anyPermissions) : true;
+        const hasVisibleChildren = item.children ? item.children.length > 0 : true;
+        return permissionAllowed && anyPermissionAllowed && hasVisibleChildren;
+      });
 
   useLayoutEffect(() => {
     const isFound = menuItem.items.some((element) => {
@@ -49,15 +65,15 @@ function MenuList() {
     });
     if (menuLoading) {
       menuItem.items.splice(1, 0, widgetMenu);
-      setMenuItems({ items: [...menuItem.items] });
+      setMenuItems({ items: filterMenuByPermissions([...menuItem.items]) });
     } else if (!menuLoading && widgetMenu?.id !== undefined && !isFound) {
       menuItem.items.splice(1, 1, widgetMenu);
-      setMenuItems({ items: [...menuItem.items] });
+      setMenuItems({ items: filterMenuByPermissions([...menuItem.items]) });
     } else {
-      setMenuItems({ items: [...menuItem.items] });
+      setMenuItems({ items: filterMenuByPermissions([...menuItem.items]) });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [menuLoading]);
+  }, [menuLoading, user]);
 
   // last menu-item to show in horizontal menu bar
   const lastItem = isHorizontal ? HORIZONTAL_MAX_ITEM : null;
