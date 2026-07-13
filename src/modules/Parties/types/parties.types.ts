@@ -102,3 +102,19 @@ export type OpeningBalanceRequest = {
   balanceNature: 'Debit' | 'Credit' | '';
   notes?: string | null;
 };
+
+export type CorrectOpeningBalanceRequest = {
+  entryDate: string;
+  amount: number;
+  balanceNature: 'Debit' | 'Credit' | '';
+  reason: string;
+  expectedOpeningBalanceEntryId: string;
+};
+
+export type PartyStatementParams = {
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
+  entryType?: string;
+};

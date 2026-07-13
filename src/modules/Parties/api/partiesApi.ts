@@ -2,7 +2,17 @@ import { AxiosResponse } from 'axios';
 
 import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import type { CreatePartyRequest, ListMeta, PartyDto, PartyStatementDto, UpdatePartyRequest } from '../types/parties.types';
+import type {
+  CorrectOpeningBalanceRequest,
+  CreatePartyRequest,
+  ListMeta,
+  OpeningBalanceDto,
+  OpeningBalanceRequest,
+  PartyDto,
+  PartyStatementDto,
+  PartyStatementParams,
+  UpdatePartyRequest
+} from '../types/parties.types';
 
 function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
   return request.then((response) => {
@@ -38,6 +48,18 @@ export function deactivateParty(id: string) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/deactivate`, {}));
 }
 
-export function getPartyStatement(id: string) {
-  return unwrap(axiosServices.get<ApiResponse<PartyStatementDto>>(`/api/parties/${id}/statement`));
+export function getPartyOpeningBalance(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance`));
+}
+
+export function setPartyOpeningBalance(id: string, request: OpeningBalanceRequest) {
+  return unwrap(axiosServices.put<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance`, request));
+}
+
+export function correctPartyOpeningBalance(id: string, request: CorrectOpeningBalanceRequest) {
+  return unwrap(axiosServices.post<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance/correct`, request));
+}
+
+export function getPartyStatement(id: string, params?: PartyStatementParams) {
+  return unwrap(axiosServices.get<ApiResponse<PartyStatementDto>>(`/api/parties/${id}/statement`, { params }));
 }

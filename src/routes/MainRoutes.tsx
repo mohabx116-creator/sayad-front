@@ -16,6 +16,9 @@ const RolesListPage = Loadable(lazy(() => import('modules/Administration/pages/R
 const RoleDetailsPage = Loadable(lazy(() => import('modules/Administration/pages/RoleDetailsPage')));
 const PartiesListPage = Loadable(lazy(() => import('modules/Parties/pages/PartiesListPage')));
 const PartyDetailsPage = Loadable(lazy(() => import('modules/Parties/pages/PartyDetailsPage')));
+const PartyCreatePage = Loadable(lazy(() => import('modules/Parties/pages/PartyCreatePage')));
+const PartyEditPage = Loadable(lazy(() => import('modules/Parties/pages/PartyEditPage')));
+const PartyStatementPage = Loadable(lazy(() => import('modules/Parties/pages/PartyStatementPage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -56,10 +59,34 @@ const MainRoutes = {
       )
     },
     {
+      path: '/parties/new',
+      element: (
+        <PermissionRouteGuard permission={PARTIES_PERMISSIONS.create}>
+          <PartyCreatePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
       path: '/parties/:id',
       element: (
         <PermissionRouteGuard permission={PARTIES_PERMISSIONS.view}>
           <PartyDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/parties/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={PARTIES_PERMISSIONS.update}>
+          <PartyEditPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/parties/:id/statement',
+      element: (
+        <PermissionRouteGuard permission={PARTIES_PERMISSIONS.statementView}>
+          <PartyStatementPage />
         </PermissionRouteGuard>
       )
     },

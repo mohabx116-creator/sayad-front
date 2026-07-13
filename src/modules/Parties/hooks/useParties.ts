@@ -3,7 +3,7 @@ import useSWR from 'swr';
 
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import type { ListMeta, PartyDto, PartyStatementDto } from '../types/parties.types';
+import type { ListMeta, PartyDto, PartyStatementDto, PartyStatementParams } from '../types/parties.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams();
@@ -31,7 +31,9 @@ export function useParty(id?: string) {
   return useMemo(() => ({ party: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }
 
-export function usePartyStatement(id?: string) {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartyStatementDto>>(id ? `/api/parties/${id}/statement` : null, fetcher);
+export function usePartyStatement(id?: string, params: PartyStatementParams = {}) {
+  const query=buildQuery(params);
+  const key=id ? `/api/parties/${id}/statement${query ? `?${query}` : ''}` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartyStatementDto>>(key, fetcher);
   return useMemo(() => ({ statement: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }

@@ -305,5 +305,17 @@
   "party-statement-empty": "No ledger entries found.",
   "parties-action-success": "Party action completed successfully.",
   "parties-action-failed": "Party action failed.",
+  "party-form-help": "Classify the party as a customer, supplier, or both. Opening balance is optional at creation.",
+  "manage-opening-balance": "Manage opening balance",
+  "correct-opening-balance": "Correct opening balance",
+  "opening-balance-correction-help": "Corrections are recorded as reversal and replacement ledger entries; existing entries are not overwritten.",
+  "correction-reason": "Correction reason",
+  "view-full-statement": "View full statement",
+  "party-statement-preview": "Statement preview",
+  "from-date": "From date",
+  "to-date": "To date",
+  "entry-type": "Entry type",
+  "opening-balance-reversal": "Opening balance reversal",
+  "brought-forward": "Brought forward",
   "more-items": "More Items"
 }
