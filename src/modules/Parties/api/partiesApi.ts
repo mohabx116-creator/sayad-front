@@ -2,7 +2,7 @@ import { AxiosResponse } from 'axios';
 
 import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import type { CreatePartyRequest, ListMeta, PartyDto, PartyLedgerEntryDto, UpdatePartyRequest } from '../types/parties.types';
+import type { CreatePartyRequest, ListMeta, PartyDto, PartyStatementDto, UpdatePartyRequest } from '../types/parties.types';
 
 function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
   return request.then((response) => {
@@ -39,5 +39,5 @@ export function deactivateParty(id: string) {
 }
 
 export function getPartyStatement(id: string) {
-  return axiosServices.get<ApiResponse<PartyLedgerEntryDto[]>>(`/api/parties/${id}/statement`).then((response) => unwrapList(response.data));
+  return unwrap(axiosServices.get<ApiResponse<PartyStatementDto>>(`/api/parties/${id}/statement`));
 }

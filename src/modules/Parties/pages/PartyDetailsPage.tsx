@@ -2,6 +2,7 @@ import { FormattedMessage } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -25,7 +26,7 @@ import { PARTIES_PERMISSIONS } from '../utils/parties.constants';
 export default function PartyDetailsPage() {
   const { id } = useParams();
   const { party, error, isLoading } = useParty(id);
-  const { items: entries, isLoading: statementLoading } = usePartyStatement(id);
+  const { statement, isLoading: statementLoading } = usePartyStatement(id);
 
   return (
     <>
@@ -97,7 +98,15 @@ export default function PartyDetailsPage() {
             {statementLoading && <Loader />}
             {!statementLoading && (
               <>
-                {entries.length === 0 ? (
+                {statement && (
+                  <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
+                    <Chip label={<><FormattedMessage id="opening-balance" />: {statement.openingBalance.amount.toFixed(2)}</>} />
+                    <Chip label={<><FormattedMessage id="debit" />: {statement.debitTotal.toFixed(2)}</>} />
+                    <Chip label={<><FormattedMessage id="credit" />: {statement.creditTotal.toFixed(2)}</>} />
+                    <Chip color="primary" label={<><FormattedMessage id="current-balance" />: {statement.closingBalance.toFixed(2)} {statement.closingBalanceNature}</>} />
+                  </Stack>
+                )}
+                {!statement || statement.entries.length === 0 ? (
                   <Typography><FormattedMessage id="party-statement-empty" /></Typography>
                 ) : (
                   <TableContainer>
@@ -113,7 +122,7 @@ export default function PartyDetailsPage() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {entries.map((entry) => (
+                        {statement.entries.map((entry) => (
                           <TableRow key={entry.id}>
                             <TableCell>{entry.entryDate}</TableCell>
                             <TableCell>{entry.referenceNumber ?? entry.referenceType}</TableCell>

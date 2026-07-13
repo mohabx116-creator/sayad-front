@@ -36,6 +36,33 @@ export type PartyLedgerEntryDto = {
   runningBalanceNature: string;
 };
 
+export type OpeningBalanceDto = {
+  entryId: string | null;
+  entryDate: string | null;
+  amount: number;
+  balanceNature: string;
+  notes: string | null;
+};
+
+export type PartyStatementDto = {
+  partyId: string;
+  partyCode: string;
+  partyNameArabic: string;
+  partyNameEnglish: string | null;
+  openingBalance: OpeningBalanceDto;
+  broughtForwardBalance: number;
+  broughtForwardNature: string;
+  debitTotal: number;
+  creditTotal: number;
+  closingBalance: number;
+  closingBalanceNature: string;
+  entries: PartyLedgerEntryDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
 export type ListMeta = {
   page: number;
   pageSize: number;
