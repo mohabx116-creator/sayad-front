@@ -1,3 +1,3 @@
 # Parties
 
-Party and contact foundation work is reserved for this module.
+Business module for unified customer/supplier master data, opening balances, ledger foundation, statements, and permission-aware administration.

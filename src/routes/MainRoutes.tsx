@@ -6,6 +6,7 @@ import AuthGuard from 'utils/route-guard/AuthGuard';
 import Loadable from 'ui-component/Loadable';
 import PermissionRouteGuard from 'modules/Administration/components/PermissionRouteGuard';
 import { ADMINISTRATION_PERMISSIONS } from 'modules/Administration/utils/administration.constants';
+import { PARTIES_PERMISSIONS } from 'modules/Parties/utils/parties.constants';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -13,6 +14,8 @@ const UsersListPage = Loadable(lazy(() => import('modules/Administration/pages/U
 const UserDetailsPage = Loadable(lazy(() => import('modules/Administration/pages/UserDetailsPage')));
 const RolesListPage = Loadable(lazy(() => import('modules/Administration/pages/RolesListPage')));
 const RoleDetailsPage = Loadable(lazy(() => import('modules/Administration/pages/RoleDetailsPage')));
+const PartiesListPage = Loadable(lazy(() => import('modules/Parties/pages/PartiesListPage')));
+const PartyDetailsPage = Loadable(lazy(() => import('modules/Parties/pages/PartyDetailsPage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -41,6 +44,22 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ADMINISTRATION_PERMISSIONS.usersView}>
           <UserDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/parties',
+      element: (
+        <PermissionRouteGuard permission={PARTIES_PERMISSIONS.view}>
+          <PartiesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/parties/:id',
+      element: (
+        <PermissionRouteGuard permission={PARTIES_PERMISSIONS.view}>
+          <PartyDetailsPage />
         </PermissionRouteGuard>
       )
     },
