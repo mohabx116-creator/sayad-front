@@ -47,7 +47,7 @@
   "checkout": "الدفع",
   "invoice": "فاتورة",
   "client": "العميل",
-  "item": "العناصر",
+  "item": "الصنف",
   "payment": "الدفع",
   "details": "التفاصيل",
   "edit": "تعديل",
@@ -219,15 +219,12 @@
   "administration": "الإدارة",
   "administration-users": "المستخدمون",
   "administration-roles-permissions": "الأدوار والصلاحيات",
-  "users": "المستخدمون",
   "roles": "الأدوار",
   "permissions": "الصلاحيات",
-  "create": "إنشاء",
   "create-user": "إنشاء مستخدم",
   "edit-user": "تعديل مستخدم",
   "create-role": "إنشاء دور",
   "edit-role": "تعديل دور",
-  "details": "التفاصيل",
   "user-details": "تفاصيل المستخدم",
   "role-details": "تفاصيل الدور",
   "activate": "تفعيل",
@@ -238,7 +235,6 @@
   "unlocked": "مفتوح",
   "active": "نشط",
   "inactive": "غير نشط",
-  "reset-password": "إعادة تعيين كلمة المرور",
   "assign-roles": "إسناد الأدوار",
   "assign-permissions": "إسناد الصلاحيات",
   "search": "بحث",
@@ -267,235 +263,177 @@
   "administration-empty-roles": "لا توجد أدوار.",
   "administration-action-success": "تم تنفيذ الإجراء بنجاح.",
   "administration-action-failed": "تعذر تنفيذ الإجراء.",
-  "more-items": "عناصر أخرى"
-  ,"parties": "الأطراف"
-  ,"parties-list": "قائمة الأطراف"
-  ,"party-details": "تفاصيل الطرف"
-  ,"party-statement": "كشف حساب الطرف"
-  ,"create-party": "إنشاء طرف"
-  ,"edit-party": "تعديل طرف"
-  ,"party-code": "الكود"
-  ,"party-classification": "التصنيف"
-  ,"party-customer": "عميل"
-  ,"party-supplier": "مورد"
-  ,"phone": "الهاتف"
-  ,"tax-number": "الرقم الضريبي"
-  ,"address": "العنوان"
-  ,"notes": "ملاحظات"
-  ,"balance": "الرصيد"
-  ,"balanced": "متوازن"
-  ,"debit": "مدين"
-  ,"credit": "دائن"
-  ,"opening-balance": "الرصيد الافتتاحي"
-  ,"balance-direction": "اتجاه الرصيد"
-  ,"opening-balance-date": "تاريخ الرصيد الافتتاحي"
-  ,"opening-debit": "افتتاحي مدين"
-  ,"opening-credit": "افتتاحي دائن"
-  ,"current-balance": "الرصيد الحالي"
-  ,"reference": "المرجع"
-  ,"date": "التاريخ"
-  ,"none": "لا يوجد"
-  ,"parties-load-error": "تعذر تحميل بيانات الأطراف."
-  ,"parties-empty": "لا توجد أطراف."
-  ,"party-statement-empty": "لا توجد حركات في كشف الحساب."
-  ,"parties-action-success": "تم تنفيذ إجراء الطرف بنجاح."
-  ,"parties-action-failed": "تعذر تنفيذ إجراء الطرف."
-  ,"parties": "الأطراف"
-  ,"parties-list": "قائمة الأطراف"
-  ,"party-details": "تفاصيل الطرف"
-  ,"party-statement": "كشف حساب الطرف"
-  ,"create-party": "إنشاء طرف"
-  ,"edit-party": "تعديل طرف"
-  ,"party-code": "الكود"
-  ,"name-arabic": "الاسم بالعربية"
-  ,"name-english": "الاسم بالإنجليزية"
-  ,"party-classification": "التصنيف"
-  ,"party-customer": "عميل"
-  ,"party-supplier": "مورد"
-  ,"primary-phone": "الهاتف الأساسي"
-  ,"secondary-phone": "الهاتف الإضافي"
-  ,"phone": "الهاتف"
-  ,"tax-number": "الرقم الضريبي"
-  ,"address": "العنوان"
-  ,"notes": "ملاحظات"
-  ,"balance": "الرصيد"
-  ,"balanced": "متوازن"
-  ,"settled": "مسوى"
-  ,"debit": "مدين"
-  ,"credit": "دائن"
-  ,"opening-balance": "الرصيد الافتتاحي"
-  ,"balance-direction": "اتجاه الرصيد"
-  ,"opening-balance-date": "تاريخ الرصيد الافتتاحي"
-  ,"opening-debit": "افتتاحي مدين"
-  ,"opening-credit": "افتتاحي دائن"
-  ,"current-balance": "الرصيد الحالي"
-  ,"reference": "المرجع"
-  ,"running-balance": "الرصيد الجاري"
-  ,"date": "التاريخ"
-  ,"none": "لا يوجد"
-  ,"parties-load-error": "تعذر تحميل بيانات الأطراف."
-  ,"parties-empty": "لا توجد أطراف."
-  ,"party-statement-empty": "لا توجد حركات في كشف الحساب."
-  ,"parties-action-success": "تم تنفيذ إجراء الطرف بنجاح."
-  ,"parties-action-failed": "تعذر تنفيذ إجراء الطرف."
-  ,"dashboard": "لوحة التحكم"
-  ,"administration": "الإدارة"
-  ,"parties": "الأطراف"
-  ,"parties-list": "قائمة الأطراف"
-  ,"party-details": "تفاصيل الطرف"
-  ,"party-statement": "كشف حساب الطرف"
-  ,"create-party": "إنشاء طرف"
-  ,"edit-party": "تعديل طرف"
-  ,"party-code": "الكود"
-  ,"name": "الاسم"
-  ,"name-arabic": "الاسم بالعربية"
-  ,"name-english": "الاسم بالإنجليزية"
-  ,"party-classification": "التصنيف"
-  ,"party-customer": "عميل"
-  ,"party-supplier": "مورد"
-  ,"primary-phone": "الهاتف الأساسي"
-  ,"secondary-phone": "الهاتف الإضافي"
-  ,"phone": "الهاتف"
-  ,"address": "العنوان"
-  ,"notes": "ملاحظات"
-  ,"balance": "الرصيد"
-  ,"balanced": "متوازن"
-  ,"settled": "مسوى"
-  ,"debit": "مدين"
-  ,"credit": "دائن"
-  ,"opening-balance": "الرصيد الافتتاحي"
-  ,"balance-direction": "اتجاه الرصيد"
-  ,"opening-balance-date": "تاريخ الرصيد الافتتاحي"
-  ,"current-balance": "الرصيد الحالي"
-  ,"reference": "المرجع"
-  ,"running-balance": "الرصيد الجاري"
-  ,"date": "التاريخ"
-  ,"none": "لا يوجد"
-  ,"parties-load-error": "تعذر تحميل بيانات الأطراف."
-  ,"parties-empty": "لا توجد أطراف."
-  ,"party-statement-empty": "لا توجد حركات في كشف الحساب."
-  ,"parties-action-success": "تم تنفيذ إجراء الطرف بنجاح."
-  ,"parties-action-failed": "تعذر تنفيذ إجراء الطرف."
-  ,"party-form-help": "صنف الطرف كعميل أو مورد أو كليهما. الرصيد الافتتاحي اختياري عند الإنشاء."
-  ,"manage-opening-balance": "إدارة الرصيد الافتتاحي"
-  ,"correct-opening-balance": "تصحيح الرصيد الافتتاحي"
-  ,"opening-balance-correction-help": "يتم تسجيل التصحيح كحركة عكسية وحركة بديلة، ولا يتم استبدال الحركات السابقة بصمت."
-  ,"correction-reason": "سبب التصحيح"
-  ,"view-full-statement": "عرض كشف الحساب الكامل"
-  ,"party-statement-preview": "معاينة كشف الحساب"
-  ,"from-date": "من تاريخ"
-  ,"to-date": "إلى تاريخ"
-  ,"entry-type": "نوع الحركة"
-  ,"opening-balance-reversal": "عكس الرصيد الافتتاحي"
-  ,"brought-forward": "الرصيد المرحل"
-  ,"inventory": "المخزون"
-  ,"inventory-items": "الأصناف"
-  ,"inventory-categories": "تصنيفات الأصناف"
-  ,"inventory-units": "وحدات القياس"
-  ,"inventory-low-stock": "تنبيهات المخزون"
-  ,"inventory-movements": "حركات المخزون"
-  ,"inventory-load-error": "تعذر تحميل بيانات المخزون."
-  ,"inventory-empty-items": "لا توجد أصناف مخزون."
-  ,"inventory-no-low-stock": "لا توجد تنبيهات نقص مخزون."
-  ,"inventory-action-success": "تم تنفيذ إجراء المخزون بنجاح."
-  ,"inventory-action-failed": "تعذر تنفيذ إجراء المخزون."
-  ,"create-item": "إنشاء صنف"
-  ,"edit-item": "تعديل صنف"
-  ,"item-details": "تفاصيل الصنف"
-  ,"item-code": "الكود"
-  ,"item-type": "نوع الصنف"
-  ,"item-category": "التصنيف"
-  ,"base-unit": "وحدة الأساس"
-  ,"barcode": "الباركود"
-  ,"minimum-quantity": "الحد الأدنى"
-  ,"reorder-quantity": "نقطة إعادة الطلب"
-  ,"allow-negative-stock": "السماح بالمخزون السالب"
-  ,"current-quantity": "الكمية الحالية"
-  ,"stock-status": "حالة المخزون"
-  ,"quantity": "الكمية"
-  ,"decimal-places": "عدد المنازل العشرية"
-  ,"opening-stock": "رصيد افتتاحي"
-  ,"opening-stock-current": "الرصيد الافتتاحي الحالي"
-  ,"is-purchasable": "قابل للشراء"
-  ,"is-sellable": "قابل للبيع"
-  ,"inventory-item-form-help": "احفظ وحدة الأساس وعلاقات التحويل للوحدات البديلة من شاشة الصنف."
-  ,"alternate-units": "الوحدات البديلة"
-  ,"alternate-units-help": "أضف علاقات تحويل لكل وحدة يمكن استخدامها في العمليات."
-  ,"unit": "الوحدة"
-  ,"factor-to-base": "معامل التحويل إلى الأساس"
-  ,"default-purchase": "افتراضي شراء"
-  ,"default-sales": "افتراضي بيع"
-  ,"remove": "حذف"
-  ,"item-units": "وحدات الصنف"
-  ,"system-unit": "وحدة نظام"
-  ,"unit-code": "كود الوحدة"
-  ,"symbol": "الرمز"
-  ,"symbol-arabic": "الرمز بالعربية"
-  ,"symbol-english": "الرمز بالإنجليزية"
-  ,"edit-unit": "تعديل الوحدة"
-  ,"create-unit": "إنشاء وحدة"
-  ,"unit-decimal-help": "استخدم صفر للأعداد الصحيحة أو قيمة موجبة للكميات العشرية."
-  ,"parent-category": "التصنيف الأب"
-  ,"inventory-movement-actions": "إجراءات الحركة"
-  ,"stock-in": "إدخال مخزون"
-  ,"stock-out": "صرف مخزون"
-  ,"inventory-adjustment": "تسوية مخزون"
-  ,"adjustment-type": "نوع التسوية"
-  ,"adjustment-reason": "سبب التسوية"
-  ,"increase": "زيادة"
-  ,"decrease": "نقص"
-  ,"post-stock-in": "ترحيل إدخال مخزون"
-  ,"post-stock-out": "ترحيل صرف مخزون"
-  ,"post-adjustment": "ترحيل التسوية"
-  ,"movement-reversal-reason": "سبب العكس"
-  ,"movement-reversal-default-reason": "عكس مخزون"
-  ,"correct-opening-stock": "تصحيح الرصيد الافتتاحي"
-  ,"set-opening-stock": "تسجيل الرصيد الافتتاحي"
-  ,"party-item-relations": "علاقات الطرف بالصنف"
-  ,"party": "الطرف"
-  ,"item": "الصنف"
-  ,"relation-type": "نوع العلاقة"
-  ,"party-item-code": "كود الصنف لدى الطرف"
-  ,"preferred": "مفضل"
-  ,"add-relation": "إضافة علاقة"
-  ,"inventory-select-item-first": "اختر صنفًا أولًا."
-  ,"inventory-base-unit-required": "اختر وحدة الأساس قبل الحفظ."
-  ,"system-unit-protected": "لا يمكن تعديل أو تعطيل وحدة النظام."
-  ,"purchases": "المشتريات"
-  ,"purchase-invoices": "فواتير المشتريات"
-  ,"purchase-returns": "مرتجعات المشتريات"
-  ,"purchase-invoice-details": "تفاصيل فاتورة المشتريات"
-  ,"purchase-return-details": "تفاصيل مرتجع المشتريات"
-  ,"create-purchase-invoice": "إنشاء فاتورة شراء"
-  ,"edit-purchase-invoice": "تعديل فاتورة شراء"
-  ,"create-purchase-return": "إنشاء مرتجع شراء"
-  ,"edit-purchase-return": "تعديل مرتجع شراء"
-  ,"invoice-number": "رقم الفاتورة"
-  ,"return-number": "رقم المرتجع"
-  ,"supplier": "المورد"
-  ,"supplier-invoice-number": "رقم فاتورة المورد"
-  ,"invoice-date": "تاريخ الفاتورة"
-  ,"return-date": "تاريخ المرتجع"
-  ,"header-discount": "خصم الفاتورة"
-  ,"other-costs": "تكاليف إضافية"
-  ,"invoice-lines": "أسطر الفاتورة"
-  ,"return-lines": "أسطر المرتجع"
-  ,"line-total": "إجمالي السطر"
-  ,"cancel-document": "إلغاء المستند"
-  ,"cancel-reason": "سبب الإلغاء"
-  ,"purchases-line-help": "اختر الصنف واحرص على مطابقة الوحدة الأساسية للصنف."
-  ,"purchase-load-error": "تعذر تحميل مستندات المشتريات."
-  ,"purchase-empty": "لا توجد مستندات مطابقة."
-  ,"purchase-action-success": "تم حفظ مستند المشتريات."
-  ,"purchase-action-failed": "خطأ في عملية المشتريات."
-  ,"purchase-supplier-required": "اختر مورداً أولاً."
-  ,"purchase-lines-required": "أضف سطر شراء واحد على الأقل."
-  ,"purchase-invoice-required": "اختر فاتورة شراء أولاً."
-  ,"purchase-return-lines-required": "أضف سطر مرتجع واحد على الأقل."
-  ,"back": "الرجوع"
-  ,"add-line": "إضافة سطر"
-  ,"purchases.status.draft": "مسودة"
-  ,"purchases.status.posted": "مرحلة"
-  ,"purchases.status.cancelled": "ملغاة"
-  ,"returnable-quantity": "الكمية القابلة للرد"
+  "more-items": "عناصر أخرى",
+  "parties": "الأطراف",
+  "parties-list": "قائمة الأطراف",
+  "party-details": "تفاصيل الطرف",
+  "party-statement": "كشف حساب الطرف",
+  "create-party": "إنشاء طرف",
+  "edit-party": "تعديل طرف",
+  "party-code": "الكود",
+  "party-classification": "التصنيف",
+  "party-customer": "عميل",
+  "party-supplier": "مورد",
+  "phone": "الهاتف",
+  "tax-number": "الرقم الضريبي",
+  "address": "العنوان",
+  "notes": "ملاحظات",
+  "balance": "الرصيد",
+  "balanced": "متوازن",
+  "debit": "مدين",
+  "credit": "دائن",
+  "opening-balance": "الرصيد الافتتاحي",
+  "balance-direction": "اتجاه الرصيد",
+  "opening-balance-date": "تاريخ الرصيد الافتتاحي",
+  "opening-debit": "افتتاحي مدين",
+  "opening-credit": "افتتاحي دائن",
+  "current-balance": "الرصيد الحالي",
+  "reference": "المرجع",
+  "date": "التاريخ",
+  "none": "لا يوجد",
+  "parties-load-error": "تعذر تحميل بيانات الأطراف.",
+  "parties-empty": "لا توجد أطراف.",
+  "party-statement-empty": "لا توجد حركات في كشف الحساب.",
+  "parties-action-success": "تم تنفيذ إجراء الطرف بنجاح.",
+  "parties-action-failed": "تعذر تنفيذ إجراء الطرف.",
+  "name-arabic": "الاسم بالعربية",
+  "name-english": "الاسم بالإنجليزية",
+  "primary-phone": "الهاتف الأساسي",
+  "secondary-phone": "الهاتف الإضافي",
+  "settled": "مسوى",
+  "running-balance": "الرصيد الجاري",
+  "party-form-help": "صنف الطرف كعميل أو مورد أو كليهما. الرصيد الافتتاحي اختياري عند الإنشاء.",
+  "manage-opening-balance": "إدارة الرصيد الافتتاحي",
+  "correct-opening-balance": "تصحيح الرصيد الافتتاحي",
+  "opening-balance-correction-help": "يتم تسجيل التصحيح كحركة عكسية وحركة بديلة، ولا يتم استبدال الحركات السابقة بصمت.",
+  "correction-reason": "سبب التصحيح",
+  "view-full-statement": "عرض كشف الحساب الكامل",
+  "party-statement-preview": "معاينة كشف الحساب",
+  "from-date": "من تاريخ",
+  "to-date": "إلى تاريخ",
+  "entry-type": "نوع الحركة",
+  "opening-balance-reversal": "عكس الرصيد الافتتاحي",
+  "brought-forward": "الرصيد المرحل",
+  "inventory": "المخزون",
+  "inventory-items": "الأصناف",
+  "inventory-categories": "تصنيفات الأصناف",
+  "inventory-units": "وحدات القياس",
+  "inventory-low-stock": "تنبيهات المخزون",
+  "inventory-movements": "حركات المخزون",
+  "inventory-load-error": "تعذر تحميل بيانات المخزون.",
+  "inventory-empty-items": "لا توجد أصناف مخزون.",
+  "inventory-no-low-stock": "لا توجد تنبيهات نقص مخزون.",
+  "inventory-action-success": "تم تنفيذ إجراء المخزون بنجاح.",
+  "inventory-action-failed": "تعذر تنفيذ إجراء المخزون.",
+  "create-item": "إنشاء صنف",
+  "edit-item": "تعديل صنف",
+  "item-details": "تفاصيل الأصناف",
+  "item-code": "الكود",
+  "item-type": "نوع الصنف",
+  "item-category": "التصنيف",
+  "base-unit": "وحدة الأساس",
+  "barcode": "الباركود",
+  "minimum-quantity": "الحد الأدنى",
+  "reorder-quantity": "نقطة إعادة الطلب",
+  "allow-negative-stock": "السماح بالمخزون السالب",
+  "current-quantity": "الكمية الحالية",
+  "stock-status": "حالة المخزون",
+  "quantity": "الكمية",
+  "decimal-places": "عدد المنازل العشرية",
+  "opening-stock": "رصيد افتتاحي",
+  "opening-stock-current": "الرصيد الافتتاحي الحالي",
+  "is-purchasable": "قابل للشراء",
+  "is-sellable": "قابل للبيع",
+  "inventory-item-form-help": "احفظ وحدة الأساس وعلاقات التحويل للوحدات البديلة من شاشة الصنف.",
+  "alternate-units": "الوحدات البديلة",
+  "alternate-units-help": "أضف علاقات تحويل لكل وحدة يمكن استخدامها في العمليات.",
+  "unit": "الوحدة",
+  "factor-to-base": "معامل التحويل إلى الأساس",
+  "default-purchase": "افتراضي شراء",
+  "default-sales": "افتراضي بيع",
+  "remove": "حذف",
+  "item-units": "وحدات الصنف",
+  "system-unit": "وحدة نظام",
+  "unit-code": "كود الوحدة",
+  "symbol": "الرمز",
+  "symbol-arabic": "الرمز بالعربية",
+  "symbol-english": "الرمز بالإنجليزية",
+  "edit-unit": "تعديل الوحدة",
+  "create-unit": "إنشاء وحدة",
+  "unit-decimal-help": "استخدم صفر للأعداد الصحيحة أو قيمة موجبة للكميات العشرية.",
+  "parent-category": "التصنيف الأب",
+  "inventory-movement-actions": "إجراءات الحركة",
+  "stock-in": "إدخال مخزون",
+  "stock-out": "صرف مخزون",
+  "inventory-adjustment": "تسوية مخزون",
+  "adjustment-type": "نوع التسوية",
+  "adjustment-reason": "سبب التسوية",
+  "increase": "زيادة",
+  "decrease": "نقص",
+  "post-stock-in": "ترحيل إدخال مخزون",
+  "post-stock-out": "ترحيل صرف مخزون",
+  "post-adjustment": "ترحيل التسوية",
+  "movement-reversal-reason": "سبب العكس",
+  "movement-reversal-default-reason": "عكس مخزون",
+  "correct-opening-stock": "تصحيح الرصيد الافتتاحي",
+  "set-opening-stock": "تسجيل الرصيد الافتتاحي",
+  "party-item-relations": "علاقات الطرف بالصنف",
+  "party": "الطرف",
+  "relation-type": "نوع العلاقة",
+  "party-item-code": "كود الصنف لدى الطرف",
+  "preferred": "مفضل",
+  "add-relation": "إضافة علاقة",
+  "inventory-select-item-first": "اختر صنفًا أولًا.",
+  "inventory-base-unit-required": "اختر وحدة الأساس قبل الحفظ.",
+  "system-unit-protected": "لا يمكن تعديل أو تعطيل وحدة النظام.",
+  "purchases": "المشتريات",
+  "purchase-invoices": "فواتير المشتريات",
+  "purchase-returns": "مرتجعات المشتريات",
+  "purchase-invoice-details": "تفاصيل فاتورة المشتريات",
+  "purchase-return-details": "تفاصيل مرتجع المشتريات",
+  "create-purchase-invoice": "إنشاء فاتورة شراء",
+  "edit-purchase-invoice": "تعديل فاتورة شراء",
+  "create-purchase-return": "إنشاء مرتجع شراء",
+  "edit-purchase-return": "تعديل مرتجع شراء",
+  "invoice-number": "رقم الفاتورة",
+  "return-number": "رقم المرتجع",
+  "supplier": "المورد",
+  "supplier-invoice-number": "رقم فاتورة المورد",
+  "invoice-date": "تاريخ الفاتورة",
+  "return-date": "تاريخ المرتجع",
+  "header-discount": "خصم الفاتورة",
+  "other-costs": "تكاليف إضافية",
+  "invoice-lines": "أسطر الفاتورة",
+  "return-lines": "أسطر المرتجع",
+  "line-total": "إجمالي السطر",
+  "cancel-document": "إلغاء المستند",
+  "cancel-reason": "سبب الإلغاء",
+  "purchases-line-help": "اختر الصنف واحرص على مطابقة الوحدة الأساسية للصنف.",
+  "purchase-load-error": "تعذر تحميل مستندات المشتريات.",
+  "purchase-empty": "لا توجد مستندات مطابقة.",
+  "purchase-action-success": "تم حفظ مستند المشتريات.",
+  "purchase-action-failed": "خطأ في عملية المشتريات.",
+  "purchase-supplier-required": "اختر مورداً أولاً.",
+  "purchase-lines-required": "أضف سطر شراء واحد على الأقل.",
+  "purchase-invoice-required": "اختر فاتورة شراء أولاً.",
+  "purchase-return-lines-required": "أضف سطر مرتجع واحد على الأقل.",
+  "back": "الرجوع",
+  "add-line": "إضافة سطر",
+  "purchases.status.draft": "مسودة",
+  "purchases.status.posted": "مرحلة",
+  "purchases.status.cancelled": "ملغاة",
+  "returnable-quantity": "الكمية القابلة للرد",
+  "basic-information": "المعلومات الأساسية",
+  "invoice-notes": "ملاحظات الفاتورة",
+  "totals-summary": "ملخص الحسابات",
+  "save-as-draft": "حفظ كمسودة",
+  "post-invoice": "ترحيل الفاتورة",
+  "auto-generated": "يتم إنشاؤه تلقائياً",
+  "auto-generated-on-save": "يتم إنشاؤه تلقائياً عند الحفظ",
+  "search-item": "ابحث عن صنف...",
+  "add-item": "إضافة صنف جديد",
+  "notes-placeholder": "أضف أي ملاحظات أو شروط خاصة بهذه الفاتورة هنا...",
+  "currency": "ج.م",
+  "line-discounts": "خصومات الأصناف",
+  "total-tax": "إجمالي الضريبة"
 }
