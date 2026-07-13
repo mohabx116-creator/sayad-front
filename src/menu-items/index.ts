@@ -2,12 +2,13 @@ import dashboard from './dashboard';
 import administration from './administration';
 import parties from './parties';
 import inventory from './inventory';
+import purchases from './purchases';
 import { NavItemType } from 'types';
 
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems: { items: NavItemType[] } = {
-  items: [dashboard, parties, inventory, administration]
+  items: [dashboard, parties, purchases, inventory, administration]
 };
 
 export default menuItems;

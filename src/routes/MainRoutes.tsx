@@ -8,6 +8,7 @@ import PermissionRouteGuard from 'modules/Administration/components/PermissionRo
 import { ADMINISTRATION_PERMISSIONS } from 'modules/Administration/utils/administration.constants';
 import { INVENTORY_PERMISSIONS } from 'modules/Inventory/utils/inventory.constants';
 import { PARTIES_PERMISSIONS } from 'modules/Parties/utils/parties.constants';
+import { PURCHASES_PERMISSIONS } from 'modules/Purchases/utils/purchases.constants';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -28,6 +29,12 @@ const InventoryCategoriesPage = Loadable(lazy(() => import('modules/Inventory/pa
 const InventoryUnitsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryUnitsPage')));
 const InventoryPartyItemsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryPartyItemsPage')));
 const InventoryLowStockPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryLowStockPage')));
+const PurchaseInvoicesListPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseInvoicesListPage')));
+const PurchaseInvoiceDetailsPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseInvoiceDetailsPage')));
+const PurchaseInvoiceFormPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseInvoiceFormPage')));
+const PurchaseReturnsListPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseReturnsListPage')));
+const PurchaseReturnDetailsPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseReturnDetailsPage')));
+const PurchaseReturnFormPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseReturnFormPage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -172,6 +179,70 @@ const MainRoutes = {
       )
     },
     {
+      path: '/purchases/invoices',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.invoicesView}>
+          <PurchaseInvoicesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/purchases/invoices/new',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.invoicesCreate}>
+          <PurchaseInvoiceFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/purchases/invoices/:id',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.invoicesView}>
+          <PurchaseInvoiceDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/purchases/invoices/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.invoicesUpdate}>
+          <PurchaseInvoiceFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/purchases/returns',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.returnsView}>
+          <PurchaseReturnsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/purchases/returns/new',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.returnsCreate}>
+          <PurchaseReturnFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/purchases/returns/:id',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.returnsView}>
+          <PurchaseReturnDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/purchases/returns/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.returnsUpdate}>
+          <PurchaseReturnFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
       path: '/administration/roles',
       element: (
         <PermissionRouteGuard permission={ADMINISTRATION_PERMISSIONS.rolesView}>
@@ -186,7 +257,7 @@ const MainRoutes = {
           <RoleDetailsPage />
         </PermissionRouteGuard>
       )
-    },
+    }
   ]
 };
 
