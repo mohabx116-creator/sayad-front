@@ -38,9 +38,13 @@ export default function InventoryItemDetailsPage() {
           <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="item-type" /></Typography><Typography>{item.itemType}</Typography></Grid>
           <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="base-unit" /></Typography><Typography>{item.baseUnitCode}</Typography></Grid>
           <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="stock-status" /></Typography><Typography><Chip label={item.stockStatus} color={item.stockStatus === 'Normal' ? 'success' : 'warning'} /></Typography></Grid>
+          <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="is-purchasable" /></Typography><Typography>{item.isPurchasable ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}</Typography></Grid>
+          <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="is-sellable" /></Typography><Typography>{item.isSellable ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}</Typography></Grid>
           <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="current-quantity" /></Typography><Typography>{item.currentQuantity}</Typography></Grid>
           <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="minimum-quantity" /></Typography><Typography>{item.minimumQuantity}</Typography></Grid>
           <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="reorder-quantity" /></Typography><Typography>{item.reorderQuantity}</Typography></Grid>
+          <Grid item xs={12} md={6}><Typography variant="caption"><FormattedMessage id="description-arabic" /></Typography><Typography>{item.descriptionArabic ?? '-'}</Typography></Grid>
+          <Grid item xs={12} md={6}><Typography variant="caption"><FormattedMessage id="description-english" /></Typography><Typography>{item.descriptionEnglish ?? '-'}</Typography></Grid>
           <Grid item xs={12}><Typography variant="caption"><FormattedMessage id="notes" /></Typography><Typography>{item.notes ?? '-'}</Typography></Grid>
         </Grid>
       </MainCard>

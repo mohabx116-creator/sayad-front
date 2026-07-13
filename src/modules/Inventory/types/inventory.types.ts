@@ -10,7 +10,11 @@ export type UnitOfMeasureDto = {
   code: string;
   nameArabic: string;
   nameEnglish?: string | null;
+  symbolArabic: string;
+  symbolEnglish: string;
+  allowsDecimals: boolean;
   decimalPlaces: number;
+  isSystem: boolean;
   isActive: boolean;
   rowVersion: string;
 };
@@ -39,6 +43,10 @@ export type ItemDto = {
   categoryNameArabic?: string | null;
   sku?: string | null;
   barcode?: string | null;
+  descriptionArabic?: string | null;
+  descriptionEnglish?: string | null;
+  isPurchasable: boolean;
+  isSellable: boolean;
   minimumQuantity: number;
   reorderQuantity: number;
   allowNegativeStock: boolean;
@@ -95,6 +103,10 @@ export type CreateItemRequest = {
   categoryId?: string | null;
   sku?: string | null;
   barcode?: string | null;
+  descriptionArabic?: string | null;
+  descriptionEnglish?: string | null;
+  isPurchasable: boolean;
+  isSellable: boolean;
   minimumQuantity: number;
   reorderQuantity: number;
   allowNegativeStock: boolean;
@@ -118,5 +130,7 @@ export type CreateUnitRequest = {
   code: string;
   nameArabic: string;
   nameEnglish?: string | null;
+  symbolArabic?: string | null;
+  symbolEnglish?: string | null;
   decimalPlaces: number;
 };

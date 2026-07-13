@@ -35,6 +35,10 @@ export default function InventoryItemFormPage() {
     categoryId: '',
     sku: '',
     barcode: '',
+    descriptionArabic: '',
+    descriptionEnglish: '',
+    isPurchasable: true,
+    isSellable: true,
     minimumQuantity: 0,
     reorderQuantity: 0,
     allowNegativeStock: false,
@@ -54,6 +58,10 @@ export default function InventoryItemFormPage() {
         categoryId: item.categoryId ?? '',
         sku: item.sku ?? '',
         barcode: item.barcode ?? '',
+        descriptionArabic: item.descriptionArabic ?? '',
+        descriptionEnglish: item.descriptionEnglish ?? '',
+        isPurchasable: item.isPurchasable,
+        isSellable: item.isSellable,
         minimumQuantity: item.minimumQuantity,
         reorderQuantity: item.reorderQuantity,
         allowNegativeStock: item.allowNegativeStock,
@@ -117,7 +125,21 @@ export default function InventoryItemFormPage() {
             <Grid item xs={12} md={3}><TextField fullWidth label={<FormattedMessage id="barcode" />} value={form.barcode ?? ''} onChange={(e) => setForm({ ...form, barcode: e.target.value })} /></Grid>
             <Grid item xs={12} md={3}><TextField type="number" fullWidth label={<FormattedMessage id="minimum-quantity" />} value={form.minimumQuantity} onChange={(e) => setForm({ ...form, minimumQuantity: Number(e.target.value) })} /></Grid>
             <Grid item xs={12} md={3}><TextField type="number" fullWidth label={<FormattedMessage id="reorder-quantity" />} value={form.reorderQuantity} onChange={(e) => setForm({ ...form, reorderQuantity: Number(e.target.value) })} /></Grid>
+            <Grid item xs={12} md={6}><TextField fullWidth multiline minRows={2} label={<FormattedMessage id="description-arabic" />} value={form.descriptionArabic ?? ''} onChange={(e) => setForm({ ...form, descriptionArabic: e.target.value })} /></Grid>
+            <Grid item xs={12} md={6}><TextField fullWidth multiline minRows={2} label={<FormattedMessage id="description-english" />} value={form.descriptionEnglish ?? ''} onChange={(e) => setForm({ ...form, descriptionEnglish: e.target.value })} /></Grid>
             {!isEdit && <Grid item xs={12} md={4}><TextField type="number" fullWidth label={<FormattedMessage id="opening-stock" />} value={openingQuantity} onChange={(e) => setOpeningQuantity(Number(e.target.value))} /></Grid>}
+            <Grid item xs={12} md={4}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Switch checked={form.isPurchasable} onChange={(e) => setForm({ ...form, isPurchasable: e.target.checked })} />
+                <Typography><FormattedMessage id="is-purchasable" /></Typography>
+              </Stack>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Switch checked={form.isSellable} onChange={(e) => setForm({ ...form, isSellable: e.target.checked })} />
+                <Typography><FormattedMessage id="is-sellable" /></Typography>
+              </Stack>
+            </Grid>
             <Grid item xs={12} md={4}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Switch checked={form.allowNegativeStock} onChange={(e) => setForm({ ...form, allowNegativeStock: e.target.checked })} />

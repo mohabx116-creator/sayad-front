@@ -51,7 +51,7 @@ export function useItemMovements(id?: string, params: Record<string, string | nu
 }
 
 export function useLowStockItems(params: Record<string, string | number | boolean | undefined | null> = { page: 1, pageSize: 20 }) {
-  const key = `/api/inventory/low-stock?${buildQuery(params)}`;
+  const key = `/api/inventory/alerts/low-stock?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<LowStockItemDto[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
