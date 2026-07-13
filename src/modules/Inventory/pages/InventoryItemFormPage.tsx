@@ -1,30 +1,51 @@
-import { FormEvent, useEffect, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+﻿import { FormEvent, useEffect, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
 import Grid from '@mui/material/GridLegacy';
+import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import { IconPlus, IconTrash } from '@tabler/icons-react';
 
+import { useDispatch } from 'store';
+import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import { createItem, updateItem } from '../api/inventoryApi';
-import { useInventoryCategories, useInventoryItem, useInventoryUnits } from '../hooks/useInventory';
-import type { CreateItemRequest } from '../types/inventory.types';
+import { useInventoryCategories, useInventoryItem, useInventoryItemUnits, useInventoryUnits } from '../hooks/useInventory';
+import type { CreateItemRequest, ItemUnitInput, UpdateItemRequest } from '../types/inventory.types';
 import { ITEM_TYPES } from '../utils/inventory.constants';
 
+type EditableUnitRow = ItemUnitInput;
+
 const today = new Date().toISOString().slice(0, 10);
+
+function buildBaseUnitRow(baseUnitId: string): EditableUnitRow {
+  return { unitOfMeasureId: baseUnitId, factorToBase: 1, isDefaultPurchaseUnit: true, isDefaultSalesUnit: true };
+}
 
 export default function InventoryItemFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const intl = useIntl();
+  const dispatch = useDispatch();
   const isEdit = Boolean(id);
   const { item, isLoading } = useInventoryItem(id);
+  const { items: existingItemUnits } = useInventoryItemUnits(id);
   const { items: units } = useInventoryUnits();
   const { items: categories } = useInventoryCategories();
   const [form, setForm] = useState<CreateItemRequest>({
@@ -46,7 +67,9 @@ export default function InventoryItemFormPage() {
     units: [],
     openingStock: null
   });
+  const [unitRows, setUnitRows] = useState<EditableUnitRow[]>([]);
   const [openingQuantity, setOpeningQuantity] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (item) {
@@ -66,43 +89,139 @@ export default function InventoryItemFormPage() {
         reorderQuantity: item.reorderQuantity,
         allowNegativeStock: item.allowNegativeStock,
         notes: item.notes ?? '',
-        units: [{ unitOfMeasureId: item.baseUnitId, factorToBase: 1, isDefaultPurchaseUnit: true, isDefaultSalesUnit: true }],
+        units: [],
         openingStock: null
       });
     }
   }, [item]);
 
   useEffect(() => {
-    if (!form.baseUnitId && units[0]) {
-      setForm((current) => ({ ...current, baseUnitId: units[0].id }));
+    if (isEdit || !form.baseUnitId) {
+      return;
     }
-  }, [form.baseUnitId, units]);
+
+    if (unitRows.length === 0) {
+      setUnitRows([buildBaseUnitRow(form.baseUnitId)]);
+    }
+  }, [form.baseUnitId, isEdit, unitRows.length]);
+
+  useEffect(() => {
+    if (!isEdit || !id) {
+      return;
+    }
+
+    void (async () => {
+      try {
+        setUnitRows(existingItemUnits.length > 0 ? existingItemUnits.map((unit) => ({
+          unitOfMeasureId: unit.unitOfMeasureId,
+          factorToBase: unit.factorToBase,
+          isDefaultPurchaseUnit: unit.isDefaultPurchaseUnit,
+          isDefaultSalesUnit: unit.isDefaultSalesUnit
+        })) : []);
+      } catch {
+        setUnitRows([]);
+      }
+    })();
+  }, [existingItemUnits, id, isEdit]);
+
+  useEffect(() => {
+    if (!form.baseUnitId) {
+      return;
+    }
+    setUnitRows((current) => {
+      if (current.length === 0) {
+        return [buildBaseUnitRow(form.baseUnitId)];
+      }
+      const hasBase = current.some((row) => row.unitOfMeasureId === form.baseUnitId);
+      if (hasBase) {
+        return current.map((row) => (
+          row.unitOfMeasureId === form.baseUnitId
+            ? buildBaseUnitRow(form.baseUnitId)
+            : row
+        ));
+      }
+      return [buildBaseUnitRow(form.baseUnitId), ...current];
+    });
+  }, [form.baseUnitId]);
+
+  const notify = (message: string, severity: 'success' | 'error' = 'success') => {
+    dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
+  };
+
+  const updateUnitRow = (index: number, next: Partial<EditableUnitRow>) => {
+    setUnitRows((current) => current.map((row, rowIndex) => (rowIndex === index ? { ...row, ...next } : row)));
+  };
+
+  const removeUnitRow = (index: number) => {
+    setUnitRows((current) => current.filter((_, rowIndex) => rowIndex !== index));
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (!form.baseUnitId) {
+      notify(intl.formatMessage({ id: 'inventory-base-unit-required' }), 'error');
+      return;
+    }
+
+    const normalizedUnits: ItemUnitInput[] = [];
+    const seen = new Set<string>();
+    [...unitRows, buildBaseUnitRow(form.baseUnitId)].forEach((row) => {
+      if (!row.unitOfMeasureId || seen.has(row.unitOfMeasureId)) {
+        return;
+      }
+      seen.add(row.unitOfMeasureId);
+      normalizedUnits.push(
+        row.unitOfMeasureId === form.baseUnitId
+          ? buildBaseUnitRow(form.baseUnitId)
+          : {
+              unitOfMeasureId: row.unitOfMeasureId,
+              factorToBase: Number(row.factorToBase) || 0,
+              isDefaultPurchaseUnit: row.isDefaultPurchaseUnit,
+              isDefaultSalesUnit: row.isDefaultSalesUnit
+            }
+      );
+    });
+
     const request = {
       ...form,
       categoryId: form.categoryId || null,
-      units: [{ unitOfMeasureId: form.baseUnitId, factorToBase: 1, isDefaultPurchaseUnit: true, isDefaultSalesUnit: true }],
+      units: normalizedUnits,
       openingStock: !isEdit && openingQuantity > 0 ? { movementDate: today, unitOfMeasureId: form.baseUnitId, quantity: openingQuantity, notes: 'Opening stock' } : null
-    };
-    if (isEdit && item) {
-      await updateItem(item.id, { ...request, rowVersion: item.rowVersion });
-      navigate(`/inventory/items/${item.id}`);
-      return;
+    } satisfies CreateItemRequest;
+
+    try {
+      setIsSaving(true);
+      if (isEdit && item) {
+        const updateRequest: UpdateItemRequest = { ...request, rowVersion: item.rowVersion };
+        await updateItem(item.id, updateRequest);
+        notify(intl.formatMessage({ id: 'inventory-action-success' }));
+        navigate(`/inventory/items/${item.id}`);
+        return;
+      }
+
+      const created = await createItem(request);
+      notify(intl.formatMessage({ id: 'inventory-action-success' }));
+      navigate(`/inventory/items/${created.id}`);
+    } catch (saveError) {
+      notify(saveError instanceof Error ? saveError.message : intl.formatMessage({ id: 'inventory-action-failed' }), 'error');
+    } finally {
+      setIsSaving(false);
     }
-    const created = await createItem(request);
-    navigate(`/inventory/items/${created.id}`);
   };
 
   if (isEdit && isLoading) return <Loader />;
 
   return (
     <>
-      <Breadcrumbs custom heading={isEdit ? 'edit-item' : 'create-item'} links={[{ title: 'inventory' }, { title: 'inventory-items' }]} />
+      <Breadcrumbs custom heading={isEdit ? 'edit-item' : 'create-item'} links={[{ title: 'inventory', to: '/inventory/items' }, { title: 'inventory-items', to: '/inventory/items' }]} />
       <MainCard title={<FormattedMessage id={isEdit ? 'edit-item' : 'create-item'} />}>
         <form onSubmit={submit}>
           <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography color="text.secondary">
+                <FormattedMessage id="inventory-item-form-help" />
+              </Typography>
+            </Grid>
             <Grid item xs={12} md={6}><TextField required fullWidth label={<FormattedMessage id="name-arabic" />} value={form.nameArabic} onChange={(e) => setForm({ ...form, nameArabic: e.target.value })} /></Grid>
             <Grid item xs={12} md={6}><TextField fullWidth label={<FormattedMessage id="name-english" />} value={form.nameEnglish ?? ''} onChange={(e) => setForm({ ...form, nameEnglish: e.target.value })} /></Grid>
             <Grid item xs={12} md={4}>
@@ -112,6 +231,7 @@ export default function InventoryItemFormPage() {
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField select required fullWidth label={<FormattedMessage id="base-unit" />} value={form.baseUnitId} onChange={(e) => setForm({ ...form, baseUnitId: e.target.value })}>
+                <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
                 {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
               </TextField>
             </Grid>
@@ -146,11 +266,79 @@ export default function InventoryItemFormPage() {
                 <Typography><FormattedMessage id="allow-negative-stock" /></Typography>
               </Stack>
             </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle2"><FormattedMessage id="alternate-units" /></Typography>
+              <Typography color="text.secondary" variant="body2">
+                <FormattedMessage id="alternate-units-help" />
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><FormattedMessage id="unit" /></TableCell>
+                      <TableCell><FormattedMessage id="factor-to-base" /></TableCell>
+                      <TableCell><FormattedMessage id="default-purchase" /></TableCell>
+                      <TableCell><FormattedMessage id="default-sales" /></TableCell>
+                      <TableCell align="right">
+                        <Button size="small" startIcon={<IconPlus size={16} />} onClick={() => setUnitRows((current) => [...current, { unitOfMeasureId: '', factorToBase: 1, isDefaultPurchaseUnit: false, isDefaultSalesUnit: false }])}>
+                          <FormattedMessage id="add" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {unitRows.map((row, index) => (
+                      <TableRow key={`${row.unitOfMeasureId || 'empty'}-${index}`}>
+                        <TableCell sx={{ minWidth: 220 }}>
+                          <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            value={row.unitOfMeasureId}
+                            onChange={(event) => updateUnitRow(index, { unitOfMeasureId: event.target.value })}
+                          >
+                            <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
+                            {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
+                          </TextField>
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 140 }}>
+                          <TextField
+                            size="small"
+                            type="number"
+                            fullWidth
+                            value={row.factorToBase}
+                            onChange={(event) => updateUnitRow(index, { factorToBase: Number(event.target.value) })}
+                            disabled={row.unitOfMeasureId === form.baseUnitId}
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Checkbox checked={row.isDefaultPurchaseUnit || row.unitOfMeasureId === form.baseUnitId} onChange={(event) => updateUnitRow(index, { isDefaultPurchaseUnit: event.target.checked })} disabled={row.unitOfMeasureId === form.baseUnitId} />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Checkbox checked={row.isDefaultSalesUnit || row.unitOfMeasureId === form.baseUnitId} onChange={(event) => updateUnitRow(index, { isDefaultSalesUnit: event.target.checked })} disabled={row.unitOfMeasureId === form.baseUnitId} />
+                        </TableCell>
+                        <TableCell align="right">
+                          <Tooltip title={<FormattedMessage id="remove" />}>
+                            <span>
+                              <IconButton onClick={() => removeUnitRow(index)} disabled={row.unitOfMeasureId === form.baseUnitId}>
+                                <IconTrash size={18} />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
             <Grid item xs={12}><TextField fullWidth multiline minRows={3} label={<FormattedMessage id="notes" />} value={form.notes ?? ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Grid>
             <Grid item xs={12}>
               <Stack direction="row" spacing={1}>
-                <Button type="submit" variant="contained"><FormattedMessage id="save" /></Button>
-                <Button onClick={() => navigate('/inventory/items')}><FormattedMessage id="cancel" /></Button>
+                <Button type="submit" variant="contained" disabled={isSaving}><FormattedMessage id="save" /></Button>
+                <Button onClick={() => navigate('/inventory/items')} disabled={isSaving}><FormattedMessage id="cancel" /></Button>
               </Stack>
             </Grid>
           </Grid>

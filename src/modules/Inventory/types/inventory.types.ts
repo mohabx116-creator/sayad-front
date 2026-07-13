@@ -59,15 +59,38 @@ export type ItemDto = {
 
 export type InventoryMovementDto = {
   id: string;
+  warehouseId: string;
+  warehouseCode: string;
+  itemId: string;
+  itemCode: string;
+  itemNameArabic: string;
   movementType: string;
+  referenceType: string;
+  referenceNumber?: string | null;
   movementDate: string;
+  unitOfMeasureId: string;
   unitCode: string;
   quantity: number;
+  factorToBase: number;
   baseQuantityIn: number;
   baseQuantityOut: number;
   runningQuantity: number;
   descriptionArabic: string;
+  descriptionEnglish?: string | null;
   isReversal: boolean;
+  reversesMovementId?: string | null;
+  createdAtUtc: string;
+};
+
+export type ItemUnitDto = {
+  id: string;
+  unitOfMeasureId: string;
+  unitCode: string;
+  unitNameArabic: string;
+  unitNameEnglish?: string | null;
+  factorToBase: number;
+  isDefaultPurchaseUnit: boolean;
+  isDefaultSalesUnit: boolean;
 };
 
 export type LowStockItemDto = {
@@ -93,6 +116,33 @@ export type OpeningStockRequest = {
   unitOfMeasureId: string;
   quantity: number;
   notes?: string | null;
+};
+
+export type CorrectOpeningStockRequest = {
+  movementDate: string;
+  unitOfMeasureId: string;
+  quantity: number;
+  reason: string;
+  expectedOpeningMovementId: string;
+};
+
+export type InventoryMovementRequest = {
+  movementDate: string;
+  unitOfMeasureId: string;
+  quantity: number;
+  notes?: string | null;
+};
+
+export type InventoryAdjustmentRequest = {
+  movementDate: string;
+  unitOfMeasureId: string;
+  quantity: number;
+  adjustmentType: 'Increase' | 'Decrease';
+  reason: string;
+};
+
+export type ReverseInventoryMovementRequest = {
+  reason: string;
 };
 
 export type CreateItemRequest = {
@@ -126,6 +176,10 @@ export type CreateCategoryRequest = {
   parentCategoryId?: string | null;
 };
 
+export type UpdateCategoryRequest = CreateCategoryRequest & {
+  rowVersion: string;
+};
+
 export type CreateUnitRequest = {
   code: string;
   nameArabic: string;
@@ -133,4 +187,47 @@ export type CreateUnitRequest = {
   symbolArabic?: string | null;
   symbolEnglish?: string | null;
   decimalPlaces: number;
+};
+
+export type UpdateUnitRequest = {
+  nameArabic: string;
+  nameEnglish?: string | null;
+  symbolArabic?: string | null;
+  symbolEnglish?: string | null;
+  decimalPlaces: number;
+  rowVersion: string;
+};
+
+export type PartyItemRelationDto = {
+  id: string;
+  partyId: string;
+  partyCode: string;
+  partyNameArabic: string;
+  itemId: string;
+  itemCode: string;
+  itemNameArabic: string;
+  relationType: 'Customer' | 'Supplier';
+  partyItemCode?: string | null;
+  notes?: string | null;
+  isPreferred: boolean;
+  isActive: boolean;
+  rowVersion: string;
+};
+
+export type CreatePartyItemRelationRequest = {
+  itemId: string;
+  partyId: string;
+  relationType: 'Customer' | 'Supplier';
+  partyItemCode?: string | null;
+  notes?: string | null;
+  isPreferred?: boolean;
+};
+
+export type CreateItemPartyRelationRequest = Omit<CreatePartyItemRelationRequest, 'itemId'>;
+
+export type UpdatePartyItemRelationRequest = {
+  partyItemCode?: string | null;
+  notes?: string | null;
+  isPreferred: boolean;
+  rowVersion: string;
 };

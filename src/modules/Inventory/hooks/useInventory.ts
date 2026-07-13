@@ -3,7 +3,16 @@ import useSWR from 'swr';
 
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import type { InventoryMovementDto, ItemCategoryDto, ItemDto, ListMeta, LowStockItemDto, UnitOfMeasureDto } from '../types/inventory.types';
+import type {
+  InventoryMovementDto,
+  ItemCategoryDto,
+  ItemDto,
+  ItemUnitDto,
+  ListMeta,
+  LowStockItemDto,
+  PartyItemRelationDto,
+  UnitOfMeasureDto
+} from '../types/inventory.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams();
@@ -29,6 +38,22 @@ export function useInventoryItems(params: Record<string, string | number | boole
 export function useInventoryItem(id?: string) {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ItemDto>>(id ? `/api/inventory/items/${id}` : null, fetcher);
   return useMemo(() => ({ item: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useInventoryItemUnits(id?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<ItemUnitDto[]>>(id ? `/api/inventory/items/${id}/units` : null, fetcher);
+  return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useInventoryItemOpeningStock(id?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<{ movementId?: string | null; movementDate?: string | null; quantity: number; notes?: string | null }>>(id ? `/api/inventory/items/${id}/opening-stock` : null, fetcher);
+  return useMemo(() => ({ openingStock: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function usePartyItemRelations(params: Record<string, string | number | boolean | undefined | null> = { page: 1, pageSize: 20 }) {
+  const key = `/api/inventory/party-items?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartyItemRelationDto[]>>(key, fetcher);
+  return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useInventoryUnits(params: Record<string, string | number | boolean | undefined | null> = { page: 1, pageSize: 100 }) {

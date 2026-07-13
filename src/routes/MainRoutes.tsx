@@ -26,6 +26,7 @@ const InventoryItemFormPage = Loadable(lazy(() => import('modules/Inventory/page
 const InventoryItemMovementsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemMovementsPage')));
 const InventoryCategoriesPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryCategoriesPage')));
 const InventoryUnitsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryUnitsPage')));
+const InventoryPartyItemsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryPartyItemsPage')));
 const InventoryLowStockPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryLowStockPage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -151,6 +152,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.unitsView}>
           <InventoryUnitsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/party-items',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.partyItemsView}>
+          <InventoryPartyItemsPage />
         </PermissionRouteGuard>
       )
     },

@@ -1,4 +1,4 @@
-import { IconAlertTriangle, IconCategory, IconPackage, IconRulerMeasure, IconTransfer } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCategory, IconLink, IconPackage, IconRulerMeasure, IconTransfer } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 import { INVENTORY_PERMISSIONS, INVENTORY_VIEW_PERMISSIONS } from 'modules/Inventory/utils/inventory.constants';
@@ -6,6 +6,7 @@ import { INVENTORY_PERMISSIONS, INVENTORY_VIEW_PERMISSIONS } from 'modules/Inven
 const icons = {
   IconPackage,
   IconCategory,
+  IconLink,
   IconRulerMeasure,
   IconTransfer,
   IconAlertTriangle
@@ -44,6 +45,15 @@ const inventory: NavItemType = {
       icon: icons.IconRulerMeasure,
       breadcrumbs: true,
       permission: INVENTORY_PERMISSIONS.unitsView
+    },
+    {
+      id: 'inventory-party-items',
+      title: 'party-item-relations',
+      type: 'item',
+      url: '/inventory/party-items',
+      icon: icons.IconLink,
+      breadcrumbs: true,
+      permission: INVENTORY_PERMISSIONS.partyItemsView
     },
     {
       id: 'inventory-low-stock',
