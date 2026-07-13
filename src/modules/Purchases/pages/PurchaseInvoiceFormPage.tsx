@@ -187,10 +187,10 @@ export default function PurchaseInvoiceFormPage() {
   return (
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-        <Box>
-           <Breadcrumbs custom heading={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 1 }} />
-           <Typography variant="h2"><FormattedMessage id={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} /></Typography>
-        </Box>
+         <Box>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 0 }} />
+           <Typography variant="h2" sx={{ mt: 1 }}><FormattedMessage id={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} /></Typography>
+         </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            {isEdit && invoice && (
               <Box sx={{ px: 2, py: 0.5, bgcolor: 'grey.100', color: 'text.secondary', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
@@ -252,7 +252,7 @@ export default function PurchaseInvoiceFormPage() {
                         <Typography variant="h4"><FormattedMessage id="item-details" /></Typography>
                      </Box>
                      <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead sx={{ bgcolor: 'grey.50' }}>
                             <TableRow>
                               <TableCell align="center" width={40}>#</TableCell>
@@ -330,25 +330,7 @@ export default function PurchaseInvoiceFormPage() {
          </Grid>
 
          <Grid item xs={12} lg={4}>
-            <Stack spacing={3} sx={{ height: '100%' }}>
-               <MainCard sx={{ ...cardSx, display: 'flex', flexDirection: 'column' }} content={false}>
-                  <Box sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                     <Box sx={headerSx}>
-                        <IconNotes color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="invoice-notes" /></Typography>
-                     </Box>
-                     <TextField 
-                        fullWidth 
-                        multiline 
-                        minRows={4} 
-                        placeholder={intl.formatMessage({ id: 'notes-placeholder' })} 
-                        value={form.notes ?? ''} 
-                        onChange={(event) => setForm({ ...form, notes: event.target.value })} 
-                        sx={{ flex: 1, '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' } }} 
-                     />
-                  </Box>
-               </MainCard>
-
+            <Stack spacing={3}>
                <MainCard sx={cardSx} content={false}>
                   <Box sx={{ p: 3 }}>
                      <Box sx={headerSx}>
@@ -367,7 +349,7 @@ export default function PurchaseInvoiceFormPage() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                            <Typography><FormattedMessage id="header-discount" /></Typography>
                            <TextField size="small" type="number" value={form.headerDiscount} onChange={(e) => setForm({ ...form, headerDiscount: Number(e.target.value) })} sx={{ width: 100 }} />
-                        </Box>
+                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                            <Typography><FormattedMessage id="other-costs" /></Typography>
                            <TextField size="small" type="number" value={form.otherCosts} onChange={(e) => setForm({ ...form, otherCosts: Number(e.target.value) })} sx={{ width: 100 }} />
@@ -385,6 +367,23 @@ export default function PurchaseInvoiceFormPage() {
                            </Box>
                         </Box>
                      </Stack>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconNotes color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4"><FormattedMessage id="invoice-notes" /></Typography>
+                     </Box>
+                     <TextField
+                        fullWidth
+                        multiline
+                        minRows={3}
+                        placeholder={intl.formatMessage({ id: 'notes-placeholder' })}
+                        value={form.notes ?? ''}
+                        onChange={(event) => setForm({ ...form, notes: event.target.value })}
+                     />
                   </Box>
                </MainCard>
             </Stack>

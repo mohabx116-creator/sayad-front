@@ -60,10 +60,10 @@ export default function PurchaseReturnDetailsPage() {
   return (
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-        <Box>
-           <Breadcrumbs custom heading="purchase-return-details" links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }]} sx={{ mb: 1 }} />
-           <Typography variant="h2">{purchaseReturn.number} - {purchaseReturn.purchaseInvoiceNumber}</Typography>
-        </Box>
+         <Box>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-return-details" links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }]} sx={{ mb: 0 }} />
+           <Typography variant="h2" sx={{ mt: 1 }}>{purchaseReturn.number} - {purchaseReturn.purchaseInvoiceNumber}</Typography>
+         </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
               <PurchaseStatusChip status={purchaseReturn.status} />
@@ -93,8 +93,8 @@ export default function PurchaseReturnDetailsPage() {
 
       {purchaseReturn.status === 'Cancelled' && (
          <Alert severity="error" sx={{ mb: 3, borderRadius: 2, border: '1px solid', borderColor: 'error.light' }}>
-            <Typography variant="subtitle1" fontWeight={600} gutterBottom><FormattedMessage id="return-cancelled" defaultMessage="This return has been cancelled." /></Typography>
-            <Typography variant="body2">{purchaseReturn.cancellationReason || <FormattedMessage id="no-cancel-reason" defaultMessage="No reason provided." />}</Typography>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom><FormattedMessage id="return-cancelled" /></Typography>
+            <Typography variant="body2">{purchaseReturn.cancellationReason || <FormattedMessage id="no-cancel-reason" />}</Typography>
          </Alert>
       )}
 
@@ -117,7 +117,7 @@ export default function PurchaseReturnDetailsPage() {
                            <Typography variant="body1" fontWeight={500}>{purchaseReturn.returnDate}</Typography>
                         </Grid>
                         <Grid item xs={12} md={4}>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="return-number" defaultMessage="Return Number" /></Typography>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="return-number" /></Typography>
                            <Typography variant="body1" fontWeight={500}>{purchaseReturn.number}</Typography>
                         </Grid>
                      </Grid>
@@ -131,7 +131,7 @@ export default function PurchaseReturnDetailsPage() {
                         <Typography variant="h4"><FormattedMessage id="return-lines" /></Typography>
                      </Box>
                      <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead sx={{ bgcolor: 'grey.50' }}>
                             <TableRow>
                               <TableCell align="center" width={40}>#</TableCell>
@@ -190,19 +190,7 @@ export default function PurchaseReturnDetailsPage() {
          </Grid>
 
          <Grid item xs={12} lg={4}>
-            <Stack spacing={3} sx={{ height: '100%' }}>
-               <MainCard sx={{ ...cardSx, display: 'flex', flexDirection: 'column' }} content={false}>
-                  <Box sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                     <Box sx={headerSx}>
-                        <IconNotes color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="return-notes" defaultMessage="Return Notes" /></Typography>
-                     </Box>
-                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: purchaseReturn.notes ? 'text.primary' : 'text.disabled' }}>
-                        {purchaseReturn.notes || '-'}
-                     </Typography>
-                  </Box>
-               </MainCard>
-
+            <Stack spacing={3}>
                <MainCard sx={cardSx} content={false}>
                   <Box sx={{ p: 3 }}>
                      <Box sx={headerSx}>
@@ -215,7 +203,7 @@ export default function PurchaseReturnDetailsPage() {
                            <Typography fontWeight={600}>{purchaseReturn.subtotal.toFixed(2)}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="total-discount" defaultMessage="Total Discount" /></Typography>
+                           <Typography><FormattedMessage id="total-discount" /></Typography>
                            <Typography fontWeight={600} color="error.main">- {(purchaseReturn.discountTotal || 0).toFixed(2)}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -231,6 +219,18 @@ export default function PurchaseReturnDetailsPage() {
                            </Box>
                         </Box>
                      </Stack>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconNotes color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4"><FormattedMessage id="return-notes" /></Typography>
+                     </Box>
+                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: purchaseReturn.notes ? 'text.primary' : 'text.disabled' }}>
+                        {purchaseReturn.notes || '-'}
+                     </Typography>
                   </Box>
                </MainCard>
             </Stack>

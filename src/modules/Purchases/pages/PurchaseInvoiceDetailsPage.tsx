@@ -64,10 +64,10 @@ export default function PurchaseInvoiceDetailsPage() {
   return (
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-        <Box>
-           <Breadcrumbs custom heading="purchase-invoice-details" links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 1 }} />
-           <Typography variant="h2">{invoice.number} - {invoice.supplierNameArabic}</Typography>
-        </Box>
+         <Box>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-invoice-details" links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 0 }} />
+           <Typography variant="h2" sx={{ mt: 1 }}>{invoice.number} - {invoice.supplierNameArabic}</Typography>
+         </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
               <PurchaseStatusChip status={invoice.status} />
@@ -105,9 +105,9 @@ export default function PurchaseInvoiceDetailsPage() {
 
       {invoice.status === 'Cancelled' && (
          <Alert severity="error" sx={{ mb: 3, borderRadius: 2, border: '1px solid', borderColor: 'error.light' }}>
-            <Typography variant="subtitle1" fontWeight={600} gutterBottom><FormattedMessage id="invoice-cancelled" defaultMessage="This invoice has been cancelled." /></Typography>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom><FormattedMessage id="invoice-cancelled" /></Typography>
             {/* If there's a reason on the invoice object we show it, else generic message */}
-            <Typography variant="body2">{(invoice as any).cancelReason || <FormattedMessage id="no-cancel-reason" defaultMessage="No reason provided." />}</Typography>
+            <Typography variant="body2">{(invoice as any).cancelReason || <FormattedMessage id="no-cancel-reason" />}</Typography>
          </Alert>
       )}
 
@@ -148,7 +148,7 @@ export default function PurchaseInvoiceDetailsPage() {
                         <Typography variant="h4"><FormattedMessage id="item-details" /></Typography>
                      </Box>
                      <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead sx={{ bgcolor: 'grey.50' }}>
                             <TableRow>
                               <TableCell align="center" width={40}>#</TableCell>
@@ -207,19 +207,7 @@ export default function PurchaseInvoiceDetailsPage() {
          </Grid>
 
          <Grid item xs={12} lg={4}>
-            <Stack spacing={3} sx={{ height: '100%' }}>
-               <MainCard sx={{ ...cardSx, display: 'flex', flexDirection: 'column' }} content={false}>
-                  <Box sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                     <Box sx={headerSx}>
-                        <IconNotes color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="invoice-notes" /></Typography>
-                     </Box>
-                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: invoice.notes ? 'text.primary' : 'text.disabled' }}>
-                        {invoice.notes || '-'}
-                     </Typography>
-                  </Box>
-               </MainCard>
-
+            <Stack spacing={3}>
                <MainCard sx={cardSx} content={false}>
                   <Box sx={{ p: 3 }}>
                      <Box sx={headerSx}>
@@ -231,7 +219,6 @@ export default function PurchaseInvoiceDetailsPage() {
                            <Typography><FormattedMessage id="subtotal" /></Typography>
                            <Typography fontWeight={600}>{invoice.subtotal.toFixed(2)}</Typography>
                         </Box>
-                        {/* Wait, total discounts = header + line discounts? The UI shows header discount separately. The original details page doesn't show line discounts separately, but let's show header discount and other costs if available. */}
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                            <Typography><FormattedMessage id="header-discount" /></Typography>
                            <Typography fontWeight={600} color="error.main">- {(invoice.headerDiscount || 0).toFixed(2)}</Typography>
@@ -249,6 +236,18 @@ export default function PurchaseInvoiceDetailsPage() {
                            </Box>
                         </Box>
                      </Stack>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconNotes color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4"><FormattedMessage id="invoice-notes" /></Typography>
+                     </Box>
+                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: invoice.notes ? 'text.primary' : 'text.disabled' }}>
+                        {invoice.notes || '-'}
+                     </Typography>
                   </Box>
                </MainCard>
             </Stack>

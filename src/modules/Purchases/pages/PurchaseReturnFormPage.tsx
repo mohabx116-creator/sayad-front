@@ -167,10 +167,10 @@ export default function PurchaseReturnFormPage() {
   return (
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-        <Box>
-           <Breadcrumbs custom heading={isEdit ? 'edit-purchase-return' : 'create-purchase-return'} links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }]} sx={{ mb: 1 }} />
-           <Typography variant="h2"><FormattedMessage id={isEdit ? 'edit-purchase-return' : 'create-purchase-return'} /></Typography>
-        </Box>
+         <Box>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-purchase-return' : 'create-purchase-return'} links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }]} sx={{ mb: 0 }} />
+           <Typography variant="h2" sx={{ mt: 1 }}><FormattedMessage id={isEdit ? 'edit-purchase-return' : 'create-purchase-return'} /></Typography>
+         </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            {isEdit && purchaseReturn && (
               <Box sx={{ px: 2, py: 0.5, bgcolor: 'grey.100', color: 'text.secondary', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
@@ -238,7 +238,7 @@ export default function PurchaseReturnFormPage() {
                         <Typography variant="h4"><FormattedMessage id="item-details" /></Typography>
                      </Box>
                      <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
-                        <Table size="small">
+                        <Table size="small" sx={{ minWidth: 900 }}>
                           <TableHead sx={{ bgcolor: 'grey.50' }}>
                             <TableRow>
                               <TableCell align="center" width={40}>#</TableCell>
@@ -308,21 +308,20 @@ export default function PurchaseReturnFormPage() {
          </Grid>
 
          <Grid item xs={12} lg={4}>
-            <Stack spacing={3} sx={{ height: '100%' }}>
-               <MainCard sx={{ ...cardSx, display: 'flex', flexDirection: 'column', height: '100%' }} content={false}>
-                  <Box sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Stack spacing={3}>
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
                      <Box sx={headerSx}>
                         <IconNotes color="var(--mui-palette-primary-main)" />
                         <Typography variant="h4"><FormattedMessage id="invoice-notes" /></Typography>
                      </Box>
-                     <TextField 
-                        fullWidth 
-                        multiline 
-                        minRows={8} 
-                        placeholder={intl.formatMessage({ id: 'notes-placeholder' })} 
-                        value={form.notes ?? ''} 
-                        onChange={(event) => setForm({ ...form, notes: event.target.value })} 
-                        sx={{ flex: 1, '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' } }} 
+                     <TextField
+                        fullWidth
+                        multiline
+                        minRows={4}
+                        placeholder={intl.formatMessage({ id: 'notes-placeholder' })}
+                        value={form.notes ?? ''}
+                        onChange={(event) => setForm({ ...form, notes: event.target.value })}
                      />
                   </Box>
                </MainCard>

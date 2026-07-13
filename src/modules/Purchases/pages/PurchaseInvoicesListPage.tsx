@@ -67,10 +67,10 @@ export default function PurchaseInvoicesListPage() {
   return (
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-        <Box>
-           <Breadcrumbs custom heading="purchase-invoices" links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices' }]} sx={{ mb: 1 }} />
-           <Typography variant="h2"><FormattedMessage id="purchase-invoices" /></Typography>
-        </Box>
+         <Box>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-invoices" links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices' }]} sx={{ mb: 0 }} />
+           <Typography variant="h2" sx={{ mt: 1 }}><FormattedMessage id="purchase-invoices" /></Typography>
+         </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesCreate}>
              <Button component={Link} to="/purchases/invoices/new" variant="contained" color="primary" sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconPlus size={18} />}>
@@ -108,10 +108,10 @@ export default function PurchaseInvoicesListPage() {
                 />
              </Grid>
              <Grid item xs={6} md={1.5}>
-               <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="date-from" defaultMessage="Date From" />} value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(0); }} />
+               <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="date-from" />} value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(0); }} />
              </Grid>
              <Grid item xs={6} md={1.5}>
-               <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="date-to" defaultMessage="Date To" />} value={dateTo} onChange={(event) => { setDateTo(event.target.value); setPage(0); }} />
+               <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="date-to" />} value={dateTo} onChange={(event) => { setDateTo(event.target.value); setPage(0); }} />
              </Grid>
              <Grid item xs={12} md={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="Reset Filters" />}>
@@ -167,6 +167,7 @@ export default function PurchaseInvoicesListPage() {
                  count={meta.totalCount}
                  page={page}
                  rowsPerPage={pageSize}
+                 labelRowsPerPage={<FormattedMessage id="rows-per-page" />}
                  onPageChange={(_, nextPage) => setPage(nextPage)}
                  onRowsPerPageChange={(event) => { setPageSize(parseInt(event.target.value, 10)); setPage(0); }}
                  sx={{ borderTop: '1px solid', borderColor: 'divider' }}
