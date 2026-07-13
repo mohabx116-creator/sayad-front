@@ -6,6 +6,7 @@ import AuthGuard from 'utils/route-guard/AuthGuard';
 import Loadable from 'ui-component/Loadable';
 import PermissionRouteGuard from 'modules/Administration/components/PermissionRouteGuard';
 import { ADMINISTRATION_PERMISSIONS } from 'modules/Administration/utils/administration.constants';
+import { INVENTORY_PERMISSIONS } from 'modules/Inventory/utils/inventory.constants';
 import { PARTIES_PERMISSIONS } from 'modules/Parties/utils/parties.constants';
 
 // dashboard routing
@@ -19,6 +20,13 @@ const PartyDetailsPage = Loadable(lazy(() => import('modules/Parties/pages/Party
 const PartyCreatePage = Loadable(lazy(() => import('modules/Parties/pages/PartyCreatePage')));
 const PartyEditPage = Loadable(lazy(() => import('modules/Parties/pages/PartyEditPage')));
 const PartyStatementPage = Loadable(lazy(() => import('modules/Parties/pages/PartyStatementPage')));
+const InventoryItemsListPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemsListPage')));
+const InventoryItemDetailsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemDetailsPage')));
+const InventoryItemFormPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemFormPage')));
+const InventoryItemMovementsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemMovementsPage')));
+const InventoryCategoriesPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryCategoriesPage')));
+const InventoryUnitsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryUnitsPage')));
+const InventoryLowStockPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryLowStockPage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -87,6 +95,70 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={PARTIES_PERMISSIONS.statementView}>
           <PartyStatementPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/items',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.itemsView}>
+          <InventoryItemsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/items/new',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.itemsCreate}>
+          <InventoryItemFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/items/:id',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.itemsView}>
+          <InventoryItemDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/items/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.itemsUpdate}>
+          <InventoryItemFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/items/:id/movements',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.movementsView}>
+          <InventoryItemMovementsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/categories',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.categoriesView}>
+          <InventoryCategoriesPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/units',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.unitsView}>
+          <InventoryUnitsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/low-stock',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.alertsView}>
+          <InventoryLowStockPage />
         </PermissionRouteGuard>
       )
     },
