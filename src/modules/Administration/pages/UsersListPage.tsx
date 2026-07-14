@@ -3,13 +3,15 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -20,9 +22,9 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
+import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconEye, IconLock, IconLockOpen, IconRefresh, IconUserPlus, IconUserX } from '@tabler/icons-react';
+import { IconDotsVertical, IconSearch, IconFilter, IconDownload, IconUserPlus } from '@tabler/icons-react';
 
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'store';
@@ -34,23 +36,22 @@ import PermissionGuard from '../components/PermissionGuard';
 import RoleSelector from '../components/RoleSelector';
 import UserLockChip from '../components/UserLockChip';
 import UserStatusChip from '../components/UserStatusChip';
+import UserManagementModal from '../components/UserManagementModal';
 import {
-  activateUser,
-  assignUserRoles,
   createUser,
-  deactivateUser,
   lockUser,
   resetUserPassword,
-  unlockUser,
-  updateUser
+  unlockUser
 } from '../api/administrationApi';
 import { useRoles, useUsers } from '../hooks/useAdministration';
-import { createUserSchema, updateUserSchema } from '../schemas/user.schema';
+import { createUserSchema } from '../schemas/user.schema';
 import { resetPasswordSchema } from '../schemas/reset-password.schema';
-import type { CreateUserRequest, ResetPasswordRequest, UpdateUserRequest, UserDto } from '../types/administration.types';
+import type { CreateUserRequest, ResetPasswordRequest, UserDto } from '../types/administration.types';
 import { ADMINISTRATION_PERMISSIONS } from '../utils/administration.constants';
 
-type UserDialogState = { mode: 'create' | 'edit' | 'roles' | 'reset'; user?: UserDto } | null;
+type UserDialogState = { mode: 'create' | 'reset' | 'manage'; user?: UserDto } | null;
+
+const roleColors = ['primary', 'secondary', 'success', 'warning', 'info', 'error'] as const;
 
 export default function UsersListPage() {
   const intl = useIntl();
@@ -58,9 +59,17 @@ export default function UsersListPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
+
+  // Filter state
   const [isActive, setIsActive] = useState<string>('');
   const [isLocked, setIsLocked] = useState<string>('');
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
+
   const [dialog, setDialog] = useState<UserDialogState>(null);
+
+  // Action menu state
+  const [actionAnchorEl, setActionAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
+
   const { items: users, meta, isLoading, error, mutate } = useUsers({
     page: page + 1,
     pageSize,
@@ -84,6 +93,20 @@ export default function UsersListPage() {
     }
   };
 
+  const handleActionClick = (event: React.MouseEvent<HTMLButtonElement>, userId: string) => {
+    setActionAnchorEl({ ...actionAnchorEl, [userId]: event.currentTarget });
+  };
+
+  const handleActionClose = (userId: string) => {
+    setActionAnchorEl({ ...actionAnchorEl, [userId]: null });
+  };
+
+  const getInitials = (name: string) => {
+    const parts = name.split(' ');
+    if (parts.length >= 2) return `${parts[0][0]} ${parts[1][0]}`;
+    return name.slice(0, 2);
+  };
+
   return (
     <>
       <Breadcrumbs custom heading="administration-users" links={[{ title: 'administration' }, { title: 'administration-users' }]} />
@@ -97,37 +120,43 @@ export default function UsersListPage() {
           </PermissionGuard>
         }
       >
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField fullWidth label={intl.formatMessage({ id: 'search' })} value={search} onChange={(event) => setSearch(event.target.value)} />
-          </Grid>
-          <Grid size={{ xs: 6, md: 3 }}>
-            <TextField fullWidth select label={intl.formatMessage({ id: 'status' })} value={isActive} onChange={(event) => setIsActive(event.target.value)}>
-              <MenuItem value="">
-                <FormattedMessage id="all" />
-              </MenuItem>
-              <MenuItem value="true">
-                <FormattedMessage id="active" />
-              </MenuItem>
-              <MenuItem value="false">
-                <FormattedMessage id="inactive" />
-              </MenuItem>
-            </TextField>
-          </Grid>
-          <Grid size={{ xs: 6, md: 3 }}>
-            <TextField fullWidth select label={intl.formatMessage({ id: 'lock-status' })} value={isLocked} onChange={(event) => setIsLocked(event.target.value)}>
-              <MenuItem value="">
-                <FormattedMessage id="all" />
-              </MenuItem>
-              <MenuItem value="true">
-                <FormattedMessage id="locked" />
-              </MenuItem>
-              <MenuItem value="false">
-                <FormattedMessage id="unlocked" />
-              </MenuItem>
-            </TextField>
-          </Grid>
-        </Grid>
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" justifyContent="space-between">
+          <Stack direction="row" spacing={1}>
+            <Button variant="outlined" color="inherit" startIcon={<IconDownload size={18} />}>
+              <FormattedMessage id="export" />
+            </Button>
+            <Button variant="outlined" color="inherit" startIcon={<IconFilter size={18} />} onClick={(e) => setFilterAnchorEl(e.currentTarget)}>
+              <FormattedMessage id="filter" />
+            </Button>
+            <Menu anchorEl={filterAnchorEl} open={Boolean(filterAnchorEl)} onClose={() => setFilterAnchorEl(null)}>
+              <Stack spacing={2} sx={{ p: 2, minWidth: 250 }}>
+                <TextField fullWidth select size="small" label={intl.formatMessage({ id: 'status' })} value={isActive} onChange={(event) => setIsActive(event.target.value)}>
+                  <MenuItem value=""><FormattedMessage id="all" /></MenuItem>
+                  <MenuItem value="true"><FormattedMessage id="active" /></MenuItem>
+                  <MenuItem value="false"><FormattedMessage id="inactive" /></MenuItem>
+                </TextField>
+                <TextField fullWidth select size="small" label={intl.formatMessage({ id: 'lock-status' })} value={isLocked} onChange={(event) => setIsLocked(event.target.value)}>
+                  <MenuItem value=""><FormattedMessage id="all" /></MenuItem>
+                  <MenuItem value="true"><FormattedMessage id="locked" /></MenuItem>
+                  <MenuItem value="false"><FormattedMessage id="unlocked" /></MenuItem>
+                </TextField>
+              </Stack>
+            </Menu>
+          </Stack>
+          <TextField
+            sx={{ width: { xs: '100%', md: 400 } }}
+            placeholder={intl.formatMessage({ id: 'search-placeholder' })}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconSearch size={20} stroke={1.5} />
+                </InputAdornment>
+              )
+            }}
+          />
+        </Stack>
 
         {isLoading && <Loader />}
         {error && <Typography color="error"><FormattedMessage id="administration-load-error" /></Typography>}
@@ -137,6 +166,10 @@ export default function UsersListPage() {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell padding="checkbox">
+                  {/* Dummy checkbox for UI matching */}
+                  <input type="checkbox" disabled />
+                </TableCell>
                 <TableCell><FormattedMessage id="name" /></TableCell>
                 <TableCell><FormattedMessage id="email" /></TableCell>
                 <TableCell><FormattedMessage id="roles" /></TableCell>
@@ -149,35 +182,59 @@ export default function UsersListPage() {
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id} hover>
-                  <TableCell>{user.displayName}</TableCell>
+                  <TableCell padding="checkbox">
+                    <input type="checkbox" />
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 32, height: 32, fontSize: '1rem', fontWeight: 'bold' }}>
+                        {getInitials(user.displayName)}
+                      </Avatar>
+                      <Typography variant="body1">{user.displayName}</Typography>
+                    </Stack>
+                  </TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.roles.map((role) => role.name).join(', ') || '-'}</TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      {user.roles.length > 0 ? user.roles.map((role, idx) => (
+                        <Chip key={role.id} label={role.name} size="small" color={roleColors[idx % roleColors.length]} variant="filled" sx={{ color: 'white', fontWeight: 600 }} />
+                      )) : '-'}
+                    </Stack>
+                  </TableCell>
                   <TableCell><UserStatusChip isActive={user.isActive} /></TableCell>
                   <TableCell><UserLockChip isLocked={user.isLocked} /></TableCell>
                   <TableCell>{user.lastLoginAtUtc ? new Date(user.lastLoginAtUtc).toLocaleString() : '-'}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title={intl.formatMessage({ id: 'details' })}>
-                      <IconButton component={Link} to={`/administration/users/${user.id}`}><IconEye size={18} /></IconButton>
-                    </Tooltip>
-                    <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.usersUpdate}>
-                      <IconButton onClick={() => setDialog({ mode: 'edit', user })}><IconEdit size={18} /></IconButton>
-                    </PermissionGuard>
-                    <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.usersAssignRoles}>
-                      <Button size="small" onClick={() => setDialog({ mode: 'roles', user })}><FormattedMessage id="assign-roles" /></Button>
-                    </PermissionGuard>
-                    <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.usersResetPassword}>
-                      <IconButton onClick={() => setDialog({ mode: 'reset', user })}><IconRefresh size={18} /></IconButton>
-                    </PermissionGuard>
-                    <PermissionGuard permission={user.isLocked ? ADMINISTRATION_PERMISSIONS.usersUnlock : ADMINISTRATION_PERMISSIONS.usersLock}>
-                      <IconButton onClick={() => runAction(() => (user.isLocked ? unlockUser(user.id) : lockUser(user.id)), intl.formatMessage({ id: 'administration-action-success' }))}>
-                        {user.isLocked ? <IconLockOpen size={18} /> : <IconLock size={18} />}
-                      </IconButton>
-                    </PermissionGuard>
-                    <PermissionGuard permission={user.isActive ? ADMINISTRATION_PERMISSIONS.usersDeactivate : ADMINISTRATION_PERMISSIONS.usersActivate}>
-                      <IconButton onClick={() => runAction(() => (user.isActive ? deactivateUser(user.id) : activateUser(user.id)), intl.formatMessage({ id: 'administration-action-success' }))}>
-                        <IconUserX size={18} />
-                      </IconButton>
-                    </PermissionGuard>
+                    <IconButton onClick={(e) => handleActionClick(e, user.id)}>
+                      <IconDotsVertical size={20} />
+                    </IconButton>
+                    <Menu
+                      anchorEl={actionAnchorEl[user.id]}
+                      open={Boolean(actionAnchorEl[user.id])}
+                      onClose={() => handleActionClose(user.id)}
+                    >
+                      <MenuItem component={Link} to={`/administration/users/${user.id}`}>
+                        <FormattedMessage id="details" />
+                      </MenuItem>
+                      <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.usersUpdate}>
+                        <MenuItem onClick={() => { handleActionClose(user.id); setDialog({ mode: 'manage', user }); }}>
+                          <FormattedMessage id="manage-user-data" />
+                        </MenuItem>
+                      </PermissionGuard>
+                      <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.usersResetPassword}>
+                        <MenuItem onClick={() => { handleActionClose(user.id); setDialog({ mode: 'reset', user }); }}>
+                          <FormattedMessage id="reset-password" />
+                        </MenuItem>
+                      </PermissionGuard>
+                      <PermissionGuard permission={user.isLocked ? ADMINISTRATION_PERMISSIONS.usersUnlock : ADMINISTRATION_PERMISSIONS.usersLock}>
+                        <MenuItem onClick={() => {
+                          handleActionClose(user.id);
+                          runAction(() => (user.isLocked ? unlockUser(user.id) : lockUser(user.id)), intl.formatMessage({ id: 'administration-action-success' }));
+                        }}>
+                          <FormattedMessage id={user.isLocked ? "unlock" : "lock"} />
+                        </MenuItem>
+                      </PermissionGuard>
+                    </Menu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -194,10 +251,19 @@ export default function UsersListPage() {
             setPageSize(Number(event.target.value));
             setPage(0);
           }}
+          labelDisplayedRows={({ from, to, count }) => `عرض ${from} إلى ${to} من ${count} مستخدم`}
         />
       </MainCard>
 
-      <UserDialog dialog={dialog} roles={roles} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); mutate(); notify(intl.formatMessage({ id: 'administration-action-success' })); }} />
+      {/* Legacy dialog for Create and Reset Password */}
+      {dialog && dialog.mode !== 'manage' && (
+        <UserDialog dialog={dialog} roles={roles} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); mutate(); notify(intl.formatMessage({ id: 'administration-action-success' })); }} />
+      )}
+
+      {/* New Unified User Management Modal */}
+      {dialog && dialog.mode === 'manage' && dialog.user && (
+        <UserManagementModal user={dialog.user} roles={roles} onClose={() => setDialog(null)} onSaved={() => { mutate(); notify(intl.formatMessage({ id: 'administration-action-success' })); }} />
+      )}
     </>
   );
 }
@@ -207,9 +273,7 @@ function UserDialog({ dialog, roles, onClose, onSaved }: { dialog: UserDialogSta
   const dispatch = useDispatch();
   const [isSaving, setIsSaving] = useState(false);
   const createForm = useForm<CreateUserRequest>({ resolver: zodResolver(createUserSchema), values: { displayName: '', email: '', password: '', confirmPassword: '', roleIds: [] } });
-  const updateForm = useForm<UpdateUserRequest>({ resolver: zodResolver(updateUserSchema), values: { displayName: dialog?.user?.displayName ?? '', email: dialog?.user?.email ?? '', rowVersion: dialog?.user?.rowVersion ?? '' } });
   const resetForm = useForm<ResetPasswordRequest>({ resolver: zodResolver(resetPasswordSchema), values: { newPassword: '', confirmPassword: '' } });
-  const rolesForm = useForm<{ roleIds: string[] }>({ values: { roleIds: dialog?.user?.roles.map((role) => role.id) ?? [] } });
 
   const notifyError = (error: unknown) => {
     dispatch(
@@ -237,14 +301,12 @@ function UserDialog({ dialog, roles, onClose, onSaved }: { dialog: UserDialogSta
   const save = () => {
     if (!dialog) return;
     if (dialog.mode === 'create') void createForm.handleSubmit((values) => persist(() => createUser(values)))();
-    if (dialog.mode === 'edit' && dialog.user) void updateForm.handleSubmit((values) => persist(() => updateUser(dialog.user!.id, values)))();
     if (dialog.mode === 'reset' && dialog.user) void resetForm.handleSubmit((values) => persist(() => resetUserPassword(dialog.user!.id, values)))();
-    if (dialog.mode === 'roles' && dialog.user) void persist(() => assignUserRoles(dialog.user!.id, rolesForm.getValues()));
   };
 
   return (
     <Dialog open={Boolean(dialog)} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle><FormattedMessage id={dialog?.mode === 'create' ? 'create-user' : dialog?.mode === 'reset' ? 'reset-password' : dialog?.mode === 'roles' ? 'assign-roles' : 'edit-user'} /></DialogTitle>
+      <DialogTitle><FormattedMessage id={dialog?.mode === 'create' ? 'create-user' : 'reset-password'} /></DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {dialog?.mode === 'create' && (
@@ -256,13 +318,6 @@ function UserDialog({ dialog, roles, onClose, onSaved }: { dialog: UserDialogSta
               <Controller control={createForm.control} name="roleIds" render={({ field }) => <RoleSelector roles={roles} value={field.value} onChange={field.onChange} />} />
             </>
           )}
-          {dialog?.mode === 'edit' && (
-            <>
-              <TextField label={intl.formatMessage({ id: 'name' })} {...updateForm.register('displayName')} error={!!updateForm.formState.errors.displayName} helperText={updateForm.formState.errors.displayName?.message} />
-              <TextField label={intl.formatMessage({ id: 'email' })} {...updateForm.register('email')} error={!!updateForm.formState.errors.email} helperText={updateForm.formState.errors.email?.message} />
-            </>
-          )}
-          {dialog?.mode === 'roles' && <Controller control={rolesForm.control} name="roleIds" render={({ field }) => <RoleSelector roles={roles} value={field.value} onChange={field.onChange} />} />}
           {dialog?.mode === 'reset' && (
             <>
               <TextField type="password" label={intl.formatMessage({ id: 'new-password' })} {...resetForm.register('newPassword')} error={!!resetForm.formState.errors.newPassword} helperText={resetForm.formState.errors.newPassword?.message} />

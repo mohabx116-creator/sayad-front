@@ -17,9 +17,8 @@ import useConfig from 'hooks/useConfig';
 import useAuth from 'hooks/useAuth';
 import { hasAnyPermission, hasPermission } from 'modules/Administration/utils/permission-utils';
 
-import { Menu } from 'menu-items/widget';
+import { useGetMenuMaster } from 'api/menu';
 import { HORIZONTAL_MAX_ITEM } from 'config';
-import { useGetMenu, useGetMenuMaster } from 'api/menu';
 
 // types
 import { NavItemType } from 'types';
@@ -32,7 +31,6 @@ function MenuList() {
   const {
     state: { menuOrientation }
   } = useConfig();
-  const { menuLoading } = useGetMenu();
   const { user } = useAuth();
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
@@ -40,8 +38,6 @@ function MenuList() {
 
   const [selectedID, setSelectedID] = useState<string | undefined>('');
   const [menuItems, setMenuItems] = useState<{ items: NavItemType[] }>({ items: [] });
-
-  let widgetMenu = Menu();
 
   const filterMenuByPermissions = (items: NavItemType[]): NavItemType[] =>
     items
@@ -57,23 +53,9 @@ function MenuList() {
       });
 
   useLayoutEffect(() => {
-    const isFound = menuItem.items.some((element) => {
-      if (element.id === 'group-widget') {
-        return true;
-      }
-      return false;
-    });
-    if (menuLoading) {
-      menuItem.items.splice(1, 0, widgetMenu);
-      setMenuItems({ items: filterMenuByPermissions([...menuItem.items]) });
-    } else if (!menuLoading && widgetMenu?.id !== undefined && !isFound) {
-      menuItem.items.splice(1, 1, widgetMenu);
-      setMenuItems({ items: filterMenuByPermissions([...menuItem.items]) });
-    } else {
-      setMenuItems({ items: filterMenuByPermissions([...menuItem.items]) });
-    }
+    setMenuItems({ items: filterMenuByPermissions([...menuItem.items]) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [menuLoading, user]);
+  }, [user]);
 
   // last menu-item to show in horizontal menu bar
   const lastItem = isHorizontal ? HORIZONTAL_MAX_ITEM : null;

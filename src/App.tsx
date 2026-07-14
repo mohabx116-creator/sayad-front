@@ -15,10 +15,13 @@ import ThemeCustomization from 'themes';
 
 // auth provider
 import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
+import useConfig from 'hooks/useConfig';
 
 // ==============================|| APP ||============================== //
 
 export default function App() {
+  const { state: { themeDirection } } = useConfig();
+
   return (
     <>
       <ThemeCustomization>
@@ -28,8 +31,11 @@ export default function App() {
               <AuthProvider>
                 <>
                   <Notistack>
-                    <RouterProvider router={router} />
-                    <Snackbar />
+                    {/* Key forces remount of UI components on direction change without unmounting AuthProvider */}
+                    <div key={themeDirection} style={{ display: 'contents' }}>
+                      <RouterProvider router={router} />
+                      <Snackbar />
+                    </div>
                   </Notistack>
                 </>
               </AuthProvider>

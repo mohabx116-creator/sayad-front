@@ -46,10 +46,9 @@ export default function RTLLayout({ children }: Props) {
       ? `'Cairo', 'Roboto', sans-serif`
       : `'Roboto', sans-serif`;
   
-    if (state.fontFamily !== nextFont) {
-      setField('fontFamily', nextFont);
-    }
-  }, [state.i18n, state.fontFamily, setField]);
+    setField('fontFamily', nextFont);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.i18n]);
   
 
   
@@ -62,6 +61,8 @@ export default function RTLLayout({ children }: Props) {
   }, [state.themeDirection, state.i18n]);
 
   return (
-    <CacheProvider value={state.themeDirection === ThemeDirection.RTL ? rtlCache : ltrCache}>{children}</CacheProvider>
+    <CacheProvider value={state.themeDirection === ThemeDirection.RTL ? rtlCache : ltrCache}>
+      {children}
+    </CacheProvider>
   );
 }

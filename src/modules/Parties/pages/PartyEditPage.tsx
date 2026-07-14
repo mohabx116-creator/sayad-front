@@ -51,6 +51,8 @@ export default function PartyEditPage() {
             initialValues={{
               nameArabic: party.nameArabic,
               nameEnglish: party.nameEnglish ?? '',
+              partyType: party.isCustomer && party.isSupplier ? 'both' : party.isSupplier ? 'supplier' : 'customer',
+              partyCode: '',
               isCustomer: party.isCustomer,
               isSupplier: party.isSupplier,
               primaryPhone: party.primaryPhone ?? '',

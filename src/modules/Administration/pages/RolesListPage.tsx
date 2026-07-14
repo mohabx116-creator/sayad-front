@@ -1,29 +1,27 @@
-import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link } from 'react-router-dom';
 
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/GridLegacy';
 import IconButton from '@mui/material/IconButton';
-import MenuItem from '@mui/material/MenuItem';
+import InputAdornment from '@mui/material/InputAdornment';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
+import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconEye, IconShieldPlus } from '@tabler/icons-react';
+import { IconSearch, IconPlus, IconUserShield, IconDeviceFloppy, IconRotateClockwise2, IconEdit } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -31,129 +29,257 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from '../components/PermissionGuard';
-import PermissionSelector from '../components/PermissionSelector';
-import RoleStatusChip from '../components/RoleStatusChip';
-import { activateRole, assignRolePermissions, createRole, deactivateRole, updateRole } from '../api/administrationApi';
+import PermissionMatrix from '../components/PermissionMatrix';
+import { assignRolePermissions, createRole, updateRole } from '../api/administrationApi';
 import { usePermissions, useRoles } from '../hooks/useAdministration';
 import { createRoleSchema, updateRoleSchema } from '../schemas/role.schema';
 import type { CreateRoleRequest, RoleDto, UpdateRoleRequest } from '../types/administration.types';
 import { ADMINISTRATION_PERMISSIONS } from '../utils/administration.constants';
 
-type RoleDialogState = { mode: 'create' | 'edit' | 'permissions'; role?: RoleDto } | null;
+type RoleDialogState = { mode: 'create' | 'edit'; role?: RoleDto } | null;
 
 export default function RolesListPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
-  const [isActive, setIsActive] = useState<string>('');
   const [dialog, setDialog] = useState<RoleDialogState>(null);
-  const { items: roles, meta, isLoading, error, mutate } = useRoles({ page: page + 1, pageSize, search, isActive });
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+
+  // Matrix state
+  const [rolePermissions, setRolePermissions] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSelectAll, setIsSelectAll] = useState(false);
+
+  // We fetch all roles without pagination for the sidebar for simplicity,
+  // or use a large page size since roles are usually few.
+  const { items: roles, isLoading, error, mutate } = useRoles({ page: 1, pageSize: 100, search });
   const { permissions } = usePermissions();
+
+  const selectedRole = roles.find(r => r.id === selectedRoleId) || null;
+
+  useEffect(() => {
+    if (roles.length > 0 && !selectedRoleId) {
+      setSelectedRoleId(roles[0].id);
+    }
+  }, [roles, selectedRoleId]);
+
+  useEffect(() => {
+    if (selectedRole) {
+      setRolePermissions(selectedRole.permissions.map(p => p.id));
+    } else {
+      setRolePermissions([]);
+    }
+  }, [selectedRole]);
+
+  useEffect(() => {
+    if (permissions.length > 0 && rolePermissions.length > 0) {
+      setIsSelectAll(rolePermissions.length === permissions.length);
+    } else {
+      setIsSelectAll(false);
+    }
+  }, [rolePermissions, permissions]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
-  const runAction = async (action: () => Promise<unknown>) => {
+  const handleSelectAllToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked;
+    setIsSelectAll(checked);
+    if (checked) {
+      setRolePermissions(permissions.map(p => p.id));
+    } else {
+      setRolePermissions([]);
+    }
+  };
+
+  const savePermissions = async () => {
+    if (!selectedRole) return;
     try {
-      await action();
+      setIsSaving(true);
+      await assignRolePermissions(selectedRole.id, { permissionIds: rolePermissions });
       await mutate();
       notify(intl.formatMessage({ id: 'administration-action-success' }));
-    } catch (actionError) {
-      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'administration-action-failed' }), 'error');
+    } catch (err) {
+      notify(err instanceof Error ? err.message : intl.formatMessage({ id: 'administration-action-failed' }), 'error');
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const resetPermissions = () => {
+    if (selectedRole) {
+      setRolePermissions(selectedRole.permissions.map(p => p.id));
+    }
+  };
+
+  const handleRoleSaved = () => {
+    setDialog(null);
+    mutate();
+    notify(intl.formatMessage({ id: 'administration-action-success' }));
   };
 
   return (
     <>
-      <Breadcrumbs custom heading="administration-roles-permissions" links={[{ title: 'administration' }, { title: 'administration-roles-permissions' }]} />
-      <MainCard
-        title={<FormattedMessage id="administration-roles-permissions" />}
-        secondary={
-          <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesCreate}>
-            <Button variant="contained" startIcon={<IconShieldPlus size={18} />} onClick={() => setDialog({ mode: 'create' })}>
-              <FormattedMessage id="create-role" />
+      <Breadcrumbs custom heading="roles-and-permissions" links={[{ title: 'administration' }, { title: 'roles-and-permissions' }]} />
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box>
+          <Typography variant="h3" gutterBottom>
+            <FormattedMessage id="system-permissions-matrix" />
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            <FormattedMessage id="system-permissions-matrix-desc" />
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            startIcon={<IconRotateClockwise2 size={18} />}
+            onClick={resetPermissions}
+            disabled={!selectedRole || isSaving}
+          >
+            <FormattedMessage id="reset-defaults" />
+          </Button>
+          <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesAssignPermissions}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<IconDeviceFloppy size={18} />}
+              onClick={savePermissions}
+              disabled={!selectedRole || isSaving}
+            >
+              <FormattedMessage id="save-changes" />
             </Button>
           </PermissionGuard>
-        }
-      >
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <TextField fullWidth label={intl.formatMessage({ id: 'search' })} value={search} onChange={(event) => setSearch(event.target.value)} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <TextField fullWidth select label={intl.formatMessage({ id: 'status' })} value={isActive} onChange={(event) => setIsActive(event.target.value)}>
-              <MenuItem value=""><FormattedMessage id="all" /></MenuItem>
-              <MenuItem value="true"><FormattedMessage id="active" /></MenuItem>
-              <MenuItem value="false"><FormattedMessage id="inactive" /></MenuItem>
-            </TextField>
-          </Grid>
+        </Stack>
+      </Box>
+
+      {isLoading && <Loader />}
+      {error && <Typography color="error"><FormattedMessage id="administration-load-error" /></Typography>}
+
+      <Grid container spacing={3}>
+        {/* Main Permissions Matrix (Left side in RTL) */}
+        <Grid item xs={12} md={8}>
+          <MainCard sx={{ height: '100%', minHeight: 600 }}>
+            {selectedRole ? (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Box>
+                    <Typography variant="h4" gutterBottom>
+                      <FormattedMessage id="permissions-for-role" values={{ role: selectedRole.name }} />
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <FormattedMessage id="set-access-level-per-module" />
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" alignItems="center">
+                    <Typography variant="body2" sx={{ mr: 1 }}>
+                      <FormattedMessage id="select-all" />
+                    </Typography>
+                    <Switch checked={isSelectAll} onChange={handleSelectAllToggle} color="primary" />
+                  </Stack>
+                </Box>
+
+                <PermissionMatrix
+                  permissions={permissions}
+                  value={rolePermissions}
+                  onChange={setRolePermissions}
+                />
+              </>
+            ) : (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <Typography color="text.secondary">
+                  <FormattedMessage id="administration-empty-roles" />
+                </Typography>
+              </Box>
+            )}
+          </MainCard>
         </Grid>
-        {isLoading && <Loader />}
-        {error && <Typography color="error"><FormattedMessage id="administration-load-error" /></Typography>}
-        {!isLoading && roles.length === 0 && <Typography><FormattedMessage id="administration-empty-roles" /></Typography>}
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell><FormattedMessage id="role-name" /></TableCell>
-                <TableCell><FormattedMessage id="description" /></TableCell>
-                <TableCell><FormattedMessage id="users-count" /></TableCell>
-                <TableCell><FormattedMessage id="permissions-count" /></TableCell>
-                <TableCell><FormattedMessage id="system-role" /></TableCell>
-                <TableCell><FormattedMessage id="status" /></TableCell>
-                <TableCell align="right"><FormattedMessage id="actions" /></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {roles.map((role) => (
-                <TableRow key={role.id} hover>
-                  <TableCell>{role.name}</TableCell>
-                  <TableCell>{role.descriptionEnglish || role.descriptionArabic || '-'}</TableCell>
-                  <TableCell>{role.usersCount}</TableCell>
-                  <TableCell>{role.permissionsCount}</TableCell>
-                  <TableCell>{role.isSystem ? <Chip size="small" color="secondary" label={<FormattedMessage id="system-role" />} /> : '-'}</TableCell>
-                  <TableCell><RoleStatusChip isActive={role.isActive} /></TableCell>
-                  <TableCell align="right">
-                    <IconButton component={Link} to={`/administration/roles/${role.id}`}><IconEye size={18} /></IconButton>
-                    <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesUpdate}>
-                      <IconButton onClick={() => setDialog({ mode: 'edit', role })}><IconEdit size={18} /></IconButton>
-                    </PermissionGuard>
-                    <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesAssignPermissions}>
-                      <Button size="small" onClick={() => setDialog({ mode: 'permissions', role })}><FormattedMessage id="assign-permissions" /></Button>
-                    </PermissionGuard>
-                    <PermissionGuard permission={role.isActive ? ADMINISTRATION_PERMISSIONS.rolesDeactivate : ADMINISTRATION_PERMISSIONS.rolesActivate}>
-                      <Button size="small" disabled={role.isSystem && role.isActive} onClick={() => runAction(() => (role.isActive ? deactivateRole(role.id) : activateRole(role.id)))}>
-                        <FormattedMessage id={role.isActive ? 'deactivate' : 'activate'} />
-                      </Button>
-                    </PermissionGuard>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component="div"
-          count={meta.totalCount}
-          page={page}
-          rowsPerPage={pageSize}
-          onPageChange={(_, nextPage) => setPage(nextPage)}
-          onRowsPerPageChange={(event) => {
-            setPageSize(Number(event.target.value));
-            setPage(0);
-          }}
-        />
-      </MainCard>
-      <RoleDialog dialog={dialog} permissions={permissions} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); mutate(); notify(intl.formatMessage({ id: 'administration-action-success' })); }} />
+
+        {/* Sidebar Roles List (Right side in RTL) */}
+        <Grid item xs={12} md={4}>
+          <MainCard sx={{ height: '100%' }} content={false}>
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+              <Typography variant="h4"><FormattedMessage id="functional-roles" /></Typography>
+              <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesCreate}>
+                <IconButton color="primary" onClick={() => setDialog({ mode: 'create' })}>
+                  <IconPlus size={20} />
+                </IconButton>
+              </PermissionGuard>
+            </Box>
+            <Box sx={{ p: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder={intl.formatMessage({ id: 'search-role-placeholder' })}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <IconSearch size={18} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Box>
+            <List component="nav" sx={{ p: 1 }}>
+              {roles.map((role) => {
+                const isSelected = role.id === selectedRoleId;
+                return (
+                  <ListItem
+                    key={role.id}
+                    disablePadding
+                    sx={{ mb: 1 }}
+                    secondaryAction={
+                      isSelected && (
+                        <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesUpdate}>
+                          <IconButton edge="end" size="small" onClick={() => setDialog({ mode: 'edit', role })}>
+                            <IconEdit size={16} />
+                          </IconButton>
+                        </PermissionGuard>
+                      )
+                    }
+                  >
+                    <ListItemButton
+                      selected={isSelected}
+                      onClick={() => setSelectedRoleId(role.id)}
+                      sx={{
+                        borderRadius: 2,
+                        ...(isSelected && {
+                          bgcolor: 'primary.lighter',
+                          '& .MuiListItemIcon-root': { color: 'primary.main' },
+                          '& .MuiListItemText-primary': { color: 'primary.main', fontWeight: 'bold' }
+                        })
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 40 }}>
+                        <IconUserShield size={22} stroke={isSelected ? 2 : 1.5} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={role.name}
+                        secondary={isSelected ? <Typography variant="caption" color="primary">نشط</Typography> : null}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </MainCard>
+        </Grid>
+      </Grid>
+
+      <RoleDialog dialog={dialog} onClose={() => setDialog(null)} onSaved={handleRoleSaved} />
     </>
   );
 }
 
-function RoleDialog({ dialog, permissions, onClose, onSaved }: { dialog: RoleDialogState; permissions: any[]; onClose: () => void; onSaved: () => void }) {
+function RoleDialog({ dialog, onClose, onSaved }: { dialog: RoleDialogState; onClose: () => void; onSaved: () => void }) {
   const intl = useIntl();
+  const dispatch = useDispatch();
+  const [isSaving, setIsSaving] = useState(false);
   const createForm = useForm<CreateRoleRequest>({ resolver: zodResolver(createRoleSchema), values: { name: '', descriptionArabic: '', descriptionEnglish: '', permissionIds: [] } });
   const updateForm = useForm<UpdateRoleRequest>({
     resolver: zodResolver(updateRoleSchema),
@@ -164,19 +290,28 @@ function RoleDialog({ dialog, permissions, onClose, onSaved }: { dialog: RoleDia
       rowVersion: dialog?.role?.rowVersion ?? ''
     }
   });
-  const permissionsForm = useForm<{ permissionIds: string[] }>({ values: { permissionIds: dialog?.role?.permissions.map((permission) => permission.id) ?? [] } });
+
+  const notifyError = (error: unknown) => {
+    dispatch(openSnackbar({ open: true, message: error instanceof Error ? error.message : intl.formatMessage({ id: 'administration-action-failed' }), variant: 'alert', severity: 'error' }));
+  };
 
   const save = async () => {
     if (!dialog) return;
-    if (dialog.mode === 'create') await createRole(createForm.getValues());
-    if (dialog.mode === 'edit' && dialog.role) await updateRole(dialog.role.id, updateForm.getValues());
-    if (dialog.mode === 'permissions' && dialog.role) await assignRolePermissions(dialog.role.id, permissionsForm.getValues());
-    onSaved();
+    try {
+      setIsSaving(true);
+      if (dialog.mode === 'create') await createRole(createForm.getValues());
+      if (dialog.mode === 'edit' && dialog.role) await updateRole(dialog.role.id, updateForm.getValues());
+      onSaved();
+    } catch (err) {
+      notifyError(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <Dialog open={Boolean(dialog)} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle><FormattedMessage id={dialog?.mode === 'create' ? 'create-role' : dialog?.mode === 'permissions' ? 'assign-permissions' : 'edit-role'} /></DialogTitle>
+    <Dialog open={Boolean(dialog)} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle><FormattedMessage id={dialog?.mode === 'create' ? 'create-role' : 'edit-role'} /></DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {dialog?.mode === 'create' && (
@@ -184,7 +319,6 @@ function RoleDialog({ dialog, permissions, onClose, onSaved }: { dialog: RoleDia
               <TextField label={intl.formatMessage({ id: 'role-name' })} {...createForm.register('name')} error={!!createForm.formState.errors.name} helperText={createForm.formState.errors.name?.message} />
               <TextField label={intl.formatMessage({ id: 'description-arabic' })} {...createForm.register('descriptionArabic')} />
               <TextField label={intl.formatMessage({ id: 'description-english' })} {...createForm.register('descriptionEnglish')} />
-              <Controller control={createForm.control} name="permissionIds" render={({ field }) => <PermissionSelector permissions={permissions} value={field.value} onChange={field.onChange} />} />
             </>
           )}
           {dialog?.mode === 'edit' && (
@@ -194,12 +328,11 @@ function RoleDialog({ dialog, permissions, onClose, onSaved }: { dialog: RoleDia
               <TextField label={intl.formatMessage({ id: 'description-english' })} {...updateForm.register('descriptionEnglish')} />
             </>
           )}
-          {dialog?.mode === 'permissions' && <Controller control={permissionsForm.control} name="permissionIds" render={({ field }) => <PermissionSelector permissions={permissions} value={field.value} onChange={field.onChange} />} />}
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}><FormattedMessage id="cancel" /></Button>
-        <Button variant="contained" onClick={save}><FormattedMessage id="save" /></Button>
+        <Button onClick={onClose} disabled={isSaving}><FormattedMessage id="cancel" /></Button>
+        <Button variant="contained" onClick={save} disabled={isSaving}><FormattedMessage id={isSaving ? 'loading' : 'save'} /></Button>
       </DialogActions>
     </Dialog>
   );

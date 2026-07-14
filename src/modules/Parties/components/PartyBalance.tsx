@@ -1,5 +1,6 @@
-import Chip from '@mui/material/Chip';
-import { FormattedMessage } from 'react-intl';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 
 type PartyBalanceProps = {
   balance: number;
@@ -8,12 +9,30 @@ type PartyBalanceProps = {
 
 export default function PartyBalance({ balance, balanceNature }: PartyBalanceProps) {
   if (balanceNature === 'Debit') {
-    return <Chip size="small" color="warning" label={<><FormattedMessage id="debit" />: {balance.toFixed(2)}</>} />;
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'error.main', fontWeight: 600 }}>
+        <IconTrendingDown size={16} />
+        <Typography variant="body2" sx={{ fontWeight: 600, color: 'inherit' }}>
+          {balance.toFixed(2)} ج.م
+        </Typography>
+      </Box>
+    );
   }
 
   if (balanceNature === 'Credit') {
-    return <Chip size="small" color="info" label={<><FormattedMessage id="credit" />: {balance.toFixed(2)}</>} />;
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#1b5e20', fontWeight: 600 }}>
+        <IconTrendingUp size={16} />
+        <Typography variant="body2" sx={{ fontWeight: 600, color: 'inherit' }}>
+          {balance.toFixed(2)} ج.م
+        </Typography>
+      </Box>
+    );
   }
 
-  return <Chip size="small" label={<FormattedMessage id="balanced" />} />;
+  return (
+    <Typography variant="body2" sx={{ color: 'text.secondary', opacity: 0.5 }}>
+      0.00 ج.م
+    </Typography>
+  );
 }
