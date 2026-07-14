@@ -87,12 +87,7 @@ const summaryTiles = [
     icon: IconBuildingBank,
     gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
   },
-  {
-    label: 'رصيد الحقيبة الإلكترونية',
-    valueKey: 'electronicWalletBalance' as const,
-    icon: IconWallet,
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-  },
+
   {
     label: 'إجمالي المقبوضات',
     valueKey: 'periodReceipts' as const,
