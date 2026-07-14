@@ -1,6 +1,7 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
@@ -16,7 +17,7 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
+import { IconEdit, IconToggleLeft, IconToggleRight, IconScale, IconDeviceFloppy, IconPlus, IconX, IconTrash } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -24,7 +25,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
-import { activateUnit, createUnit, deactivateUnit, updateUnit } from '../api/inventoryApi';
+import { activateUnit, createUnit, deactivateUnit, updateUnit, deleteUnit } from '../api/inventoryApi';
 import { useInventoryUnits } from '../hooks/useInventory';
 import type { CreateUnitRequest, UnitOfMeasureDto, UpdateUnitRequest } from '../types/inventory.types';
 import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
@@ -58,16 +59,11 @@ export default function InventoryUnitsPage() {
       });
       return;
     }
-
     setForm(emptyForm);
   }, [editing]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
-  };
-
-  const refresh = async () => {
-    await mutate();
   };
 
   const submit = async () => {
@@ -86,7 +82,7 @@ export default function InventoryUnitsPage() {
       } else {
         await createUnit(form);
       }
-      await refresh();
+      await mutate();
       setEditing(null);
       notify(intl.formatMessage({ id: 'inventory-action-success' }));
     } catch (saveError) {
@@ -101,11 +97,10 @@ export default function InventoryUnitsPage() {
       notify(intl.formatMessage({ id: 'system-unit-protected' }), 'error');
       return;
     }
-
     try {
       setIsSaving(true);
       await (unit.isActive ? deactivateUnit(unit.id) : activateUnit(unit.id));
-      await refresh();
+      await mutate();
       notify(intl.formatMessage({ id: 'inventory-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'inventory-action-failed' }), 'error');
@@ -114,113 +109,234 @@ export default function InventoryUnitsPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (window.confirm(intl.formatMessage({ id: 'confirm-delete', defaultMessage: 'هل أنت متأكد من الحذف؟' }))) {
+      try {
+        setIsSaving(true);
+        await deleteUnit(id);
+        await mutate();
+        notify(intl.formatMessage({ id: 'inventory-action-success' }));
+      } catch (err) {
+        notify(err instanceof Error ? err.message : intl.formatMessage({ id: 'inventory-action-failed' }), 'error');
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
+  // Helper function to quickly delete all non-system units (One-click cleanup)
+  const handleDeleteAllCustom = async () => {
+    if (!window.confirm("هل أنت متأكد من حذف كافة الوحدات المخصصة نهائياً؟")) return;
+    try {
+      setIsSaving(true);
+      const customUnits = items.filter(u => !u.isSystem);
+      for (const u of customUnits) {
+        await deleteUnit(u.id);
+      }
+      await mutate();
+      notify("تم الحذف بنجاح");
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "حدث خطأ أثناء الحذف", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
-      <Breadcrumbs custom heading="inventory-units" links={[{ title: 'inventory' }, { title: 'inventory-units' }]} />
-      <MainCard title={<FormattedMessage id="inventory-units" />}>
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} md={2}>
-            <TextField
-              required
-              fullWidth
-              label={<FormattedMessage id="unit-code" />}
-              value={form.code}
-              onChange={(event) => setForm({ ...form, code: event.target.value })}
-              disabled={Boolean(editing)}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField required fullWidth label={<FormattedMessage id="name-arabic" />} value={form.nameArabic} onChange={(event) => setForm({ ...form, nameArabic: event.target.value })} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth label={<FormattedMessage id="name-english" />} value={form.nameEnglish ?? ''} onChange={(event) => setForm({ ...form, nameEnglish: event.target.value })} />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField
-              select
-              fullWidth
-              label={<FormattedMessage id="decimal-places" />}
-              value={form.decimalPlaces}
-              onChange={(event) => setForm({ ...form, decimalPlaces: Number(event.target.value) })}
-            >
-              {[0, 2, 3, 4].map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth label={<FormattedMessage id="symbol-arabic" />} value={form.symbolArabic ?? ''} onChange={(event) => setForm({ ...form, symbolArabic: event.target.value })} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth label={<FormattedMessage id="symbol-english" />} value={form.symbolEnglish ?? ''} onChange={(event) => setForm({ ...form, symbolEnglish: event.target.value })} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
-              <Chip label={<FormattedMessage id={editing ? 'edit-unit' : 'create-unit'} />} color="primary" />
-              <Typography variant="body2" color="text.secondary">
-                <FormattedMessage id="unit-decimal-help" />
-              </Typography>
-            </Stack>
-          </Grid>
-          <Grid item xs={12}>
-            <Stack direction="row" spacing={1}>
-              <Button variant="contained" onClick={submit} disabled={isSaving}><FormattedMessage id={editing ? 'save' : 'create'} /></Button>
-              {editing && <Button onClick={() => setEditing(null)} disabled={isSaving}><FormattedMessage id="cancel" /></Button>}
-            </Stack>
-          </Grid>
-        </Grid>
+      <Breadcrumbs custom heading="inventory-units" links={[{ title: 'inventory', to: '/inventory/items' }, { title: 'inventory-units' }]} />
+      
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+        <Box>
+          <Typography variant="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconScale color="var(--mui-palette-primary-main)" size={28} />
+            <FormattedMessage id="inventory-units" />
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            إدارة وحدات القياس المستخدمة في الأصناف وعمليات الشراء والبيع.
+          </Typography>
+        </Box>
+        <Button variant="outlined" color="error" size="small" onClick={handleDeleteAllCustom} disabled={isSaving || items.filter(u => !u.isSystem).length === 0}>
+           حذف الوحدات المخصصة
+        </Button>
+      </Box>
 
-        {isLoading && <Loader />}
-        {error && <Typography color="error"><FormattedMessage id="inventory-load-error" /></Typography>}
-        {!isLoading && items.length === 0 && <Typography><FormattedMessage id="inventory-empty-items" /></Typography>}
-        {items.length > 0 && (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell><FormattedMessage id="unit-code" /></TableCell>
-                  <TableCell><FormattedMessage id="name" /></TableCell>
-                  <TableCell><FormattedMessage id="symbol" /></TableCell>
-                  <TableCell><FormattedMessage id="decimal-places" /></TableCell>
-                  <TableCell><FormattedMessage id="system-unit" /></TableCell>
-                  <TableCell><FormattedMessage id="status" /></TableCell>
-                  <TableCell align="right"><FormattedMessage id="actions" /></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((unit) => (
-                  <TableRow key={unit.id} hover>
-                    <TableCell>{unit.code}</TableCell>
-                    <TableCell>{unit.nameArabic}</TableCell>
-                    <TableCell>{unit.symbolArabic || unit.symbolEnglish || '-'}</TableCell>
-                    <TableCell>{unit.decimalPlaces}</TableCell>
-                    <TableCell>{unit.isSystem ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}</TableCell>
-                    <TableCell>{unit.isActive ? <FormattedMessage id="active" /> : <FormattedMessage id="inactive" />}</TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <PermissionGuard permission={INVENTORY_PERMISSIONS.unitsManage}>
-                          <Tooltip title={<FormattedMessage id="edit" />}>
-                            <span>
-                              <IconButton onClick={() => setEditing(unit)} disabled={unit.isSystem}>
-                                <IconEdit size={18} />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                          <Tooltip title={<FormattedMessage id={unit.isActive ? 'deactivate' : 'activate'} />}>
-                            <span>
-                              <IconButton onClick={() => toggle(unit)} disabled={isSaving || unit.isSystem}>
-                                {unit.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                        </PermissionGuard>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </MainCard>
+      <Grid container spacing={3}>
+         {/* Left Side: Units List */}
+         <Grid item xs={12} lg={8}>
+            <MainCard content={false} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+               {isLoading && <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}><Loader /></Box>}
+               {error && <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="error"><FormattedMessage id="inventory-load-error" /></Typography></Box>}
+               {!isLoading && items.length === 0 && (
+                  <Box sx={{ p: 6, textAlign: 'center' }}>
+                     <Typography color="text.secondary"><FormattedMessage id="inventory-empty-items" /></Typography>
+                  </Box>
+               )}
+               {items.length > 0 && (
+                  <TableContainer>
+                     <Table size="medium">
+                        <TableHead sx={{ bgcolor: 'grey.50' }}>
+                           <TableRow>
+                              <TableCell><FormattedMessage id="unit-code" /></TableCell>
+                              <TableCell><FormattedMessage id="name" /></TableCell>
+                              <TableCell><FormattedMessage id="symbol" /></TableCell>
+                              <TableCell><FormattedMessage id="decimal-places" /></TableCell>
+                              <TableCell><FormattedMessage id="status" /></TableCell>
+                              <TableCell align="right"><FormattedMessage id="actions" /></TableCell>
+                           </TableRow>
+                        </TableHead>
+                        <TableBody>
+                           {items.map((unit) => (
+                              <TableRow key={unit.id} hover>
+                                 <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>{unit.code}</TableCell>
+                                 <TableCell sx={{ fontWeight: 500 }}>
+                                    <Stack direction="row" spacing={1} alignItems="center">
+                                       <span>{unit.nameArabic}</span>
+                                       {unit.isSystem && (
+                                          <Chip size="small" label={<FormattedMessage id="system-unit" defaultMessage="نظام" />} sx={{ height: 20, fontSize: '0.7rem', bgcolor: 'primary.lighter', color: 'primary.main', border: 'none' }} />
+                                       )}
+                                    </Stack>
+                                 </TableCell>
+                                 <TableCell>
+                                    <Chip size="small" label={unit.symbolArabic || unit.symbolEnglish || '-'} variant="outlined" sx={{ borderRadius: 1 }} />
+                                 </TableCell>
+                                 <TableCell>{unit.decimalPlaces}</TableCell>
+                                 <TableCell>
+                                    <Chip 
+                                       label={<FormattedMessage id={unit.isActive ? 'active' : 'inactive'} />} 
+                                       color={unit.isActive ? 'success' : 'default'} 
+                                       size="small" 
+                                       sx={{ 
+                                          bgcolor: unit.isActive ? 'success.lighter' : 'grey.100', 
+                                          color: unit.isActive ? 'success.dark' : 'text.secondary',
+                                          border: 'none',
+                                          fontWeight: 600
+                                       }}
+                                    />
+                                 </TableCell>
+                                 <TableCell align="right">
+                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                       <PermissionGuard permission={INVENTORY_PERMISSIONS.unitsManage}>
+                                          <Tooltip title={<FormattedMessage id="edit" />}>
+                                             <span>
+                                                <IconButton size="small" onClick={() => setEditing(unit)} disabled={unit.isSystem} color="primary">
+                                                   <IconEdit size={18} />
+                                                </IconButton>
+                                             </span>
+                                          </Tooltip>
+                                          {!unit.isSystem && (
+                                             <Tooltip title={<FormattedMessage id="delete" defaultMessage="حذف" />}>
+                                                <span>
+                                                   <IconButton size="small" onClick={() => handleDelete(unit.id)} disabled={isSaving} color="error">
+                                                      <IconTrash size={18} />
+                                                   </IconButton>
+                                                </span>
+                                             </Tooltip>
+                                          )}
+                                          <Tooltip title={<FormattedMessage id={unit.isActive ? 'deactivate' : 'activate'} />}>
+                                             <span>
+                                                <IconButton size="small" onClick={() => toggle(unit)} disabled={isSaving || unit.isSystem} color={unit.isActive ? 'error' : 'success'}>
+                                                   {unit.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
+                                                </IconButton>
+                                             </span>
+                                          </Tooltip>
+                                       </PermissionGuard>
+                                    </Stack>
+                                 </TableCell>
+                              </TableRow>
+                           ))}
+                        </TableBody>
+                     </Table>
+                  </TableContainer>
+               )}
+            </MainCard>
+         </Grid>
+
+         {/* Right Side: Form */}
+         <Grid item xs={12} lg={4}>
+            <PermissionGuard permission={INVENTORY_PERMISSIONS.unitsManage}>
+               <MainCard 
+                  title={
+                     <Typography variant="h4" fontWeight={600} display="flex" alignItems="center" gap={1}>
+                        {editing ? <IconEdit size={20} /> : <IconPlus size={20} />}
+                        <FormattedMessage id={editing ? 'edit-unit' : 'create-unit'} />
+                     </Typography>
+                  } 
+                  sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', position: 'sticky', top: 20 }}
+               >
+                  <Stack spacing={2.5}>
+                     <TextField
+                        required
+                        fullWidth
+                        size="small"
+                        label={<FormattedMessage id="unit-code" />}
+                        value={form.code}
+                        onChange={(event) => setForm({ ...form, code: event.target.value })}
+                        disabled={Boolean(editing)}
+                     />
+                     <TextField 
+                        required 
+                        fullWidth 
+                        size="small"
+                        label={<FormattedMessage id="name-arabic" />} 
+                        value={form.nameArabic} 
+                        onChange={(event) => setForm({ ...form, nameArabic: event.target.value })} 
+                     />
+                     <TextField 
+                        fullWidth 
+                        size="small"
+                        label={<FormattedMessage id="name-english" />} 
+                        value={form.nameEnglish ?? ''} 
+                        onChange={(event) => setForm({ ...form, nameEnglish: event.target.value })} 
+                     />
+                     <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        label={<FormattedMessage id="decimal-places" />}
+                        value={form.decimalPlaces}
+                        onChange={(event) => setForm({ ...form, decimalPlaces: Number(event.target.value) })}
+                     >
+                        {[0, 2, 3, 4].map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)}
+                     </TextField>
+                     <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                           <TextField 
+                              fullWidth 
+                              size="small"
+                              label={<FormattedMessage id="symbol-arabic" />} 
+                              value={form.symbolArabic ?? ''} 
+                              onChange={(event) => setForm({ ...form, symbolArabic: event.target.value })} 
+                           />
+                        </Grid>
+                        <Grid item xs={6}>
+                           <TextField 
+                              fullWidth 
+                              size="small"
+                              label={<FormattedMessage id="symbol-english" />} 
+                              value={form.symbolEnglish ?? ''} 
+                              onChange={(event) => setForm({ ...form, symbolEnglish: event.target.value })} 
+                           />
+                        </Grid>
+                     </Grid>
+                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', bgcolor: 'grey.50', p: 1, borderRadius: 1 }}>
+                        <FormattedMessage id="unit-decimal-help" />
+                     </Typography>
+                     <Stack direction="row" spacing={1.5} sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                        <Button variant="contained" color="primary" onClick={submit} disabled={isSaving} fullWidth startIcon={<IconDeviceFloppy size={18} />}>
+                           <FormattedMessage id={editing ? 'save' : 'create'} />
+                        </Button>
+                        {editing && (
+                           <Button variant="outlined" color="inherit" onClick={() => setEditing(null)} disabled={isSaving} fullWidth startIcon={<IconX size={18} />}>
+                              <FormattedMessage id="cancel" />
+                           </Button>
+                        )}
+                     </Stack>
+                  </Stack>
+               </MainCard>
+            </PermissionGuard>
+         </Grid>
+      </Grid>
     </>
   );
 }

@@ -129,28 +129,49 @@ export default function InventoryItemsListPage() {
                 </TableHead>
                 <TableBody>
                   {items.map((item) => {
-                    const statusColor = item.stockStatus === 'Normal' ? 'success' : item.stockStatus === 'Low' ? 'warning' : 'error';
+                    const isOutOfStock = item.currentQuantity <= 0;
+                    const isCritical = item.stockStatus === 'Critical' || item.stockStatus === 'Out of Stock';
+                    const isLow = item.stockStatus === 'Low' || item.stockStatus === 'BelowMinimum';
+                    
+                    const statusColor = isOutOfStock ? 'error' : (isCritical ? 'error' : (isLow ? 'warning' : 'success'));
+                    const qtyColor = isOutOfStock ? 'error.main' : (isCritical ? 'error.main' : (isLow ? 'warning.dark' : 'text.primary'));
+                    const chipVariant = isOutOfStock ? 'filled' : 'outlined';
+                    const chipBg = isOutOfStock ? 'error.main' : `${statusColor}.lighter`;
+                    const chipText = isOutOfStock ? 'white' : undefined;
+                    
+                    // Normalize the label
+                    let label = item.stockStatus;
+                    if (isOutOfStock) label = intl.formatMessage({ id: 'out-of-stock', defaultMessage: 'نفد من المخزون' });
+                    else if (item.stockStatus === 'BelowMinimum') label = intl.formatMessage({ id: 'below-minimum', defaultMessage: 'أقل من الحد' });
+                    else if (item.stockStatus === 'Normal') label = intl.formatMessage({ id: 'normal', defaultMessage: 'طبيعي' });
+
                     return (
-                      <TableRow hover key={item.id}>
+                      <TableRow hover key={item.id} sx={{ bgcolor: isOutOfStock ? 'error.lighter' : 'inherit' }}>
                         <TableCell>
                           <Typography component={Link} to={`/inventory/items/${item.id}`} color="primary" sx={{ textDecoration: 'none', fontWeight: 600 }}>
                             {item.code}
                           </Typography>
                         </TableCell>
-                        <TableCell>{item.nameArabic}</TableCell>
+                        <TableCell sx={{ fontWeight: 500 }}>{item.nameArabic}</TableCell>
                         <TableCell>{item.itemType}</TableCell>
                         <TableCell>{item.baseUnitCode}</TableCell>
-                        <TableCell>{item.currentQuantity}</TableCell>
+                        <TableCell>
+                           <Typography fontWeight={isOutOfStock || isCritical || isLow ? 800 : 500} color={qtyColor} sx={{ fontSize: isOutOfStock || isCritical || isLow ? '1.1rem' : '1rem' }}>
+                              {item.currentQuantity}
+                           </Typography>
+                        </TableCell>
                         <TableCell>
                           <Chip 
-                            label={item.stockStatus} 
+                            label={label} 
                             color={statusColor} 
                             size="small" 
-                            variant="outlined"
+                            variant={chipVariant}
                             sx={{ 
-                              bgcolor: `${statusColor}.lighter`, 
+                              bgcolor: chipBg,
+                              color: chipText,
                               border: 'none',
-                              fontWeight: 600
+                              fontWeight: 700,
+                              px: 1
                             }}
                           />
                         </TableCell>

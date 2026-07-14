@@ -85,6 +85,10 @@ export function deactivateUnit(id: string) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/inventory/units/${id}/deactivate`, {}));
 }
 
+export function deleteUnit(id: string) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/inventory/units/${id}`));
+}
+
 export function getItemUnits(id: string) {
   return unwrap(axiosServices.get<ApiResponse<ItemUnitDto[]>>(`/api/inventory/items/${id}/units`));
 }
@@ -149,4 +153,8 @@ export function activatePartyItemRelation(id: string) {
 
 export function deactivatePartyItemRelation(id: string) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/inventory/party-items/${id}/deactivate`, {}));
+}
+
+export function deletePartyItemRelation(id: string) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/inventory/party-items/${id}`));
 }

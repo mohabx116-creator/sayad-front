@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Button from '@mui/material/Button';
@@ -14,6 +14,13 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import { IconTrash, IconPlus } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -21,7 +28,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
-import { activatePartyItemRelation, createPartyItemRelation, deactivatePartyItemRelation, updatePartyItemRelation } from '../api/inventoryApi';
+import { activatePartyItemRelation, createPartyItemRelation, deactivatePartyItemRelation, updatePartyItemRelation, deletePartyItemRelation } from '../api/inventoryApi';
 import { useInventoryItems, usePartyItemRelations } from '../hooks/useInventory';
 import { useParties } from 'modules/Parties/hooks/useParties';
 import type { CreatePartyItemRelationRequest, PartyItemRelationDto } from '../types/inventory.types';
@@ -46,6 +53,7 @@ export default function InventoryPartyItemsPage() {
   const [selectedItemId, setSelectedItemId] = useState('');
   const [editing, setEditing] = useState<PartyItemRelationDto | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (editing) {
@@ -58,11 +66,18 @@ export default function InventoryPartyItemsPage() {
         isPreferred: editing.isPreferred
       });
       setSelectedItemId(editing.itemId);
+      setIsDialogOpen(true);
       return;
     }
 
     setForm(emptyForm);
+    setSelectedItemId('');
   }, [editing]);
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setEditing(null);
+  };
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -98,7 +113,7 @@ export default function InventoryPartyItemsPage() {
         });
       }
       await refresh();
-      setEditing(null);
+      closeDialog();
       notify(intl.formatMessage({ id: 'inventory-action-success' }));
     } catch (saveError) {
       notify(saveError instanceof Error ? saveError.message : intl.formatMessage({ id: 'inventory-action-failed' }), 'error');
@@ -120,47 +135,79 @@ export default function InventoryPartyItemsPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm(intl.formatMessage({ id: 'confirm-delete-party-item', defaultMessage: 'هل أنت متأكد من حذف هذه العلاقة؟' }))) return;
+    try {
+      await deletePartyItemRelation(id);
+      notify(intl.formatMessage({ id: 'party-item-deleted', defaultMessage: 'تم الحذف بنجاح' }), 'success');
+      await refresh();
+    } catch (e: any) {
+      notify(e?.message || intl.formatMessage({ id: 'error' }), 'error');
+    }
+  };
+
   return (
     <>
       <Breadcrumbs custom heading="party-item-relations" links={[{ title: 'inventory' }, { title: 'party-item-relations' }]} />
-      <MainCard title={<FormattedMessage id="party-item-relations" />}>
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} md={4}>
-            <TextField select fullWidth label={<FormattedMessage id="item" />} value={selectedItemId} onChange={(event) => setSelectedItemId(event.target.value)}>
-              <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
-              {inventoryItems.map((item) => <MenuItem key={item.id} value={item.id}>{item.code} - {item.nameArabic}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField select fullWidth label={<FormattedMessage id="party" />} value={form.partyId} onChange={(event) => setForm({ ...form, partyId: event.target.value })}>
-              <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
-              {parties.map((party) => <MenuItem key={party.id} value={party.id}>{party.code} - {party.nameArabic}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField select fullWidth label={<FormattedMessage id="relation-type" />} value={form.relationType} onChange={(event) => setForm({ ...form, relationType: event.target.value as 'Customer' | 'Supplier' })}>
-              <MenuItem value="Customer"><FormattedMessage id="party-customer" /></MenuItem>
-              <MenuItem value="Supplier"><FormattedMessage id="party-supplier" /></MenuItem>
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField fullWidth label={<FormattedMessage id="party-item-code" />} value={form.partyItemCode ?? ''} onChange={(event) => setForm({ ...form, partyItemCode: event.target.value })} />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField fullWidth label={<FormattedMessage id="notes" />} value={form.notes ?? ''} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField select fullWidth label={<FormattedMessage id="preferred" />} value={form.isPreferred ? 'true' : 'false'} onChange={(event) => setForm({ ...form, isPreferred: event.target.value === 'true' })}>
-              <MenuItem value="true"><FormattedMessage id="yes" /></MenuItem>
-              <MenuItem value="false"><FormattedMessage id="no" /></MenuItem>
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
+      <MainCard 
+        title={
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="h3"><FormattedMessage id="party-item-relations" /></Typography>
+            <PermissionGuard permission={INVENTORY_PERMISSIONS.partyItemsManage}>
+              <Button variant="contained" startIcon={<IconPlus />} onClick={() => setIsDialogOpen(true)}>
+                <FormattedMessage id="create" />
+              </Button>
+            </PermissionGuard>
+          </Stack>
+        }
+      >
+        <Dialog open={isDialogOpen} onClose={closeDialog} maxWidth="md" fullWidth>
+          <DialogTitle>
+            {editing ? <FormattedMessage id="edit" /> : <FormattedMessage id="create" />}
+          </DialogTitle>
+          <DialogContent dividers>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField select fullWidth label={<FormattedMessage id="item" />} value={selectedItemId} onChange={(event) => setSelectedItemId(event.target.value)} disabled={!!editing}>
+                  <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
+                  {inventoryItems.map((item) => <MenuItem key={item.id} value={item.id}>{item.code} - {item.nameArabic}</MenuItem>)}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField select fullWidth label={<FormattedMessage id="party" />} value={form.partyId} onChange={(event) => setForm({ ...form, partyId: event.target.value })} disabled={!!editing}>
+                  <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
+                  {parties.map((party) => <MenuItem key={party.id} value={party.id}>{party.code} - {party.nameArabic}</MenuItem>)}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField select fullWidth label={<FormattedMessage id="relation-type" />} value={form.relationType} onChange={(event) => setForm({ ...form, relationType: event.target.value as 'Customer' | 'Supplier' })} disabled={!!editing}>
+                  <MenuItem value="Customer"><FormattedMessage id="party-customer" /></MenuItem>
+                  <MenuItem value="Supplier"><FormattedMessage id="party-supplier" /></MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label={<FormattedMessage id="party-item-code" />} value={form.partyItemCode ?? ''} onChange={(event) => setForm({ ...form, partyItemCode: event.target.value })} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label={<FormattedMessage id="notes" />} value={form.notes ?? ''} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField select fullWidth label={<FormattedMessage id="preferred" />} value={form.isPreferred ? 'true' : 'false'} onChange={(event) => setForm({ ...form, isPreferred: event.target.value === 'true' })}>
+                  <MenuItem value="true"><FormattedMessage id="yes" /></MenuItem>
+                  <MenuItem value="false"><FormattedMessage id="no" /></MenuItem>
+                </TextField>
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button color="error" onClick={closeDialog} disabled={isSaving}>
+              <FormattedMessage id="cancel" />
+            </Button>
             <Button variant="contained" disabled={isSaving || !selectedItemId || !form.partyId} onClick={submit}>
               <FormattedMessage id={editing ? 'save' : 'create'} />
             </Button>
-          </Grid>
-        </Grid>
+          </DialogActions>
+        </Dialog>
 
         {isLoading && <Loader />}
         {error && <Typography color="error"><FormattedMessage id="inventory-load-error" /></Typography>}
@@ -192,6 +239,11 @@ export default function InventoryPartyItemsPage() {
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Button size="small" onClick={() => setEditing(relation)}><FormattedMessage id="edit" /></Button>
                           <Button size="small" onClick={() => toggle(relation)}>{relation.isActive ? <FormattedMessage id="deactivate" /> : <FormattedMessage id="activate" />}</Button>
+                          <Tooltip title={<FormattedMessage id="delete" defaultMessage="حذف" />}>
+                            <IconButton color="error" size="small" onClick={() => handleDelete(relation.id)}>
+                              <IconTrash size={18} />
+                            </IconButton>
+                          </Tooltip>
                         </Stack>
                       </PermissionGuard>
                     </TableCell>
