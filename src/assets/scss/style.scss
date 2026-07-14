@@ -214,6 +214,7 @@ html[data-color-scheme='dark'] {
 
 .preBuildDashBoard-slider {
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
   user-select: none;
 
   overflow: hidden;
