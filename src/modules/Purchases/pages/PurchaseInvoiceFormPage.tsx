@@ -25,6 +25,7 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import { createInvoice, updateInvoice, postInvoice } from '../api/purchasesApi';
 import { usePurchaseInvoice } from '../hooks/usePurchases';
@@ -190,7 +191,7 @@ export default function PurchaseInvoiceFormPage() {
       <Box sx={{ mb: 3 }}>
          <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 0 }} />
          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
-            <Typography variant="h2" fontWeight={700}><FormattedMessage id={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} /></Typography>
+            <PageTitle><FormattedMessage id={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} /></PageTitle>
             {isEdit && invoice && (
                <Box sx={{ px: 2, py: 0.5, bgcolor: 'grey.100', color: 'text.secondary', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
                   <Typography variant="caption" fontWeight={600}><FormattedMessage id={invoice.status.toLowerCase()} /></Typography>

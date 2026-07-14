@@ -24,6 +24,7 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import { createReturn, updateReturn, postReturn } from '../api/purchasesApi';
 import { usePurchaseInvoice, usePurchaseReturn, usePurchaseInvoices } from '../hooks/usePurchases';
@@ -169,7 +170,7 @@ export default function PurchaseReturnFormPage() {
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
            <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-purchase-return' : 'create-purchase-return'} links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }]} sx={{ mb: 0 }} />
-           <Typography variant="h2" sx={{ mt: 1 }}><FormattedMessage id={isEdit ? 'edit-purchase-return' : 'create-purchase-return'} /></Typography>
+           <PageTitle><FormattedMessage id={isEdit ? 'edit-purchase-return' : 'create-purchase-return'} /></PageTitle>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            {isEdit && purchaseReturn && (

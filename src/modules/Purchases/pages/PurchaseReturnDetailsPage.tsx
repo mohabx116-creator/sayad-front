@@ -23,6 +23,7 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
@@ -62,7 +63,7 @@ export default function PurchaseReturnDetailsPage() {
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
            <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-return-details" links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }]} sx={{ mb: 0 }} />
-           <Typography variant="h2" sx={{ mt: 1 }}>{purchaseReturn.number} - {purchaseReturn.purchaseInvoiceNumber}</Typography>
+           <PageTitle>{purchaseReturn.number} - {purchaseReturn.purchaseInvoiceNumber}</PageTitle>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
