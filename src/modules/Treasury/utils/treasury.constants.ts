@@ -1,28 +1,37 @@
 export const TREASURY_PERMISSIONS = {
-  view: 'Treasury.View',
-  accountsView: 'Treasury.Accounts.View',
-  accountsCreate: 'Treasury.Accounts.Create',
-  accountsUpdate: 'Treasury.Accounts.Update',
-  accountsActivate: 'Treasury.Accounts.Activate',
-  accountsDeactivate: 'Treasury.Accounts.Deactivate',
-  receiptsView: 'Treasury.Receipts.View',
-  receiptsCreate: 'Treasury.Receipts.Create',
-  receiptsUpdate: 'Treasury.Receipts.Update',
-  receiptsPost: 'Treasury.Receipts.Post',
-  receiptsCancel: 'Treasury.Receipts.Cancel',
-  paymentsView: 'Treasury.Payments.View',
-  paymentsCreate: 'Treasury.Payments.Create',
-  paymentsUpdate: 'Treasury.Payments.Update',
-  paymentsPost: 'Treasury.Payments.Post',
-  paymentsCancel: 'Treasury.Payments.Cancel',
-  transfersView: 'Treasury.Transfers.View',
-  transfersCreate: 'Treasury.Transfers.Create',
-  transfersUpdate: 'Treasury.Transfers.Update',
-  transfersPost: 'Treasury.Transfers.Post',
-  transfersCancel: 'Treasury.Transfers.Cancel',
-  statementsView: 'Treasury.Statements.View',
-  lookupsView: 'Treasury.Lookups.View'
-};
+  view: 'treasury.view',
+  accountsView: 'treasury.accounts.view',
+  accountsCreate: 'treasury.accounts.create',
+  accountsUpdate: 'treasury.accounts.update',
+  accountsActivate: 'treasury.accounts.activate',
+  accountsDeactivate: 'treasury.accounts.deactivate',
+  receiptsView: 'treasury.receipts.view',
+  receiptsCreate: 'treasury.receipts.create',
+  receiptsUpdate: 'treasury.receipts.update',
+  receiptsPost: 'treasury.receipts.post',
+  receiptsCancel: 'treasury.receipts.cancel',
+  paymentsView: 'treasury.payments.view',
+  paymentsCreate: 'treasury.payments.create',
+  paymentsUpdate: 'treasury.payments.update',
+  paymentsPost: 'treasury.payments.post',
+  paymentsCancel: 'treasury.payments.cancel',
+  transfersView: 'treasury.transfers.view',
+  transfersCreate: 'treasury.transfers.create',
+  transfersUpdate: 'treasury.transfers.update',
+  transfersPost: 'treasury.transfers.post',
+  transfersCancel: 'treasury.transfers.cancel',
+  statementsView: 'treasury.statements.view',
+  lookupsView: 'treasury.lookups.view'
+} as const;
+
+export const TREASURY_VIEW_PERMISSIONS = [
+  TREASURY_PERMISSIONS.view,
+  TREASURY_PERMISSIONS.accountsView,
+  TREASURY_PERMISSIONS.receiptsView,
+  TREASURY_PERMISSIONS.paymentsView,
+  TREASURY_PERMISSIONS.transfersView,
+  TREASURY_PERMISSIONS.statementsView
+] as const;
 
 export const TREASURY_DOCUMENT_STATUS = {
   DRAFT: 'Draft',
