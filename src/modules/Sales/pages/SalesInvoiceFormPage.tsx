@@ -26,6 +26,7 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import { createInvoice, updateInvoice, postInvoice } from '../api/salesApi';
 import { useSalesInvoice } from '../hooks/useSales';
@@ -271,7 +272,7 @@ export default function SalesInvoiceFormPage() {
       <Box sx={{ mb: 3 }}>
          <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-sales-invoice' : 'create-sales-invoice'} links={[{ title: 'sales', to: '/sales/invoices' }, { title: 'sales-invoices', to: '/sales/invoices' }]} sx={{ mb: 0 }} />
          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
-            <Typography variant="h2" fontWeight={700}><FormattedMessage id={isEdit ? 'edit-sales-invoice' : 'create-sales-invoice'} /></Typography>
+            <PageTitle><FormattedMessage id={isEdit ? 'edit-sales-invoice' : 'create-sales-invoice'} /></PageTitle>
             {isEdit && invoice && (
                <Box sx={{ px: 2, py: 0.5, bgcolor: 'grey.100', color: 'text.secondary', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
                   <Typography variant="caption" fontWeight={600}><FormattedMessage id={`sales.status.${invoice.status.toLowerCase()}`} /></Typography>

@@ -23,6 +23,7 @@ import { IconPlus, IconRefresh, IconSearch, IconFilter, IconDotsVertical } from 
 
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import SalesStatusChip from '../components/SalesStatusChip';
@@ -73,7 +74,7 @@ export default function SalesInvoicesListPage() {
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
            <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-invoices" links={[{ title: 'sales', to: '/sales/invoices' }, { title: 'sales-invoices' }]} sx={{ mb: 0 }} />
-           <Typography variant="h3" sx={{ mt: 1, fontWeight: 700 }}><FormattedMessage id="sales-invoices" /></Typography>
+           <PageTitle><FormattedMessage id="sales-invoices" /></PageTitle>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <PermissionGuard permission={SALES_PERMISSIONS.invoicesCreate}>

@@ -17,7 +17,6 @@ import HorizontalBar from './HorizontalBar';
 import MainContentStyled from './MainContentStyled';
 import Customization from '../Customization';
 import Loader from 'ui-component/Loader';
-import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 
 import { MenuOrientation } from 'config';
 import useConfig from 'hooks/useConfig';
@@ -68,8 +67,6 @@ export default function MainLayout() {
           maxWidth={container ? 'lg' : false}
           sx={{ ...(!container && { px: { xs: 0 } }), minHeight: 'calc(100vh - 128px)', display: 'flex', flexDirection: 'column' }}
         >
-          {/* breadcrumb */}
-          <Breadcrumbs />
           <Outlet />
           <Footer />
         </Container>

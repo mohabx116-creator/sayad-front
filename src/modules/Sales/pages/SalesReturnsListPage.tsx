@@ -28,6 +28,7 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { useSalesReturns } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
+import PageTitle from 'ui-component/PageTitle';
 import { useParties } from 'modules/Parties/hooks/useParties';
 
 export default function SalesReturnsListPage() {
@@ -69,7 +70,7 @@ export default function SalesReturnsListPage() {
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
            <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-returns" links={[{ title: 'sales', to: '/sales/returns' }, { title: 'sales-returns' }]} sx={{ mb: 0 }} />
-           <Typography variant="h2" sx={{ mt: 1 }}><FormattedMessage id="sales-returns" /></Typography>
+           <PageTitle><FormattedMessage id="sales-returns" /></PageTitle>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <PermissionGuard permission={SALES_PERMISSIONS.returnsCreate}>

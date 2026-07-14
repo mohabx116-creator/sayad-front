@@ -1,5 +1,5 @@
 import { Activity, ReactElement, useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -9,6 +9,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import MuiBreadcrumbs, { BreadcrumbsProps } from '@mui/material/Breadcrumbs';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 
 // third party
 import { FormattedMessage } from 'react-intl';
@@ -19,7 +21,7 @@ import navigation from 'menu-items';
 import useConfig from 'hooks/useConfig';
 
 // assets
-import { IconChevronRight, IconTallymark1 } from '@tabler/icons-react';
+import { IconChevronRight, IconTallymark1, IconArrowRight, IconArrowLeft } from '@tabler/icons-react';
 import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeTwoToneIcon from '@mui/icons-material/HomeTwoTone';
@@ -35,12 +37,29 @@ interface BreadcrumbLinkProps {
 
 // ==============================|| BREADCRUMBS TITLE ||============================== //
 
-function BTitle({ title }: { title: string }) {
+function BTitle({ title, showBack = true }: { title: string, showBack?: boolean }) {
+  const navigate = useNavigate();
+  const { state: { themeDirection } } = useConfig();
+
   return (
     <Grid>
-      <Typography variant="h4" sx={{ fontWeight: 500 }}>
-        <FormattedMessage id={title} />
-      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center">
+        {showBack && (
+          <Button
+            variant="outlined"
+            size="small"
+            color="secondary"
+            onClick={() => navigate(-1)}
+            startIcon={themeDirection === ThemeDirection.RTL ? <IconArrowRight size={18} /> : <IconArrowLeft size={18} />}
+            sx={{ mr: 1 }}
+          >
+            <FormattedMessage id="back" defaultMessage="رجوع" />
+          </Button>
+        )}
+        <Typography variant="h4" sx={{ fontWeight: 500 }}>
+          <FormattedMessage id={title} />
+        </Typography>
+      </Stack>
     </Grid>
   );
 }
