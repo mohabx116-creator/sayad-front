@@ -1,4 +1,4 @@
-import { IconArrowsRightLeft, IconBuildingBank, IconReceipt, IconReceiptRefund, IconReportAnalytics } from '@tabler/icons-react';
+import { IconArrowsRightLeft, IconBuildingBank, IconReceipt, IconReceiptRefund, IconReportAnalytics, IconDashboard } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 import { TREASURY_PERMISSIONS, TREASURY_VIEW_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
@@ -8,7 +8,8 @@ const icons = {
   IconReceipt,
   IconReceiptRefund,
   IconArrowsRightLeft,
-  IconReportAnalytics
+  IconReportAnalytics,
+  IconDashboard
 };
 
 const treasury: NavItemType = {
@@ -18,6 +19,15 @@ const treasury: NavItemType = {
   type: 'group',
   anyPermissions: [...TREASURY_VIEW_PERMISSIONS],
   children: [
+    {
+      id: 'treasury-dashboard',
+      title: 'treasury-dashboard',
+      type: 'item',
+      url: '/treasury',
+      icon: icons.IconDashboard,
+      breadcrumbs: false,
+      permission: TREASURY_PERMISSIONS.view
+    },
     {
       id: 'treasury-accounts',
       title: 'treasury-accounts',
