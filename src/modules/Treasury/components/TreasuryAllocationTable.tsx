@@ -9,6 +9,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 import { IconFileInvoice } from '@tabler/icons-react';
 
 import type { TreasuryEligibleInvoice } from '../types/treasury.types';
@@ -51,53 +52,78 @@ export default function TreasuryAllocationTable({ invoices, onAllocationChange, 
           </TableRow>
         </TableHead>
         <TableBody>
-          {invoices.map((row) => (
-            <TableRow key={row.invoiceId} hover>
-              <TableCell>{row.invoiceNumber}</TableCell>
-              <TableCell>{row.invoiceDate}</TableCell>
-              <TableCell align="right">{row.grandTotal.toFixed(2)}</TableCell>
-              <TableCell align="right" sx={{ color: 'error.main', fontWeight: 600 }}>{row.outstandingAmount.toFixed(2)}</TableCell>
-              <TableCell align="right">
-                {readOnly ? (
-                  <Typography variant="body2" fontWeight={600}>
-                    {row.allocatedAmount.toFixed(2)}
-                  </Typography>
-                ) : (
-                  <TextField
-                    size="small"
-                    type="number"
-                    fullWidth
-                    value={row.allocatedAmount || ''}
-                    onChange={(event) => {
-                      if (!onAllocationChange) {
-                        return;
-                      }
+          {invoices.map((row) => {
+            const allocationPercentage = row.outstandingAmount > 0
+              ? Math.min(100, Math.max(0, (row.allocatedAmount / row.outstandingAmount) * 100))
+              : 0;
+            const isFullyAllocated = row.allocatedAmount >= row.outstandingAmount;
 
-                      let value = Number(event.target.value);
-                      if (Number.isNaN(value) || value < 0) {
-                        value = 0;
-                      }
-                      if (value > row.outstandingAmount) {
-                        value = row.outstandingAmount;
-                      }
+            return (
+              <TableRow key={row.invoiceId} hover sx={{ bgcolor: isFullyAllocated ? 'success.lighter' : 'inherit' }}>
+                <TableCell>{row.invoiceNumber}</TableCell>
+                <TableCell>{row.invoiceDate}</TableCell>
+                <TableCell align="right">{row.grandTotal.toFixed(2)}</TableCell>
+                <TableCell align="right">
+                  <Typography variant="body2" color="error.main" fontWeight={600}>{row.outstandingAmount.toFixed(2)}</Typography>
+                </TableCell>
+                <TableCell align="right">
+                  {readOnly ? (
+                    <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Typography variant="body2" fontWeight={700} color={isFullyAllocated ? 'success.dark' : 'text.primary'}>
+                        {row.allocatedAmount.toFixed(2)}
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={allocationPercentage}
+                        color={isFullyAllocated ? 'success' : 'primary'}
+                        sx={{ height: 4, borderRadius: 2 }}
+                      />
+                    </Box>
+                  ) : (
+                    <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        fullWidth
+                        value={row.allocatedAmount || ''}
+                        onChange={(event) => {
+                          if (!onAllocationChange) {
+                            return;
+                          }
 
-                      if (maxTotalAllocation !== undefined) {
-                        const otherAllocations = currentTotalAllocated - row.allocatedAmount;
-                        const available = maxTotalAllocation - otherAllocations;
-                        if (value > available && available > 0) {
-                          value = available;
-                        }
-                      }
+                          let value = Number(event.target.value);
+                          if (Number.isNaN(value) || value < 0) {
+                            value = 0;
+                          }
+                          if (value > row.outstandingAmount) {
+                            value = row.outstandingAmount;
+                          }
 
-                      onAllocationChange(row.invoiceId, value);
-                    }}
-                    inputProps={{ min: 0, max: row.outstandingAmount, step: 0.01 }}
-                    placeholder="0.00"
-                  />
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+                          if (maxTotalAllocation !== undefined) {
+                            const otherAllocations = currentTotalAllocated - row.allocatedAmount;
+                            const available = maxTotalAllocation - otherAllocations;
+                            if (value > available && available > 0) {
+                              value = available;
+                            }
+                          }
+
+                          onAllocationChange(row.invoiceId, value);
+                        }}
+                        inputProps={{ min: 0, max: row.outstandingAmount, step: 0.01 }}
+                        placeholder="0.00"
+                      />
+                      <LinearProgress
+                        variant="determinate"
+                        value={allocationPercentage}
+                        color={isFullyAllocated ? 'success' : 'primary'}
+                        sx={{ height: 3, borderRadius: 2 }}
+                      />
+                    </Box>
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

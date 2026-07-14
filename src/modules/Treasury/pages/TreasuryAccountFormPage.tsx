@@ -11,13 +11,13 @@ import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import Alert from '@mui/material/Alert';
 
+import Divider from '@mui/material/Divider';
 import { IconDeviceFloppy, IconInfoCircle } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
-import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 
 import { createTreasuryAccount, updateTreasuryAccount } from '../api/treasuryApi';
@@ -102,30 +102,23 @@ export default function TreasuryAccountFormPage() {
   return (
     <Box component="form" onSubmit={submit}>
       <Box sx={{ mb: 3 }}>
-        <Breadcrumbs 
-          custom 
-          card={false} 
-          title={false} 
-          divider={false} 
-          heading={isEdit ? 'edit-account' : 'create-account'} 
-          links={[{ title: 'treasury', to: '/treasury' }, { title: 'treasury-accounts', to: '/treasury/accounts' }]} 
-          sx={{ mb: 0 }} 
+        <Breadcrumbs
+          custom
+          heading={isEdit ? 'edit-account' : 'create-account'}
+          links={[{ title: 'treasury', to: '/treasury' }, { title: 'treasury-accounts', to: '/treasury/accounts' }, { title: isEdit ? 'edit-account' : 'create-account' }]}
         />
-        <Box sx={{ mt: 1 }}>
-          <PageTitle><FormattedMessage id={isEdit ? 'edit-account' : 'create-account'} defaultMessage={isEdit ? 'تعديل حساب' : 'إنشاء حساب'} /></PageTitle>
-        </Box>
       </Box>
 
-      <MainCard 
-        content={false} 
-        sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2 }}
+      <MainCard
+        title={<FormattedMessage id={isEdit ? 'edit-account' : 'create-account'} defaultMessage={isEdit ? 'تعديل حساب' : 'إنشاء حساب'} />}
       >
-        <Box sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ pt: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1, mb: 2 }}>
             <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
-            <Typography variant="h4" fontWeight={600}><FormattedMessage id="basic-information" defaultMessage="البيانات الأساسية" /></Typography>
+            <Typography variant="h4" fontWeight={600}><FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" /></Typography>
           </Box>
-          
+          <Divider sx={{ mb: 3 }} />
+
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
               <TextField
@@ -167,7 +160,7 @@ export default function TreasuryAccountFormPage() {
                 ))}
               </TextField>
             </Grid>
-            
+
             <Grid item xs={12}>
               <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}><FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" /></Typography>
               {hasMovements && (

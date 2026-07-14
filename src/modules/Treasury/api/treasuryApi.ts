@@ -6,6 +6,7 @@ import type {
   TreasuryAccount,
   TreasuryAccountInput,
   TreasuryAccountListItem,
+  TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
   TreasuryLookups,
   TreasuryPagedMeta,
@@ -166,6 +167,10 @@ export function getTreasuryStatement(params: TreasuryStatementParams) {
 
 export function getTreasuryLookups() {
   return unwrap(axiosServices.get<ApiResponse<TreasuryLookups>>('/api/treasury/lookups'));
+}
+
+export function getTreasuryDashboardSummary(params?: { dateFrom?: string; dateTo?: string }) {
+  return unwrap(axiosServices.get<ApiResponse<TreasuryDashboardSummary>>('/api/treasury/dashboard/summary', { params }));
 }
 
 export { buildQuery };

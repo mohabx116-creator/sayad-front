@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -24,6 +24,19 @@ import TreasuryAllocationSummaryTable from '../components/TreasuryAllocationSumm
 import { cancelTreasuryReceipt, postTreasuryReceipt } from '../api/treasuryApi';
 import { useTreasuryReceipt } from '../hooks/useTreasury';
 import { TREASURY_DOCUMENT_STATUS, TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+
+function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
+        {label}
+      </Typography>
+      <Typography variant="body2" fontWeight={500}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
 
 export default function TreasuryReceiptDetailsPage() {
   const { id } = useParams();
@@ -68,6 +81,9 @@ export default function TreasuryReceiptDetailsPage() {
     return <Loader />;
   }
 
+  const totalAllocated = receipt.allocations.reduce((sum, a) => sum + a.amount, 0);
+  const unallocated = receipt.totalAmount - totalAllocated;
+
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
@@ -81,7 +97,7 @@ export default function TreasuryReceiptDetailsPage() {
               <TreasuryStatusChip status={receipt.status} />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {receipt.treasuryAccountCode} - {receipt.treasuryAccountNameArabic}
+              {receipt.treasuryAccountCode} — {receipt.treasuryAccountNameArabic}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -115,91 +131,133 @@ export default function TreasuryReceiptDetailsPage() {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2, mb: 3 }} content={false}>
-            <Box sx={{ p: 3 }}>
-              <Typography variant="h4" fontWeight={600} gutterBottom>
+          {/* Basic info card */}
+          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, mb: 3 }} content={false}>
+            <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="h5" fontWeight={700}>
                 <FormattedMessage id="basic-information" />
               </Typography>
-              <Grid container spacing={3} sx={{ mt: 1 }}>
+            </Box>
+            <Box sx={{ p: 3 }}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id="receipt-number" defaultMessage="رقم الإيصال" />
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
+                  <InfoRow label={<FormattedMessage id="receipt-number" defaultMessage="رقم الإيصال" />}>
                     {receipt.number}
-                  </Typography>
+                  </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id="date" />
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
+                  <InfoRow label={<FormattedMessage id="date" />}>
                     {receipt.receiptDate}
-                  </Typography>
+                  </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id="treasury-account" defaultMessage="الحساب" />
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {receipt.treasuryAccountCode} - {receipt.treasuryAccountNameArabic}
-                  </Typography>
+                  <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="الحساب" />}>
+                    {receipt.treasuryAccountCode} — {receipt.treasuryAccountNameArabic}
+                  </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id="party" />
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {receipt.partyCode} - {receipt.partyNameArabic}
-                  </Typography>
+                  <InfoRow label={<FormattedMessage id="party" />}>
+                    {receipt.partyCode} — {receipt.partyNameArabic}
+                  </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id="reference-number" defaultMessage="المرجع" />
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
+                  <InfoRow label={<FormattedMessage id="reference-number" defaultMessage="المرجع" />}>
                     {receipt.relatedDocumentNumber ?? '-'}
-                  </Typography>
+                  </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id="reason" />
-                  </Typography>
-                  <Box sx={{ mt: 0.5 }}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
+                      <FormattedMessage id="reason" />
+                    </Typography>
                     <TreasuryPurposeChip purpose={receipt.reason ?? ''} />
                   </Box>
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id="notes" />
-                  </Typography>
-                  <Typography variant="body1">{receipt.notes ?? '-'}</Typography>
-                </Grid>
+                {receipt.notes && (
+                  <Grid item xs={12}>
+                    <InfoRow label={<FormattedMessage id="notes" />}>
+                      {receipt.notes}
+                    </InfoRow>
+                  </Grid>
+                )}
               </Grid>
             </Box>
           </MainCard>
 
-          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2 }} content={false}>
-            <Box sx={{ p: 3 }}>
-              <Typography variant="h4" fontWeight={600} gutterBottom>
+          {/* Allocations card */}
+          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }} content={false}>
+            <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="h5" fontWeight={700}>
                 <FormattedMessage id="invoice-allocations" defaultMessage="تخصيص الفواتير" />
               </Typography>
+            </Box>
+            <Box sx={{ p: 3 }}>
               <TreasuryAllocationSummaryTable allocations={allocationSummary} />
             </Box>
           </MainCard>
         </Grid>
 
+        {/* Summary sidebar */}
         <Grid item xs={12} md={4}>
-          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2, bgcolor: 'grey.50' }} content={false}>
-            <Box sx={{ p: 3 }}>
-              <Typography variant="h4" fontWeight={600} gutterBottom>
-                <FormattedMessage id="totals-summary" />
+          <MainCard
+            content={false}
+            sx={{
+              border: '1px solid',
+              borderColor: 'primary.main',
+              boxShadow: '0 4px 16px rgba(94,114,228,0.12)',
+              borderRadius: 3,
+              overflow: 'hidden',
+              position: { md: 'sticky' },
+              top: { md: 24 }
+            }}
+          >
+            {/* Gradient header */}
+            <Box
+              sx={{
+                p: 3,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: '#fff'
+              }}
+            >
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <FormattedMessage id="totals-summary" defaultMessage="الملخص المالي" />
               </Typography>
-              <Stack spacing={2} sx={{ mt: 2 }}>
-                <Chip label={<><FormattedMessage id="amount" />: {receipt.totalAmount.toFixed(2)}</>} />
-                <Chip label={<><FormattedMessage id="allocated-amount" />: {receipt.allocations.reduce((sum, allocation) => sum + allocation.amount, 0).toFixed(2)}</>} />
-                <Chip color="primary" label={<><FormattedMessage id="status" />: <TreasuryStatusChip status={receipt.status} /></>} sx={{ justifyContent: 'flex-start' }} />
-              </Stack>
+              <Typography variant="h2" fontWeight={800} sx={{ mt: 0.5 }}>
+                {receipt.totalAmount.toFixed(2)}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', mt: 0.25 }}>
+                <FormattedMessage id="total-amount" defaultMessage="إجمالي الإيصال" />
+              </Typography>
+            </Box>
+
+            <Box sx={{ p: 3 }}>
+              {/* Allocated */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                  <FormattedMessage id="allocated-amount" defaultMessage="المبلغ المخصص" />
+                </Typography>
+                <Typography variant="body1" fontWeight={700} color="success.dark">
+                  {totalAllocated.toFixed(2)}
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              {/* Unallocated */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                  <FormattedMessage id="unallocated-amount" defaultMessage="غير مخصص" />
+                </Typography>
+                <Typography variant="body1" fontWeight={700} color={unallocated > 0 ? 'warning.dark' : 'text.primary'}>
+                  {unallocated.toFixed(2)}
+                </Typography>
+              </Box>
+
+              {/* Status row */}
+              <Box sx={{ pt: 2, borderTop: '1px dashed', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                  <FormattedMessage id="status" />
+                </Typography>
+                <TreasuryStatusChip status={receipt.status} />
+              </Box>
             </Box>
           </MainCard>
         </Grid>

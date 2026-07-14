@@ -66,7 +66,7 @@ export default function TreasuryTransfersListPage() {
         </Box>
       </Box>
 
-      <Card sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2 }}>
+      <Card sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
             <TextField fullWidth label={<FormattedMessage id="search" />} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && setParams((current) => ({ ...current, page: 1, search: searchInput }))} />
@@ -107,7 +107,7 @@ export default function TreasuryTransfersListPage() {
         </Grid>
       </Card>
 
-      <Card sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2, overflow: 'hidden' }}>
+      <Card sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, overflow: 'hidden' }}>
         <TableContainer>
           <Table>
             <TableHead sx={{ bgcolor: 'grey.50' }}>

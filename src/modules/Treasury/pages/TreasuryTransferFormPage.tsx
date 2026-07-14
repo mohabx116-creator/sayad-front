@@ -6,7 +6,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
 import MenuItem from '@mui/material/MenuItem';
+import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
+
+import Divider from '@mui/material/Divider';
+
+import { IconInfoCircle } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -121,9 +126,23 @@ export default function TreasuryTransferFormPage() {
 
   return (
     <Box>
-      <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-transfer' : 'create-transfer'} links={[{ title: 'treasury', to: '/treasury' }, { title: 'transfers', to: '/treasury/transfers' }]} sx={{ mb: 3 }} />
-      <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2 }} content={false}>
-        <Box sx={{ p: 3 }}>
+      <Box sx={{ mb: 3 }}>
+        <Breadcrumbs
+          custom
+          heading={isEdit ? 'edit-transfer' : 'create-transfer'}
+          links={[{ title: 'treasury', to: '/treasury' }, { title: 'transfers', to: '/treasury/transfers' }, { title: isEdit ? 'edit-transfer' : 'create-transfer' }]}
+        />
+      </Box>
+      <MainCard
+        title={<FormattedMessage id={isEdit ? 'edit-transfer' : 'create-transfer'} defaultMessage={isEdit ? 'تعديل تحويل' : 'إنشاء تحويل'} />}
+        sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}
+      >
+        <Box sx={{ pt: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1, mb: 2 }}>
+            <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
+            <Typography variant="h4" fontWeight={600}><FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" /></Typography>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <TextField select fullWidth label={<FormattedMessage id="from-account" defaultMessage="من حساب" />} value={form.fromAccountId} onChange={(event) => setForm((current) => ({ ...current, fromAccountId: event.target.value }))}>

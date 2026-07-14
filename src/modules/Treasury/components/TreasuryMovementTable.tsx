@@ -8,9 +8,65 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 import Pagination from '@mui/material/Pagination';
-import { IconArrowsLeftRight } from '@tabler/icons-react';
+import {
+  IconArrowsLeftRight,
+  IconArrowDownLeft,
+  IconArrowUpRight,
+  IconRefresh,
+  IconWallet
+} from '@tabler/icons-react';
 import type { TreasuryMovement } from '../types/treasury.types';
+import { formatTreasuryMoney } from '../utils/treasury.format';
+
+function getMovementPresentation(movementType: string) {
+  switch (movementType.toLowerCase()) {
+    case 'openingbalance':
+      return { label: 'الرصيد الافتتاحي', icon: <IconWallet size={14} />, color: 'primary' as const };
+    case 'receipt':
+      return { label: 'إيصال', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
+    case 'receiptreversal':
+      return { label: 'عكس إيصال', icon: <IconRefresh size={14} />, color: 'error' as const };
+    case 'payment':
+      return { label: 'صرف', icon: <IconArrowUpRight size={14} />, color: 'error' as const };
+    case 'paymentreversal':
+      return { label: 'عكس صرف', icon: <IconRefresh size={14} />, color: 'success' as const };
+    case 'transferin':
+      return { label: 'تحويل وارد', icon: <IconArrowsLeftRight size={14} />, color: 'info' as const };
+    case 'transferout':
+      return { label: 'تحويل صادر', icon: <IconArrowsLeftRight size={14} />, color: 'warning' as const };
+    case 'transferreversalin':
+      return { label: 'عكس تحويل وارد', icon: <IconRefresh size={14} />, color: 'error' as const };
+    case 'transferreversalout':
+      return { label: 'عكس تحويل صادر', icon: <IconRefresh size={14} />, color: 'error' as const };
+    default:
+      return { label: movementType, icon: <IconArrowsLeftRight size={14} />, color: 'default' as const };
+  }
+}
+
+function getReferenceLabel(referenceType: string) {
+  switch (referenceType.toLowerCase()) {
+    case 'openingbalance':
+      return 'الرصيد الافتتاحي';
+    case 'openingbalancecorrection':
+      return 'تصحيح الرصيد الافتتاحي';
+    case 'receiptvoucher':
+      return 'سند قبض';
+    case 'receiptvouchercancellation':
+      return 'إلغاء سند قبض';
+    case 'paymentvoucher':
+      return 'سند صرف';
+    case 'paymentvouchercancellation':
+      return 'إلغاء سند صرف';
+    case 'transfervoucher':
+      return 'سند تحويل';
+    case 'transfervouchercancellation':
+      return 'إلغاء سند تحويل';
+    default:
+      return referenceType;
+  }
+}
 
 interface Props {
   movements: TreasuryMovement[];
@@ -18,9 +74,10 @@ interface Props {
   totalPages: number;
   onPageChange?: (page: number) => void;
   isLoading?: boolean;
+  currencyCode?: string;
 }
 
-export default function TreasuryMovementTable({ movements, page, totalPages, onPageChange, isLoading }: Props) {
+export default function TreasuryMovementTable({ movements, page, totalPages, onPageChange, isLoading, currencyCode }: Props) {
   if (!movements || movements.length === 0) {
     return (
       <Box sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
@@ -57,11 +114,17 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                     {row.referenceNumber || '-'}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    <FormattedMessage id={`treasury.referenceType.${row.referenceType.toLowerCase()}`} defaultMessage={row.referenceType} />
+                    {getReferenceLabel(row.referenceType)}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Chip size="small" variant="outlined" color={row.isReversal ? 'error' : 'default'} label={<FormattedMessage id={`treasury.movementType.${row.movementType.toLowerCase()}`} defaultMessage={row.movementType} />} />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={getMovementPresentation(row.movementType).color}
+                    icon={getMovementPresentation(row.movementType).icon}
+                    label={getMovementPresentation(row.movementType).label}
+                  />
                 </TableCell>
                 <TableCell>{row.partyNameArabic || '-'}</TableCell>
                 <TableCell sx={{ maxWidth: 250 }}>
@@ -75,18 +138,20 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                   )}
                 </TableCell>
                 <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>
-                  {row.debitAmount > 0 ? row.debitAmount.toFixed(2) : '-'}
+                  {row.debitAmount > 0 ? formatTreasuryMoney(row.debitAmount, currencyCode) : '-'}
                 </TableCell>
                 <TableCell align="right" sx={{ color: 'error.main', fontWeight: 600 }}>
-                  {row.creditAmount > 0 ? row.creditAmount.toFixed(2) : '-'}
+                  {row.creditAmount > 0 ? formatTreasuryMoney(row.creditAmount, currencyCode) : '-'}
                 </TableCell>
                 <TableCell align="right">
-                  <Typography variant="body2" fontWeight={700}>
-                    {row.balanceAfter.toFixed(2)}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {row.balanceNature === 'Debit' ? 'مدين' : 'دائن'}
-                  </Typography>
+                  <Stack spacing={0.25} alignItems="flex-end">
+                    <Typography variant="body2" fontWeight={700}>
+                      {formatTreasuryMoney(row.balanceAfter, currencyCode)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {row.balanceNature === 'Debit' ? 'مدين' : row.balanceNature === 'Credit' ? 'دائن' : 'مستقر'}
+                    </Typography>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

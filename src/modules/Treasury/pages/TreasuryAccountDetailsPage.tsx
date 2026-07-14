@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import Typography from '@mui/material/Typography';
-import Chip from '@mui/material/Chip';
 
-import { IconEdit, IconCheck, IconX, IconReport, IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconEdit, IconReport, IconX } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -17,11 +17,14 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 
-import { useTreasuryAccount } from '../hooks/useTreasury';
+import { useTreasuryAccount, useTreasuryStatement } from '../hooks/useTreasury';
 import { activateTreasuryAccount, deactivateTreasuryAccount } from '../api/treasuryApi';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/TreasuryConfirmationDialog';
+import TreasuryBalanceSummary from '../components/TreasuryBalanceSummary';
+import TreasuryMovementTable from '../components/TreasuryMovementTable';
+import { formatTreasuryMoney } from '../utils/treasury.format';
 
 export default function TreasuryAccountDetailsPage() {
   const { id } = useParams();
@@ -30,7 +33,8 @@ export default function TreasuryAccountDetailsPage() {
   const dispatch = useDispatch();
 
   const { account, isLoading, mutate } = useTreasuryAccount(id);
-  
+  const { statement, isLoading: isStatementLoading } = useTreasuryStatement(id ? { treasuryAccountId: id, page: 1, pageSize: 5 } : null);
+
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType }>({
     open: false,
     action: 'activate'
@@ -66,31 +70,31 @@ export default function TreasuryAccountDetailsPage() {
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <Breadcrumbs 
-          custom 
-          card={false} 
-          title={false} 
-          divider={false} 
-          heading="account-details" 
-          links={[{ title: 'treasury', to: '/treasury' }, { title: 'treasury-accounts', to: '/treasury/accounts' }]} 
-          sx={{ mb: 0 }} 
+        <Breadcrumbs
+          custom
+          card={false}
+          title={false}
+          divider={false}
+          heading="account-details"
+          links={[{ title: 'treasury', to: '/treasury' }, { title: 'treasury-accounts', to: '/treasury/accounts' }]}
+          sx={{ mb: 0 }}
         />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mt: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mt: 1, gap: 2, flexWrap: 'wrap' }}>
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
               <PageTitle>{account.nameArabic}</PageTitle>
-              <Chip 
-                size="small" 
-                label={<FormattedMessage id={account.isActive ? 'active' : 'inactive'} defaultMessage={account.isActive ? 'نشط' : 'غير نشط'} />} 
-                color={account.isActive ? 'success' : 'default'} 
-                variant="outlined" 
+              <Chip
+                size="small"
+                label={<FormattedMessage id={account.isActive ? 'active' : 'inactive'} defaultMessage={account.isActive ? 'نشط' : 'غير نشط'} />}
+                color={account.isActive ? 'success' : 'default'}
+                variant="outlined"
               />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {account.code} • {account.accountTypeLabel}
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <PermissionGuard permission={TREASURY_PERMISSIONS.statementsView}>
               <Button
                 component={Link}
@@ -102,7 +106,7 @@ export default function TreasuryAccountDetailsPage() {
                 <FormattedMessage id="statement" defaultMessage="كشف حساب" />
               </Button>
             </PermissionGuard>
-            
+
             <PermissionGuard permission={TREASURY_PERMISSIONS.accountsUpdate}>
               <Button
                 component={Link}
@@ -115,7 +119,7 @@ export default function TreasuryAccountDetailsPage() {
                 <FormattedMessage id="edit" defaultMessage="تعديل" />
               </Button>
             </PermissionGuard>
-            
+
             {account.isActive ? (
               <PermissionGuard permission={TREASURY_PERMISSIONS.accountsDeactivate}>
                 <Button
@@ -145,72 +149,117 @@ export default function TreasuryAccountDetailsPage() {
         </Box>
       </Box>
 
+      <TreasuryBalanceSummary
+        openingBalance={account.openingBalance}
+        totalReceipts={account.debitTotal}
+        totalPayments={account.creditTotal}
+        closingBalance={account.balance}
+        currencyCode={account.currencyCode}
+      />
+
       <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2, height: '100%' }}>
-            <Typography variant="h4" fontWeight={600} gutterBottom><FormattedMessage id="account-details" defaultMessage="تفاصيل الحساب" /></Typography>
-            
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary" display="block"><FormattedMessage id="code" defaultMessage="الكود" /></Typography>
-                <Typography variant="body1" fontWeight={500}>{account.code}</Typography>
+        <Grid item xs={12} md={7}>
+          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, height: '100%' }} content={false}>
+            <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="h5" fontWeight={700}>
+                <FormattedMessage id="account-details" defaultMessage="تفاصيل الحساب" />
+              </Typography>
+            </Box>
+            <Box sx={{ p: 3 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
+                    <FormattedMessage id="code" defaultMessage="الكود" />
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {account.code}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
+                    <FormattedMessage id="account-type" defaultMessage="نوع الحساب" />
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {account.accountTypeLabel}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
+                    <FormattedMessage id="name-arabic" defaultMessage="الاسم (عربي)" />
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {account.nameArabic}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
+                    <FormattedMessage id="name-english" defaultMessage="الاسم (إنجليزي)" />
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {account.nameEnglish || '-'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
+                    <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />
+                  </Typography>
+                  <Typography variant="body1" fontWeight={700}>
+                    {formatTreasuryMoney(account.balance, account.currencyCode)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
+                    <FormattedMessage id="balance-nature" defaultMessage="حالة الرصيد" />
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {account.balanceNature === 'Debit' ? 'مدين' : account.balanceNature === 'Credit' ? 'دائن' : 'مستقر'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
+                    <FormattedMessage id="notes" defaultMessage="ملاحظات" />
+                  </Typography>
+                  <Typography variant="body1">
+                    {account.notes || '-'}
+                  </Typography>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary" display="block"><FormattedMessage id="account-type" defaultMessage="نوع الحساب" /></Typography>
-                <Typography variant="body1" fontWeight={500}>{account.accountTypeLabel}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary" display="block"><FormattedMessage id="name-arabic" defaultMessage="الاسم (عربي)" /></Typography>
-                <Typography variant="body1" fontWeight={500}>{account.nameArabic}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary" display="block"><FormattedMessage id="name-english" defaultMessage="الاسم (إنجليزي)" /></Typography>
-                <Typography variant="body1" fontWeight={500}>{account.nameEnglish || '-'}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary" display="block"><FormattedMessage id="notes" defaultMessage="ملاحظات" /></Typography>
-                <Typography variant="body1">{account.notes || '-'}</Typography>
-              </Grid>
-            </Grid>
+            </Box>
           </MainCard>
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <MainCard sx={{ border: '1px solid', borderColor: 'primary.main', bgcolor: 'primary.light', boxShadow: 'none', borderRadius: 2, height: '100%' }}>
-            <Typography variant="h4" color="primary.dark" fontWeight={600} gutterBottom><FormattedMessage id="balance-summary" defaultMessage="ملخص الرصيد" /></Typography>
-            
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="caption" color="primary.main" fontWeight={600} display="block">
-                <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-                <Typography variant="h2" color="primary.dark" fontWeight={800}>{account.balance.toFixed(2)}</Typography>
-                <Typography variant="body2" color="primary.main" fontWeight={700}>{account.currencyCode}</Typography>
-              </Box>
-              <Typography variant="body2" color="primary.main" sx={{ mt: 0.5 }}>
-                {account.balanceNature === 'Debit' ? 'مدين (رصيد متاح)' : 'دائن (سحب على المكشوف / التزام)'}
+        <Grid item xs={12} md={5}>
+          <MainCard
+            content={false}
+            sx={{
+              border: '1px solid',
+              borderColor: 'primary.main',
+              boxShadow: '0 4px 16px rgba(94,114,228,0.12)',
+              borderRadius: 3,
+              height: '100%'
+            }}
+          >
+            <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="h5" fontWeight={700}>
+                <FormattedMessage id="recent-movements" defaultMessage="آخر الحركات" />
               </Typography>
             </Box>
-
-            <Box sx={{ mt: 4, pt: 3, borderTop: '1px dashed', borderColor: 'primary.main' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="primary.main" display="block"><FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" /></Typography>
-                  <Typography variant="body1" color="primary.dark" fontWeight={600}>{account.openingBalance.toFixed(2)}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="primary.main" display="block"><FormattedMessage id="currency" defaultMessage="العملة" /></Typography>
-                  <Typography variant="body1" color="primary.dark" fontWeight={600}>{account.currencyCode}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="primary.main" display="block"><FormattedMessage id="total-receipts" defaultMessage="إجمالي المقبوضات" /></Typography>
-                  <Typography variant="body1" color="success.dark" fontWeight={600}>{account.debitTotal.toFixed(2)}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="primary.main" display="block"><FormattedMessage id="total-payments" defaultMessage="إجمالي المدفوعات" /></Typography>
-                  <Typography variant="body1" color="error.dark" fontWeight={600}>{account.creditTotal.toFixed(2)}</Typography>
-                </Grid>
-              </Grid>
+            <Box sx={{ p: 3 }}>
+              {isStatementLoading ? (
+                <Loader />
+              ) : statement ? (
+                <TreasuryMovementTable
+                  movements={statement.movements}
+                  page={statement.page}
+                  totalPages={statement.totalPages}
+                  isLoading={false}
+                  currencyCode={account.currencyCode}
+                />
+              ) : (
+                <Typography color="text.secondary">
+                  <FormattedMessage id="treasury.empty" defaultMessage="لا توجد سجلات." />
+                </Typography>
+              )}
             </Box>
           </MainCard>
         </Grid>

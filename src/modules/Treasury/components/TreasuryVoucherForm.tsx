@@ -11,11 +11,10 @@ import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import { IconCalculator, IconDeviceFloppy, IconInfoCircle, IconNotes, IconSend } from '@tabler/icons-react';
+import { IconCalculator, IconNotes } from '@tabler/icons-react';
 
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
-import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import type { PartyDto } from 'modules/Parties/types/parties.types';
@@ -83,7 +82,6 @@ export default function TreasuryVoucherForm({
   }
 
   const titleId = isEdit ? (type === 'receipt' ? 'edit-receipt' : 'edit-payment') : (type === 'receipt' ? 'create-receipt' : 'create-payment');
-  const documentLabelId = type === 'receipt' ? 'receipt-number' : 'payment-number';
   const actionLabelId = type === 'receipt' ? 'post-receipt' : 'post-payment';
 
   return (
@@ -91,45 +89,46 @@ export default function TreasuryVoucherForm({
       <Box sx={{ mb: 3 }}>
         <Breadcrumbs
           custom
-          card={false}
-          title={false}
-          divider={false}
           heading={titleId}
-          links={[{ title: 'treasury', to: '/treasury' }, { title: type === 'receipt' ? 'receipts' : 'payments', to: backUrl }]}
+          links={[{ title: 'treasury', to: '/treasury' }, { title: type === 'receipt' ? 'receipts' : 'payments', to: backUrl }, { title: titleId }]}
           sx={{ mb: 0 }}
         />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
-          <PageTitle>
-            <FormattedMessage id={titleId} />
-          </PageTitle>
-          {voucherNumber && (
-            <Box sx={{ px: 1.5, py: 0.75, borderRadius: 2, bgcolor: 'grey.100', border: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="caption" fontWeight={700} color="text.secondary">
-                <FormattedMessage id={documentLabelId} defaultMessage="رقم المستند" />: {voucherNumber}
-              </Typography>
-            </Box>
-          )}
-          {status && (
-            <Box sx={{ px: 1.5, py: 0.75, borderRadius: 2, bgcolor: 'grey.100', border: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="caption" fontWeight={700} color="text.secondary">
-                <FormattedMessage id={`treasury.status.${status.toLowerCase()}`} />
-              </Typography>
-            </Box>
-          )}
-        </Box>
       </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2, mb: 3 }} content={false}>
-            <Box sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
-                <Typography variant="h4" fontWeight={600}>
-                  <FormattedMessage id="basic-information" />
+          <MainCard
+            content={false}
+            sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0px 2px 4px rgba(0,0,0,0.03)', borderRadius: 3, mb: 3 }}
+          >
+            {/* Header matching Stitch */}
+            <Box sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'grey.50', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--mui-palette-primary-main)', fontSize: 24 }}>payments</span>
+                <Typography variant="h4" fontWeight={600} color="text.primary">
+                  <FormattedMessage id={titleId} />
+                  {voucherNumber && <span style={{ marginLeft: 8, fontSize: '0.85em', color: 'var(--mui-palette-text-secondary)' }}>({voucherNumber})</span>}
                 </Typography>
+                {status && (
+                  <Box sx={{ px: 1.5, py: 0.5, borderRadius: 2, bgcolor: 'grey.100', border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
+                    <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ lineHeight: 1 }}>
+                      <FormattedMessage id={`treasury.status.${status.toLowerCase()}`} />
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
+              {selectedAccount && (
+                <Box sx={{ px: 2, py: 0.75, bgcolor: 'primary.light', color: 'primary.dark', borderRadius: 1.5, border: '1px solid', borderColor: 'primary.200', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>account_balance</span>
+                  <Typography variant="body2" fontWeight={600}>
+                    <FormattedMessage id="current-balance" defaultMessage="رصيد الخزنة الحالي" />: {currentBalance.toLocaleString()} {selectedAccount.currencyCode || ''}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            <Box sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
@@ -287,43 +286,62 @@ export default function TreasuryVoucherForm({
                     </Typography>
                   )}
                 </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => onSubmit('draft')}
-                    disabled={isSaving || isOverAllocated || totalAmount <= 0}
-                    fullWidth
-                    startIcon={<IconDeviceFloppy size={18} />}
-                  >
-                    <FormattedMessage id="save-as-draft" />
-                  </Button>
-
-                  {(!isEdit || (isEdit && status === TREASURY_DOCUMENT_STATUS.DRAFT)) && (
-                    <PermissionGuard permission={postPermission}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => onSubmit('post')}
-                        disabled={isSaving || isOverAllocated || totalAmount <= 0}
-                        fullWidth
-                        startIcon={<IconSend size={18} />}
-                      >
-                        <FormattedMessage id={actionLabelId} defaultMessage="ترحيل المستند" />
-                      </Button>
-                    </PermissionGuard>
-                  )}
-
-                  <Button component={Link} to={backUrl} variant="outlined" color="inherit" disabled={isSaving} fullWidth>
-                    <FormattedMessage id="cancel" />
-                  </Button>
-                </Box>
               </Box>
             </Box>
           </MainCard>
         </Grid>
       </Grid>
+
+      {/* Fixed Actions Footer matching Stitch */}
+      <Box sx={{
+        position: 'fixed',
+        bottom: 0,
+        right: { xs: 0, md: '260px' },
+        left: 0,
+        bgcolor: 'grey.50',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        p: 2,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 10
+      }}>
+        <Button component={Link} to={backUrl} disabled={isSaving} sx={{ color: 'error.main', '&:hover': { bgcolor: 'error.lighter' } }}>
+          <FormattedMessage id="cancel" defaultMessage="إلغاء" />
+        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {(!isEdit || (isEdit && status === TREASURY_DOCUMENT_STATUS.DRAFT)) && (
+            <>
+              <Button
+                variant="outlined"
+                disabled={isSaving || isOverAllocated || totalAmount <= 0}
+                onClick={() => onSubmit('draft')}
+                sx={{
+                  color: 'secondary.dark',
+                  borderColor: 'secondary.light',
+                  bgcolor: 'secondary.lighter',
+                  '&:hover': { bgcolor: 'secondary.light', borderColor: 'secondary.main' }
+                }}
+              >
+                <FormattedMessage id="save-as-draft" defaultMessage="حفظ كمسودة" />
+              </Button>
+              <PermissionGuard permission={postPermission}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={isSaving || isOverAllocated || totalAmount <= 0}
+                  onClick={() => onSubmit('post')}
+                  startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>done_all</span>}
+                  sx={{ boxShadow: 1 }}
+                >
+                  <FormattedMessage id={actionLabelId} defaultMessage="ترحيل السند" />
+                </Button>
+              </PermissionGuard>
+            </>
+          )}
+        </Box>
+      </Box>
     </Box>
   );
 }

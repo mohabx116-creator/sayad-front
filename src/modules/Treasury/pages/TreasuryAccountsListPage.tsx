@@ -33,6 +33,7 @@ import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/Tr
 import { useTreasuryAccounts, useTreasuryLookups } from '../hooks/useTreasury';
 import { activateTreasuryAccount, deactivateTreasuryAccount } from '../api/treasuryApi';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { formatTreasuryMoney } from '../utils/treasury.format';
 import type { TreasuryListParams } from '../types/treasury.types';
 
 export default function TreasuryAccountsListPage() {
@@ -47,7 +48,7 @@ export default function TreasuryAccountsListPage() {
     status: ''
   });
   const [searchInput, setSearchInput] = useState('');
-  
+
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType; id: string }>({
     open: false,
     action: 'activate',
@@ -90,7 +91,9 @@ export default function TreasuryAccountsListPage() {
       <Box sx={{ mb: 3 }}>
         <Breadcrumbs custom card={false} title={false} divider={false} heading="treasury-accounts" links={[{ title: 'treasury', to: '/treasury' }]} sx={{ mb: 0 }} />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: 1 }}>
-          <PageTitle><FormattedMessage id="treasury-accounts" defaultMessage="الخزن والحسابات" /></PageTitle>
+          <PageTitle>
+            <FormattedMessage id="treasury-accounts" defaultMessage="حسابات الخزينة" />
+          </PageTitle>
           <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
             <Button
               component={Link}
@@ -99,13 +102,13 @@ export default function TreasuryAccountsListPage() {
               startIcon={<IconPlus />}
               sx={{ borderRadius: 2 }}
             >
-              <FormattedMessage id="create-account" defaultMessage="إضافة حساب" />
+              <FormattedMessage id="create-account" defaultMessage="إنشاء حساب" />
             </Button>
           </PermissionGuard>
         </Box>
       </Box>
 
-      <Card sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2 }}>
+      <Card sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={4} md={3}>
             <TextField
@@ -126,9 +129,13 @@ export default function TreasuryAccountsListPage() {
               value={params.accountType}
               onChange={(e) => setParams({ ...params, page: 1, accountType: e.target.value })}
             >
-              <MenuItem value=""><FormattedMessage id="all" defaultMessage="الكل" /></MenuItem>
+              <MenuItem value="">
+                <FormattedMessage id="all" defaultMessage="الكل" />
+              </MenuItem>
               {lookups?.accountTypes.map((type) => (
-                <MenuItem key={type.value} value={type.value}>{type.labelArabic}</MenuItem>
+                <MenuItem key={type.value} value={type.value}>
+                  {type.labelArabic}
+                </MenuItem>
               ))}
             </TextField>
           </Grid>
@@ -141,9 +148,15 @@ export default function TreasuryAccountsListPage() {
               value={params.status}
               onChange={(e) => setParams({ ...params, page: 1, status: e.target.value })}
             >
-              <MenuItem value=""><FormattedMessage id="all" defaultMessage="الكل" /></MenuItem>
-              <MenuItem value="Active"><FormattedMessage id="active" defaultMessage="نشط" /></MenuItem>
-              <MenuItem value="Inactive"><FormattedMessage id="inactive" defaultMessage="غير نشط" /></MenuItem>
+              <MenuItem value="">
+                <FormattedMessage id="all" defaultMessage="الكل" />
+              </MenuItem>
+              <MenuItem value="Active">
+                <FormattedMessage id="active" defaultMessage="نشط" />
+              </MenuItem>
+              <MenuItem value="Inactive">
+                <FormattedMessage id="inactive" defaultMessage="غير نشط" />
+              </MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} sm={12} md={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -154,17 +167,38 @@ export default function TreasuryAccountsListPage() {
         </Grid>
       </Card>
 
-      <Card sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none', borderRadius: 2, overflow: 'hidden' }}>
-        <TableContainer>
-          <Table>
+      <Card sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, overflow: 'hidden' }}>
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 1400 }}>
             <TableHead sx={{ bgcolor: 'grey.50' }}>
               <TableRow>
-                <TableCell><FormattedMessage id="code" defaultMessage="الكود" /></TableCell>
-                <TableCell><FormattedMessage id="account-name" defaultMessage="اسم الحساب" /></TableCell>
-                <TableCell><FormattedMessage id="type" defaultMessage="النوع" /></TableCell>
-                <TableCell><FormattedMessage id="status" defaultMessage="الحالة" /></TableCell>
-                <TableCell align="right"><FormattedMessage id="balance" defaultMessage="الرصيد" /></TableCell>
-                <TableCell align="center"><FormattedMessage id="actions" defaultMessage="الإجراءات" /></TableCell>
+                <TableCell>
+                  <FormattedMessage id="code" defaultMessage="الكود" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="account-name" defaultMessage="اسم الحساب" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="type" defaultMessage="النوع" />
+                </TableCell>
+                <TableCell align="right">
+                  <FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" />
+                </TableCell>
+                <TableCell align="right">
+                  <FormattedMessage id="total-receipts" defaultMessage="إجمالي المقبوضات" />
+                </TableCell>
+                <TableCell align="right">
+                  <FormattedMessage id="total-payments" defaultMessage="إجمالي المدفوعات" />
+                </TableCell>
+                <TableCell align="right">
+                  <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="status" defaultMessage="الحالة" />
+                </TableCell>
+                <TableCell align="center">
+                  <FormattedMessage id="actions" defaultMessage="الإجراءات" />
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -174,14 +208,17 @@ export default function TreasuryAccountsListPage() {
                     <TableCell><Skeleton width={80} /></TableCell>
                     <TableCell><Skeleton width={150} /></TableCell>
                     <TableCell><Skeleton width={100} /></TableCell>
-                    <TableCell><Skeleton width={60} /></TableCell>
                     <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
+                    <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
+                    <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
+                    <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
                     <TableCell align="center"><Skeleton width={120} sx={{ mx: 'auto' }} /></TableCell>
                   </TableRow>
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
                       <FormattedMessage id="no-records-found" defaultMessage="لا توجد سجلات" />
                     </Typography>
@@ -191,26 +228,51 @@ export default function TreasuryAccountsListPage() {
                 items.map((row) => (
                   <TableRow key={row.id} hover>
                     <TableCell>
-                      <Typography variant="body2" fontWeight={600} color="primary.main">{row.code}</Typography>
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        {row.code}
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" fontWeight={500}>{row.nameArabic}</Typography>
+                      <Typography variant="body2" fontWeight={500}>
+                        {row.nameArabic}
+                      </Typography>
                       {row.nameEnglish && (
-                        <Typography variant="caption" color="text.secondary" display="block">{row.nameEnglish}</Typography>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {row.nameEnglish}
+                        </Typography>
                       )}
                     </TableCell>
                     <TableCell>{row.accountTypeLabel}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        size="small" 
-                        label={<FormattedMessage id={row.isActive ? 'active' : 'inactive'} defaultMessage={row.isActive ? 'نشط' : 'غير نشط'} />} 
-                        color={row.isActive ? 'success' : 'default'} 
-                        variant="outlined" 
-                      />
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight={600}>
+                        {formatTreasuryMoney(row.openingBalance, row.currencyCode)}
+                      </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="body2" fontWeight={600}>{row.balance.toFixed(2)}</Typography>
-                      <Typography variant="caption" color="text.secondary">{row.balanceNature === 'Debit' ? 'مدين' : 'دائن'}</Typography>
+                      <Typography variant="body2" fontWeight={600} color="success.dark">
+                        {formatTreasuryMoney(row.debitTotal, row.currencyCode)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight={600} color="error.dark">
+                        {formatTreasuryMoney(row.creditTotal, row.currencyCode)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight={700}>
+                        {formatTreasuryMoney(row.balance, row.currencyCode)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {row.balanceNature === 'Debit' ? 'مدين' : row.balanceNature === 'Credit' ? 'دائن' : 'مستقر'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        label={<FormattedMessage id={row.isActive ? 'active' : 'inactive'} defaultMessage={row.isActive ? 'نشط' : 'غير نشط'} />}
+                        color={row.isActive ? 'success' : 'default'}
+                        variant="outlined"
+                      />
                     </TableCell>
                     <TableCell align="center">
                       <PermissionGuard permission={TREASURY_PERMISSIONS.accountsView}>

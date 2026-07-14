@@ -6,6 +6,7 @@ import type { ApiResponse } from 'types/api';
 import type {
   TreasuryAccount,
   TreasuryAccountListItem,
+  TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
   TreasuryLookups,
   TreasuryListParams,
@@ -90,6 +91,12 @@ export function useTreasuryStatement(params: TreasuryStatementParams | null) {
 export function useTreasuryLookups() {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryLookups>>('/api/treasury/lookups', fetcher, { revalidateOnFocus: false });
   return useMemo(() => ({ lookups: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useTreasuryDashboardSummary(dateFrom?: string, dateTo?: string) {
+  const key = `/api/treasury/dashboard/summary?${buildQuery({ dateFrom, dateTo })}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryDashboardSummary>>(key, fetcher, { revalidateOnFocus: false });
+  return useMemo(() => ({ summary: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useEligibleSalesInvoices(partyId?: string, page = 1, pageSize = 20, search = '') {

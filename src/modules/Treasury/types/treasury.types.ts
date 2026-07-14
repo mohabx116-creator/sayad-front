@@ -55,6 +55,9 @@ export interface TreasuryAccountListItem {
   accountTypeLabel: string;
   currencyCode: string;
   isActive: boolean;
+  openingBalance: number;
+  debitTotal: number;
+  creditTotal: number;
   balance: number;
   balanceNature: string;
   rowVersion: string;
@@ -263,6 +266,16 @@ export interface TreasuryStatement {
   pageSize: number;
   totalCount: number;
   totalPages: number;
+}
+
+export interface TreasuryDashboardSummary {
+  totalCurrentBalance: number;
+  cashboxBalance: number;
+  bankAccountBalance: number;
+  electronicWalletBalance: number;
+  periodReceipts: number;
+  periodPayments: number;
+  recentMovements: TreasuryMovement[];
 }
 
 export interface TreasuryLookups {
