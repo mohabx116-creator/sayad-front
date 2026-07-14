@@ -1,4 +1,4 @@
-import { Typography, Stack, Button, Box } from '@mui/material';
+import { Typography, Stack, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { IconArrowRight, IconArrowLeft } from '@tabler/icons-react';
 import useConfig from 'hooks/useConfig';
