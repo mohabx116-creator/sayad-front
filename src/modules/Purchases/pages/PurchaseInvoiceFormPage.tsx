@@ -181,214 +181,223 @@ export default function PurchaseInvoiceFormPage() {
 
   if (isEdit && isLoading) return <Loader />;
 
-  const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3 };
+  const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3, borderRadius: 2 };
   const headerSx = { display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' };
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-         <Box>
-           <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 0 }} />
-           <Typography variant="h2" sx={{ mt: 1 }}><FormattedMessage id={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} /></Typography>
+      {/* Top Header */}
+      <Box sx={{ mb: 3 }}>
+         <Breadcrumbs custom card={false} title={false} divider={false} heading={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 0 }} />
+         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+            <Typography variant="h2" fontWeight={700}><FormattedMessage id={isEdit ? 'edit-purchase-invoice' : 'create-purchase-invoice'} /></Typography>
+            {isEdit && invoice && (
+               <Box sx={{ px: 2, py: 0.5, bgcolor: 'grey.100', color: 'text.secondary', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="caption" fontWeight={600}><FormattedMessage id={invoice.status.toLowerCase()} /></Typography>
+               </Box>
+            )}
          </Box>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-           {isEdit && invoice && (
-              <Box sx={{ px: 2, py: 0.5, bgcolor: 'grey.100', color: 'text.secondary', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-                 <Typography variant="caption"><FormattedMessage id={invoice.status.toLowerCase()} /></Typography>
-              </Box>
-           )}
-           <Button component={Link} to="/purchases/invoices" variant="outlined" color="inherit" disabled={isSaving} sx={{ borderRadius: 2 }}>
-              <FormattedMessage id="cancel" />
-           </Button>
-           <Button variant="contained" color="secondary" onClick={() => submit('draft')} disabled={isSaving} sx={{ borderRadius: 2 }} startIcon={<IconDeviceFloppy size={18} />}>
-              <FormattedMessage id="save-as-draft" />
-           </Button>
-           {(!isEdit || (isEdit && invoice?.status === 'Draft')) && (
-              <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesPost}>
-                 <Button variant="contained" color="primary" onClick={() => submit('post')} disabled={isSaving} sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
-                    <FormattedMessage id="post-invoice" />
-                 </Button>
-              </PermissionGuard>
-           )}
-        </Stack>
       </Box>
 
-      <Grid container spacing={3}>
-         <Grid item xs={12} lg={8}>
-            <Stack spacing={3}>
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconInfoCircle color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="basic-information" /></Typography>
-                     </Box>
-                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={4}>
-                           <Autocomplete
-                              options={suppliers}
-                              getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
-                              value={supplierLookup.get(form.supplierId) || null}
-                              onChange={(_, newValue) => setForm({ ...form, supplierId: newValue?.id || '' })}
-                              renderInput={(params) => <TextField {...params} required label={<FormattedMessage id="supplier" />} variant="outlined" />}
-                           />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                           <TextField type="date" required fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="invoice-date" />} value={form.invoiceDate} onChange={(event) => setForm({ ...form, invoiceDate: event.target.value })} />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                           <TextField fullWidth disabled label={<FormattedMessage id="invoice-number" />} value={isEdit ? invoice?.number : ''} placeholder={intl.formatMessage({ id: 'auto-generated' })} helperText={<FormattedMessage id="auto-generated-on-save" />} />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                           <TextField fullWidth label={<FormattedMessage id="supplier-invoice-number" />} value={form.supplierInvoiceNumber ?? ''} onChange={(event) => setForm({ ...form, supplierInvoiceNumber: event.target.value })} />
-                        </Grid>
-                     </Grid>
+      {/* Basic Info Card */}
+      <MainCard sx={cardSx} content={false}>
+         <Box sx={{ p: 3 }}>
+            <Box sx={headerSx}>
+               <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
+               <Typography variant="h4" fontWeight={600}><FormattedMessage id="basic-information" /></Typography>
+            </Box>
+            <Grid container spacing={4}>
+               <Grid item xs={12} md={4}>
+                  <Autocomplete
+                     options={suppliers}
+                     getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                     value={supplierLookup.get(form.supplierId) || null}
+                     onChange={(_, newValue) => setForm({ ...form, supplierId: newValue?.id || '' })}
+                     renderInput={(params) => <TextField {...params} required label={<FormattedMessage id="supplier" />} variant="outlined" InputLabelProps={{ shrink: true }} />}
+                  />
+               </Grid>
+               <Grid item xs={12} md={4}>
+                  <TextField type="date" required fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="invoice-date" />} value={form.invoiceDate} onChange={(event) => setForm({ ...form, invoiceDate: event.target.value })} />
+               </Grid>
+               <Grid item xs={12} md={4}>
+                  <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1, border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>
+                     <Typography variant="caption" color="text.secondary" display="block"><FormattedMessage id="invoice-number" /></Typography>
+                     <Typography variant="body1" fontWeight={600}>{isEdit ? invoice?.number : intl.formatMessage({ id: 'auto-generated' })}</Typography>
                   </Box>
-               </MainCard>
+               </Grid>
+               <Grid item xs={12} md={4}>
+                  <TextField fullWidth label={<FormattedMessage id="supplier-invoice-number" />} value={form.supplierInvoiceNumber ?? ''} onChange={(event) => setForm({ ...form, supplierInvoiceNumber: event.target.value })} />
+               </Grid>
+            </Grid>
+         </Box>
+      </MainCard>
 
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconBox color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="item-details" /></Typography>
-                     </Box>
-                     <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
-                        <Table size="small" sx={{ minWidth: 900 }}>
-                          <TableHead sx={{ bgcolor: 'grey.50' }}>
-                            <TableRow>
-                              <TableCell align="center" width={40}>#</TableCell>
-                              <TableCell sx={{ minWidth: 200 }}><FormattedMessage id="item" /></TableCell>
-                              <TableCell sx={{ minWidth: 100 }}><FormattedMessage id="quantity" /></TableCell>
-                              <TableCell sx={{ minWidth: 100 }}><FormattedMessage id="unit" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="unit-cost" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="discount" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="tax" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="line-total" /></TableCell>
-                              <TableCell align="center" width={60}><FormattedMessage id="actions" /></TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {rows.map((row, index) => {
-                               const lineTotal = (Number(row.quantity) || 0) * (Number(row.unitCost) || 0) - (Number(row.discountAmount) || 0) + (Number(row.taxAmount) || 0);
-                               return (
-                               <TableRow key={`${row.itemId || 'line'}-${index}`} hover>
-                                 <TableCell align="center">{index + 1}</TableCell>
-                                 <TableCell>
-                                    <Autocomplete
-                                       size="small"
-                                       options={inventoryItems.filter((item) => item.isPurchasable)}
-                                       getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
-                                       value={itemLookup.get(row.itemId) || null}
-                                       onChange={(_, newValue) => onItemChange(index, newValue?.id || '')}
-                                       renderInput={(params) => <TextField {...params} variant="outlined" placeholder={intl.formatMessage({ id: 'search-item' })} />}
-                                    />
-                                 </TableCell>
-                                 <TableCell>
-                                   <TextField size="small" fullWidth type="number" value={row.quantity} onChange={(event) => updateRow(index, { quantity: Number(event.target.value) })} inputProps={{ min: 1 }} />
-                                 </TableCell>
-                                 <TableCell>
-                                   <TextField size="small" fullWidth value={row.unitCode ?? ''} InputProps={{ readOnly: true }} sx={{ bgcolor: 'grey.50' }} />
-                                 </TableCell>
-                                 <TableCell>
-                                   <TextField size="small" fullWidth type="number" value={row.unitCost} onChange={(event) => updateRow(index, { unitCost: Number(event.target.value) })} inputProps={{ step: 0.01 }} />
-                                 </TableCell>
-                                 <TableCell>
-                                   <TextField size="small" fullWidth type="number" value={row.discountAmount} onChange={(event) => updateRow(index, { discountAmount: Number(event.target.value) })} />
-                                 </TableCell>
-                                 <TableCell>
-                                   <TextField size="small" fullWidth type="number" value={row.taxAmount} onChange={(event) => updateRow(index, { taxAmount: Number(event.target.value) })} />
-                                 </TableCell>
-                                 <TableCell>
-                                    <Typography fontWeight={600}>{lineTotal.toFixed(2)}</Typography>
-                                 </TableCell>
-                                 <TableCell align="center">
-                                   <Tooltip title={<FormattedMessage id="remove" />}>
-                                     <span>
-                                       <IconButton onClick={() => removeRow(index)} disabled={rows.length === 1} color="error" size="small">
-                                         <IconTrash size={18} />
-                                       </IconButton>
-                                     </span>
-                                   </Tooltip>
-                                 </TableCell>
-                               </TableRow>
-                            )})}
-                          </TableBody>
-                        </Table>
-                     </TableContainer>
-                     <Button 
-                        fullWidth 
-                        variant="outlined" 
-                        color="primary" 
-                        onClick={addRow} 
-                        startIcon={<IconPlus size={18} />}
-                        sx={{ borderStyle: 'dashed', borderWidth: 1, py: 1, borderRadius: 2 }}
-                     >
-                        <FormattedMessage id="add-item" />
-                     </Button>
+      {/* Item Details Card */}
+      <MainCard sx={cardSx} content={false}>
+         <Box sx={{ p: 3 }}>
+            <Box sx={headerSx}>
+               <IconBox color="var(--mui-palette-primary-main)" size={24} />
+               <Typography variant="h4" fontWeight={600}><FormattedMessage id="item-details" /></Typography>
+            </Box>
+            <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 3 }}>
+               <Table size="small" sx={{ minWidth: 900 }}>
+                 <TableHead sx={{ bgcolor: 'grey.50' }}>
+                   <TableRow>
+                     <TableCell align="center" width={40}>#</TableCell>
+                     <TableCell sx={{ minWidth: 200 }}><FormattedMessage id="item" /></TableCell>
+                     <TableCell sx={{ minWidth: 100 }}><FormattedMessage id="quantity" /></TableCell>
+                     <TableCell sx={{ minWidth: 100 }}><FormattedMessage id="unit" /></TableCell>
+                     <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="unit-cost" /></TableCell>
+                     <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="discount" /></TableCell>
+                     <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="tax" /></TableCell>
+                     <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="line-total" /></TableCell>
+                     <TableCell align="center" width={60}><FormattedMessage id="actions" /></TableCell>
+                   </TableRow>
+                 </TableHead>
+                 <TableBody>
+                   {rows.map((row, index) => {
+                      const lineTotal = (Number(row.quantity) || 0) * (Number(row.unitCost) || 0) - (Number(row.discountAmount) || 0) + (Number(row.taxAmount) || 0);
+                      return (
+                      <TableRow key={`${row.itemId || 'line'}-${index}`} hover>
+                        <TableCell align="center">{index + 1}</TableCell>
+                        <TableCell>
+                           <Autocomplete
+                              size="small"
+                              options={inventoryItems.filter((item) => item.isPurchasable)}
+                              getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                              value={itemLookup.get(row.itemId) || null}
+                              onChange={(_, newValue) => onItemChange(index, newValue?.id || '')}
+                              renderInput={(params) => <TextField {...params} variant="outlined" placeholder={intl.formatMessage({ id: 'search-item' })} />}
+                           />
+                        </TableCell>
+                        <TableCell>
+                          <TextField size="small" fullWidth type="number" value={row.quantity} onChange={(event) => updateRow(index, { quantity: Number(event.target.value) })} inputProps={{ min: 1 }} />
+                        </TableCell>
+                        <TableCell>
+                          <TextField size="small" fullWidth value={row.unitCode ?? ''} InputProps={{ readOnly: true }} sx={{ bgcolor: 'grey.50' }} />
+                        </TableCell>
+                        <TableCell>
+                          <TextField size="small" fullWidth type="number" value={row.unitCost} onChange={(event) => updateRow(index, { unitCost: Number(event.target.value) })} inputProps={{ step: 0.01 }} />
+                        </TableCell>
+                        <TableCell>
+                          <TextField size="small" fullWidth type="number" value={row.discountAmount} onChange={(event) => updateRow(index, { discountAmount: Number(event.target.value) })} />
+                        </TableCell>
+                        <TableCell>
+                          <TextField size="small" fullWidth type="number" value={row.taxAmount} onChange={(event) => updateRow(index, { taxAmount: Number(event.target.value) })} />
+                        </TableCell>
+                        <TableCell>
+                           <Typography fontWeight={600} color="primary.main">{lineTotal.toFixed(2)}</Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Tooltip title={<FormattedMessage id="remove" />}>
+                            <span>
+                              <IconButton onClick={() => removeRow(index)} disabled={rows.length === 1} color="error" size="small">
+                                <IconTrash size={18} />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                   )})}
+                 </TableBody>
+               </Table>
+            </TableContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+               <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={addRow}
+                  startIcon={<IconPlus size={18} />}
+                  sx={{ borderRadius: 2, px: 3 }}
+               >
+                  <FormattedMessage id="add-item" defaultMessage="إضافة صنف جديد" />
+               </Button>
+            </Box>
+         </Box>
+      </MainCard>
+
+      {/* Bottom Section: Notes and Summary */}
+      <Grid container spacing={3}>
+         {/* Invoice Notes */}
+         <Grid item xs={12} md={6}>
+            <MainCard sx={{ ...cardSx, height: '100%', mb: 0 }} content={false}>
+               <Box sx={{ p: 3 }}>
+                  <Box sx={headerSx}>
+                     <IconNotes color="var(--mui-palette-primary-main)" size={24} />
+                     <Typography variant="h4" fontWeight={600}><FormattedMessage id="invoice-notes" /></Typography>
                   </Box>
-               </MainCard>
-            </Stack>
+                  <TextField
+                     fullWidth
+                     multiline
+                     minRows={5}
+                     placeholder={intl.formatMessage({ id: 'notes-placeholder', defaultMessage: 'أضف أي ملاحظات أو شروط خاصة بهذه الفاتورة هنا...' })}
+                     value={form.notes ?? ''}
+                     onChange={(event) => setForm({ ...form, notes: event.target.value })}
+                     sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'grey.50' } }}
+                  />
+               </Box>
+            </MainCard>
          </Grid>
 
-         <Grid item xs={12} lg={4}>
-            <Stack spacing={3}>
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconCalculator color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="totals-summary" /></Typography>
-                     </Box>
-                     <Stack spacing={2}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="subtotal" /></Typography>
-                           <Typography fontWeight={600}>{subtotal.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="line-discounts" /></Typography>
-                           <Typography fontWeight={600} color="text.secondary">- {totalLineDiscount.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="header-discount" /></Typography>
-                           <TextField size="small" type="number" value={form.headerDiscount} onChange={(e) => setForm({ ...form, headerDiscount: Number(e.target.value) })} sx={{ width: 100 }} />
-                         </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="other-costs" /></Typography>
-                           <TextField size="small" type="number" value={form.otherCosts} onChange={(e) => setForm({ ...form, otherCosts: Number(e.target.value) })} sx={{ width: 100 }} />
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="total-tax" /></Typography>
-                           <Typography fontWeight={600} color="text.secondary">{totalTax.toFixed(2)}</Typography>
-                        </Box>
-                        <Divider sx={{ my: 1 }} />
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography variant="h3"><FormattedMessage id="grand-total" /></Typography>
-                           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, color: 'primary.main' }}>
-                              <Typography variant="h3" fontWeight={700}>{grandTotal.toFixed(2)}</Typography>
-                              <Typography variant="body2" color="text.secondary"><FormattedMessage id="currency" /></Typography>
-                           </Box>
-                        </Box>
-                     </Stack>
+         {/* Account Summary */}
+         <Grid item xs={12} md={6}>
+            <MainCard sx={{ ...cardSx, height: '100%', mb: 0 }} content={false}>
+               <Box sx={{ p: 3 }}>
+                  <Box sx={headerSx}>
+                     <IconCalculator color="var(--mui-palette-primary-main)" size={24} />
+                     <Typography variant="h4" fontWeight={600}><FormattedMessage id="totals-summary" defaultMessage="ملخص الحسابات" /></Typography>
                   </Box>
-               </MainCard>
-
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconNotes color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="invoice-notes" /></Typography>
+                  <Stack spacing={2.5}>
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography fontWeight={500}><FormattedMessage id="subtotal" /></Typography>
+                        <Typography fontWeight={600} fontSize="1.1rem">{subtotal.toFixed(2)}</Typography>
                      </Box>
-                     <TextField
-                        fullWidth
-                        multiline
-                        minRows={3}
-                        placeholder={intl.formatMessage({ id: 'notes-placeholder' })}
-                        value={form.notes ?? ''}
-                        onChange={(event) => setForm({ ...form, notes: event.target.value })}
-                     />
-                  </Box>
-               </MainCard>
-            </Stack>
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography fontWeight={500}><FormattedMessage id="line-discounts" /></Typography>
+                        <Typography fontWeight={600} color="text.secondary">- {totalLineDiscount.toFixed(2)}</Typography>
+                     </Box>
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography fontWeight={500}><FormattedMessage id="header-discount" /></Typography>
+                        <TextField size="small" type="number" value={form.headerDiscount} onChange={(e) => setForm({ ...form, headerDiscount: Number(e.target.value) })} sx={{ width: 120 }} />
+                      </Box>
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography fontWeight={500}><FormattedMessage id="other-costs" /></Typography>
+                        <TextField size="small" type="number" value={form.otherCosts} onChange={(e) => setForm({ ...form, otherCosts: Number(e.target.value) })} sx={{ width: 120 }} />
+                     </Box>
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography fontWeight={500}><FormattedMessage id="total-tax" /></Typography>
+                        <Typography fontWeight={600} color="text.secondary">{totalTax.toFixed(2)}</Typography>
+                     </Box>
+                     <Divider sx={{ my: 1 }} />
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h3" fontWeight={700}><FormattedMessage id="grand-total" defaultMessage="الإجمالي النهائي" /></Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, color: 'primary.main' }}>
+                           <Typography variant="h2" fontWeight={800}>{grandTotal.toFixed(2)}</Typography>
+                           <Typography variant="body1" fontWeight={600} color="text.secondary"><FormattedMessage id="currency" /></Typography>
+                        </Box>
+                     </Box>
+                  </Stack>
+               </Box>
+            </MainCard>
          </Grid>
       </Grid>
+
+      {/* Action Buttons */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, mb: 2, gap: 2 }}>
+         <Button component={Link} to="/purchases/invoices" variant="outlined" color="inherit" disabled={isSaving} sx={{ borderRadius: 2, px: 4 }}>
+            <FormattedMessage id="cancel" />
+         </Button>
+         <Button variant="contained" color="secondary" onClick={() => submit('draft')} disabled={isSaving} sx={{ borderRadius: 2, px: 4 }} startIcon={<IconDeviceFloppy size={18} />}>
+            <FormattedMessage id="save-as-draft" />
+         </Button>
+         {(!isEdit || (isEdit && invoice?.status === 'Draft')) && (
+            <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesPost}>
+               <Button variant="contained" color="primary" onClick={() => submit('post')} disabled={isSaving} sx={{ borderRadius: 2, px: 4, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
+                  <FormattedMessage id="post-invoice" defaultMessage="اعتماد الفاتورة" />
+               </Button>
+            </PermissionGuard>
+         )}
+      </Box>
     </Box>
   );
 }

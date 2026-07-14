@@ -34,7 +34,6 @@ import {
   postAdjustment,
   postStockIn,
   postStockOut,
-  reverseMovement,
   setItemOpeningStock
 } from '../api/inventoryApi';
 import {
@@ -50,7 +49,6 @@ import type {
   CreateItemPartyRelationRequest,
   InventoryAdjustmentRequest,
   InventoryMovementRequest,
-  ReverseInventoryMovementRequest,
   OpeningStockRequest
 } from '../types/inventory.types';
 import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
@@ -95,7 +93,6 @@ export default function InventoryItemDetailsPage() {
     notes: '',
     isPreferred: false
   });
-  const [reverseReason, setReverseReason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {

@@ -1,9 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/GridLegacy';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import Table from '@mui/material/Table';
@@ -16,10 +15,11 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { IconEye, IconPlus, IconRefresh } from '@tabler/icons-react';
+import InputAdornment from '@mui/material/InputAdornment';
+import Avatar from '@mui/material/Avatar';
+import { IconPlus, IconRefresh, IconSearch, IconFilter, IconDotsVertical } from '@tabler/icons-react';
 
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
@@ -28,7 +28,14 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { useSalesInvoices } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
-import { useParties } from 'modules/Parties/hooks/useParties';
+
+// Helper to get initials from customer name
+const getInitials = (name: string) => {
+  if (!name) return '';
+  const words = name.split(' ');
+  if (words.length === 1) return words[0].substring(0, 2);
+  return `${words[0][0]}${words[1][0]}`;
+};
 
 export default function SalesInvoicesListPage() {
   const intl = useIntl();
@@ -39,9 +46,6 @@ export default function SalesInvoicesListPage() {
   const [customerId, setCustomerId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
-  const { items: customers } = useParties({ page: 1, pageSize: 100, isCustomer: true, sortBy: 'nameArabic' });
-  const customerLookup = useMemo(() => new Map(customers.map((s) => [s.id, s])), [customers]);
 
   const { items, meta, isLoading, error } = useSalesInvoices({ 
      page: page + 1, 
@@ -69,11 +73,11 @@ export default function SalesInvoicesListPage() {
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
            <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-invoices" links={[{ title: 'sales', to: '/sales/invoices' }, { title: 'sales-invoices' }]} sx={{ mb: 0 }} />
-           <Typography variant="h2" sx={{ mt: 1 }}><FormattedMessage id="sales-invoices" /></Typography>
+           <Typography variant="h3" sx={{ mt: 1, fontWeight: 700 }}><FormattedMessage id="sales-invoices" /></Typography>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <PermissionGuard permission={SALES_PERMISSIONS.invoicesCreate}>
-             <Button component={Link} to="/sales/invoices/new" variant="contained" color="primary" sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconPlus size={18} />}>
+             <Button component={Link} to="/sales/invoices/new" variant="contained" color="primary" sx={{ borderRadius: 2, boxShadow: 'none' }} startIcon={<IconPlus size={18} />}>
                <FormattedMessage id="create-sales-invoice" />
              </Button>
            </PermissionGuard>
@@ -82,45 +86,47 @@ export default function SalesInvoicesListPage() {
 
       <MainCard 
          content={false} 
-         sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
+         sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}
       >
-        <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
-           <Grid container spacing={2} alignItems="center">
-             <Grid item xs={12} md={3}>
-               <TextField size="small" fullWidth label={<FormattedMessage id="search" />} placeholder={intl.formatMessage({ id: 'search' })} value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
-             </Grid>
-             <Grid item xs={12} md={2}>
-               <TextField size="small" select fullWidth label={<FormattedMessage id="status" />} value={status} onChange={(event) => { setStatus(event.target.value); setPage(0); }}>
-                 <MenuItem value=""><FormattedMessage id="all" /></MenuItem>
-                 <MenuItem value="Draft"><FormattedMessage id="sales.status.draft" /></MenuItem>
-                 <MenuItem value="Posted"><FormattedMessage id="sales.status.posted" /></MenuItem>
-                 <MenuItem value="Cancelled"><FormattedMessage id="sales.status.cancelled" /></MenuItem>
-               </TextField>
-             </Grid>
-             <Grid item xs={12} md={3}>
-                <Autocomplete
-                   size="small"
-                   options={customers}
-                   getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
-                   value={customerLookup.get(customerId) || null}
-                   onChange={(_, newValue) => { setCustomerId(newValue?.id || ''); setPage(0); }}
-                   renderInput={(params) => <TextField {...params} label={<FormattedMessage id="customer" />} variant="outlined" />}
-                />
-             </Grid>
-             <Grid item xs={6} md={1.5}>
-               <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="date-from" />} value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(0); }} />
-             </Grid>
-             <Grid item xs={6} md={1.5}>
-               <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="date-to" />} value={dateTo} onChange={(event) => { setDateTo(event.target.value); setPage(0); }} />
-             </Grid>
-             <Grid item xs={12} md={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="Reset Filters" />}>
-                   <IconButton onClick={resetFilters} color="primary" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                      <IconRefresh size={20} />
-                   </IconButton>
-                </Tooltip>
-             </Grid>
-           </Grid>
+        <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+           <Box sx={{ flexGrow: 1, minWidth: 300 }}>
+             <TextField
+               size="small"
+               fullWidth
+               placeholder={intl.formatMessage({ id: 'search-invoice-or-customer', defaultMessage: 'البحث برقم الفاتورة أو اسم العميل...' })}
+               value={search}
+               onChange={(event) => { setSearch(event.target.value); setPage(0); }}
+               InputProps={{
+                 startAdornment: (
+                   <InputAdornment position="start">
+                     <IconSearch size={18} />
+                   </InputAdornment>
+                 )
+               }}
+             />
+           </Box>
+           <Box sx={{ width: 200 }}>
+             <TextField size="small" select fullWidth value={status} onChange={(event) => { setStatus(event.target.value); setPage(0); }} SelectProps={{ displayEmpty: true }}>
+               <MenuItem value=""><FormattedMessage id="all-statuses" defaultMessage="جميع الحالات" /></MenuItem>
+               <MenuItem value="Draft"><FormattedMessage id="sales.status.draft" /></MenuItem>
+               <MenuItem value="Posted"><FormattedMessage id="sales.status.posted" /></MenuItem>
+               <MenuItem value="Cancelled"><FormattedMessage id="sales.status.cancelled" /></MenuItem>
+             </TextField>
+           </Box>
+           <Box sx={{ width: 150 }}>
+             <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(0); }} />
+           </Box>
+           <Button variant="outlined" color="inherit" startIcon={<IconFilter size={18} />} sx={{ borderRadius: 2 }}>
+             <FormattedMessage id="more-filters" defaultMessage="مزيد من الفلاتر" />
+           </Button>
+           {/* Add a subtle reset button if any filter is active */}
+           {(search || status || customerId || dateFrom || dateTo) && (
+             <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="إعادة ضبط" />}>
+               <IconButton onClick={resetFilters} color="primary" size="small">
+                 <IconRefresh size={18} />
+               </IconButton>
+             </Tooltip>
+           )}
         </Box>
 
         <Box sx={{ p: 0 }}>
@@ -135,25 +141,36 @@ export default function SalesInvoicesListPage() {
                    <TableHead sx={{ bgcolor: 'grey.50' }}>
                      <TableRow>
                        <TableCell><FormattedMessage id="invoice-number" /></TableCell>
-                       <TableCell><FormattedMessage id="customer" /></TableCell>
                        <TableCell><FormattedMessage id="invoice-date" /></TableCell>
-                       <TableCell><FormattedMessage id="status" /></TableCell>
+                       <TableCell><FormattedMessage id="customer" /></TableCell>
                        <TableCell><FormattedMessage id="grand-total" /></TableCell>
+                       <TableCell><FormattedMessage id="status" /></TableCell>
                        <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
                      </TableRow>
                    </TableHead>
                    <TableBody>
                      {items.map((invoice) => (
                        <TableRow hover key={invoice.id}>
-                         <TableCell><Typography fontWeight={500}>{invoice.number}</Typography></TableCell>
-                         <TableCell>{invoice.customerCode} - {invoice.customerNameArabic}</TableCell>
+                         <TableCell>
+                           <Typography component={Link} to={`/sales/invoices/${invoice.id}`} color="primary" sx={{ textDecoration: 'none', fontWeight: 600 }}>
+                             {invoice.number}
+                           </Typography>
+                         </TableCell>
                          <TableCell>{invoice.invoiceDate}</TableCell>
+                         <TableCell>
+                           <Stack direction="row" spacing={1} alignItems="center">
+                             <Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem', bgcolor: 'primary.lighter', color: 'primary.main' }}>
+                               {getInitials(invoice.customerNameArabic)}
+                             </Avatar>
+                             <Typography variant="body2">{invoice.customerNameArabic}</Typography>
+                           </Stack>
+                         </TableCell>
+                         <TableCell><Typography fontWeight={600}>{invoice.grandTotal.toFixed(2)}</Typography></TableCell>
                          <TableCell><SalesStatusChip status={invoice.status} /></TableCell>
-                         <TableCell><Typography fontWeight={600}>{invoice.grandTotal.toFixed(2)} <Typography component="span" variant="caption" color="text.secondary">{intl.formatMessage({ id: 'currency' })}</Typography></Typography></TableCell>
                          <TableCell align="center">
                            <Tooltip title={<FormattedMessage id="details" />}>
-                             <IconButton component={Link} to={`/sales/invoices/${invoice.id}`} color="primary" size="small" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                               <IconEye size={18} />
+                             <IconButton component={Link} to={`/sales/invoices/${invoice.id}`} size="small">
+                               <IconDotsVertical size={18} />
                              </IconButton>
                            </Tooltip>
                          </TableCell>
