@@ -50,6 +50,7 @@ export type ItemDto = {
   minimumQuantity: number;
   reorderQuantity: number;
   allowNegativeStock: boolean;
+  defaultSalePrice: number;
   isActive: boolean;
   currentQuantity: number;
   stockStatus: string;
@@ -89,6 +90,9 @@ export type ItemUnitDto = {
   unitNameArabic: string;
   unitNameEnglish?: string | null;
   factorToBase: number;
+  salePriceOverride?: number | null;
+  effectiveSalePrice: number;
+  conversionFactor: number;
   isDefaultPurchaseUnit: boolean;
   isDefaultSalesUnit: boolean;
 };
@@ -109,6 +113,7 @@ export type ItemUnitInput = {
   factorToBase: number;
   isDefaultPurchaseUnit: boolean;
   isDefaultSalesUnit: boolean;
+  salePriceOverride?: number | null;
 };
 
 export type OpeningStockRequest = {
@@ -160,6 +165,7 @@ export type CreateItemRequest = {
   minimumQuantity: number;
   reorderQuantity: number;
   allowNegativeStock: boolean;
+  defaultSalePrice: number;
   notes?: string | null;
   units: ItemUnitInput[];
   openingStock?: OpeningStockRequest | null;

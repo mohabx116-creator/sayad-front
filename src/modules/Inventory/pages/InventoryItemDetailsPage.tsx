@@ -196,6 +196,7 @@ export default function InventoryItemDetailsPage() {
             <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="current-quantity" /></Typography><Typography>{item.currentQuantity}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="minimum-quantity" /></Typography><Typography>{item.minimumQuantity}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="reorder-quantity" /></Typography><Typography>{item.reorderQuantity}</Typography></Grid>
+            <Grid item xs={12} md={4}><Typography variant="caption"><FormattedMessage id="default-sales-price" /></Typography><Typography>{item.defaultSalePrice.toFixed(4)}</Typography></Grid>
             <Grid item xs={12} md={6}><Typography variant="caption"><FormattedMessage id="description-arabic" /></Typography><Typography>{item.descriptionArabic ?? '-'}</Typography></Grid>
             <Grid item xs={12} md={6}><Typography variant="caption"><FormattedMessage id="description-english" /></Typography><Typography>{item.descriptionEnglish ?? '-'}</Typography></Grid>
             <Grid item xs={12}><Typography variant="caption"><FormattedMessage id="notes" /></Typography><Typography>{item.notes ?? '-'}</Typography></Grid>
@@ -361,6 +362,8 @@ export default function InventoryItemDetailsPage() {
                 <TableRow>
                   <TableCell><FormattedMessage id="unit" /></TableCell>
                   <TableCell><FormattedMessage id="factor-to-base" /></TableCell>
+                  <TableCell><FormattedMessage id="sale-price-override" /></TableCell>
+                  <TableCell><FormattedMessage id="effective-sale-price" /></TableCell>
                   <TableCell><FormattedMessage id="default-purchase" /></TableCell>
                   <TableCell><FormattedMessage id="default-sales" /></TableCell>
                 </TableRow>
@@ -370,6 +373,8 @@ export default function InventoryItemDetailsPage() {
                   <TableRow key={unit.id}>
                     <TableCell>{unit.unitCode} - {unit.unitNameArabic}</TableCell>
                     <TableCell>{unit.factorToBase}</TableCell>
+                    <TableCell>{unit.salePriceOverride == null ? '-' : unit.salePriceOverride.toFixed(4)}</TableCell>
+                    <TableCell>{unit.effectiveSalePrice.toFixed(4)}</TableCell>
                     <TableCell>{unit.isDefaultPurchaseUnit ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}</TableCell>
                     <TableCell>{unit.isDefaultSalesUnit ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}</TableCell>
                   </TableRow>

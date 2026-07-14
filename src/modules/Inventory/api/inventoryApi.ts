@@ -13,6 +13,7 @@ import type {
   InventoryMovementRequest,
   ItemCategoryDto,
   ItemDto,
+  ItemUnitInput,
   ItemUnitDto,
   PartyItemRelationDto,
   ReverseInventoryMovementRequest,
@@ -88,7 +89,7 @@ export function getItemUnits(id: string) {
   return unwrap(axiosServices.get<ApiResponse<ItemUnitDto[]>>(`/api/inventory/items/${id}/units`));
 }
 
-export function setItemUnits(id: string, request: { units: { unitOfMeasureId: string; factorToBase: number; isDefaultPurchaseUnit: boolean; isDefaultSalesUnit: boolean }[] }) {
+export function setItemUnits(id: string, request: { units: ItemUnitInput[] }) {
   return unwrap(axiosServices.put<ApiResponse<ItemUnitDto[]>>(`/api/inventory/items/${id}/units`, request));
 }
 

@@ -35,7 +35,7 @@ type EditableUnitRow = ItemUnitInput;
 const today = new Date().toISOString().slice(0, 10);
 
 function buildBaseUnitRow(baseUnitId: string): EditableUnitRow {
-  return { unitOfMeasureId: baseUnitId, factorToBase: 1, isDefaultPurchaseUnit: true, isDefaultSalesUnit: true };
+  return { unitOfMeasureId: baseUnitId, factorToBase: 1, isDefaultPurchaseUnit: true, isDefaultSalesUnit: true, salePriceOverride: null };
 }
 
 export default function InventoryItemFormPage() {
@@ -63,6 +63,7 @@ export default function InventoryItemFormPage() {
     minimumQuantity: 0,
     reorderQuantity: 0,
     allowNegativeStock: false,
+    defaultSalePrice: 0,
     notes: '',
     units: [],
     openingStock: null
@@ -88,6 +89,7 @@ export default function InventoryItemFormPage() {
         minimumQuantity: item.minimumQuantity,
         reorderQuantity: item.reorderQuantity,
         allowNegativeStock: item.allowNegativeStock,
+        defaultSalePrice: item.defaultSalePrice,
         notes: item.notes ?? '',
         units: [],
         openingStock: null
@@ -116,7 +118,8 @@ export default function InventoryItemFormPage() {
           unitOfMeasureId: unit.unitOfMeasureId,
           factorToBase: unit.factorToBase,
           isDefaultPurchaseUnit: unit.isDefaultPurchaseUnit,
-          isDefaultSalesUnit: unit.isDefaultSalesUnit
+          isDefaultSalesUnit: unit.isDefaultSalesUnit,
+          salePriceOverride: unit.salePriceOverride ?? null
         })) : []);
       } catch {
         setUnitRows([]);
@@ -177,7 +180,8 @@ export default function InventoryItemFormPage() {
               unitOfMeasureId: row.unitOfMeasureId,
               factorToBase: Number(row.factorToBase) || 0,
               isDefaultPurchaseUnit: row.isDefaultPurchaseUnit,
-              isDefaultSalesUnit: row.isDefaultSalesUnit
+              isDefaultSalesUnit: row.isDefaultSalesUnit,
+              salePriceOverride: row.salePriceOverride ?? null
             }
       );
     });
@@ -245,6 +249,16 @@ export default function InventoryItemFormPage() {
             <Grid item xs={12} md={3}><TextField fullWidth label={<FormattedMessage id="barcode" />} value={form.barcode ?? ''} onChange={(e) => setForm({ ...form, barcode: e.target.value })} /></Grid>
             <Grid item xs={12} md={3}><TextField type="number" fullWidth label={<FormattedMessage id="minimum-quantity" />} value={form.minimumQuantity} onChange={(e) => setForm({ ...form, minimumQuantity: Number(e.target.value) })} /></Grid>
             <Grid item xs={12} md={3}><TextField type="number" fullWidth label={<FormattedMessage id="reorder-quantity" />} value={form.reorderQuantity} onChange={(e) => setForm({ ...form, reorderQuantity: Number(e.target.value) })} /></Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                type="number"
+                fullWidth
+                label={<FormattedMessage id="default-sales-price" />}
+                value={form.defaultSalePrice}
+                onChange={(e) => setForm({ ...form, defaultSalePrice: Number(e.target.value) })}
+                inputProps={{ min: 0, step: 0.0001 }}
+              />
+            </Grid>
             <Grid item xs={12} md={6}><TextField fullWidth multiline minRows={2} label={<FormattedMessage id="description-arabic" />} value={form.descriptionArabic ?? ''} onChange={(e) => setForm({ ...form, descriptionArabic: e.target.value })} /></Grid>
             <Grid item xs={12} md={6}><TextField fullWidth multiline minRows={2} label={<FormattedMessage id="description-english" />} value={form.descriptionEnglish ?? ''} onChange={(e) => setForm({ ...form, descriptionEnglish: e.target.value })} /></Grid>
             {!isEdit && <Grid item xs={12} md={4}><TextField type="number" fullWidth label={<FormattedMessage id="opening-stock" />} value={openingQuantity} onChange={(e) => setOpeningQuantity(Number(e.target.value))} /></Grid>}
@@ -279,10 +293,11 @@ export default function InventoryItemFormPage() {
                     <TableRow>
                       <TableCell><FormattedMessage id="unit" /></TableCell>
                       <TableCell><FormattedMessage id="factor-to-base" /></TableCell>
+                      <TableCell><FormattedMessage id="sale-price-override" /></TableCell>
                       <TableCell><FormattedMessage id="default-purchase" /></TableCell>
                       <TableCell><FormattedMessage id="default-sales" /></TableCell>
                       <TableCell align="right">
-                        <Button size="small" startIcon={<IconPlus size={16} />} onClick={() => setUnitRows((current) => [...current, { unitOfMeasureId: '', factorToBase: 1, isDefaultPurchaseUnit: false, isDefaultSalesUnit: false }])}>
+                        <Button size="small" startIcon={<IconPlus size={16} />} onClick={() => setUnitRows((current) => [...current, { unitOfMeasureId: '', factorToBase: 1, isDefaultPurchaseUnit: false, isDefaultSalesUnit: false, salePriceOverride: null }])}>
                           <FormattedMessage id="add" />
                         </Button>
                       </TableCell>
@@ -312,6 +327,33 @@ export default function InventoryItemFormPage() {
                             onChange={(event) => updateUnitRow(index, { factorToBase: Number(event.target.value) })}
                             disabled={row.unitOfMeasureId === form.baseUnitId}
                           />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 180 }}>
+                          {row.unitOfMeasureId === form.baseUnitId ? (
+                            <Typography variant="body2" color="text.secondary">
+                              <FormattedMessage id="base-unit-uses-default-sales-price" values={{ price: form.defaultSalePrice.toFixed(4) }} />
+                            </Typography>
+                          ) : (
+                            <Stack spacing={0.5}>
+                              <TextField
+                                size="small"
+                                type="number"
+                                fullWidth
+                                value={row.salePriceOverride ?? ''}
+                                onChange={(event) => updateUnitRow(index, { salePriceOverride: event.target.value === '' ? null : Number(event.target.value) })}
+                                inputProps={{ min: 0, step: 0.0001 }}
+                                placeholder={intl.formatMessage({ id: 'optional' })}
+                              />
+                              <Typography variant="caption" color="text.secondary">
+                                <FormattedMessage
+                                  id={row.salePriceOverride == null ? 'calculated-sale-price' : 'sale-price-override-set'}
+                                  values={{
+                                    price: (form.defaultSalePrice * (Number(row.factorToBase) || 0)).toFixed(4)
+                                  }}
+                                />
+                              </Typography>
+                            </Stack>
+                          )}
                         </TableCell>
                         <TableCell align="center">
                           <Checkbox checked={row.isDefaultPurchaseUnit || row.unitOfMeasureId === form.baseUnitId} onChange={(event) => updateUnitRow(index, { isDefaultPurchaseUnit: event.target.checked })} disabled={row.unitOfMeasureId === form.baseUnitId} />
