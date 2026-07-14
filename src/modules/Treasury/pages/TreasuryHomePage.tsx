@@ -195,10 +195,10 @@ export default function TreasuryHomePage() {
               </Card>
             </Grid>
           ) : summary ? (
-            summaryTiles.map((tile) => {
+            summaryTiles.map((tile, index) => {
               const Icon = tile.icon;
               return (
-                <Grid key={tile.valueKey} item xs={12} sm={6} md={4}>
+                <Grid key={tile.valueKey} item xs={12} sm={index < 4 ? 6 : 12} md={index < 3 ? 4 : 6}>
                   <SummaryCard
                     label={tile.label}
                     value={summary[tile.valueKey]}
