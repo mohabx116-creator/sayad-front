@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -9,6 +10,7 @@ import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
+import Skeleton from '@mui/material/Skeleton';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -19,19 +21,19 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import Skeleton from '@mui/material/Skeleton';
 
-import { IconPlus, IconEye, IconEdit, IconCheck, IconX, IconReport } from '@tabler/icons-react';
+import { IconCheck, IconEdit, IconEye, IconPlus, IconReport, IconTrash, IconX } from '@tabler/icons-react';
 
+import useAuth from 'hooks/useAuth';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
-import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/TreasuryConfirmationDialog';
 
+import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/TreasuryConfirmationDialog';
 import { useTreasuryAccounts, useTreasuryLookups } from '../hooks/useTreasury';
-import { activateTreasuryAccount, deactivateTreasuryAccount } from '../api/treasuryApi';
+import { activateTreasuryAccount, deactivateTreasuryAccount, deleteTreasuryAccount } from '../api/treasuryApi';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import { formatTreasuryMoney } from '../utils/treasury.format';
 import type { TreasuryListParams } from '../types/treasury.types';
@@ -39,6 +41,8 @@ import type { TreasuryListParams } from '../types/treasury.types';
 export default function TreasuryAccountsListPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const { mutate: mutateTreasury } = useSWRConfig();
 
   const [params, setParams] = useState<TreasuryListParams>({
     page: 1,
@@ -48,11 +52,12 @@ export default function TreasuryAccountsListPage() {
     status: ''
   });
   const [searchInput, setSearchInput] = useState('');
-
-  const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType; id: string }>({
+  const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType; id: string; rowVersion: string; code: string }>({
     open: false,
     action: 'activate',
-    id: ''
+    id: '',
+    rowVersion: '',
+    code: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -67,22 +72,27 @@ export default function TreasuryAccountsListPage() {
     setParams({ ...params, page: 1, search: searchInput });
   };
 
-  const handleConfirmAction = async () => {
+  const handleConfirmAction = async (confirmationValue?: string) => {
     setIsProcessing(true);
     try {
       if (actionDialog.action === 'activate') {
-        await activateTreasuryAccount(actionDialog.id);
-        notify(intl.formatMessage({ id: 'account-activated', defaultMessage: 'تم تفعيل الحساب بنجاح' }));
+        await activateTreasuryAccount(actionDialog.id, actionDialog.rowVersion);
+        notify('تم تفعيل الحساب بنجاح.');
       } else if (actionDialog.action === 'deactivate') {
-        await deactivateTreasuryAccount(actionDialog.id);
-        notify(intl.formatMessage({ id: 'account-deactivated', defaultMessage: 'تم إيقاف الحساب بنجاح' }));
+        await deactivateTreasuryAccount(actionDialog.id, actionDialog.rowVersion);
+        notify('تم إيقاف الحساب بنجاح.');
+      } else if (actionDialog.action === 'delete') {
+        await deleteTreasuryAccount(actionDialog.id, { code: confirmationValue ?? '', rowVersion: actionDialog.rowVersion });
+        notify('تم حذف الحساب نهائيًا.');
       }
-      mutate();
+
+      await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
+      await mutate();
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'action-failed', defaultMessage: 'فشلت العملية' }), 'error');
+      notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
     } finally {
       setIsProcessing(false);
-      setActionDialog({ ...actionDialog, open: false });
+      setActionDialog({ open: false, action: 'activate', id: '', rowVersion: '', code: '' });
     }
   };
 
@@ -95,13 +105,7 @@ export default function TreasuryAccountsListPage() {
             <FormattedMessage id="treasury-accounts" defaultMessage="حسابات الخزينة" />
           </PageTitle>
           <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
-            <Button
-              component={Link}
-              to="/treasury/accounts/new"
-              variant="contained"
-              startIcon={<IconPlus />}
-              sx={{ borderRadius: 2 }}
-            >
+            <Button component={Link} to="/treasury/accounts/new" variant="contained" startIcon={<IconPlus />} sx={{ borderRadius: 2 }}>
               <FormattedMessage id="create-account" defaultMessage="إنشاء حساب" />
             </Button>
           </PermissionGuard>
@@ -111,24 +115,10 @@ export default function TreasuryAccountsListPage() {
       <Card sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={4} md={3}>
-            <TextField
-              size="small"
-              fullWidth
-              label={<FormattedMessage id="search" defaultMessage="بحث" />}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
+            <TextField fullWidth size="small" label={<FormattedMessage id="search" defaultMessage="بحث" />} value={searchInput} onChange={(e) => setSearchInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} />
           </Grid>
           <Grid item xs={12} sm={4} md={3}>
-            <TextField
-              select
-              size="small"
-              fullWidth
-              label={<FormattedMessage id="account-type" defaultMessage="نوع الحساب" />}
-              value={params.accountType}
-              onChange={(e) => setParams({ ...params, page: 1, accountType: e.target.value })}
-            >
+            <TextField select fullWidth size="small" label={<FormattedMessage id="account-type" defaultMessage="نوع الحساب" />} value={params.accountType} onChange={(e) => setParams({ ...params, page: 1, accountType: e.target.value })}>
               <MenuItem value="">
                 <FormattedMessage id="all" defaultMessage="الكل" />
               </MenuItem>
@@ -140,14 +130,7 @@ export default function TreasuryAccountsListPage() {
             </TextField>
           </Grid>
           <Grid item xs={12} sm={4} md={3}>
-            <TextField
-              select
-              size="small"
-              fullWidth
-              label={<FormattedMessage id="status" defaultMessage="الحالة" />}
-              value={params.status}
-              onChange={(e) => setParams({ ...params, page: 1, status: e.target.value })}
-            >
+            <TextField select fullWidth size="small" label={<FormattedMessage id="status" defaultMessage="الحالة" />} value={params.status} onChange={(e) => setParams({ ...params, page: 1, status: e.target.value })}>
               <MenuItem value="">
                 <FormattedMessage id="all" defaultMessage="الكل" />
               </MenuItem>
@@ -155,7 +138,7 @@ export default function TreasuryAccountsListPage() {
                 <FormattedMessage id="active" defaultMessage="نشط" />
               </MenuItem>
               <MenuItem value="Inactive">
-                <FormattedMessage id="inactive" defaultMessage="غير نشط" />
+                <FormattedMessage id="inactive" defaultMessage="موقوف" />
               </MenuItem>
             </TextField>
           </Grid>
@@ -172,33 +155,15 @@ export default function TreasuryAccountsListPage() {
           <Table sx={{ minWidth: 1400 }}>
             <TableHead sx={{ bgcolor: 'grey.50' }}>
               <TableRow>
-                <TableCell>
-                  <FormattedMessage id="code" defaultMessage="الكود" />
-                </TableCell>
-                <TableCell>
-                  <FormattedMessage id="account-name" defaultMessage="اسم الحساب" />
-                </TableCell>
-                <TableCell>
-                  <FormattedMessage id="type" defaultMessage="النوع" />
-                </TableCell>
-                <TableCell align="right">
-                  <FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" />
-                </TableCell>
-                <TableCell align="right">
-                  <FormattedMessage id="total-receipts" defaultMessage="إجمالي المقبوضات" />
-                </TableCell>
-                <TableCell align="right">
-                  <FormattedMessage id="total-payments" defaultMessage="إجمالي المدفوعات" />
-                </TableCell>
-                <TableCell align="right">
-                  <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />
-                </TableCell>
-                <TableCell>
-                  <FormattedMessage id="status" defaultMessage="الحالة" />
-                </TableCell>
-                <TableCell align="center">
-                  <FormattedMessage id="actions" defaultMessage="الإجراءات" />
-                </TableCell>
+                <TableCell><FormattedMessage id="code" defaultMessage="الكود" /></TableCell>
+                <TableCell><FormattedMessage id="account-name" defaultMessage="اسم الحساب" /></TableCell>
+                <TableCell><FormattedMessage id="type" defaultMessage="النوع" /></TableCell>
+                <TableCell align="right"><FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" /></TableCell>
+                <TableCell align="right"><FormattedMessage id="total-receipts" defaultMessage="إجمالي المقبوضات" /></TableCell>
+                <TableCell align="right"><FormattedMessage id="total-payments" defaultMessage="إجمالي المدفوعات" /></TableCell>
+                <TableCell align="right"><FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" /></TableCell>
+                <TableCell><FormattedMessage id="status" defaultMessage="الحالة" /></TableCell>
+                <TableCell align="center"><FormattedMessage id="actions" defaultMessage="الإجراءات" /></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -213,14 +178,14 @@ export default function TreasuryAccountsListPage() {
                     <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
                     <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
                     <TableCell><Skeleton width={60} /></TableCell>
-                    <TableCell align="center"><Skeleton width={120} sx={{ mx: 'auto' }} /></TableCell>
+                    <TableCell align="center"><Skeleton width={140} sx={{ mx: 'auto' }} /></TableCell>
                   </TableRow>
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
-                      <FormattedMessage id="no-records-found" defaultMessage="لا توجد سجلات" />
+                      <FormattedMessage id="no-records-found" defaultMessage="لا توجد سجلات." />
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -267,12 +232,7 @@ export default function TreasuryAccountsListPage() {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        size="small"
-                        label={<FormattedMessage id={row.isActive ? 'active' : 'inactive'} defaultMessage={row.isActive ? 'نشط' : 'غير نشط'} />}
-                        color={row.isActive ? 'success' : 'default'}
-                        variant="outlined"
-                      />
+                      <Chip size="small" label={<FormattedMessage id={row.isActive ? 'active' : 'inactive'} defaultMessage={row.isActive ? 'نشط' : 'موقوف'} />} color={row.isActive ? 'success' : 'default'} variant="outlined" />
                     </TableCell>
                     <TableCell align="center">
                       <PermissionGuard permission={TREASURY_PERMISSIONS.accountsView}>
@@ -283,7 +243,7 @@ export default function TreasuryAccountsListPage() {
                         </Tooltip>
                       </PermissionGuard>
                       <PermissionGuard permission={TREASURY_PERMISSIONS.statementsView}>
-                        <Tooltip title={<FormattedMessage id="statement" defaultMessage="كشف حساب" />}>
+                        <Tooltip title={<FormattedMessage id="statement" defaultMessage="كشف الحساب" />}>
                           <IconButton component={Link} to={`/treasury/statements?accountId=${row.id}`} size="small" color="secondary">
                             <IconReport size={18} />
                           </IconButton>
@@ -299,7 +259,7 @@ export default function TreasuryAccountsListPage() {
                       {row.isActive ? (
                         <PermissionGuard permission={TREASURY_PERMISSIONS.accountsDeactivate}>
                           <Tooltip title={<FormattedMessage id="deactivate" defaultMessage="إيقاف" />}>
-                            <IconButton onClick={() => setActionDialog({ open: true, action: 'deactivate', id: row.id })} size="small" color="error">
+                            <IconButton onClick={() => setActionDialog({ open: true, action: 'deactivate', id: row.id, rowVersion: row.rowVersion, code: row.code })} size="small" color="error">
                               <IconX size={18} />
                             </IconButton>
                           </Tooltip>
@@ -307,11 +267,18 @@ export default function TreasuryAccountsListPage() {
                       ) : (
                         <PermissionGuard permission={TREASURY_PERMISSIONS.accountsActivate}>
                           <Tooltip title={<FormattedMessage id="activate" defaultMessage="تفعيل" />}>
-                            <IconButton onClick={() => setActionDialog({ open: true, action: 'activate', id: row.id })} size="small" color="success">
+                            <IconButton onClick={() => setActionDialog({ open: true, action: 'activate', id: row.id, rowVersion: row.rowVersion, code: row.code })} size="small" color="success">
                               <IconCheck size={18} />
                             </IconButton>
                           </Tooltip>
                         </PermissionGuard>
+                      )}
+                      {user?.isSystemOwner && (
+                        <Tooltip title={<FormattedMessage id="delete-permanent" defaultMessage="حذف نهائي" />}>
+                          <IconButton onClick={() => setActionDialog({ open: true, action: 'delete', id: row.id, rowVersion: row.rowVersion, code: row.code })} size="small" color="error">
+                            <IconTrash size={18} />
+                          </IconButton>
+                        </Tooltip>
                       )}
                     </TableCell>
                   </TableRow>
@@ -334,9 +301,11 @@ export default function TreasuryAccountsListPage() {
       <TreasuryConfirmationDialog
         open={actionDialog.open}
         action={actionDialog.action}
+        confirmationValue={actionDialog.action === 'delete' ? actionDialog.code : undefined}
+        confirmationLabelId={actionDialog.action === 'delete' ? 'confirm-account-code' : undefined}
         isProcessing={isProcessing}
         onConfirm={handleConfirmAction}
-        onClose={() => setActionDialog({ ...actionDialog, open: false })}
+        onClose={() => setActionDialog({ open: false, action: 'activate', id: '', rowVersion: '', code: '' })}
       />
     </Box>
   );

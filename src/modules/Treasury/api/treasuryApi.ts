@@ -69,12 +69,16 @@ export function updateTreasuryAccount(id: string, request: TreasuryAccountInput 
   return unwrap(axiosServices.put<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}`, request));
 }
 
-export function activateTreasuryAccount(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}/activate`));
+export function activateTreasuryAccount(id: string, rowVersion: string) {
+  return unwrap(axiosServices.post<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}/activate`, { rowVersion }));
 }
 
-export function deactivateTreasuryAccount(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}/deactivate`));
+export function deactivateTreasuryAccount(id: string, rowVersion: string) {
+  return unwrap(axiosServices.post<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}/deactivate`, { rowVersion }));
+}
+
+export function deleteTreasuryAccount(id: string, request: { code: string; rowVersion: string }) {
+  return unwrap(axiosServices.delete<ApiResponse<unknown>>(`/api/treasury/accounts/${id}`, { data: request }));
 }
 
 // Receipts

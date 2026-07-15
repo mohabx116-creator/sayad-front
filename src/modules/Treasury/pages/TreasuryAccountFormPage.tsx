@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/GridLegacy';
+import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import InputAdornment from '@mui/material/InputAdornment';
-import Alert from '@mui/material/Alert';
 
-import Divider from '@mui/material/Divider';
 import { IconDeviceFloppy, IconInfoCircle } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
@@ -30,6 +33,7 @@ export default function TreasuryAccountFormPage() {
   const navigate = useNavigate();
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { mutate: mutateTreasury } = useSWRConfig();
   const isEdit = Boolean(id);
 
   const { account, isLoading } = useTreasuryAccount(id);
@@ -43,26 +47,29 @@ export default function TreasuryAccountFormPage() {
     currencyCode: 'EGP',
     notes: '',
     openingBalanceAmount: 0,
-    openingBalanceNature: 'Debit'
+    openingBalanceNature: 'Debit',
+    allowNegativeBalance: false
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  // If movements exist, opening balance cannot be changed
-  const hasMovements = isEdit && account ? (account.debitTotal > 0 || account.creditTotal > 0) : false;
+  const hasNonOpeningMovements = isEdit && account ? account.hasNonOpeningMovements : false;
 
   useEffect(() => {
-    if (account) {
-      setForm({
-        code: account.code,
-        nameArabic: account.nameArabic,
-        nameEnglish: account.nameEnglish || '',
-        accountType: account.accountType,
-        currencyCode: account.currencyCode,
-        notes: account.notes || '',
-        openingBalanceAmount: account.openingBalance,
-        openingBalanceNature: account.openingBalanceNature || 'Debit'
-      });
+    if (!account) {
+      return;
     }
+
+    setForm({
+      code: account.code,
+      nameArabic: account.nameArabic,
+      nameEnglish: account.nameEnglish || '',
+      accountType: account.accountType,
+      currencyCode: account.currencyCode,
+      notes: account.notes || '',
+      openingBalanceAmount: account.openingBalance,
+      openingBalanceNature: account.openingBalanceNature || 'Debit',
+      allowNegativeBalance: account.allowNegativeBalance
+    });
   }, [account]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -83,15 +90,17 @@ export default function TreasuryAccountFormPage() {
 
       if (isEdit && account) {
         await updateTreasuryAccount(account.id, { ...request, rowVersion: account.rowVersion });
-        notify(intl.formatMessage({ id: 'account-updated', defaultMessage: 'تم تحديث الحساب بنجاح' }));
+        notify('تم تحديث الحساب بنجاح.');
+        await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
         navigate(`/treasury/accounts/${account.id}`);
       } else {
         const created = await createTreasuryAccount(request);
-        notify(intl.formatMessage({ id: 'account-created', defaultMessage: 'تم إنشاء الحساب بنجاح' }));
+        notify('تم إنشاء الحساب بنجاح.');
+        await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
         navigate(`/treasury/accounts/${created.id}`);
       }
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'action-failed', defaultMessage: 'فشلت العملية' }), 'error');
+      notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -105,17 +114,21 @@ export default function TreasuryAccountFormPage() {
         <Breadcrumbs
           custom
           heading={isEdit ? 'edit-account' : 'create-account'}
-          links={[{ title: 'treasury', to: '/treasury' }, { title: 'treasury-accounts', to: '/treasury/accounts' }, { title: isEdit ? 'edit-account' : 'create-account' }]}
+          links={[
+            { title: 'treasury', to: '/treasury' },
+            { title: 'treasury-accounts', to: '/treasury/accounts' },
+            { title: isEdit ? 'edit-account' : 'create-account' }
+          ]}
         />
       </Box>
 
-      <MainCard
-        title={<FormattedMessage id={isEdit ? 'edit-account' : 'create-account'} defaultMessage={isEdit ? 'تعديل حساب' : 'إنشاء حساب'} />}
-      >
+      <MainCard title={<FormattedMessage id={isEdit ? 'edit-account' : 'create-account'} defaultMessage={isEdit ? 'تعديل حساب' : 'إنشاء حساب'} />}>
         <Box sx={{ pt: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1, mb: 2 }}>
             <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
-            <Typography variant="h4" fontWeight={600}><FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" /></Typography>
+            <Typography variant="h4" fontWeight={600}>
+              <FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" />
+            </Typography>
           </Box>
           <Divider sx={{ mb: 3 }} />
 
@@ -133,7 +146,7 @@ export default function TreasuryAccountFormPage() {
               <TextField
                 required
                 fullWidth
-                label={<FormattedMessage id="name-arabic" defaultMessage="الاسم (عربي)" />}
+                label={<FormattedMessage id="name-arabic" defaultMessage="الاسم بالعربية" />}
                 value={form.nameArabic}
                 onChange={(e) => setForm({ ...form, nameArabic: e.target.value })}
               />
@@ -141,7 +154,7 @@ export default function TreasuryAccountFormPage() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label={<FormattedMessage id="name-english" defaultMessage="الاسم (إنجليزي)" />}
+                label={<FormattedMessage id="name-english" defaultMessage="الاسم بالإنجليزية" />}
                 value={form.nameEnglish}
                 onChange={(e) => setForm({ ...form, nameEnglish: e.target.value })}
               />
@@ -156,16 +169,29 @@ export default function TreasuryAccountFormPage() {
                 onChange={(e) => setForm({ ...form, accountType: e.target.value })}
               >
                 {lookups?.accountTypes.map((type) => (
-                  <MenuItem key={type.value} value={type.value}>{type.labelArabic}</MenuItem>
+                  <MenuItem key={type.value} value={type.value}>
+                    {type.labelArabic}
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={<Checkbox checked={form.allowNegativeBalance} onChange={(e) => setForm({ ...form, allowNegativeBalance: e.target.checked })} />}
+                label={<FormattedMessage id="allow-overdraft" defaultMessage="السماح بالسحب على المكشوف" />}
+              />
+            </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}><FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" /></Typography>
-              {hasMovements && (
+              <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
+                <FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" />
+              </Typography>
+              {hasNonOpeningMovements && (
                 <Alert severity="warning" sx={{ mb: 3 }}>
-                  <FormattedMessage id="opening-balance-locked" defaultMessage="لا يمكن تعديل الرصيد الافتتاحي بعد وجود حركات مرحّلة على هذا الحساب." />
+                  <FormattedMessage
+                    id="opening-balance-locked"
+                    defaultMessage="لا يمكن تعديل الرصيد الافتتاحي بعد وجود حركات مالية غير افتتاحية على هذا الحساب."
+                  />
                 </Alert>
               )}
               <Grid container spacing={3}>
@@ -177,11 +203,9 @@ export default function TreasuryAccountFormPage() {
                     label={<FormattedMessage id="amount" defaultMessage="المبلغ" />}
                     value={form.openingBalanceAmount}
                     onChange={(e) => setForm({ ...form, openingBalanceAmount: Number(e.target.value) })}
-                    disabled={hasMovements}
+                    disabled={hasNonOpeningMovements}
                     inputProps={{ min: 0, step: 0.01 }}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">{form.currencyCode}</InputAdornment>
-                    }}
+                    InputProps={{ endAdornment: <InputAdornment position="end">{form.currencyCode}</InputAdornment> }}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -189,13 +213,17 @@ export default function TreasuryAccountFormPage() {
                     required
                     select
                     fullWidth
-                    label={<FormattedMessage id="balance-nature" defaultMessage="طبيعة الرصيد" />}
+                    label={<FormattedMessage id="balance-nature" defaultMessage="اتجاه الرصيد" />}
                     value={form.openingBalanceNature}
                     onChange={(e) => setForm({ ...form, openingBalanceNature: e.target.value })}
-                    disabled={hasMovements || !form.openingBalanceAmount}
+                    disabled={hasNonOpeningMovements || !form.openingBalanceAmount}
                   >
-                    <MenuItem value="Debit"><FormattedMessage id="debit" defaultMessage="مدين (رصيد متاح)" /></MenuItem>
-                    <MenuItem value="Credit"><FormattedMessage id="credit" defaultMessage="دائن (سحب على المكشوف / التزام)" /></MenuItem>
+                    <MenuItem value="Debit">
+                      <FormattedMessage id="debit" defaultMessage="مدين — رصيد موجب" />
+                    </MenuItem>
+                    <MenuItem value="Credit">
+                      <FormattedMessage id="credit" defaultMessage="دائن — رصيد سالب" />
+                    </MenuItem>
                   </TextField>
                 </Grid>
               </Grid>

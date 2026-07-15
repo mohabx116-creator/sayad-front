@@ -37,6 +37,7 @@ export interface TreasuryAccount {
   allowNegativeBalance: boolean;
   openingBalance: number;
   openingBalanceNature: string;
+  hasNonOpeningMovements: boolean;
   debitTotal: number;
   creditTotal: number;
   balance: number;
@@ -74,6 +75,7 @@ export interface TreasuryAccountInput {
   notes: string | null;
   openingBalanceAmount: number | null;
   openingBalanceNature: string | null;
+  allowNegativeBalance: boolean;
 }
 
 export interface TreasuryAllocation {
