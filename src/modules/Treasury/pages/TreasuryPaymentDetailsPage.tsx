@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -9,7 +10,7 @@ import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { IconArrowLeft, IconCheck, IconEdit, IconX } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconEdit, IconExternalLink, IconX } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -42,6 +43,7 @@ export default function TreasuryPaymentDetailsPage() {
   const { id } = useParams();
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { mutate: mutateTreasury } = useSWRConfig();
   const { payment, isLoading, mutate } = useTreasuryPayment(id);
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType }>({ open: false, action: 'post' });
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,10 +52,13 @@ export default function TreasuryPaymentDetailsPage() {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
-  const canEdit = payment?.status === TREASURY_DOCUMENT_STATUS.DRAFT;
+  const isExpenseOwned = payment?.sourceDocumentType === 'Expense' && Boolean(payment.sourceDocumentId);
+  const canEdit = payment?.status === TREASURY_DOCUMENT_STATUS.DRAFT && !isExpenseOwned;
+  const canPost = payment?.status === TREASURY_DOCUMENT_STATUS.DRAFT && !isExpenseOwned;
+  const canCancel = payment?.status === TREASURY_DOCUMENT_STATUS.POSTED && !isExpenseOwned;
 
   const handleConfirm = async (reason?: string) => {
-    if (!id || !payment) {
+    if (!id || !payment || isExpenseOwned) {
       return;
     }
 
@@ -61,12 +66,14 @@ export default function TreasuryPaymentDetailsPage() {
     try {
       if (actionDialog.action === 'post') {
         await postTreasuryPayment(id, payment.rowVersion);
-        notify(intl.formatMessage({ id: 'treasury.payment-posted', defaultMessage: 'تم ترحيل السند بنجاح.' }));
+        notify(intl.formatMessage({ id: 'treasury.payment-posted', defaultMessage: 'تم ترحيل سند الصرف بنجاح.' }));
       } else {
         await cancelTreasuryPayment(id, { reason: reason ?? '', rowVersion: payment.rowVersion });
-        notify(intl.formatMessage({ id: 'treasury.payment-cancelled', defaultMessage: 'تم إلغاء السند بنجاح.' }));
+        notify(intl.formatMessage({ id: 'treasury.payment-cancelled', defaultMessage: 'تم إلغاء سند الصرف بنجاح.' }));
       }
+
       await mutate();
+      await mutateTreasury((key) => typeof key === 'string' && (key.startsWith('/api/treasury/') || key.startsWith('/api/parties/') || key.startsWith('/api/purchases/invoices') || key.startsWith('/api/expenses/')));
     } catch (error) {
       notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'treasury.action-failed', defaultMessage: 'فشلت العملية.' }), 'error');
     } finally {
@@ -97,7 +104,7 @@ export default function TreasuryPaymentDetailsPage() {
               <TreasuryStatusChip status={payment.status} />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {payment.treasuryAccountCode} — {payment.treasuryAccountNameArabic}
+              {payment.treasuryAccountCode} - {payment.treasuryAccountNameArabic}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -111,14 +118,14 @@ export default function TreasuryPaymentDetailsPage() {
                 </Button>
               </PermissionGuard>
             )}
-            {payment.status === TREASURY_DOCUMENT_STATUS.DRAFT && (
+            {canPost && (
               <PermissionGuard permission={TREASURY_PERMISSIONS.paymentsPost}>
                 <Button variant="contained" onClick={() => setActionDialog({ open: true, action: 'post' })} startIcon={<IconCheck size={18} />}>
                   <FormattedMessage id="post" />
                 </Button>
               </PermissionGuard>
             )}
-            {payment.status === TREASURY_DOCUMENT_STATUS.POSTED && (
+            {canCancel && (
               <PermissionGuard permission={TREASURY_PERMISSIONS.paymentsCancel}>
                 <Button variant="outlined" color="error" onClick={() => setActionDialog({ open: true, action: 'cancel' })} startIcon={<IconX size={18} />}>
                   <FormattedMessage id="cancel-document" />
@@ -129,9 +136,26 @@ export default function TreasuryPaymentDetailsPage() {
         </Box>
       </Box>
 
+      {isExpenseOwned && payment.sourceDocumentId && (
+        <MainCard sx={{ border: '1px solid', borderColor: 'warning.main', bgcolor: 'warning.lighter', borderRadius: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+            <Box>
+              <Typography variant="h5" fontWeight={700}>
+                هذا السند تم إنشاؤه من مصروف
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                لا يمكن تعديل أو ترحيل أو إلغاء هذا السند من شاشة سندات الصرف. راجع مستند المصروف المرتبط.
+              </Typography>
+            </Box>
+            <Button component={Link} to={`/expenses/${payment.sourceDocumentId}`} variant="contained" color="warning" startIcon={<IconExternalLink size={18} />}>
+              <FormattedMessage id="expenses.details" defaultMessage="تفاصيل المصروف" />
+            </Button>
+          </Box>
+        </MainCard>
+      )}
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          {/* Basic info card */}
           <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, mb: 3 }} content={false}>
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
@@ -141,7 +165,7 @@ export default function TreasuryPaymentDetailsPage() {
             <Box sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="payment-number" defaultMessage="رقم السند" />}>
+                  <InfoRow label={<FormattedMessage id="payment-number" defaultMessage="رقم سند الصرف" />}>
                     {payment.number}
                   </InfoRow>
                 </Grid>
@@ -151,28 +175,42 @@ export default function TreasuryPaymentDetailsPage() {
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="الحساب" />}>
-                    {payment.treasuryAccountCode} — {payment.treasuryAccountNameArabic}
+                  <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />}>
+                    {payment.treasuryAccountCode} - {payment.treasuryAccountNameArabic}
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <InfoRow label={<FormattedMessage id="party" />}>
-                    {payment.partyCode} — {payment.partyNameArabic}
+                    {payment.partyCode} - {payment.partyNameArabic}
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="reference-number" defaultMessage="المرجع" />}>
+                  <InfoRow label={<FormattedMessage id="reference-number" defaultMessage="رقم المرجع" />}>
                     {payment.relatedDocumentNumber ?? '-'}
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Box>
                     <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
-                      <FormattedMessage id="reason" />
+                      <FormattedMessage id="reason" defaultMessage="سبب الصرف" />
                     </Typography>
                     <TreasuryPurposeChip purpose={payment.reason ?? ''} />
                   </Box>
                 </Grid>
+                {payment.sourceDocumentType && (
+                  <Grid item xs={12} sm={6}>
+                    <InfoRow label={<FormattedMessage id="source-document-type" defaultMessage="نوع المستند" />}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography fontWeight={600}>{payment.sourceDocumentType}</Typography>
+                        {payment.sourceDocumentId && (
+                          <Button component={Link} to={`/expenses/${payment.sourceDocumentId}`} size="small" variant="text" startIcon={<IconExternalLink size={16} />}>
+                            <FormattedMessage id="expenses.details" defaultMessage="تفاصيل المصروف" />
+                          </Button>
+                        )}
+                      </Box>
+                    </InfoRow>
+                  </Grid>
+                )}
                 {payment.notes && (
                   <Grid item xs={12}>
                     <InfoRow label={<FormattedMessage id="notes" />}>
@@ -184,11 +222,10 @@ export default function TreasuryPaymentDetailsPage() {
             </Box>
           </MainCard>
 
-          {/* Allocations card */}
           <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }} content={false}>
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
-                <FormattedMessage id="invoice-allocations" defaultMessage="تخصيص الفواتير" />
+                <FormattedMessage id="invoice-allocations" defaultMessage="الفواتير المسددة" />
               </Typography>
             </Box>
             <Box sx={{ p: 3 }}>
@@ -197,7 +234,6 @@ export default function TreasuryPaymentDetailsPage() {
           </MainCard>
         </Grid>
 
-        {/* Summary sidebar */}
         <Grid item xs={12} md={4}>
           <MainCard
             content={false}
@@ -211,7 +247,6 @@ export default function TreasuryPaymentDetailsPage() {
               top: { md: 24 }
             }}
           >
-            {/* Gradient header */}
             <Box
               sx={{
                 p: 3,
@@ -220,7 +255,7 @@ export default function TreasuryPaymentDetailsPage() {
               }}
             >
               <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                <FormattedMessage id="totals-summary" defaultMessage="الملخص المالي" />
+                <FormattedMessage id="totals-summary" defaultMessage="ملخص مالي" />
               </Typography>
               <Typography variant="h2" fontWeight={800} sx={{ mt: 0.5 }}>
                 {payment.totalAmount.toFixed(2)}

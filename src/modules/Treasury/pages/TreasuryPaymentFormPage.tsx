@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useIntl } from 'react-intl';
-import { useNavigate, useParams } from 'react-router-dom';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/GridLegacy';
+import MainCard from 'ui-component/cards/MainCard';
+import Typography from '@mui/material/Typography';
+import { IconExternalLink } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -22,6 +28,7 @@ export default function TreasuryPaymentFormPage() {
   const navigate = useNavigate();
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { mutate: mutateTreasury } = useSWRConfig();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState<VoucherFormState>({
@@ -42,25 +49,26 @@ export default function TreasuryPaymentFormPage() {
   const { items: eligibleInvoices, isLoading: eligibleLoading } = useEligiblePurchaseInvoices(form.partyId || undefined, 1, 200);
 
   useEffect(() => {
-    if (payment) {
-      setForm({
-        treasuryAccountId: payment.treasuryAccountId,
-        partyId: payment.partyId,
-        voucherDate: payment.paymentDate,
-        relatedDocumentNumber: payment.relatedDocumentNumber ?? '',
-        reason: payment.reason ?? '',
-        notes: payment.notes ?? '',
-        totalAmount: payment.totalAmount
-      });
-      setAllocationMap(
-        payment.allocations.reduce<Record<string, number>>((accumulator, allocation) => {
-          if (allocation.sourceDocumentNumber) {
-            accumulator[allocation.sourceDocumentNumber] = allocation.amount;
-          }
-          return accumulator;
-        }, {})
-      );
-    }
+    if (!payment) return;
+
+    setForm({
+      treasuryAccountId: payment.treasuryAccountId,
+      partyId: payment.partyId,
+      voucherDate: payment.paymentDate,
+      relatedDocumentNumber: payment.relatedDocumentNumber ?? '',
+      reason: payment.reason ?? '',
+      notes: payment.notes ?? '',
+      totalAmount: payment.totalAmount
+    });
+
+    setAllocationMap(
+      payment.allocations.reduce<Record<string, number>>((accumulator, allocation) => {
+        if (allocation.sourceDocumentNumber) {
+          accumulator[allocation.sourceDocumentNumber] = allocation.amount;
+        }
+        return accumulator;
+      }, {})
+    );
   }, [payment]);
 
   useEffect(() => {
@@ -79,6 +87,7 @@ export default function TreasuryPaymentFormPage() {
     [allocationMap, eligibleInvoices]
   );
   const totalAllocated = useMemo(() => allocationRows.reduce((sum, row) => sum + row.allocatedAmount, 0), [allocationRows]);
+  const isExpenseOwned = payment?.sourceDocumentType === 'Expense' && Boolean(payment.sourceDocumentId);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -128,7 +137,8 @@ export default function TreasuryPaymentFormPage() {
         savedPayment = await postTreasuryPayment(savedPayment.id, savedPayment.rowVersion);
       }
 
-      notify(intl.formatMessage({ id: 'treasury.payment-saved', defaultMessage: 'تم حفظ السند بنجاح.' }));
+      await mutateTreasury((key) => typeof key === 'string' && (key.startsWith('/api/treasury/') || key.startsWith('/api/parties/') || key.startsWith('/api/purchases/invoices') || key.startsWith('/api/expenses/')));
+      notify(intl.formatMessage({ id: 'treasury.payment-saved', defaultMessage: 'تم حفظ سند الصرف بنجاح.' }));
       navigate(`/treasury/payments/${savedPayment?.id ?? payment?.id}`);
     } catch (error) {
       notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'treasury.action-failed', defaultMessage: 'فشلت العملية.' }), 'error');
@@ -141,26 +151,53 @@ export default function TreasuryPaymentFormPage() {
     return <Loader />;
   }
 
+  if (isEdit && isExpenseOwned && payment) {
+    return (
+      <Box>
+        <MainCard sx={{ border: '1px solid', borderColor: 'warning.main', bgcolor: 'warning.lighter', borderRadius: 3 }}>
+          <Typography variant="h4" fontWeight={700} gutterBottom>
+            هذا السند تم إنشاؤه من مصروف
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            لا يمكن تعديل سند الصرف أو ترحيله أو إلغاؤه من شاشة الصرف لأنه مرتبط بالمصروف الأصلي.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+            <Button component={Link} to={`/expenses/${payment.sourceDocumentId}`} variant="contained" color="warning" startIcon={<IconExternalLink size={18} />}>
+              <FormattedMessage id="expenses.details" defaultMessage="تفاصيل المصروف" />
+            </Button>
+            <Button component={Link} to={`/treasury/payments/${payment.id}`} variant="outlined" color="inherit">
+              <FormattedMessage id="back" defaultMessage="رجوع" />
+            </Button>
+          </Box>
+        </MainCard>
+      </Box>
+    );
+  }
+
   return (
     <Box>
-      <TreasuryVoucherForm
-        type="payment"
-        isEdit={isEdit}
-        isLoading={accountsLoading || partiesLoading || eligibleLoading}
-        isSaving={isSaving}
-        status={payment?.status}
-        voucherNumber={payment?.number}
-        form={form}
-        setForm={setForm}
-        accounts={accounts}
-        parties={parties as PartyDto[]}
-        purposes={PAYMENT_PURPOSES}
-        allocationsElement={<TreasuryAllocationTable invoices={allocationRows} onAllocationChange={handleAllocationChange} maxTotalAllocation={form.totalAmount} />}
-        totalAllocated={totalAllocated}
-        postPermission={TREASURY_PERMISSIONS.paymentsPost}
-        onSubmit={handleSubmit}
-        backUrl="/treasury/payments"
-      />
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <TreasuryVoucherForm
+            type="payment"
+            isEdit={isEdit}
+            isLoading={accountsLoading || partiesLoading || eligibleLoading}
+            isSaving={isSaving}
+            status={payment?.status}
+            voucherNumber={payment?.number}
+            form={form}
+            setForm={setForm}
+            accounts={accounts}
+            parties={parties as PartyDto[]}
+            purposes={PAYMENT_PURPOSES}
+            allocationsElement={<TreasuryAllocationTable invoices={allocationRows} onAllocationChange={handleAllocationChange} maxTotalAllocation={form.totalAmount} />}
+            totalAllocated={totalAllocated}
+            postPermission={TREASURY_PERMISSIONS.paymentsPost}
+            onSubmit={handleSubmit}
+            backUrl="/treasury/payments"
+          />
+        </Grid>
+      </Grid>
     </Box>
   );
 }

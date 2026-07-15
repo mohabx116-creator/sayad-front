@@ -27,6 +27,7 @@ import { useTreasuryAccounts, useTreasuryPayments } from '../hooks/useTreasury';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import TreasuryStatusChip from '../components/TreasuryStatusChip';
 import type { TreasuryListParams } from '../types/treasury.types';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 export default function TreasuryPaymentsListPage() {
   const [params, setParams] = useState<TreasuryListParams>({
@@ -52,10 +53,10 @@ export default function TreasuryPaymentsListPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 2, flexWrap: 'wrap', mt: 1 }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="payments" defaultMessage="المدفوعات" />
+              <FormattedMessage id="payments" defaultMessage="سندات الصرف" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="treasury.payments-desc" defaultMessage="متابعة مدفوعات الموردين وتخصيصاتها." />
+              <FormattedMessage id="treasury.payments-desc" defaultMessage="مراجعة مستندات سندات الصرف النقدية والمصرفية." />
             </Typography>
           </Box>
           <PermissionGuard permission={TREASURY_PERMISSIONS.paymentsCreate}>
@@ -88,13 +89,13 @@ export default function TreasuryPaymentsListPage() {
             </TextField>
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField select fullWidth label={<FormattedMessage id="treasury-account" defaultMessage="الحساب" />} value={params.treasuryAccountId ?? ''} onChange={(event) => setParams((current) => ({ ...current, page: 1, treasuryAccountId: event.target.value }))}>
+            <TextField select fullWidth label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />} value={params.treasuryAccountId ?? ''} onChange={(event) => setParams((current) => ({ ...current, page: 1, treasuryAccountId: event.target.value }))}>
               <MenuItem value="">
                 <FormattedMessage id="all" />
               </MenuItem>
               {accounts.map((account) => (
                 <MenuItem key={account.id} value={account.id}>
-                  {account.code} - {account.nameArabic}
+                  <CodeNameLabel code={account.code} nameArabic={account.nameArabic} />
                 </MenuItem>
               ))}
             </TextField>
@@ -112,9 +113,9 @@ export default function TreasuryPaymentsListPage() {
           <Table>
             <TableHead sx={{ bgcolor: 'grey.50' }}>
               <TableRow>
-                <TableCell><FormattedMessage id="payment-number" defaultMessage="رقم السند" /></TableCell>
+                <TableCell><FormattedMessage id="payment-number" defaultMessage="رقم سند الصرف" /></TableCell>
                 <TableCell><FormattedMessage id="date" /></TableCell>
-                <TableCell><FormattedMessage id="treasury-account" defaultMessage="الحساب" /></TableCell>
+                <TableCell><FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" /></TableCell>
                 <TableCell><FormattedMessage id="party" /></TableCell>
                 <TableCell align="right"><FormattedMessage id="amount" /></TableCell>
                 <TableCell><FormattedMessage id="status" /></TableCell>

@@ -158,6 +158,9 @@ export interface TreasuryPayment {
   paymentDate: string;
   relatedDocumentNumber: string | null;
   reason: string | null;
+  sourceDocumentType: string | null;
+  sourceDocumentId: string | null;
+  sourceDocumentNumber: string | null;
   status: string;
   currencyCode: string;
   totalAmount: number;
