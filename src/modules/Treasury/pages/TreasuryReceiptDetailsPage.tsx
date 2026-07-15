@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -42,6 +43,7 @@ export default function TreasuryReceiptDetailsPage() {
   const { id } = useParams();
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { mutate: mutateTreasury } = useSWRConfig();
   const { receipt, isLoading, mutate } = useTreasuryReceipt(id);
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType }>({ open: false, action: 'post' });
   const [isProcessing, setIsProcessing] = useState(false);
@@ -66,7 +68,9 @@ export default function TreasuryReceiptDetailsPage() {
         await cancelTreasuryReceipt(id, { reason: reason ?? '', rowVersion: receipt.rowVersion });
         notify(intl.formatMessage({ id: 'treasury.receipt-cancelled', defaultMessage: 'تم إلغاء الإيصال بنجاح.' }));
       }
+
       await mutate();
+      await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
     } catch (error) {
       notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'treasury.action-failed', defaultMessage: 'فشلت العملية.' }), 'error');
     } finally {
@@ -97,7 +101,7 @@ export default function TreasuryReceiptDetailsPage() {
               <TreasuryStatusChip status={receipt.status} />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {receipt.treasuryAccountCode} — {receipt.treasuryAccountNameArabic}
+              {receipt.treasuryAccountCode} - {receipt.treasuryAccountNameArabic}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -131,7 +135,6 @@ export default function TreasuryReceiptDetailsPage() {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          {/* Basic info card */}
           <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, mb: 3 }} content={false}>
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
@@ -151,17 +154,17 @@ export default function TreasuryReceiptDetailsPage() {
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="الحساب" />}>
-                    {receipt.treasuryAccountCode} — {receipt.treasuryAccountNameArabic}
+                  <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />}>
+                    {receipt.treasuryAccountCode} - {receipt.treasuryAccountNameArabic}
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <InfoRow label={<FormattedMessage id="party" />}>
-                    {receipt.partyCode} — {receipt.partyNameArabic}
+                    {receipt.partyCode} - {receipt.partyNameArabic}
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="reference-number" defaultMessage="المرجع" />}>
+                  <InfoRow label={<FormattedMessage id="reference-number" defaultMessage="رقم المرجع" />}>
                     {receipt.relatedDocumentNumber ?? '-'}
                   </InfoRow>
                 </Grid>
@@ -184,11 +187,10 @@ export default function TreasuryReceiptDetailsPage() {
             </Box>
           </MainCard>
 
-          {/* Allocations card */}
           <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }} content={false}>
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
-                <FormattedMessage id="invoice-allocations" defaultMessage="تخصيص الفواتير" />
+                <FormattedMessage id="invoice-allocations" defaultMessage="الفواتير المسددة" />
               </Typography>
             </Box>
             <Box sx={{ p: 3 }}>
@@ -197,7 +199,6 @@ export default function TreasuryReceiptDetailsPage() {
           </MainCard>
         </Grid>
 
-        {/* Summary sidebar */}
         <Grid item xs={12} md={4}>
           <MainCard
             content={false}
@@ -211,7 +212,6 @@ export default function TreasuryReceiptDetailsPage() {
               top: { md: 24 }
             }}
           >
-            {/* Gradient header */}
             <Box
               sx={{
                 p: 3,
@@ -220,7 +220,7 @@ export default function TreasuryReceiptDetailsPage() {
               }}
             >
               <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                <FormattedMessage id="totals-summary" defaultMessage="الملخص المالي" />
+                <FormattedMessage id="totals-summary" defaultMessage="ملخص مالي" />
               </Typography>
               <Typography variant="h2" fontWeight={800} sx={{ mt: 0.5 }}>
                 {receipt.totalAmount.toFixed(2)}
@@ -231,7 +231,6 @@ export default function TreasuryReceiptDetailsPage() {
             </Box>
 
             <Box sx={{ p: 3 }}>
-              {/* Allocated */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>
                   <FormattedMessage id="allocated-amount" defaultMessage="المبلغ المخصص" />
@@ -241,7 +240,6 @@ export default function TreasuryReceiptDetailsPage() {
                 </Typography>
               </Box>
               <Divider sx={{ mb: 2 }} />
-              {/* Unallocated */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>
                   <FormattedMessage id="unallocated-amount" defaultMessage="غير مخصص" />
@@ -251,7 +249,6 @@ export default function TreasuryReceiptDetailsPage() {
                 </Typography>
               </Box>
 
-              {/* Status row */}
               <Box sx={{ pt: 2, borderTop: '1px dashed', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>
                   <FormattedMessage id="status" />

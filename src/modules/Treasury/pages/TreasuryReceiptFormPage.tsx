@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/GridLegacy';
@@ -23,6 +24,7 @@ export default function TreasuryReceiptFormPage() {
   const navigate = useNavigate();
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { mutate: mutateTreasury } = useSWRConfig();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState<VoucherFormState>({
@@ -40,29 +42,29 @@ export default function TreasuryReceiptFormPage() {
   const { items: accounts, isLoading: accountsLoading } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
   const { items: parties, isLoading: partiesLoading } = useParties({ page: 1, pageSize: 200, isCustomer: true });
   const { receipt, isLoading: receiptLoading } = useTreasuryReceiptData(id);
-
   const { items: eligibleInvoices, isLoading: eligibleLoading } = useEligibleSalesInvoices(form.partyId || undefined, 1, 200);
 
   useEffect(() => {
-    if (receipt) {
-      setForm({
-        treasuryAccountId: receipt.treasuryAccountId,
-        partyId: receipt.partyId,
-        voucherDate: receipt.receiptDate,
-        relatedDocumentNumber: receipt.relatedDocumentNumber ?? '',
-        reason: receipt.reason ?? '',
-        notes: receipt.notes ?? '',
-        totalAmount: receipt.totalAmount
-      });
-      setAllocationMap(
-        receipt.allocations.reduce<Record<string, number>>((accumulator, allocation) => {
-          if (allocation.sourceDocumentNumber) {
-            accumulator[allocation.sourceDocumentNumber] = allocation.amount;
-          }
-          return accumulator;
-        }, {})
-      );
-    }
+    if (!receipt) return;
+
+    setForm({
+      treasuryAccountId: receipt.treasuryAccountId,
+      partyId: receipt.partyId,
+      voucherDate: receipt.receiptDate,
+      relatedDocumentNumber: receipt.relatedDocumentNumber ?? '',
+      reason: receipt.reason ?? '',
+      notes: receipt.notes ?? '',
+      totalAmount: receipt.totalAmount
+    });
+
+    setAllocationMap(
+      receipt.allocations.reduce<Record<string, number>>((accumulator, allocation) => {
+        if (allocation.sourceDocumentNumber) {
+          accumulator[allocation.sourceDocumentNumber] = allocation.amount;
+        }
+        return accumulator;
+      }, {})
+    );
   }, [receipt]);
 
   useEffect(() => {
@@ -72,7 +74,6 @@ export default function TreasuryReceiptFormPage() {
   }, [form.partyId, isEdit]);
 
   const eligibleInvoiceMap = useMemo(() => new Map(eligibleInvoices.map((invoice) => [invoice.invoiceId, invoice.invoiceNumber])), [eligibleInvoices]);
-
   const allocationRows = useMemo<TreasuryAllocationRow[]>(
     () =>
       eligibleInvoices.map((invoice) => ({
@@ -81,7 +82,6 @@ export default function TreasuryReceiptFormPage() {
       })),
     [allocationMap, eligibleInvoices]
   );
-
   const totalAllocated = useMemo(() => allocationRows.reduce((sum, row) => sum + row.allocatedAmount, 0), [allocationRows]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -132,6 +132,7 @@ export default function TreasuryReceiptFormPage() {
         savedReceipt = await postTreasuryReceipt(savedReceipt.id, savedReceipt.rowVersion);
       }
 
+      await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
       notify(intl.formatMessage({ id: 'treasury.receipt-saved', defaultMessage: 'تم حفظ الإيصال بنجاح.' }));
       navigate(`/treasury/receipts/${savedReceipt?.id ?? receipt?.id}`);
     } catch (error) {

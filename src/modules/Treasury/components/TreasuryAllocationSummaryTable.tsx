@@ -35,7 +35,7 @@ export default function TreasuryAllocationSummaryTable({ allocations }: Props) {
           <TableRow>
             <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="allocation-type" defaultMessage="نوع التخصيص" /></TableCell>
             <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="source-document-type" defaultMessage="نوع المستند" /></TableCell>
-            <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="reference-number" defaultMessage="المرجع" /></TableCell>
+            <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="reference-number" defaultMessage="رقم المرجع" /></TableCell>
             <TableCell align="right" sx={{ fontWeight: 600 }}><FormattedMessage id="amount" defaultMessage="المبلغ" /></TableCell>
             <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="notes" defaultMessage="ملاحظات" /></TableCell>
           </TableRow>

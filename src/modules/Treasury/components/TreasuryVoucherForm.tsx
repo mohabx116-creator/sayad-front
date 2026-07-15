@@ -18,6 +18,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import type { PartyDto } from 'modules/Parties/types/parties.types';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 import type { TreasuryAccountListItem } from '../types/treasury.types';
 import { TREASURY_DOCUMENT_STATUS } from '../utils/treasury.constants';
@@ -101,7 +102,6 @@ export default function TreasuryVoucherForm({
             content={false}
             sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0px 2px 4px rgba(0,0,0,0.03)', borderRadius: 3, mb: 3 }}
           >
-            {/* Header matching Stitch */}
             <Box sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'grey.50', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <span className="material-symbols-outlined" style={{ color: 'var(--mui-palette-primary-main)', fontSize: 24 }}>payments</span>
@@ -122,7 +122,7 @@ export default function TreasuryVoucherForm({
                 <Box sx={{ px: 2, py: 0.75, bgcolor: 'primary.light', color: 'primary.dark', borderRadius: 1.5, border: '1px solid', borderColor: 'primary.200', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>account_balance</span>
                   <Typography variant="body2" fontWeight={600}>
-                    <FormattedMessage id="current-balance" defaultMessage="رصيد الخزنة الحالي" />: {currentBalance.toLocaleString()} {selectedAccount.currencyCode || ''}
+                    <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />: {currentBalance.toLocaleString()} {selectedAccount.currencyCode || ''}
                   </Typography>
                 </Box>
               )}
@@ -136,12 +136,17 @@ export default function TreasuryVoucherForm({
                     value={selectedAccount}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <CodeNameLabel code={option.code} nameArabic={option.nameArabic} />
+                      </li>
+                    )}
                     onChange={(_, newValue) => setForm((current) => ({ ...current, treasuryAccountId: newValue?.id ?? '' }))}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         required
-                        label={<FormattedMessage id="treasury-account" defaultMessage="الحساب" />}
+                        label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />}
                         InputLabelProps={{ shrink: true }}
                       />
                     )}
@@ -153,6 +158,11 @@ export default function TreasuryVoucherForm({
                     value={selectedParty}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <CodeNameLabel code={option.code} nameArabic={option.nameArabic} />
+                      </li>
+                    )}
                     onChange={(_, newValue) => setForm((current) => ({ ...current, partyId: newValue?.id ?? '' }))}
                     renderInput={(params) => (
                       <TextField
@@ -194,7 +204,7 @@ export default function TreasuryVoucherForm({
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label={<FormattedMessage id="reference-number" defaultMessage="المرجع" />}
+                    label={<FormattedMessage id="reference-number" defaultMessage="رقم المرجع" />}
                     value={form.relatedDocumentNumber}
                     onChange={(event) => setForm((current) => ({ ...current, relatedDocumentNumber: event.target.value }))}
                   />
@@ -208,7 +218,7 @@ export default function TreasuryVoucherForm({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <IconNotes color="var(--mui-palette-primary-main)" size={24} />
                 <Typography variant="h4" fontWeight={600}>
-                  <FormattedMessage id="invoice-allocations" defaultMessage="تخصيص الفواتير" />
+                  <FormattedMessage id="invoice-allocations" defaultMessage="الفواتير المسددة" />
                 </Typography>
               </Box>
 
@@ -246,7 +256,7 @@ export default function TreasuryVoucherForm({
                 <Divider />
                 <Box>
                   <Typography fontWeight={500} gutterBottom>
-                    <FormattedMessage id="amount" defaultMessage="المبلغ" />
+                    <FormattedMessage id="amount" defaultMessage="المبلغ المقبوض" />
                   </Typography>
                   <TextField
                     fullWidth
@@ -266,7 +276,7 @@ export default function TreasuryVoucherForm({
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography fontWeight={500}>
-                    <FormattedMessage id="unallocated-amount" defaultMessage="المبلغ غير المخصص" />
+                    <FormattedMessage id="unallocated-amount" defaultMessage="غير مخصص" />
                   </Typography>
                   <Typography fontWeight={700} color="text.secondary">
                     {Math.max(0, totalAmount - totalAllocated).toFixed(2)}
@@ -282,7 +292,7 @@ export default function TreasuryVoucherForm({
                   </Typography>
                   {isNegativeBalance && (
                     <Typography variant="caption" color="error.main" display="block" sx={{ mt: 1, fontWeight: 600 }}>
-                      <FormattedMessage id="insufficient-balance" defaultMessage="الرصيد غير كاف" />
+                      <FormattedMessage id="insufficient-balance" defaultMessage="الرصيد غير كافٍ" />
                     </Typography>
                   )}
                 </Box>
@@ -292,21 +302,22 @@ export default function TreasuryVoucherForm({
         </Grid>
       </Grid>
 
-      {/* Fixed Actions Footer matching Stitch */}
-      <Box sx={{
-        position: 'fixed',
-        bottom: 0,
-        right: { xs: 0, md: '260px' },
-        left: 0,
-        bgcolor: 'grey.50',
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        p: 2,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 10
-      }}>
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          right: { xs: 0, md: '260px' },
+          left: 0,
+          bgcolor: 'grey.50',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          p: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 10
+        }}
+      >
         <Button component={Link} to={backUrl} disabled={isSaving} sx={{ color: 'error.main', '&:hover': { bgcolor: 'error.lighter' } }}>
           <FormattedMessage id="cancel" defaultMessage="إلغاء" />
         </Button>

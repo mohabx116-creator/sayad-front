@@ -27,6 +27,7 @@ import { useTreasuryAccounts, useTreasuryReceipts } from '../hooks/useTreasury';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import TreasuryStatusChip from '../components/TreasuryStatusChip';
 import type { TreasuryListParams } from '../types/treasury.types';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 export default function TreasuryReceiptsListPage() {
   const [params, setParams] = useState<TreasuryListParams>({
@@ -55,7 +56,7 @@ export default function TreasuryReceiptsListPage() {
               <FormattedMessage id="receipts" defaultMessage="الإيصالات" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="treasury.receipts-desc" defaultMessage="متابعة إيصالات التحصيل وتخصيصاتها." />
+              <FormattedMessage id="treasury.receipts-desc" defaultMessage="مراجعة مستندات إيصالات النقد والبنك." />
             </Typography>
           </Box>
           <PermissionGuard permission={TREASURY_PERMISSIONS.receiptsCreate}>
@@ -88,13 +89,13 @@ export default function TreasuryReceiptsListPage() {
             </TextField>
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField select fullWidth label={<FormattedMessage id="treasury-account" defaultMessage="الحساب" />} value={params.treasuryAccountId ?? ''} onChange={(event) => setParams((current) => ({ ...current, page: 1, treasuryAccountId: event.target.value }))}>
+            <TextField select fullWidth label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />} value={params.treasuryAccountId ?? ''} onChange={(event) => setParams((current) => ({ ...current, page: 1, treasuryAccountId: event.target.value }))}>
               <MenuItem value="">
                 <FormattedMessage id="all" />
               </MenuItem>
               {accounts.map((account) => (
                 <MenuItem key={account.id} value={account.id}>
-                  {account.code} - {account.nameArabic}
+                  <CodeNameLabel code={account.code} nameArabic={account.nameArabic} />
                 </MenuItem>
               ))}
             </TextField>
@@ -114,7 +115,7 @@ export default function TreasuryReceiptsListPage() {
               <TableRow>
                 <TableCell><FormattedMessage id="receipt-number" defaultMessage="رقم الإيصال" /></TableCell>
                 <TableCell><FormattedMessage id="date" /></TableCell>
-                <TableCell><FormattedMessage id="treasury-account" defaultMessage="الحساب" /></TableCell>
+                <TableCell><FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" /></TableCell>
                 <TableCell><FormattedMessage id="party" /></TableCell>
                 <TableCell align="right"><FormattedMessage id="amount" /></TableCell>
                 <TableCell><FormattedMessage id="status" /></TableCell>
