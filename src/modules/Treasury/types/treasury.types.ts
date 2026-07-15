@@ -34,6 +34,7 @@ export interface TreasuryAccount {
   accountTypeLabel: string;
   currencyCode: string;
   isActive: boolean;
+  allowNegativeBalance: boolean;
   openingBalance: number;
   openingBalanceNature: string;
   debitTotal: number;
@@ -55,6 +56,7 @@ export interface TreasuryAccountListItem {
   accountTypeLabel: string;
   currencyCode: string;
   isActive: boolean;
+  allowNegativeBalance: boolean;
   openingBalance: number;
   debitTotal: number;
   creditTotal: number;

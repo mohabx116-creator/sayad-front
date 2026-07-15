@@ -11,6 +11,7 @@ import { PARTIES_PERMISSIONS } from 'modules/Parties/utils/parties.constants';
 import { PURCHASES_PERMISSIONS } from 'modules/Purchases/utils/purchases.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
+import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -57,6 +58,14 @@ const PurchaseInvoiceFormPage = Loadable(lazy(() => import('modules/Purchases/pa
 const PurchaseReturnsListPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseReturnsListPage')));
 const PurchaseReturnDetailsPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseReturnDetailsPage')));
 const PurchaseReturnFormPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseReturnFormPage')));
+
+// Expenses
+const ExpensesHomePage = Loadable(lazy(() => import('modules/Expenses/pages/ExpensesHomePage')));
+const ExpenseCategoriesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoriesListPage')));
+const ExpenseCategoryFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoryFormPage')));
+const ExpensesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpensesListPage')));
+const ExpenseDetailsPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseDetailsPage')));
+const ExpenseFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseFormPage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -469,6 +478,66 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={PURCHASES_PERMISSIONS.returnsUpdate}>
           <PurchaseReturnFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses',
+      element: <ExpensesHomePage />
+    },
+    {
+      path: '/expenses/categories',
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesView}>
+          <ExpenseCategoriesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/categories/new',
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
+          <ExpenseCategoryFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/categories/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
+          <ExpenseCategoryFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/list',
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.view}>
+          <ExpensesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/new',
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.create}>
+          <ExpenseFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/:id',
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.view}>
+          <ExpenseDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.edit}>
+          <ExpenseFormPage />
         </PermissionRouteGuard>
       )
     },
