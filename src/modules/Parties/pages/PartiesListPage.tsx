@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
@@ -72,14 +72,22 @@ export default function PartiesListPage() {
     }
   };
 
-  const handleDeleteConfirm = async (request: { code: string; reason: string; rowVersion: string }) => {
+    const handleDeleteConfirm = async (request: { code: string; reason: string; rowVersion: string; previewToken: string; ownerPassword: string }) => {
     if (!deleteTarget) return;
     try {
       setIsDeleting(true);
       await finalDeleteParty(deleteTarget.id, request);
-      await mutateParties((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+      await mutateParties((key) =>
+        typeof key === 'string' &&
+        (key.startsWith('/api/parties') ||
+          key.startsWith('/api/treasury/') ||
+          key.startsWith('/api/sales/') ||
+          key.startsWith('/api/purchases/') ||
+          key.startsWith('/api/expenses/') ||
+          key.startsWith('/api/inventory/'))
+      );
       await mutate();
-      notify('تم حذف الطرف نهائيًا بنجاح.');
+      notify('تم حذف الطرف وجميع البيانات المرتبطة به نهائيًا.');
       setDeleteDialogOpen(false);
       setDeleteTarget(null);
     } catch (actionError) {
@@ -100,12 +108,12 @@ export default function PartiesListPage() {
               <FormattedMessage id="parties" />
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              إدارة العملاء والموردين
+              ط¥ط¯ط§ط±ط© ط§ظ„ط¹ظ…ظ„ط§ط، ظˆط§ظ„ظ…ظˆط±ط¯ظٹظ†
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Button variant="contained" color="inherit" sx={{ bgcolor: 'background.paper', color: 'text.primary', boxShadow: 1, '&:hover': { bgcolor: 'grey.100' } }} startIcon={<IconDownload size={18} />}>
-              تصدير
+              طھطµط¯ظٹط±
             </Button>
             <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
               <Button component={Link} to="/parties/new" variant="contained" color="primary" startIcon={<IconPlus size={18} />}>
@@ -121,7 +129,7 @@ export default function PartiesListPage() {
         <Box sx={{ flex: 1, minWidth: 200, position: 'relative' }}>
           <OutlinedInput
             fullWidth
-            placeholder="البحث بالاسم، الكود، أو الهاتف..."
+            placeholder="ط§ظ„ط¨ط­ط« ط¨ط§ظ„ط§ط³ظ…طŒ ط§ظ„ظƒظˆط¯طŒ ط£ظˆ ط§ظ„ظ‡ط§طھظپ..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
             startAdornment={<IconSearch size={20} style={{ marginRight: 8, color: '#9e9e9e' }} />}
@@ -136,7 +144,7 @@ export default function PartiesListPage() {
             onChange={(e) => { setClassification(e.target.value); setPage(0); }}
             sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
           >
-            <MenuItem value="">كل الأنواع</MenuItem>
+            <MenuItem value="">ظƒظ„ ط§ظ„ط£ظ†ظˆط§ط¹</MenuItem>
             <MenuItem value="customer"><FormattedMessage id="party-customer" /></MenuItem>
             <MenuItem value="supplier"><FormattedMessage id="party-supplier" /></MenuItem>
           </Select>
@@ -149,7 +157,7 @@ export default function PartiesListPage() {
             onChange={(e) => { setIsActive(e.target.value); setPage(0); }}
             sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
           >
-            <MenuItem value="">كل الحالات</MenuItem>
+            <MenuItem value="">ظƒظ„ ط§ظ„ط­ط§ظ„ط§طھ</MenuItem>
             <MenuItem value="true"><FormattedMessage id="active" /></MenuItem>
             <MenuItem value="false"><FormattedMessage id="inactive" /></MenuItem>
           </Select>
@@ -210,7 +218,7 @@ export default function PartiesListPage() {
                             </Tooltip>
                           </PermissionGuard>
                           {user?.isSystemOwner && (
-                            <Tooltip title="حذف نهائي">
+                            <Tooltip title="ط­ط°ظپ ظ†ظ‡ط§ط¦ظٹ">
                               <IconButton
                                 size="small"
                                 onClick={() => {

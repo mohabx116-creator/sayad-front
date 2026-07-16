@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
@@ -95,14 +95,22 @@ export default function PartyDetailsPage() {
     }
   };
 
-  const handleDeleteConfirm = async (request: { code: string; reason: string; rowVersion: string }) => {
+    const handleDeleteConfirm = async (request: { code: string; reason: string; rowVersion: string; previewToken: string; ownerPassword: string }) => {
     if (!id || !party) return;
     try {
       setIsDeleting(true);
       await finalDeleteParty(id, request);
-      await mutateParties((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+      await mutateParties((key) =>
+        typeof key === 'string' &&
+        (key.startsWith('/api/parties') ||
+          key.startsWith('/api/treasury/') ||
+          key.startsWith('/api/sales/') ||
+          key.startsWith('/api/purchases/') ||
+          key.startsWith('/api/expenses/') ||
+          key.startsWith('/api/inventory/'))
+      );
       setDeleteDialogOpen(false);
-      notify('تم حذف الطرف نهائيًا بنجاح.');
+      notify('تم حذف الطرف وجميع البيانات المرتبطة به نهائيًا.');
       navigate('/parties', { replace: true });
     } catch (deleteError) {
       notify(deleteError instanceof Error ? deleteError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
@@ -137,7 +145,7 @@ export default function PartyDetailsPage() {
                 </PermissionGuard>
                 {user?.isSystemOwner && (
                   <Button color="error" variant="outlined" onClick={() => setDeleteDialogOpen(true)}>
-                    حذف نهائي
+                    ط­ط°ظپ ظ†ظ‡ط§ط¦ظٹ
                   </Button>
                 )}
               </Stack>

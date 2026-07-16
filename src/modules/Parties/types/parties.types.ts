@@ -71,19 +71,31 @@ export type PartyDeletionPreview = {
   isCustomer: boolean;
   isSupplier: boolean;
   salesInvoiceCount: number;
+  salesInvoiceLineCount: number;
   purchaseInvoiceCount: number;
+  purchaseInvoiceLineCount: number;
   salesReturnCount: number;
+  salesReturnLineCount: number;
   purchaseReturnCount: number;
+  purchaseReturnLineCount: number;
   treasuryReceiptCount: number;
   treasuryPaymentCount: number;
+  treasuryMovementCount: number;
   treasuryReceiptAllocationCount: number;
   treasuryPaymentAllocationCount: number;
   expenseCount: number;
   partyLedgerEntryCount: number;
   openingBalanceCount: number;
   partyItemRelationCount: number;
+  inventoryMovementCount: number;
+  addressCount: number;
+  contactCount: number;
+  currentBalance: number;
+  currentBalanceNature: string;
   canDelete: boolean;
   rowVersion: string;
+  previewToken: string;
+  previewTokenExpiresAtUtc: string;
 };
 
 export type ListMeta = {
@@ -138,6 +150,8 @@ export type PartyFinalDeleteRequest = {
   code: string;
   reason: string;
   rowVersion: string;
+  previewToken: string;
+  ownerPassword: string;
 };
 
 export type PartyStatementParams = {
