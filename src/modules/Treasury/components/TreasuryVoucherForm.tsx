@@ -46,6 +46,7 @@ interface Props {
   parties: PartyDto[];
   purposes: string[];
   allocationsElement: React.ReactNode;
+  allocationsTitle?: React.ReactNode;
   totalAllocated: number;
   postPermission: string;
   onSubmit: (actionType: 'draft' | 'post') => void;
@@ -65,6 +66,7 @@ export default function TreasuryVoucherForm({
   parties,
   purposes,
   allocationsElement,
+  allocationsTitle,
   totalAllocated,
   postPermission,
   onSubmit,
@@ -218,7 +220,7 @@ export default function TreasuryVoucherForm({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <IconNotes color="var(--mui-palette-primary-main)" size={24} />
                 <Typography variant="h4" fontWeight={600}>
-                  <FormattedMessage id="invoice-allocations" defaultMessage="الفواتير المسددة" />
+                  {allocationsTitle ?? <FormattedMessage id="invoice-allocations" defaultMessage="الفواتير المسددة" />}
                 </Typography>
               </Box>
 

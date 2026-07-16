@@ -190,6 +190,7 @@ export default function TreasuryPaymentFormPage() {
             accounts={accounts}
             parties={parties as PartyDto[]}
             purposes={PAYMENT_PURPOSES}
+            allocationsTitle="سداد فاتورة شراء"
             allocationsElement={<TreasuryAllocationTable invoices={allocationRows} onAllocationChange={handleAllocationChange} maxTotalAllocation={form.totalAmount} />}
             totalAllocated={totalAllocated}
             postPermission={TREASURY_PERMISSIONS.paymentsPost}

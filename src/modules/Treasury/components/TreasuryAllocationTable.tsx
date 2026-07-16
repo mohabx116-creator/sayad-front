@@ -10,9 +10,11 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
+import Chip from '@mui/material/Chip';
 import { IconFileInvoice } from '@tabler/icons-react';
 
 import type { TreasuryEligibleInvoice } from '../types/treasury.types';
+import { getTreasurySettlementStatusLabel } from '../utils/treasury.labels';
 
 export interface TreasuryAllocationRow extends TreasuryEligibleInvoice {
   allocatedAmount: number;
@@ -47,7 +49,8 @@ export default function TreasuryAllocationTable({ invoices, onAllocationChange, 
             <TableCell><FormattedMessage id="invoice-number" defaultMessage="رقم الفاتورة" /></TableCell>
             <TableCell><FormattedMessage id="invoice-date" defaultMessage="تاريخ الفاتورة" /></TableCell>
             <TableCell align="right"><FormattedMessage id="total" defaultMessage="الإجمالي" /></TableCell>
-            <TableCell align="right"><FormattedMessage id="outstanding-amount" defaultMessage="المتبقي" /></TableCell>
+            <TableCell align="right"><FormattedMessage id="outstanding-amount" defaultMessage="المبلغ المتبقي" /></TableCell>
+            <TableCell><FormattedMessage id="settlement-status" defaultMessage="حالة التسوية" /></TableCell>
             <TableCell align="right" width={180}><FormattedMessage id="allocated-amount" defaultMessage="المبلغ المخصص" /></TableCell>
           </TableRow>
         </TableHead>
@@ -65,6 +68,14 @@ export default function TreasuryAllocationTable({ invoices, onAllocationChange, 
                 <TableCell align="right">{row.grandTotal.toFixed(2)}</TableCell>
                 <TableCell align="right">
                   <Typography variant="body2" color="error.main" fontWeight={600}>{row.outstandingAmount.toFixed(2)}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={isFullyAllocated ? 'success' : row.allocatedAmount > 0 ? 'primary' : 'default'}
+                    label={getTreasurySettlementStatusLabel(row.allocatedAmount, row.outstandingAmount)}
+                  />
                 </TableCell>
                 <TableCell align="right">
                   {readOnly ? (

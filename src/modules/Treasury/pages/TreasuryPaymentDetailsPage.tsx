@@ -25,6 +25,7 @@ import TreasuryAllocationSummaryTable from '../components/TreasuryAllocationSumm
 import { cancelTreasuryPayment, postTreasuryPayment } from '../api/treasuryApi';
 import { useTreasuryPayment } from '../hooks/useTreasury';
 import { TREASURY_DOCUMENT_STATUS, TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { getTreasurySourceDocumentLabel } from '../utils/treasury.labels';
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -141,14 +142,14 @@ export default function TreasuryPaymentDetailsPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Box>
               <Typography variant="h5" fontWeight={700}>
-                هذا السند تم إنشاؤه من مصروف
+                سند مرتبط بمصروف
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                لا يمكن تعديل أو ترحيل أو إلغاء هذا السند من شاشة سندات الصرف. راجع مستند المصروف المرتبط.
+                هذا السند تم إنشاؤه من مصروف، ولا يمكن تعديله من شاشة سندات الصرف. راجع مستند المصروف المرتبط.
               </Typography>
             </Box>
             <Button component={Link} to={`/expenses/${payment.sourceDocumentId}`} variant="contained" color="warning" startIcon={<IconExternalLink size={18} />}>
-              <FormattedMessage id="expenses.details" defaultMessage="تفاصيل المصروف" />
+              <FormattedMessage id="expenses.details" defaultMessage="فتح المصروف" />
             </Button>
           </Box>
         </MainCard>
@@ -199,12 +200,12 @@ export default function TreasuryPaymentDetailsPage() {
                 </Grid>
                 {payment.sourceDocumentType && (
                   <Grid item xs={12} sm={6}>
-                    <InfoRow label={<FormattedMessage id="source-document-type" defaultMessage="نوع المستند" />}>
+                    <InfoRow label={<FormattedMessage id="source-document-type" defaultMessage="المستند المرتبط" />}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography fontWeight={600}>{payment.sourceDocumentType}</Typography>
+                        <Typography fontWeight={600}>{getTreasurySourceDocumentLabel(payment.sourceDocumentType)}</Typography>
                         {payment.sourceDocumentId && (
                           <Button component={Link} to={`/expenses/${payment.sourceDocumentId}`} size="small" variant="text" startIcon={<IconExternalLink size={16} />}>
-                            <FormattedMessage id="expenses.details" defaultMessage="تفاصيل المصروف" />
+                            <FormattedMessage id="expenses.details" defaultMessage="فتح المصروف" />
                           </Button>
                         )}
                       </Box>

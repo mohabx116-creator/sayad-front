@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import { IconFiles } from '@tabler/icons-react';
 
 import type { TreasuryAllocation } from '../types/treasury.types';
+import { getTreasurySourceDocumentLabel } from '../utils/treasury.labels';
 
 interface Props {
   allocations: TreasuryAllocation[];
@@ -34,7 +35,7 @@ export default function TreasuryAllocationSummaryTable({ allocations }: Props) {
         <TableHead sx={{ bgcolor: 'grey.50' }}>
           <TableRow>
             <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="allocation-type" defaultMessage="نوع التخصيص" /></TableCell>
-            <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="source-document-type" defaultMessage="نوع المستند" /></TableCell>
+            <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="source-document-type" defaultMessage="المستند المرتبط" /></TableCell>
             <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="reference-number" defaultMessage="رقم المرجع" /></TableCell>
             <TableCell align="right" sx={{ fontWeight: 600 }}><FormattedMessage id="amount" defaultMessage="المبلغ" /></TableCell>
             <TableCell sx={{ fontWeight: 600 }}><FormattedMessage id="notes" defaultMessage="ملاحظات" /></TableCell>
@@ -44,7 +45,7 @@ export default function TreasuryAllocationSummaryTable({ allocations }: Props) {
           {allocations.map((allocation) => (
             <TableRow key={allocation.id} hover>
               <TableCell>{allocation.allocationTypeLabel}</TableCell>
-              <TableCell>{allocation.sourceDocumentType ?? '-'}</TableCell>
+              <TableCell>{getTreasurySourceDocumentLabel(allocation.sourceDocumentType)}</TableCell>
               <TableCell>
                 <Typography variant="body2" fontWeight={600} color="text.primary">
                   {allocation.sourceDocumentNumber ?? '-'}

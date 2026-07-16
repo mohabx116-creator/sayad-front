@@ -162,6 +162,7 @@ export default function TreasuryReceiptFormPage() {
             accounts={accounts}
             parties={parties as PartyDto[]}
             purposes={RECEIPT_PURPOSES}
+            allocationsTitle="تسوية فاتورة بيع"
             allocationsElement={
               <TreasuryAllocationTable
                 invoices={allocationRows}
