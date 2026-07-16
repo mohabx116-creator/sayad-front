@@ -8,7 +8,9 @@ import type {
   ListMeta,
   OpeningBalanceDto,
   OpeningBalanceRequest,
+  PartyDeletionPreview,
   PartyDto,
+  PartyFinalDeleteRequest,
   PartyStatementDto,
   PartyStatementParams,
   UpdatePartyRequest
@@ -46,6 +48,14 @@ export function activateParty(id: string) {
 
 export function deactivateParty(id: string) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/deactivate`, {}));
+}
+
+export function getPartyDeletionPreview(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<PartyDeletionPreview>>(`/api/parties/${id}/deletion-preview`));
+}
+
+export function finalDeleteParty(id: string, request: PartyFinalDeleteRequest) {
+  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/final-delete`, request));
 }
 
 export function getPartyOpeningBalance(id: string) {

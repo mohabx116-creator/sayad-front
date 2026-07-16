@@ -63,6 +63,29 @@ export type PartyStatementDto = {
   totalPages: number;
 };
 
+export type PartyDeletionPreview = {
+  id: string;
+  code: string;
+  nameArabic: string;
+  nameEnglish: string | null;
+  isCustomer: boolean;
+  isSupplier: boolean;
+  salesInvoiceCount: number;
+  purchaseInvoiceCount: number;
+  salesReturnCount: number;
+  purchaseReturnCount: number;
+  treasuryReceiptCount: number;
+  treasuryPaymentCount: number;
+  treasuryReceiptAllocationCount: number;
+  treasuryPaymentAllocationCount: number;
+  expenseCount: number;
+  partyLedgerEntryCount: number;
+  openingBalanceCount: number;
+  partyItemRelationCount: number;
+  canDelete: boolean;
+  rowVersion: string;
+};
+
 export type ListMeta = {
   page: number;
   pageSize: number;
@@ -109,6 +132,12 @@ export type CorrectOpeningBalanceRequest = {
   balanceNature: 'Debit' | 'Credit' | '';
   reason: string;
   expectedOpeningBalanceEntryId: string;
+};
+
+export type PartyFinalDeleteRequest = {
+  code: string;
+  reason: string;
+  rowVersion: string;
 };
 
 export type PartyStatementParams = {

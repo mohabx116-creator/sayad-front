@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -18,28 +19,35 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconEye, IconToggleLeft, IconToggleRight, IconPlus, IconDownload, IconSearch } from '@tabler/icons-react';
+import { IconEdit, IconEye, IconToggleLeft, IconToggleRight, IconPlus, IconDownload, IconSearch, IconTrash } from '@tabler/icons-react';
 
+import useAuth from 'hooks/useAuth';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
-import { activateParty, deactivateParty } from '../api/partiesApi';
+import { activateParty, deactivateParty, finalDeleteParty } from '../api/partiesApi';
 import PartyBalance from '../components/PartyBalance';
 import PartyClassificationChips from '../components/PartyClassificationChips';
+import PartyFinalDeleteDialog from '../components/PartyFinalDeleteDialog';
 import PartyStatusChip from '../components/PartyStatusChip';
-import { useParties } from '../hooks/useParties';
+import { usePartyDeletionPreview, useParties } from '../hooks/useParties';
 import { PARTIES_PERMISSIONS } from '../utils/parties.constants';
 
 export default function PartiesListPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const { mutate: mutateParties } = useSWRConfig();
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
   const [isActive, setIsActive] = useState('');
   const [classification, setClassification] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; code: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { items: parties, meta, isLoading, error, mutate } = useParties({
     page: page + 1,
     pageSize,
@@ -48,6 +56,7 @@ export default function PartiesListPage() {
     isCustomer: classification === 'customer' ? true : undefined,
     isSupplier: classification === 'supplier' ? true : undefined
   });
+  const { preview: deletionPreview, isLoading: isDeletionPreviewLoading, error: deletionPreviewError } = usePartyDeletionPreview(deleteTarget?.id, deleteDialogOpen);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -60,6 +69,23 @@ export default function PartiesListPage() {
       notify(intl.formatMessage({ id: 'parties-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+    }
+  };
+
+  const handleDeleteConfirm = async (request: { code: string; reason: string; rowVersion: string }) => {
+    if (!deleteTarget) return;
+    try {
+      setIsDeleting(true);
+      await finalDeleteParty(deleteTarget.id, request);
+      await mutateParties((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+      await mutate();
+      notify('تم حذف الطرف نهائيًا بنجاح.');
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+    } catch (actionError) {
+      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -183,6 +209,20 @@ export default function PartiesListPage() {
                               </IconButton>
                             </Tooltip>
                           </PermissionGuard>
+                          {user?.isSystemOwner && (
+                            <Tooltip title="حذف نهائي">
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  setDeleteTarget({ id: party.id, code: party.code });
+                                  setDeleteDialogOpen(true);
+                                }}
+                                sx={{ color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: '#ffdad6' } }}
+                              >
+                                <IconTrash size={18} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           <Tooltip title={<FormattedMessage id="details" />}>
                             <IconButton size="small" component={Link} to={`/parties/${party.id}`} sx={{ color: 'text.secondary', '&:hover': { color: 'secondary.main', bgcolor: '#ebddff' } }}>
                               <IconEye size={18} />
@@ -209,6 +249,19 @@ export default function PartiesListPage() {
           </>
         )}
       </Box>
+
+      <PartyFinalDeleteDialog
+        open={deleteDialogOpen}
+        isLoading={isDeletionPreviewLoading}
+        isProcessing={isDeleting}
+        preview={deletionPreview}
+        errorMessage={deletionPreviewError instanceof Error ? deletionPreviewError.message : null}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setDeleteTarget(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+      />
     </Box>
   );
 }

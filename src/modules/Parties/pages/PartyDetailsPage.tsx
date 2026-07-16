@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -19,30 +20,39 @@ import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
+import useAuth from 'hooks/useAuth';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import {
   activateParty,
   correctPartyOpeningBalance,
+  finalDeleteParty,
   deactivateParty,
   getPartyOpeningBalance,
   setPartyOpeningBalance
 } from '../api/partiesApi';
 import OpeningBalanceDialog from '../components/OpeningBalanceDialog';
+import PartyFinalDeleteDialog from '../components/PartyFinalDeleteDialog';
 import PartyBalance from '../components/PartyBalance';
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyStatusChip from '../components/PartyStatusChip';
-import { useParty, usePartyStatement } from '../hooks/useParties';
+import { useParty, usePartyDeletionPreview, usePartyStatement } from '../hooks/useParties';
 import type { CorrectOpeningBalanceRequest, OpeningBalanceDto, OpeningBalanceRequest } from '../types/parties.types';
 import { PARTIES_PERMISSIONS } from '../utils/parties.constants';
 
 export default function PartyDetailsPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const { mutate: mutateParties } = useSWRConfig();
   const [openingDialog, setOpeningDialog] = useState<OpeningBalanceDto | null>(null);
   const [isSavingOpening, setIsSavingOpening] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { party, error, isLoading, mutate: mutateParty } = useParty(id);
   const { statement, isLoading: statementLoading, mutate: mutateStatement } = usePartyStatement(id, { page: 1, pageSize: 5 });
+  const { preview: deletionPreview, isLoading: isDeletionPreviewLoading, error: deletionPreviewError } = usePartyDeletionPreview(id, deleteDialogOpen);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -85,6 +95,22 @@ export default function PartyDetailsPage() {
     }
   };
 
+  const handleDeleteConfirm = async (request: { code: string; reason: string; rowVersion: string }) => {
+    if (!id || !party) return;
+    try {
+      setIsDeleting(true);
+      await finalDeleteParty(id, request);
+      await mutateParties((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+      setDeleteDialogOpen(false);
+      notify('تم حذف الطرف نهائيًا بنجاح.');
+      navigate('/parties', { replace: true });
+    } catch (deleteError) {
+      notify(deleteError instanceof Error ? deleteError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <>
       <Breadcrumbs custom heading="party-details" links={[{ title: 'parties', to: '/parties' }, { title: 'party-details' }]} />
@@ -109,6 +135,11 @@ export default function PartyDetailsPage() {
                     <FormattedMessage id={party.isActive ? 'deactivate' : 'activate'} />
                   </Button>
                 </PermissionGuard>
+                {user?.isSystemOwner && (
+                  <Button color="error" variant="outlined" onClick={() => setDeleteDialogOpen(true)}>
+                    حذف نهائي
+                  </Button>
+                )}
               </Stack>
             )
           }
@@ -185,6 +216,16 @@ export default function PartyDetailsPage() {
           onCorrect={(values: CorrectOpeningBalanceRequest) => saveOpeningBalance(() => correctPartyOpeningBalance(id, values))}
         />
       )}
+
+      <PartyFinalDeleteDialog
+        open={deleteDialogOpen}
+        isLoading={isDeletionPreviewLoading}
+        isProcessing={isDeleting}
+        preview={deletionPreview}
+        errorMessage={deletionPreviewError instanceof Error ? deletionPreviewError.message : null}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+      />
     </>
   );
 }
