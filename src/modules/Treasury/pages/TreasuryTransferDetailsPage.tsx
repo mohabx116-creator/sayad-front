@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -16,11 +16,13 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 import TreasuryStatusChip from '../components/TreasuryStatusChip';
 import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/TreasuryConfirmationDialog';
 import { cancelTreasuryTransfer, postTreasuryTransfer } from '../api/treasuryApi';
-import { useTreasuryTransfer } from '../hooks/useTreasury';
+import { useTreasuryAccount, useTreasuryTransfer } from '../hooks/useTreasury';
 import { TREASURY_DOCUMENT_STATUS, TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { refreshTreasuryViews } from '../utils/treasuryRefresh';
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -40,6 +42,8 @@ export default function TreasuryTransferDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { transfer, isLoading, mutate } = useTreasuryTransfer(id);
+  const { account: fromAccount } = useTreasuryAccount(transfer?.fromAccountId);
+  const { account: toAccount } = useTreasuryAccount(transfer?.toAccountId);
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType }>({ open: false, action: 'post' });
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -48,6 +52,18 @@ export default function TreasuryTransferDetailsPage() {
   };
 
   const canEdit = transfer?.status === TREASURY_DOCUMENT_STATUS.DRAFT;
+  const showPreview = transfer?.status === TREASURY_DOCUMENT_STATUS.DRAFT;
+
+  const sourceBalance = fromAccount?.balance ?? null;
+  const destinationBalance = toAccount?.balance ?? null;
+  const sourceProjectedBalance = useMemo(
+    () => (sourceBalance === null ? null : sourceBalance - (transfer?.amount ?? 0)),
+    [sourceBalance, transfer?.amount]
+  );
+  const destinationProjectedBalance = useMemo(
+    () => (destinationBalance === null ? null : destinationBalance + (transfer?.amount ?? 0)),
+    [destinationBalance, transfer?.amount]
+  );
 
   const handleConfirm = async (reason?: string) => {
     if (!id || !transfer) {
@@ -58,11 +74,12 @@ export default function TreasuryTransferDetailsPage() {
     try {
       if (actionDialog.action === 'post') {
         await postTreasuryTransfer(id, transfer.rowVersion);
-        notify(intl.formatMessage({ id: 'treasury.transfer-posted', defaultMessage: 'تم ترحيل التحويل بنجاح.' }));
+        notify(intl.formatMessage({ id: 'treasury.transfer-posted', defaultMessage: 'تم اعتماد التحويل بنجاح.' }));
       } else {
         await cancelTreasuryTransfer(id, { reason: reason ?? '', rowVersion: transfer.rowVersion });
-        notify(intl.formatMessage({ id: 'treasury.transfer-cancelled', defaultMessage: 'تم إلغاء التحويل بنجاح.' }));
+        notify(intl.formatMessage({ id: 'treasury.transfer-cancelled', defaultMessage: 'تم إلغاء التحويل وعكس أثره بنجاح.' }));
       }
+      await refreshTreasuryViews();
       await mutate();
     } catch (error) {
       notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'treasury.action-failed', defaultMessage: 'فشلت العملية.' }), 'error');
@@ -92,26 +109,26 @@ export default function TreasuryTransferDetailsPage() {
           </Box>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             <Button component={Link} to="/treasury/transfers" variant="outlined" color="inherit" startIcon={<IconArrowLeft size={18} />}>
-              <FormattedMessage id="back" />
+              <FormattedMessage id="back" defaultMessage="رجوع" />
             </Button>
             {canEdit && (
               <PermissionGuard permission={TREASURY_PERMISSIONS.transfersUpdate}>
                 <Button component={Link} to={`/treasury/transfers/${transfer.id}/edit`} variant="outlined" startIcon={<IconEdit size={18} />}>
-                  <FormattedMessage id="edit" />
+                  <FormattedMessage id="edit" defaultMessage="تعديل" />
                 </Button>
               </PermissionGuard>
             )}
             {transfer.status === TREASURY_DOCUMENT_STATUS.DRAFT && (
               <PermissionGuard permission={TREASURY_PERMISSIONS.transfersPost}>
                 <Button variant="contained" onClick={() => setActionDialog({ open: true, action: 'post' })} startIcon={<IconCheck size={18} />}>
-                  <FormattedMessage id="post" />
+                  <FormattedMessage id="post" defaultMessage="اعتماد التحويل" />
                 </Button>
               </PermissionGuard>
             )}
             {transfer.status === TREASURY_DOCUMENT_STATUS.POSTED && (
               <PermissionGuard permission={TREASURY_PERMISSIONS.transfersCancel}>
                 <Button variant="outlined" color="error" onClick={() => setActionDialog({ open: true, action: 'cancel' })} startIcon={<IconX size={18} />}>
-                  <FormattedMessage id="cancel-document" />
+                  <FormattedMessage id="cancel-document" defaultMessage="إلغاء التحويل وعكس أثره" />
                 </Button>
               </PermissionGuard>
             )}
@@ -120,12 +137,11 @@ export default function TreasuryTransferDetailsPage() {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Info card */}
         <Grid item xs={12} md={8}>
           <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }} content={false}>
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
-                <FormattedMessage id="basic-information" />
+                <FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" />
               </Typography>
             </Box>
             <Box sx={{ p: 3 }}>
@@ -136,23 +152,23 @@ export default function TreasuryTransferDetailsPage() {
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="date" />}>
+                  <InfoRow label={<FormattedMessage id="date" defaultMessage="التاريخ" />}>
                     {transfer.transferDate}
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="from-account" defaultMessage="من حساب" />}>
-                    {transfer.fromAccountCode} — {transfer.fromAccountNameArabic}
+                  <InfoRow label={<FormattedMessage id="from-account" defaultMessage="الحساب المحول منه" />}>
+                    <CodeNameLabel code={transfer.fromAccountCode} nameArabic={transfer.fromAccountNameArabic} />
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="to-account" defaultMessage="إلى حساب" />}>
-                    {transfer.toAccountCode} — {transfer.toAccountNameArabic}
+                  <InfoRow label={<FormattedMessage id="to-account" defaultMessage="الحساب المحول إليه" />}>
+                    <CodeNameLabel code={transfer.toAccountCode} nameArabic={transfer.toAccountNameArabic} />
                   </InfoRow>
                 </Grid>
                 {transfer.notes && (
                   <Grid item xs={12}>
-                    <InfoRow label={<FormattedMessage id="notes" />}>
+                    <InfoRow label={<FormattedMessage id="notes" defaultMessage="ملاحظات" />}>
                       {transfer.notes}
                     </InfoRow>
                   </Grid>
@@ -162,7 +178,6 @@ export default function TreasuryTransferDetailsPage() {
           </MainCard>
         </Grid>
 
-        {/* Summary sidebar */}
         <Grid item xs={12} md={4}>
           <MainCard
             content={false}
@@ -176,11 +191,10 @@ export default function TreasuryTransferDetailsPage() {
               top: { md: 24 }
             }}
           >
-            {/* Gradient header */}
             <Box
               sx={{
                 p: 3,
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                background: 'linear-gradient(135deg, #4f8cff 0%, #2f5bd3 100%)',
                 color: '#fff'
               }}
             >
@@ -193,7 +207,44 @@ export default function TreasuryTransferDetailsPage() {
             </Box>
 
             <Box sx={{ p: 3 }}>
-              {/* Transfer route */}
+              {showPreview && (
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider', mb: 3 }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 1 }}>
+                    <FormattedMessage id="treasury.transfer-preview" defaultMessage="الأرصدة قبل التأكيد" />
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="text.secondary">
+                        <FormattedMessage id="from-account" defaultMessage="الحساب المحول منه" />
+                      </Typography>
+                      <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                        {fromAccount ? <CodeNameLabel code={fromAccount.code} nameArabic={fromAccount.nameArabic} /> : '—'}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 0.5 }}>
+                        <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />: {sourceBalance === null ? '—' : sourceBalance.toFixed(2)} {fromAccount?.currencyCode ?? ''}
+                      </Typography>
+                      <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                        <FormattedMessage id="balance-after-transfer" defaultMessage="الرصيد بعد التحويل" />: {sourceProjectedBalance === null ? '—' : sourceProjectedBalance.toFixed(2)} {fromAccount?.currencyCode ?? ''}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="text.secondary">
+                        <FormattedMessage id="to-account" defaultMessage="الحساب المحول إليه" />
+                      </Typography>
+                      <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                        {toAccount ? <CodeNameLabel code={toAccount.code} nameArabic={toAccount.nameArabic} /> : '—'}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 0.5 }}>
+                        <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />: {destinationBalance === null ? '—' : destinationBalance.toFixed(2)} {toAccount?.currencyCode ?? ''}
+                      </Typography>
+                      <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                        <FormattedMessage id="balance-after-transfer" defaultMessage="الرصيد بعد التحويل" />: {destinationProjectedBalance === null ? '—' : destinationProjectedBalance.toFixed(2)} {toAccount?.currencyCode ?? ''}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+
               <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider', mb: 3 }}>
                 <Typography variant="caption" color="text.secondary" fontWeight={600} display="block" sx={{ mb: 1 }}>
                   <FormattedMessage id="transfer-route" defaultMessage="مسار التحويل" />
@@ -207,7 +258,7 @@ export default function TreasuryTransferDetailsPage() {
 
               <Box sx={{ pt: 2, borderTop: '1px dashed', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                  <FormattedMessage id="status" />
+                  <FormattedMessage id="status" defaultMessage="الحالة" />
                 </Typography>
                 <TreasuryStatusChip status={transfer.status} />
               </Box>
@@ -219,6 +270,8 @@ export default function TreasuryTransferDetailsPage() {
       <TreasuryConfirmationDialog
         open={actionDialog.open}
         action={actionDialog.action}
+        titleId={actionDialog.action === 'post' ? 'treasury.confirm.post.title' : 'treasury.confirm.cancel.title'}
+        messageId={actionDialog.action === 'post' ? 'treasury.confirm.post.message' : 'treasury.confirm.cancel.message'}
         requireReason={actionDialog.action === 'cancel'}
         isProcessing={isProcessing}
         onConfirm={handleConfirm}

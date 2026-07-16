@@ -23,6 +23,7 @@ import { IconEye, IconPlus } from '@tabler/icons-react';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 import { useTreasuryAccounts, useTreasuryTransfers } from '../hooks/useTreasury';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import TreasuryStatusChip from '../components/TreasuryStatusChip';
@@ -55,12 +56,12 @@ export default function TreasuryTransfersListPage() {
               <FormattedMessage id="transfers" defaultMessage="التحويلات" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="treasury.transfers-desc" defaultMessage="متابعة التحويلات بين الحسابات." />
+              <FormattedMessage id="treasury.transfers-desc" defaultMessage="متابعة التحويلات بين حسابات الخزينة." />
             </Typography>
           </Box>
           <PermissionGuard permission={TREASURY_PERMISSIONS.transfersCreate}>
             <Button component={Link} to="/treasury/transfers/new" variant="contained" startIcon={<IconPlus size={18} />}>
-              <FormattedMessage id="create-transfer" />
+              <FormattedMessage id="create-transfer" defaultMessage="إنشاء تحويل" />
             </Button>
           </PermissionGuard>
         </Box>
@@ -69,39 +70,39 @@ export default function TreasuryTransfersListPage() {
       <Card sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <TextField fullWidth label={<FormattedMessage id="search" />} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && setParams((current) => ({ ...current, page: 1, search: searchInput }))} />
+            <TextField fullWidth label={<FormattedMessage id="search" defaultMessage="بحث" />} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && setParams((current) => ({ ...current, page: 1, search: searchInput }))} />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField select fullWidth label={<FormattedMessage id="status" />} value={params.status} onChange={(event) => setParams((current) => ({ ...current, page: 1, status: event.target.value }))}>
+            <TextField select fullWidth label={<FormattedMessage id="status" defaultMessage="الحالة" />} value={params.status} onChange={(event) => setParams((current) => ({ ...current, page: 1, status: event.target.value }))}>
               <MenuItem value="">
-                <FormattedMessage id="all" />
+                <FormattedMessage id="all" defaultMessage="الكل" />
               </MenuItem>
               <MenuItem value="Draft">
-                <FormattedMessage id="treasury.status.draft" />
+                <FormattedMessage id="treasury.status.draft" defaultMessage="مسودة" />
               </MenuItem>
               <MenuItem value="Posted">
-                <FormattedMessage id="treasury.status.posted" />
+                <FormattedMessage id="treasury.status.posted" defaultMessage="معتمد" />
               </MenuItem>
               <MenuItem value="Cancelled">
-                <FormattedMessage id="treasury.status.cancelled" />
+                <FormattedMessage id="treasury.status.cancelled" defaultMessage="ملغي" />
               </MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField select fullWidth label={<FormattedMessage id="treasury-account" defaultMessage="الحساب" />} value={params.treasuryAccountId ?? ''} onChange={(event) => setParams((current) => ({ ...current, page: 1, treasuryAccountId: event.target.value }))}>
+            <TextField select fullWidth label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />} value={params.treasuryAccountId ?? ''} onChange={(event) => setParams((current) => ({ ...current, page: 1, treasuryAccountId: event.target.value }))}>
               <MenuItem value="">
-                <FormattedMessage id="all" />
+                <FormattedMessage id="all" defaultMessage="الكل" />
               </MenuItem>
               {accounts.map((account) => (
                 <MenuItem key={account.id} value={account.id}>
-                  {account.code} - {account.nameArabic}
+                  <CodeNameLabel code={account.code} nameArabic={account.nameArabic} />
                 </MenuItem>
               ))}
             </TextField>
           </Grid>
           <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
             <Button variant="outlined" onClick={() => setParams((current) => ({ ...current, page: 1, search: searchInput }))} sx={{ width: '100%' }}>
-              <FormattedMessage id="search" />
+              <FormattedMessage id="search" defaultMessage="بحث" />
             </Button>
           </Grid>
         </Grid>
@@ -113,12 +114,12 @@ export default function TreasuryTransfersListPage() {
             <TableHead sx={{ bgcolor: 'grey.50' }}>
               <TableRow>
                 <TableCell><FormattedMessage id="transfer-number" defaultMessage="رقم التحويل" /></TableCell>
-                <TableCell><FormattedMessage id="date" /></TableCell>
-                <TableCell><FormattedMessage id="from-account" defaultMessage="من حساب" /></TableCell>
-                <TableCell><FormattedMessage id="to-account" defaultMessage="إلى حساب" /></TableCell>
-                <TableCell align="right"><FormattedMessage id="amount" /></TableCell>
-                <TableCell><FormattedMessage id="status" /></TableCell>
-                <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
+                <TableCell><FormattedMessage id="date" defaultMessage="التاريخ" /></TableCell>
+                <TableCell><FormattedMessage id="from-account" defaultMessage="الحساب المحول منه" /></TableCell>
+                <TableCell><FormattedMessage id="to-account" defaultMessage="الحساب المحول إليه" /></TableCell>
+                <TableCell align="right"><FormattedMessage id="amount" defaultMessage="المبلغ" /></TableCell>
+                <TableCell><FormattedMessage id="status" defaultMessage="الحالة" /></TableCell>
+                <TableCell align="center"><FormattedMessage id="actions" defaultMessage="الإجراءات" /></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -154,9 +155,9 @@ export default function TreasuryTransfersListPage() {
                       <TreasuryStatusChip status={transfer.status} />
                     </TableCell>
                     <TableCell align="center">
-                      <Tooltip title={<FormattedMessage id="details" />}>
+                      <Tooltip title={<FormattedMessage id="details" defaultMessage="تفاصيل" />}>
                         <Button component={Link} to={`/treasury/transfers/${transfer.id}`} size="small" variant="text" startIcon={<IconEye size={16} />}>
-                          <FormattedMessage id="details" />
+                          <FormattedMessage id="details" defaultMessage="تفاصيل" />
                         </Button>
                       </Tooltip>
                     </TableCell>

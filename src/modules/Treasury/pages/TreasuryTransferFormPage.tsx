@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
 import MenuItem from '@mui/material/MenuItem';
-import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
-
+import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 
 import { IconInfoCircle } from '@tabler/icons-react';
@@ -19,10 +19,12 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 import { createTreasuryTransfer, getTreasuryTransfer, postTreasuryTransfer, updateTreasuryTransfer } from '../api/treasuryApi';
 import { useTreasuryAccounts } from '../hooks/useTreasury';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { refreshTreasuryViews } from '../utils/treasuryRefresh';
 import type { TreasuryTransferInput } from '../types/treasury.types';
 
 type TransferFormState = TreasuryTransferInput;
@@ -46,6 +48,21 @@ export default function TreasuryTransferFormPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
+  const fromAccount = useMemo(() => accounts.find((account) => account.id === form.fromAccountId) ?? null, [accounts, form.fromAccountId]);
+  const toAccount = useMemo(() => accounts.find((account) => account.id === form.toAccountId) ?? null, [accounts, form.toAccountId]);
+  const amountValue = Number(form.amount) || 0;
+  const sameAccount = Boolean(form.fromAccountId && form.toAccountId && form.fromAccountId === form.toAccountId);
+  const sameCurrency = Boolean(!fromAccount || !toAccount || fromAccount.currencyCode === toAccount.currencyCode);
+  const validationMessage = sameAccount
+    ? 'لا يمكن التحويل بين نفس الحساب.'
+    : !sameCurrency
+      ? 'يجب أن يكون الحسابان بنفس العملة.'
+      : amountValue <= 0
+        ? 'مبلغ التحويل يجب أن يكون أكبر من صفر.'
+        : '';
+
+  const sourceProjectedBalance = fromAccount ? fromAccount.balance - amountValue : 0;
+  const destinationProjectedBalance = toAccount ? toAccount.balance + amountValue : 0;
 
   useEffect(() => {
     let isMounted = true;
@@ -90,6 +107,11 @@ export default function TreasuryTransferFormPage() {
   };
 
   const handleSubmit = async (actionType: 'draft' | 'post') => {
+    if (validationMessage) {
+      notify(validationMessage, 'error');
+      return;
+    }
+
     try {
       setIsSaving(true);
       const request = {
@@ -111,7 +133,13 @@ export default function TreasuryTransferFormPage() {
         savedTransfer = await postTreasuryTransfer(savedTransfer.id, savedTransfer.rowVersion);
       }
 
-      notify(intl.formatMessage({ id: 'treasury.transfer-saved', defaultMessage: 'تم حفظ التحويل بنجاح.' }));
+      await refreshTreasuryViews();
+      notify(
+        intl.formatMessage({
+          id: actionType === 'post' ? 'treasury.transfer-posted' : 'treasury.transfer-saved',
+          defaultMessage: actionType === 'post' ? 'تم اعتماد التحويل بنجاح.' : 'تم حفظ التحويل كمسودة بنجاح.'
+        })
+      );
       navigate(`/treasury/transfers/${savedTransfer?.id ?? transfer?.id}`);
     } catch (error) {
       notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'treasury.action-failed', defaultMessage: 'فشلت العملية.' }), 'error');
@@ -140,45 +168,125 @@ export default function TreasuryTransferFormPage() {
         <Box sx={{ pt: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1, mb: 2 }}>
             <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
-            <Typography variant="h4" fontWeight={600}><FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" /></Typography>
+            <Typography variant="h4" fontWeight={600}>
+              <FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" />
+            </Typography>
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <TextField select fullWidth label={<FormattedMessage id="from-account" defaultMessage="من حساب" />} value={form.fromAccountId} onChange={(event) => setForm((current) => ({ ...current, fromAccountId: event.target.value }))}>
+              <TextField
+                select
+                fullWidth
+                label={<FormattedMessage id="from-account" defaultMessage="الحساب المحول منه" />}
+                value={form.fromAccountId}
+                onChange={(event) => setForm((current) => ({ ...current, fromAccountId: event.target.value }))}
+              >
                 {accounts.map((account) => (
-                  <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>
+                  <MenuItem key={account.id} value={account.id}>
+                    <CodeNameLabel code={account.code} nameArabic={account.nameArabic} />
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField select fullWidth label={<FormattedMessage id="to-account" defaultMessage="إلى حساب" />} value={form.toAccountId} onChange={(event) => setForm((current) => ({ ...current, toAccountId: event.target.value }))}>
+              <TextField
+                select
+                fullWidth
+                label={<FormattedMessage id="to-account" defaultMessage="الحساب المحول إليه" />}
+                value={form.toAccountId}
+                onChange={(event) => setForm((current) => ({ ...current, toAccountId: event.target.value }))}
+              >
                 {accounts.map((account) => (
-                  <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>
+                  <MenuItem key={account.id} value={account.id}>
+                    <CodeNameLabel code={account.code} nameArabic={account.nameArabic} />
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={form.transferDate} onChange={(event) => setForm((current) => ({ ...current, transferDate: event.target.value }))} InputLabelProps={{ shrink: true }} />
+              <TextField
+                type="date"
+                fullWidth
+                label={<FormattedMessage id="date" defaultMessage="التاريخ" />}
+                value={form.transferDate}
+                onChange={(event) => setForm((current) => ({ ...current, transferDate: event.target.value }))}
+                InputLabelProps={{ shrink: true }}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField type="number" fullWidth label={<FormattedMessage id="amount" />} value={form.amount || ''} onChange={(event) => setForm((current) => ({ ...current, amount: Number(event.target.value) }))} inputProps={{ min: 0, step: 0.01 }} />
+              <TextField
+                type="number"
+                fullWidth
+                label={<FormattedMessage id="amount" defaultMessage="مبلغ التحويل" />}
+                value={form.amount || ''}
+                onChange={(event) => setForm((current) => ({ ...current, amount: Number(event.target.value) }))}
+                inputProps={{ min: 0, step: 0.01 }}
+              />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth multiline rows={3} label={<FormattedMessage id="notes" />} value={form.notes ?? ''} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} />
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label={<FormattedMessage id="notes" defaultMessage="ملاحظات" />}
+                value={form.notes ?? ''}
+                onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+              />
             </Grid>
           </Grid>
 
+          <Box sx={{ mt: 3, p: 2.5, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: 'grey.50' }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+              <FormattedMessage id="treasury.transfer-preview" defaultMessage="الأرصدة قبل التأكيد" />
+            </Typography>
+            {validationMessage ? (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                {validationMessage}
+              </Alert>
+            ) : null}
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
+                    <FormattedMessage id="from-account" defaultMessage="الحساب المحول منه" />
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>{fromAccount ? <CodeNameLabel code={fromAccount.code} nameArabic={fromAccount.nameArabic} /> : '—'}</Box>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />: {fromAccount ? fromAccount.balance.toFixed(2) : '—'} {fromAccount?.currencyCode ?? ''}
+                  </Typography>
+                  <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                    <FormattedMessage id="balance-after-transfer" defaultMessage="الرصيد بعد التحويل" />: {fromAccount ? sourceProjectedBalance.toFixed(2) : '—'} {fromAccount?.currencyCode ?? ''}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
+                    <FormattedMessage id="to-account" defaultMessage="الحساب المحول إليه" />
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>{toAccount ? <CodeNameLabel code={toAccount.code} nameArabic={toAccount.nameArabic} /> : '—'}</Box>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />: {toAccount ? toAccount.balance.toFixed(2) : '—'} {toAccount?.currencyCode ?? ''}
+                  </Typography>
+                  <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                    <FormattedMessage id="balance-after-transfer" defaultMessage="الرصيد بعد التحويل" />: {toAccount ? destinationProjectedBalance.toFixed(2) : '—'} {toAccount?.currencyCode ?? ''}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
             <Button variant="outlined" color="inherit" onClick={() => navigate('/treasury/transfers')} disabled={isSaving}>
-              <FormattedMessage id="cancel" />
+              <FormattedMessage id="cancel" defaultMessage="إلغاء" />
             </Button>
-            <Button variant="outlined" onClick={() => handleSubmit('draft')} disabled={isSaving}>
-              <FormattedMessage id="save-as-draft" />
+            <Button variant="outlined" onClick={() => handleSubmit('draft')} disabled={isSaving || Boolean(validationMessage)}>
+              <FormattedMessage id="save-as-draft" defaultMessage="حفظ كمسودة" />
             </Button>
             <PermissionGuard permission={TREASURY_PERMISSIONS.transfersPost}>
-              <Button variant="contained" onClick={() => handleSubmit('post')} disabled={isSaving}>
-                <FormattedMessage id="post" />
+              <Button variant="contained" onClick={() => handleSubmit('post')} disabled={isSaving || Boolean(validationMessage)}>
+                <FormattedMessage id="post" defaultMessage="اعتماد التحويل" />
               </Button>
             </PermissionGuard>
           </Box>
