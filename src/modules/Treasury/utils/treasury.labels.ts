@@ -23,6 +23,19 @@ export function getTreasurySettlementStatusLabel(allocatedAmount: number, outsta
   return 'سداد جزئي';
 }
 
+export function getTreasuryStatusLabel(status?: string | null, locale: 'ar' | 'en' = 'ar') {
+  switch ((status ?? '').toLowerCase()) {
+    case 'draft':
+      return locale === 'en' ? 'Draft' : 'مسودة';
+    case 'posted':
+      return locale === 'en' ? 'Posted' : 'مُعتمد';
+    case 'cancelled':
+      return locale === 'en' ? 'Cancelled' : 'ملغي';
+    default:
+      return '—';
+  }
+}
+
 export function getTreasuryPaymentMethodLabel(paymentMethod?: string | null) {
   switch ((paymentMethod ?? '').toLowerCase()) {
     case 'cash':

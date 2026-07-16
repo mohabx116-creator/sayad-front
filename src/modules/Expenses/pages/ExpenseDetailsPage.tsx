@@ -17,6 +17,7 @@ import { useExpense } from '../hooks/useExpenses';
 import ExpenseStatusChip from '../components/ExpenseStatusChip';
 import ExpenseLifecycleActions from '../components/ExpenseLifecycleActions';
 import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
+import { getTreasuryStatusLabel } from 'modules/Treasury/utils/treasury.labels';
 
 const formatDateTime = (utc: string | null | undefined) =>
   utc ? dayjs(utc).format('YYYY-MM-DD HH:mm') : '-';
@@ -205,7 +206,7 @@ export default function ExpenseDetailsPage() {
                 <Grid item xs={12} sm={6}>
                   <DetailItem label={<FormattedMessage id="status" />} value={
                     <Typography fontWeight="bold" color={expense.treasuryPayment.status === 'Cancelled' ? 'error.main' : 'success.main'}>
-                      {expense.treasuryPayment.status}
+                      {getTreasuryStatusLabel(expense.treasuryPayment.status, 'ar')}
                     </Typography>
                   } />
                 </Grid>
