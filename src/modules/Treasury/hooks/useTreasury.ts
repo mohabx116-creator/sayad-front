@@ -5,6 +5,7 @@ import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type {
   TreasuryAccount,
+  TreasuryAccountDeletionPreview,
   TreasuryAccountListItem,
   TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
@@ -47,6 +48,12 @@ export function useTreasuryAccounts(params: TreasuryListParams) {
 export function useTreasuryAccount(id?: string) {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryAccount>>(id ? `/api/treasury/accounts/${id}` : null, fetcher);
   return useMemo(() => ({ account: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useTreasuryAccountDeletionPreview(id?: string, enabled = false) {
+  const key = id && enabled ? `/api/treasury/accounts/${id}/deletion-preview` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryAccountDeletionPreview>>(key, fetcher);
+  return useMemo(() => ({ preview: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useTreasuryReceipts(params: TreasuryListParams) {

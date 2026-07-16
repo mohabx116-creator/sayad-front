@@ -20,10 +20,11 @@ import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 
-import { activateTreasuryAccount, deactivateTreasuryAccount, deleteTreasuryAccount } from '../api/treasuryApi';
-import { useTreasuryAccount, useTreasuryStatement } from '../hooks/useTreasury';
+import { activateTreasuryAccount, deactivateTreasuryAccount, finalDeleteTreasuryAccount } from '../api/treasuryApi';
+import { useTreasuryAccount, useTreasuryAccountDeletionPreview, useTreasuryStatement } from '../hooks/useTreasury';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import TreasuryBalanceSummary from '../components/TreasuryBalanceSummary';
+import TreasuryFinalDeleteDialog from '../components/TreasuryFinalDeleteDialog';
 import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/TreasuryConfirmationDialog';
 import TreasuryMovementTable from '../components/TreasuryMovementTable';
 import { formatTreasuryMoney } from '../utils/treasury.format';
@@ -38,6 +39,8 @@ export default function TreasuryAccountDetailsPage() {
 
   const { account, isLoading, mutate } = useTreasuryAccount(id);
   const { statement, isLoading: isStatementLoading } = useTreasuryStatement(id ? { treasuryAccountId: id, page: 1, pageSize: 5 } : null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { preview: deletionPreview, isLoading: isDeletionPreviewLoading } = useTreasuryAccountDeletionPreview(id, deleteDialogOpen);
 
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType; code: string }>({
     open: false,
@@ -50,7 +53,7 @@ export default function TreasuryAccountDetailsPage() {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
-  const handleConfirmAction = async (confirmationValue?: string) => {
+  const handleConfirmAction = async () => {
     if (!id || !account) {
       return;
     }
@@ -64,10 +67,6 @@ export default function TreasuryAccountDetailsPage() {
       } else if (actionDialog.action === 'deactivate') {
         await deactivateTreasuryAccount(id, currentRowVersion);
         notify('تم إيقاف الحساب بنجاح.');
-      } else if (actionDialog.action === 'delete') {
-        await deleteTreasuryAccount(id, { code: confirmationValue ?? '', rowVersion: currentRowVersion });
-        notify('تم حذف الحساب نهائيًا.');
-        navigate('/treasury/accounts');
       }
 
       await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
@@ -155,7 +154,7 @@ export default function TreasuryAccountDetailsPage() {
                 variant="outlined"
                 color="error"
                 startIcon={<IconTrash size={18} />}
-                onClick={() => setActionDialog({ open: true, action: 'delete', code: account.code })}
+                onClick={() => setDeleteDialogOpen(true)}
                 sx={{ borderRadius: 2 }}
               >
                 <FormattedMessage id="delete-permanent" defaultMessage="حذف نهائي" />
@@ -282,11 +281,36 @@ export default function TreasuryAccountDetailsPage() {
       <TreasuryConfirmationDialog
         open={actionDialog.open}
         action={actionDialog.action}
-        confirmationValue={actionDialog.action === 'delete' ? actionDialog.code : undefined}
-        confirmationLabelId={actionDialog.action === 'delete' ? 'confirm-account-code' : undefined}
         isProcessing={isProcessing}
         onConfirm={handleConfirmAction}
         onClose={() => setActionDialog({ open: false, action: 'activate', code: '' })}
+      />
+
+      <TreasuryFinalDeleteDialog
+        open={deleteDialogOpen}
+        preview={deletionPreview}
+        isLoading={isDeletionPreviewLoading}
+        isProcessing={isProcessing}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={async (request) => {
+          if (!id || !account) {
+            return;
+          }
+
+          setIsProcessing(true);
+          try {
+            await finalDeleteTreasuryAccount(id, request);
+            notify('تم حذف الحساب نهائيًا.');
+            await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
+            await mutate();
+            navigate('/treasury/accounts');
+          } catch (error) {
+            notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
+          } finally {
+            setIsProcessing(false);
+            setDeleteDialogOpen(false);
+          }
+        }}
       />
     </Box>
   );

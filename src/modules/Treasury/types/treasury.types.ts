@@ -66,6 +66,36 @@ export interface TreasuryAccountListItem {
   rowVersion: string;
 }
 
+export interface TreasuryAccountLookup {
+  id: string;
+  code: string;
+  nameArabic: string;
+  nameEnglish: string | null;
+  currencyCode: string;
+}
+
+export type TreasuryAccountFinalDeletionStrategy = 'MoveLinks' | 'DeleteAll';
+
+export interface TreasuryAccountDeletionPreview {
+  id: string;
+  code: string;
+  nameArabic: string;
+  nameEnglish: string | null;
+  currencyCode: string;
+  openingBalance: number;
+  openingBalanceNature: string;
+  currentBalance: number;
+  currentBalanceNature: string;
+  receiptCount: number;
+  paymentCount: number;
+  transferCount: number;
+  expenseCount: number;
+  movementCount: number;
+  linkedInvoiceAllocationCount: number;
+  replacementAccounts: TreasuryAccountLookup[];
+  rowVersion: string;
+}
+
 export interface TreasuryAccountInput {
   code: string;
   nameArabic: string;

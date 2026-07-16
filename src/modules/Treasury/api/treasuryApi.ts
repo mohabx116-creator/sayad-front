@@ -4,8 +4,10 @@ import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type {
   TreasuryAccount,
+  TreasuryAccountDeletionPreview,
   TreasuryAccountInput,
   TreasuryAccountListItem,
+  TreasuryAccountFinalDeletionStrategy,
   TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
   TreasuryLookups,
@@ -79,6 +81,24 @@ export function deactivateTreasuryAccount(id: string, rowVersion: string) {
 
 export function deleteTreasuryAccount(id: string, request: { code: string; rowVersion: string }) {
   return unwrap(axiosServices.delete<ApiResponse<unknown>>(`/api/treasury/accounts/${id}`, { data: request }));
+}
+
+export function getTreasuryAccountDeletionPreview(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<TreasuryAccountDeletionPreview>>(`/api/treasury/accounts/${id}/deletion-preview`));
+}
+
+export function finalDeleteTreasuryAccount(
+  id: string,
+  request: {
+    reason: string;
+    code: string;
+    rowVersion: string;
+    ownerPassword: string;
+    strategy: TreasuryAccountFinalDeletionStrategy;
+    replacementAccountId: string | null;
+  }
+) {
+  return unwrap(axiosServices.post<ApiResponse<unknown>>(`/api/treasury/accounts/${id}/final-delete`, request));
 }
 
 // Receipts
