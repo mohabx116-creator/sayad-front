@@ -191,6 +191,11 @@ export default function TreasuryPaymentDetailsPage() {
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
+                  <InfoRow label={<FormattedMessage id="payment-method" defaultMessage="طريقة الدفع" />}>
+                    {payment.paymentMethodLabel}
+                  </InfoRow>
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <Box>
                     <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
                       <FormattedMessage id="reason" defaultMessage="سبب الصرف" />

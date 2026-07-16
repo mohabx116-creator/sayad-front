@@ -54,6 +54,15 @@ export const TREASURY_ALLOCATION_TYPES = {
   OTHER: 'Other'
 } as const;
 
+export const TREASURY_PAYMENT_METHODS = {
+  CASH: 'Cash',
+  BANK_TRANSFER: 'BankTransfer',
+  CARD: 'Card',
+  CHEQUE: 'Cheque',
+  ELECTRONIC_WALLET: 'ElectronicWallet',
+  OTHER: 'Other'
+} as const;
+
 export const RECEIPT_PURPOSES = [
   'تحصيل عميل',
   'استرداد من مورد',

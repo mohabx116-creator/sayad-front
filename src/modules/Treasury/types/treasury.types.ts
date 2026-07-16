@@ -138,6 +138,8 @@ export interface TreasuryReceipt {
   partyNameArabic: string;
   partyNameEnglish: string | null;
   receiptDate: string;
+  paymentMethod: string;
+  paymentMethodLabel: string;
   relatedDocumentNumber: string | null;
   reason: string | null;
   status: string;
@@ -159,6 +161,8 @@ export interface TreasuryReceiptListItem {
   treasuryAccountNameArabic: string;
   partyCode: string;
   partyNameArabic: string;
+  paymentMethod: string;
+  paymentMethodLabel: string;
   status: string;
   totalAmount: number;
   currencyCode: string;
@@ -169,6 +173,7 @@ export interface TreasuryReceiptInput {
   treasuryAccountId: string;
   partyId: string;
   receiptDate: string;
+  paymentMethod: string;
   relatedDocumentNumber: string | null;
   reason: string | null;
   notes: string | null;
@@ -186,6 +191,8 @@ export interface TreasuryPayment {
   partyNameArabic: string;
   partyNameEnglish: string | null;
   paymentDate: string;
+  paymentMethod: string;
+  paymentMethodLabel: string;
   relatedDocumentNumber: string | null;
   reason: string | null;
   sourceDocumentType: string | null;
@@ -210,6 +217,8 @@ export interface TreasuryPaymentListItem {
   treasuryAccountNameArabic: string;
   partyCode: string;
   partyNameArabic: string;
+  paymentMethod: string;
+  paymentMethodLabel: string;
   status: string;
   totalAmount: number;
   currencyCode: string;
@@ -220,6 +229,7 @@ export interface TreasuryPaymentInput {
   treasuryAccountId: string;
   partyId: string;
   paymentDate: string;
+  paymentMethod: string;
   relatedDocumentNumber: string | null;
   reason: string | null;
   notes: string | null;
@@ -324,6 +334,7 @@ export interface TreasuryLookups {
   allocationTypes: TreasuryLookupOption[];
   movementTypes: TreasuryLookupOption[];
   documentStatuses: TreasuryLookupOption[];
+  paymentMethods: TreasuryLookupOption[];
 }
 
 export interface TreasuryListParams {
@@ -334,6 +345,7 @@ export interface TreasuryListParams {
   treasuryAccountId?: string;
   partyId?: string;
   status?: string;
+  paymentMethod?: string;
   dateFrom?: string;
   dateTo?: string;
   sortBy?: string;

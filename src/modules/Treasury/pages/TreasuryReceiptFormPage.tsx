@@ -13,7 +13,7 @@ import type { PartyDto } from 'modules/Parties/types/parties.types';
 import TreasuryAllocationTable, { type TreasuryAllocationRow } from '../components/TreasuryAllocationTable';
 import TreasuryVoucherForm, { type VoucherFormState } from '../components/TreasuryVoucherForm';
 import { createTreasuryReceipt, getTreasuryReceipt, postTreasuryReceipt, updateTreasuryReceipt } from '../api/treasuryApi';
-import { useEligibleSalesInvoices, useTreasuryAccounts } from '../hooks/useTreasury';
+import { useEligibleSalesInvoices, useTreasuryAccounts, useTreasuryLookups } from '../hooks/useTreasury';
 import { useParties } from 'modules/Parties/hooks/useParties';
 import { TREASURY_ALLOCATION_TYPES, TREASURY_PERMISSIONS, RECEIPT_PURPOSES } from '../utils/treasury.constants';
 import type { TreasuryAllocationInput } from '../types/treasury.types';
@@ -31,6 +31,7 @@ export default function TreasuryReceiptFormPage() {
     treasuryAccountId: '',
     partyId: '',
     voucherDate: new Date().toISOString().slice(0, 10),
+    paymentMethod: '',
     relatedDocumentNumber: '',
     reason: '',
     notes: '',
@@ -41,6 +42,7 @@ export default function TreasuryReceiptFormPage() {
 
   const { items: accounts, isLoading: accountsLoading } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
   const { items: parties, isLoading: partiesLoading } = useParties({ page: 1, pageSize: 200, isCustomer: true });
+  const { lookups } = useTreasuryLookups();
   const { receipt, isLoading: receiptLoading } = useTreasuryReceiptData(id);
   const { items: eligibleInvoices, isLoading: eligibleLoading } = useEligibleSalesInvoices(form.partyId || undefined, 1, 200);
 
@@ -51,6 +53,7 @@ export default function TreasuryReceiptFormPage() {
       treasuryAccountId: receipt.treasuryAccountId,
       partyId: receipt.partyId,
       voucherDate: receipt.receiptDate,
+      paymentMethod: receipt.paymentMethod,
       relatedDocumentNumber: receipt.relatedDocumentNumber ?? '',
       reason: receipt.reason ?? '',
       notes: receipt.notes ?? '',
@@ -115,6 +118,7 @@ export default function TreasuryReceiptFormPage() {
         treasuryAccountId: form.treasuryAccountId,
         partyId: form.partyId,
         receiptDate: form.voucherDate,
+        paymentMethod: form.paymentMethod,
         relatedDocumentNumber: form.relatedDocumentNumber || null,
         reason: form.reason || null,
         notes: form.notes || null,
@@ -161,6 +165,7 @@ export default function TreasuryReceiptFormPage() {
             setForm={setForm}
             accounts={accounts}
             parties={parties as PartyDto[]}
+            paymentMethods={lookups?.paymentMethods ?? []}
             purposes={RECEIPT_PURPOSES}
             allocationsTitle="تسوية فاتورة بيع"
             allocationsElement={

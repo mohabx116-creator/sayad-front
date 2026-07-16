@@ -22,3 +22,22 @@ export function getTreasurySettlementStatusLabel(allocatedAmount: number, outsta
 
   return 'سداد جزئي';
 }
+
+export function getTreasuryPaymentMethodLabel(paymentMethod?: string | null) {
+  switch ((paymentMethod ?? '').toLowerCase()) {
+    case 'cash':
+      return 'نقدي';
+    case 'banktransfer':
+      return 'تحويل بنكي';
+    case 'card':
+      return 'بطاقة';
+    case 'cheque':
+      return 'شيك';
+    case 'electronicwallet':
+      return 'محفظة إلكترونية';
+    case 'other':
+      return 'أخرى';
+    default:
+      return paymentMethod ?? '-';
+  }
+}

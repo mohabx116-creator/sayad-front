@@ -23,11 +23,12 @@ import { IconEye, IconPlus } from '@tabler/icons-react';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
-import { useTreasuryAccounts, useTreasuryReceipts } from '../hooks/useTreasury';
-import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
-import TreasuryStatusChip from '../components/TreasuryStatusChip';
-import type { TreasuryListParams } from '../types/treasury.types';
 import CodeNameLabel from 'shared/components/CodeNameLabel';
+
+import { useTreasuryAccounts, useTreasuryLookups, useTreasuryReceipts } from '../hooks/useTreasury';
+import TreasuryStatusChip from '../components/TreasuryStatusChip';
+import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import type { TreasuryListParams } from '../types/treasury.types';
 
 export default function TreasuryReceiptsListPage() {
   const [params, setParams] = useState<TreasuryListParams>({
@@ -35,6 +36,7 @@ export default function TreasuryReceiptsListPage() {
     pageSize: 10,
     search: '',
     status: '',
+    paymentMethod: '',
     treasuryAccountId: '',
     partyId: '',
     dateFrom: '',
@@ -45,6 +47,7 @@ export default function TreasuryReceiptsListPage() {
   const [searchInput, setSearchInput] = useState('');
   const { items, meta, isLoading } = useTreasuryReceipts(params);
   const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
+  const { lookups } = useTreasuryLookups();
 
   return (
     <Box>
@@ -53,10 +56,10 @@ export default function TreasuryReceiptsListPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 2, flexWrap: 'wrap', mt: 1 }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="receipts" defaultMessage="الإيصالات" />
+              <FormattedMessage id="receipts" defaultMessage="سندات القبض" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="treasury.receipts-desc" defaultMessage="مراجعة مستندات إيصالات النقد والبنك." />
+              <FormattedMessage id="treasury.receipts-desc" defaultMessage="مراجعة سندات القبض النقدية والبنكية." />
             </Typography>
           </Box>
           <PermissionGuard permission={TREASURY_PERMISSIONS.receiptsCreate}>
@@ -89,6 +92,24 @@ export default function TreasuryReceiptsListPage() {
             </TextField>
           </Grid>
           <Grid item xs={12} md={3}>
+            <TextField
+              select
+              fullWidth
+              label={<FormattedMessage id="payment-method" defaultMessage="طريقة التحصيل" />}
+              value={params.paymentMethod ?? ''}
+              onChange={(event) => setParams((current) => ({ ...current, page: 1, paymentMethod: event.target.value }))}
+            >
+              <MenuItem value="">
+                <FormattedMessage id="all" />
+              </MenuItem>
+              {lookups?.paymentMethods.map((method) => (
+                <MenuItem key={method.value} value={method.value}>
+                  {method.labelArabic}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} md={3}>
             <TextField select fullWidth label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />} value={params.treasuryAccountId ?? ''} onChange={(event) => setParams((current) => ({ ...current, page: 1, treasuryAccountId: event.target.value }))}>
               <MenuItem value="">
                 <FormattedMessage id="all" />
@@ -113,31 +134,65 @@ export default function TreasuryReceiptsListPage() {
           <Table>
             <TableHead sx={{ bgcolor: 'grey.50' }}>
               <TableRow>
-                <TableCell><FormattedMessage id="receipt-number" defaultMessage="رقم الإيصال" /></TableCell>
-                <TableCell><FormattedMessage id="date" /></TableCell>
-                <TableCell><FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" /></TableCell>
-                <TableCell><FormattedMessage id="party" /></TableCell>
-                <TableCell align="right"><FormattedMessage id="amount" /></TableCell>
-                <TableCell><FormattedMessage id="status" /></TableCell>
-                <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
+                <TableCell>
+                  <FormattedMessage id="receipt-number" defaultMessage="رقم الإيصال" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="date" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="party" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="payment-method" defaultMessage="طريقة التحصيل" />
+                </TableCell>
+                <TableCell align="right">
+                  <FormattedMessage id="amount" />
+                </TableCell>
+                <TableCell>
+                  <FormattedMessage id="status" />
+                </TableCell>
+                <TableCell align="center">
+                  <FormattedMessage id="actions" />
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, index) => (
                   <TableRow key={index}>
-                    <TableCell><Skeleton width={80} /></TableCell>
-                    <TableCell><Skeleton width={100} /></TableCell>
-                    <TableCell><Skeleton width={140} /></TableCell>
-                    <TableCell><Skeleton width={140} /></TableCell>
-                    <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
-                    <TableCell><Skeleton width={80} /></TableCell>
-                    <TableCell align="center"><Skeleton width={60} sx={{ mx: 'auto' }} /></TableCell>
+                    <TableCell>
+                      <Skeleton width={80} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={100} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={140} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={140} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={110} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Skeleton width={80} sx={{ ml: 'auto' }} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={80} />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Skeleton width={60} sx={{ mx: 'auto' }} />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       <FormattedMessage id="treasury.empty" defaultMessage="لا توجد سجلات." />
                     </Typography>
@@ -150,7 +205,10 @@ export default function TreasuryReceiptsListPage() {
                     <TableCell>{receipt.receiptDate}</TableCell>
                     <TableCell>{receipt.treasuryAccountCode}</TableCell>
                     <TableCell>{receipt.partyNameArabic}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600 }}>{receipt.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell>{receipt.paymentMethodLabel}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      {receipt.totalAmount.toFixed(2)}
+                    </TableCell>
                     <TableCell>
                       <TreasuryStatusChip status={receipt.status} />
                     </TableCell>

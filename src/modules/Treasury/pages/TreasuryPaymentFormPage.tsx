@@ -18,7 +18,7 @@ import { useParties } from 'modules/Parties/hooks/useParties';
 import TreasuryAllocationTable, { type TreasuryAllocationRow } from '../components/TreasuryAllocationTable';
 import TreasuryVoucherForm, { type VoucherFormState } from '../components/TreasuryVoucherForm';
 import { createTreasuryPayment, getTreasuryPayment, postTreasuryPayment, updateTreasuryPayment } from '../api/treasuryApi';
-import { useEligiblePurchaseInvoices, useTreasuryAccounts } from '../hooks/useTreasury';
+import { useEligiblePurchaseInvoices, useTreasuryAccounts, useTreasuryLookups } from '../hooks/useTreasury';
 import { TREASURY_ALLOCATION_TYPES, PAYMENT_PURPOSES, TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import type { TreasuryAllocationInput } from '../types/treasury.types';
 import Loader from 'ui-component/Loader';
@@ -35,6 +35,7 @@ export default function TreasuryPaymentFormPage() {
     treasuryAccountId: '',
     partyId: '',
     voucherDate: new Date().toISOString().slice(0, 10),
+    paymentMethod: '',
     relatedDocumentNumber: '',
     reason: '',
     notes: '',
@@ -45,6 +46,7 @@ export default function TreasuryPaymentFormPage() {
 
   const { items: accounts, isLoading: accountsLoading } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
   const { items: parties, isLoading: partiesLoading } = useParties({ page: 1, pageSize: 200, isSupplier: true });
+  const { lookups } = useTreasuryLookups();
   const { payment, isLoading: paymentLoading } = useTreasuryPaymentData(id);
   const { items: eligibleInvoices, isLoading: eligibleLoading } = useEligiblePurchaseInvoices(form.partyId || undefined, 1, 200);
 
@@ -55,6 +57,7 @@ export default function TreasuryPaymentFormPage() {
       treasuryAccountId: payment.treasuryAccountId,
       partyId: payment.partyId,
       voucherDate: payment.paymentDate,
+      paymentMethod: payment.paymentMethod,
       relatedDocumentNumber: payment.relatedDocumentNumber ?? '',
       reason: payment.reason ?? '',
       notes: payment.notes ?? '',
@@ -120,6 +123,7 @@ export default function TreasuryPaymentFormPage() {
         treasuryAccountId: form.treasuryAccountId,
         partyId: form.partyId,
         paymentDate: form.voucherDate,
+        paymentMethod: form.paymentMethod,
         relatedDocumentNumber: form.relatedDocumentNumber || null,
         reason: form.reason || null,
         notes: form.notes || null,
@@ -189,6 +193,7 @@ export default function TreasuryPaymentFormPage() {
             setForm={setForm}
             accounts={accounts}
             parties={parties as PartyDto[]}
+            paymentMethods={lookups?.paymentMethods ?? []}
             purposes={PAYMENT_PURPOSES}
             allocationsTitle="سداد فاتورة شراء"
             allocationsElement={<TreasuryAllocationTable invoices={allocationRows} onAllocationChange={handleAllocationChange} maxTotalAllocation={form.totalAmount} />}

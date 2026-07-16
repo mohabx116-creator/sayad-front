@@ -20,13 +20,14 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import type { PartyDto } from 'modules/Parties/types/parties.types';
 import CodeNameLabel from 'shared/components/CodeNameLabel';
 
-import type { TreasuryAccountListItem } from '../types/treasury.types';
+import type { TreasuryAccountListItem, TreasuryLookupOption } from '../types/treasury.types';
 import { TREASURY_DOCUMENT_STATUS } from '../utils/treasury.constants';
 
 export interface VoucherFormState {
   treasuryAccountId: string;
   partyId: string;
   voucherDate: string;
+  paymentMethod: string;
   relatedDocumentNumber: string;
   reason: string;
   notes: string;
@@ -44,6 +45,7 @@ interface Props {
   setForm: React.Dispatch<React.SetStateAction<VoucherFormState>>;
   accounts: TreasuryAccountListItem[];
   parties: PartyDto[];
+  paymentMethods: TreasuryLookupOption[];
   purposes: string[];
   allocationsElement: React.ReactNode;
   allocationsTitle?: React.ReactNode;
@@ -64,6 +66,7 @@ export default function TreasuryVoucherForm({
   setForm,
   accounts,
   parties,
+  paymentMethods,
   purposes,
   allocationsElement,
   allocationsTitle,
@@ -79,6 +82,7 @@ export default function TreasuryVoucherForm({
   const resultingBalance = type === 'receipt' ? currentBalance + totalAmount : currentBalance - totalAmount;
   const isNegativeBalance = type === 'payment' && resultingBalance < 0;
   const isOverAllocated = totalAllocated > totalAmount;
+  const paymentMethodSelected = Boolean(form.paymentMethod);
 
   if (isEdit && isLoading) {
     return <Loader />;
@@ -175,6 +179,25 @@ export default function TreasuryVoucherForm({
                       />
                     )}
                   />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    required
+                    label={<FormattedMessage id="payment-method" defaultMessage={type === 'receipt' ? 'طريقة التحصيل' : 'طريقة الدفع'} />}
+                    value={form.paymentMethod}
+                    onChange={(event) => setForm((current) => ({ ...current, paymentMethod: event.target.value }))}
+                  >
+                    <MenuItem value="">
+                      <FormattedMessage id="select" defaultMessage="اختر" />
+                    </MenuItem>
+                    {paymentMethods.map((method) => (
+                      <MenuItem key={method.value} value={method.value}>
+                        {method.labelArabic}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
@@ -328,7 +351,7 @@ export default function TreasuryVoucherForm({
             <>
               <Button
                 variant="outlined"
-                disabled={isSaving || isOverAllocated || totalAmount <= 0}
+                disabled={isSaving || isOverAllocated || totalAmount <= 0 || !paymentMethodSelected}
                 onClick={() => onSubmit('draft')}
                 sx={{
                   color: 'secondary.dark',
@@ -343,7 +366,7 @@ export default function TreasuryVoucherForm({
                 <Button
                   variant="contained"
                   color="primary"
-                  disabled={isSaving || isOverAllocated || totalAmount <= 0}
+                  disabled={isSaving || isOverAllocated || totalAmount <= 0 || !paymentMethodSelected}
                   onClick={() => onSubmit('post')}
                   startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>done_all</span>}
                   sx={{ boxShadow: 1 }}
