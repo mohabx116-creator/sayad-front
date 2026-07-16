@@ -11,6 +11,7 @@ interface Props {
   openingBalance: number;
   totalReceipts: number;
   totalPayments: number;
+  netMovement?: number;
   closingBalance: number;
   currencyCode?: string;
 }
@@ -66,7 +67,7 @@ function StatCard({ label, amount, currencyCode, color, bgColor, borderColor, ic
   );
 }
 
-export default function TreasuryBalanceSummary({ openingBalance, totalReceipts, totalPayments, closingBalance, currencyCode = 'EGP' }: Props) {
+export default function TreasuryBalanceSummary({ openingBalance, totalReceipts, totalPayments, netMovement, closingBalance, currencyCode = 'EGP' }: Props) {
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       <Grid item xs={12} sm={6} md={3}>
@@ -140,6 +141,17 @@ export default function TreasuryBalanceSummary({ openingBalance, totalReceipts, 
             </Box>
           </Box>
         </MainCard>
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <StatCard
+          label={<FormattedMessage id="net-movement" defaultMessage="صافي الحركة" />}
+          amount={netMovement ?? (totalReceipts - totalPayments)}
+          currencyCode={currencyCode}
+          color="primary.dark"
+          bgColor="primary.lighter"
+          borderColor="primary.light"
+          icon={<IconChartLine size={18} color="var(--mui-palette-primary-dark)" />}
+        />
       </Grid>
     </Grid>
   );

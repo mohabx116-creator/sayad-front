@@ -241,6 +241,7 @@ export interface TreasuryMovement {
   movementDate: string;
   movementType: string;
   referenceType: string;
+  referenceId: string | null;
   referenceNumber: string | null;
   partyId: string | null;
   partyCode: string | null;
@@ -310,6 +311,8 @@ export interface TreasuryStatementParams {
   treasuryAccountId: string;
   dateFrom?: string;
   dateTo?: string;
+  partyId?: string;
+  referenceNumber?: string;
   page?: number;
   pageSize?: number;
   movementType?: string;

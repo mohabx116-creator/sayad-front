@@ -1,5 +1,11 @@
+import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
+
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -7,39 +13,38 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import Chip from '@mui/material/Chip';
-import Stack from '@mui/material/Stack';
-import Pagination from '@mui/material/Pagination';
+
 import {
-  IconArrowsLeftRight,
   IconArrowDownLeft,
   IconArrowUpRight,
+  IconArrowsLeftRight,
   IconRefresh,
   IconWallet
 } from '@tabler/icons-react';
+
 import type { TreasuryMovement } from '../types/treasury.types';
 import { formatTreasuryMoney } from '../utils/treasury.format';
 
 function getMovementPresentation(movementType: string) {
   switch (movementType.toLowerCase()) {
     case 'openingbalance':
-      return { label: 'الرصيد الافتتاحي', icon: <IconWallet size={14} />, color: 'primary' as const };
+      return { label: 'رصيد افتتاحي', icon: <IconWallet size={14} />, color: 'primary' as const };
     case 'receipt':
-      return { label: 'إيصال', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
+      return { label: 'قبض', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
     case 'receiptreversal':
-      return { label: 'عكس إيصال', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: 'إلغاء قبض', icon: <IconRefresh size={14} />, color: 'error' as const };
     case 'payment':
       return { label: 'صرف', icon: <IconArrowUpRight size={14} />, color: 'error' as const };
     case 'paymentreversal':
-      return { label: 'عكس صرف', icon: <IconRefresh size={14} />, color: 'success' as const };
+      return { label: 'إلغاء صرف', icon: <IconRefresh size={14} />, color: 'success' as const };
     case 'transferin':
       return { label: 'تحويل وارد', icon: <IconArrowsLeftRight size={14} />, color: 'info' as const };
     case 'transferout':
       return { label: 'تحويل صادر', icon: <IconArrowsLeftRight size={14} />, color: 'warning' as const };
     case 'transferreversalin':
-      return { label: 'عكس تحويل وارد', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: 'إلغاء تحويل وارد', icon: <IconRefresh size={14} />, color: 'error' as const };
     case 'transferreversalout':
-      return { label: 'عكس تحويل صادر', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: 'إلغاء تحويل صادر', icon: <IconRefresh size={14} />, color: 'error' as const };
     default:
       return { label: movementType, icon: <IconArrowsLeftRight size={14} />, color: 'default' as const };
   }
@@ -48,9 +53,9 @@ function getMovementPresentation(movementType: string) {
 function getReferenceLabel(referenceType: string) {
   switch (referenceType.toLowerCase()) {
     case 'openingbalance':
-      return 'الرصيد الافتتاحي';
+      return 'رصيد افتتاحي';
     case 'openingbalancecorrection':
-      return 'تصحيح الرصيد الافتتاحي';
+      return 'تصحيح رصيد افتتاحي';
     case 'receiptvoucher':
       return 'سند قبض';
     case 'receiptvouchercancellation':
@@ -60,11 +65,29 @@ function getReferenceLabel(referenceType: string) {
     case 'paymentvouchercancellation':
       return 'إلغاء سند صرف';
     case 'transfervoucher':
-      return 'سند تحويل';
+      return 'تحويل بين حسابات الخزينة';
     case 'transfervouchercancellation':
-      return 'إلغاء سند تحويل';
+      return 'إلغاء تحويل';
     default:
       return referenceType;
+  }
+}
+
+function getReferenceRoute(referenceType: string, referenceId: string | null) {
+  if (!referenceId) return null;
+
+  switch (referenceType.toLowerCase()) {
+    case 'receiptvoucher':
+    case 'receiptvouchercancellation':
+      return `/treasury/receipts/${referenceId}`;
+    case 'paymentvoucher':
+    case 'paymentvouchercancellation':
+      return `/treasury/payments/${referenceId}`;
+    case 'transfervoucher':
+    case 'transfervouchercancellation':
+      return `/treasury/transfers/${referenceId}`;
+    default:
+      return null;
   }
 }
 
@@ -96,65 +119,67 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
           <TableHead sx={{ bgcolor: 'grey.50' }}>
             <TableRow>
               <TableCell><FormattedMessage id="date" defaultMessage="التاريخ" /></TableCell>
-              <TableCell><FormattedMessage id="document" defaultMessage="المستند" /></TableCell>
-              <TableCell><FormattedMessage id="type" defaultMessage="النوع" /></TableCell>
-              <TableCell><FormattedMessage id="party" defaultMessage="الجهة" /></TableCell>
-              <TableCell><FormattedMessage id="description" defaultMessage="البيان" /></TableCell>
-              <TableCell align="right"><FormattedMessage id="receipt-amount" defaultMessage="وارد (مقبوضات)" /></TableCell>
-              <TableCell align="right"><FormattedMessage id="payment-amount" defaultMessage="منصرف (مدفوعات)" /></TableCell>
-              <TableCell align="right"><FormattedMessage id="running-balance" defaultMessage="الرصيد التراكمي" /></TableCell>
+              <TableCell><FormattedMessage id="movement-number" defaultMessage="رقم الحركة" /></TableCell>
+              <TableCell><FormattedMessage id="movement-type" defaultMessage="نوع الحركة" /></TableCell>
+              <TableCell><FormattedMessage id="related-document" defaultMessage="المستند المرتبط" /></TableCell>
+              <TableCell><FormattedMessage id="description" defaultMessage="الوصف" /></TableCell>
+              <TableCell align="right"><FormattedMessage id="inbound" defaultMessage="داخل" /></TableCell>
+              <TableCell align="right"><FormattedMessage id="outbound" defaultMessage="خارج" /></TableCell>
+              <TableCell align="right"><FormattedMessage id="running-balance" defaultMessage="الرصيد بعد الحركة" /></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {movements.map((row) => (
-              <TableRow key={row.id} hover sx={{ bgcolor: row.isReversal ? 'error.lighter' : 'inherit' }}>
-                <TableCell>{row.movementDate}</TableCell>
-                <TableCell>
-                  <Typography variant="body2" fontWeight={500}>
-                    {row.referenceNumber || '-'}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    {getReferenceLabel(row.referenceType)}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    size="small"
-                    variant="outlined"
-                    color={getMovementPresentation(row.movementType).color}
-                    icon={getMovementPresentation(row.movementType).icon}
-                    label={getMovementPresentation(row.movementType).label}
-                  />
-                </TableCell>
-                <TableCell>{row.partyNameArabic || '-'}</TableCell>
-                <TableCell sx={{ maxWidth: 250 }}>
-                  <Typography variant="body2" noWrap title={row.descriptionArabic}>
-                    {row.descriptionArabic}
-                  </Typography>
-                  {row.isReversal && (
-                    <Typography variant="caption" color="error.main" display="block">
-                      <FormattedMessage id="reversed" defaultMessage="حركة عكسية / إلغاء" />
+            {movements.map((row) => {
+              const route = getReferenceRoute(row.referenceType, row.referenceId);
+              const movement = getMovementPresentation(row.movementType);
+
+              return (
+                <TableRow key={row.id} hover sx={{ bgcolor: row.isReversal ? 'error.lighter' : 'inherit' }}>
+                  <TableCell>{row.movementDate}</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.referenceNumber || '-'}</TableCell>
+                  <TableCell>
+                    <Chip size="small" variant="outlined" color={movement.color} icon={movement.icon} label={movement.label} />
+                  </TableCell>
+                  <TableCell>
+                    {route ? (
+                      <Button component={Link} to={route} size="small" variant="text" sx={{ px: 0, minWidth: 0, textTransform: 'none' }}>
+                        {getReferenceLabel(row.referenceType)}
+                      </Button>
+                    ) : (
+                      <Typography variant="body2" fontWeight={500}>
+                        {getReferenceLabel(row.referenceType)}
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 280 }}>
+                    <Typography variant="body2" noWrap title={row.descriptionArabic}>
+                      {row.descriptionArabic}
                     </Typography>
-                  )}
-                </TableCell>
-                <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>
-                  {row.debitAmount > 0 ? formatTreasuryMoney(row.debitAmount, currencyCode) : '-'}
-                </TableCell>
-                <TableCell align="right" sx={{ color: 'error.main', fontWeight: 600 }}>
-                  {row.creditAmount > 0 ? formatTreasuryMoney(row.creditAmount, currencyCode) : '-'}
-                </TableCell>
-                <TableCell align="right">
-                  <Stack spacing={0.25} alignItems="flex-end">
-                    <Typography variant="body2" fontWeight={700}>
-                      {formatTreasuryMoney(row.balanceAfter, currencyCode)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {row.balanceNature === 'Debit' ? 'مدين' : row.balanceNature === 'Credit' ? 'دائن' : 'مستقر'}
-                    </Typography>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
+                    {row.isReversal && (
+                      <Typography variant="caption" color="error.main" display="block">
+                        <FormattedMessage id="reversed" defaultMessage="حركة عكسية / إلغاء" />
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell align="right" sx={{ color: 'success.main', fontWeight: 600 }}>
+                    {row.debitAmount > 0 ? formatTreasuryMoney(row.debitAmount, currencyCode) : '-'}
+                  </TableCell>
+                  <TableCell align="right" sx={{ color: 'error.main', fontWeight: 600 }}>
+                    {row.creditAmount > 0 ? formatTreasuryMoney(row.creditAmount, currencyCode) : '-'}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Stack spacing={0.25} alignItems="flex-end">
+                      <Typography variant="body2" fontWeight={700}>
+                        {formatTreasuryMoney(row.balanceAfter, currencyCode)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {row.balanceNature === 'Debit' ? 'مدين' : row.balanceNature === 'Credit' ? 'دائن' : 'مستقر'}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
