@@ -320,13 +320,34 @@ export interface TreasuryStatement {
 }
 
 export interface TreasuryDashboardSummary {
+  currencySummaries: TreasuryDashboardCurrencySummary[];
+  recentMovements: TreasuryMovement[];
+}
+
+export interface TreasuryDashboardCurrencySummary {
+  currencyCode: string;
   totalCurrentBalance: number;
   cashboxBalance: number;
   bankAccountBalance: number;
   electronicWalletBalance: number;
   periodReceipts: number;
   periodPayments: number;
-  recentMovements: TreasuryMovement[];
+  accounts: TreasuryDashboardAccount[];
+}
+
+export interface TreasuryDashboardAccount {
+  id: string;
+  code: string;
+  nameArabic: string;
+  nameEnglish: string | null;
+  accountType: string;
+  accountTypeLabel: string;
+  currencyCode: string;
+  isActive: boolean;
+  allowNegativeBalance: boolean;
+  balance: number;
+  balanceNature: string;
+  rowVersion: string;
 }
 
 export interface TreasuryLookups {
