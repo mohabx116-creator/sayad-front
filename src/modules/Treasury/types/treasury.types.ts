@@ -243,6 +243,9 @@ export interface TreasuryMovement {
   referenceType: string;
   referenceId: string | null;
   referenceNumber: string | null;
+  sourceDocumentType: string | null;
+  sourceDocumentId: string | null;
+  sourceDocumentNumber: string | null;
   partyId: string | null;
   partyCode: string | null;
   partyNameArabic: string | null;

@@ -73,6 +73,40 @@ function getReferenceLabel(referenceType: string) {
   }
 }
 
+function getReferencePresentation(movement: TreasuryMovement) {
+  const sourceType = movement.sourceDocumentType?.toLowerCase();
+
+  if (sourceType === 'expense' && movement.sourceDocumentId) {
+    return { label: 'مصروف', route: `/expenses/${movement.sourceDocumentId}` };
+  }
+
+  if (sourceType === 'salesinvoice' && movement.sourceDocumentId) {
+    return { label: 'فاتورة بيع', route: `/sales/invoices/${movement.sourceDocumentId}` };
+  }
+
+  if (sourceType === 'purchaseinvoice' && movement.sourceDocumentId) {
+    return { label: 'فاتورة شراء', route: `/purchases/invoices/${movement.sourceDocumentId}` };
+  }
+
+  switch (movement.referenceType.toLowerCase()) {
+    case 'receiptvoucher':
+    case 'receiptvouchercancellation':
+      return { label: 'سند قبض', route: movement.referenceId ? `/treasury/receipts/${movement.referenceId}` : null };
+    case 'paymentvoucher':
+    case 'paymentvouchercancellation':
+      return { label: 'سند صرف', route: movement.referenceId ? `/treasury/payments/${movement.referenceId}` : null };
+    case 'transfervoucher':
+    case 'transfervouchercancellation':
+      return { label: 'تحويل بين حسابات الخزينة', route: movement.referenceId ? `/treasury/transfers/${movement.referenceId}` : null };
+    case 'openingbalance':
+      return { label: 'رصيد افتتاحي', route: null };
+    case 'openingbalancecorrection':
+      return { label: 'تصحيح رصيد افتتاحي', route: null };
+    default:
+      return { label: getReferenceLabel(movement.referenceType), route: null };
+  }
+}
+
 function getReferenceRoute(referenceType: string, referenceId: string | null) {
   if (!referenceId) return null;
 
@@ -130,7 +164,8 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
           </TableHead>
           <TableBody>
             {movements.map((row) => {
-              const route = getReferenceRoute(row.referenceType, row.referenceId);
+              const relatedDocument = getReferencePresentation(row);
+              const route = relatedDocument.route ?? getReferenceRoute(row.referenceType, row.referenceId);
               const movement = getMovementPresentation(row.movementType);
 
               return (
@@ -143,11 +178,11 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                   <TableCell>
                     {route ? (
                       <Button component={Link} to={route} size="small" variant="text" sx={{ px: 0, minWidth: 0, textTransform: 'none' }}>
-                        {getReferenceLabel(row.referenceType)}
+                        {relatedDocument.label}
                       </Button>
                     ) : (
                       <Typography variant="body2" fontWeight={500}>
-                        {getReferenceLabel(row.referenceType)}
+                        {relatedDocument.label}
                       </Typography>
                     )}
                   </TableCell>
