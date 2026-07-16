@@ -1,4 +1,4 @@
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
@@ -38,7 +38,9 @@ function DetailItem({ label, value }: { label: React.ReactNode; value: React.Rea
 
 export default function ExpenseDetailsPage() {
   const { id } = useParams();
+  const intl = useIntl();
   const { expense, isLoading, error, mutate } = useExpense(id);
+  const treasuryLocale = intl.locale?.toLowerCase().startsWith('en') ? 'en' : 'ar';
 
   if (isLoading) {
     return <Loader />;
@@ -206,7 +208,7 @@ export default function ExpenseDetailsPage() {
                 <Grid item xs={12} sm={6}>
                   <DetailItem label={<FormattedMessage id="status" />} value={
                     <Typography fontWeight="bold" color={expense.treasuryPayment.status === 'Cancelled' ? 'error.main' : 'success.main'}>
-                      {getTreasuryStatusLabel(expense.treasuryPayment.status, 'ar')}
+                      {getTreasuryStatusLabel(expense.treasuryPayment.status, treasuryLocale)}
                     </Typography>
                   } />
                 </Grid>

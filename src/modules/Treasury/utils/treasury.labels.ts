@@ -28,7 +28,7 @@ export function getTreasuryStatusLabel(status?: string | null, locale: 'ar' | 'e
     case 'draft':
       return locale === 'en' ? 'Draft' : 'مسودة';
     case 'posted':
-      return locale === 'en' ? 'Posted' : 'معتمد';
+      return locale === 'en' ? 'Posted' : 'مُعتمد';
     case 'cancelled':
       return locale === 'en' ? 'Cancelled' : 'ملغي';
     default:
