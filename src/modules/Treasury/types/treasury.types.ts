@@ -1,4 +1,7 @@
 export interface TreasuryLookupOption {
+  id: string;
+  code: string;
+  displayName: string;
   value: string;
   labelArabic: string;
   labelEnglish: string;
@@ -363,6 +366,7 @@ export interface TreasuryListParams {
   pageSize?: number;
   search?: string;
   accountType?: string;
+  isActive?: boolean;
   treasuryAccountId?: string;
   partyId?: string;
   status?: string;

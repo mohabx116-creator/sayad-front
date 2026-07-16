@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
 import MenuItem from '@mui/material/MenuItem';
@@ -18,6 +19,7 @@ import { useParties } from 'modules/Parties/hooks/useParties';
 import { useTreasuryAccounts, useTreasuryLookups, useTreasuryStatement } from '../hooks/useTreasury';
 import TreasuryMovementTable from '../components/TreasuryMovementTable';
 import TreasuryBalanceSummary from '../components/TreasuryBalanceSummary';
+import { TREASURY_LOOKUP_PAGE_SIZE } from '../utils/treasury.constants';
 
 export default function TreasuryStatementsPage() {
   const intl = useIntl();
@@ -30,9 +32,9 @@ export default function TreasuryStatementsPage() {
   const [partyId, setPartyId] = useState('');
   const [page, setPage] = useState(1);
 
-  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
-  const { items: parties } = useParties({ page: 1, pageSize: 200, isActive: true, sortBy: 'nameArabic' });
-  const { lookups } = useTreasuryLookups();
+  const { items: accounts, error: accountsError, mutate: mutateAccounts } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
+  const { items: parties, error: partiesError, mutate: mutateParties } = useParties({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true, sortBy: 'nameArabic' });
+  const { lookups, error: lookupsError, mutate: mutateLookups } = useTreasuryLookups();
   const { statement, isLoading, error } = useTreasuryStatement(
     treasuryAccountId
       ? {
@@ -99,6 +101,25 @@ export default function TreasuryStatementsPage() {
         sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, mb: 3 }}
       >
         <Box sx={{ p: 3 }}>
+          {(accountsError || partiesError || lookupsError) && (
+            <Alert
+              severity="error"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    void Promise.all([mutateAccounts(), mutateParties(), mutateLookups()]);
+                  }}
+                >
+                  <FormattedMessage id="retry" defaultMessage="إعادة المحاولة" />
+                </Button>
+              }
+              sx={{ mb: 3 }}
+            >
+              <FormattedMessage id="treasury.lookup-load-error" defaultMessage="تعذر تحميل البيانات" />
+            </Alert>
+          )}
           <Grid container spacing={2}>
             <Grid item xs={12} md={3}>
               <TextField
@@ -153,8 +174,8 @@ export default function TreasuryStatementsPage() {
                   <FormattedMessage id="all" defaultMessage="الكل" />
                 </MenuItem>
                 {lookups?.movementTypes.map((item) => (
-                  <MenuItem key={item.value} value={item.value}>
-                    {item.labelArabic}
+                  <MenuItem key={item.id} value={item.value}>
+                    {item.displayName}
                   </MenuItem>
                 ))}
               </TextField>

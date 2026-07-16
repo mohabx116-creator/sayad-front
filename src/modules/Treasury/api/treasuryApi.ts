@@ -2,6 +2,7 @@ import { AxiosResponse } from 'axios';
 
 import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
+import { TREASURY_MAX_PAGE_SIZE } from '../utils/treasury.constants';
 import type {
   TreasuryAccount,
   TreasuryAccountDeletionPreview,
@@ -54,9 +55,21 @@ function buildQuery(params: object) {
   return searchParams.toString();
 }
 
+function normalizePageSize(pageSize?: number) {
+  if (pageSize == null || Number.isNaN(pageSize)) {
+    return undefined;
+  }
+
+  return Math.min(Math.max(1, pageSize), TREASURY_MAX_PAGE_SIZE);
+}
+
+function clampLookupParams<T extends { pageSize?: number }>(params: T) {
+  return { ...params, pageSize: normalizePageSize(params.pageSize) };
+}
+
 // Accounts
 export function listTreasuryAccounts(params: TreasuryListParams) {
-  return unwrapPaged<TreasuryAccountListItem>(axiosServices.get('/api/treasury/accounts', { params }));
+  return unwrapPaged<TreasuryAccountListItem>(axiosServices.get('/api/treasury/accounts', { params: clampLookupParams(params) }));
 }
 
 export function getTreasuryAccount(id: string) {
@@ -103,7 +116,7 @@ export function finalDeleteTreasuryAccount(
 
 // Receipts
 export function listTreasuryReceipts(params: TreasuryListParams) {
-  return unwrapPaged<TreasuryReceiptListItem>(axiosServices.get('/api/treasury/receipts', { params }));
+  return unwrapPaged<TreasuryReceiptListItem>(axiosServices.get('/api/treasury/receipts', { params: clampLookupParams(params) }));
 }
 
 export function getTreasuryReceipt(id: string) {
@@ -127,12 +140,12 @@ export function cancelTreasuryReceipt(id: string, request: { reason: string; row
 }
 
 export function getEligibleSalesInvoices(params: { partyId: string; search?: string; page?: number; pageSize?: number }) {
-  return unwrapPaged<TreasuryEligibleInvoice>(axiosServices.get('/api/treasury/receipts/eligible-sales-invoices', { params }));
+  return unwrapPaged<TreasuryEligibleInvoice>(axiosServices.get('/api/treasury/receipts/eligible-sales-invoices', { params: clampLookupParams(params) }));
 }
 
 // Payments
 export function listTreasuryPayments(params: TreasuryListParams) {
-  return unwrapPaged<TreasuryPaymentListItem>(axiosServices.get('/api/treasury/payments', { params }));
+  return unwrapPaged<TreasuryPaymentListItem>(axiosServices.get('/api/treasury/payments', { params: clampLookupParams(params) }));
 }
 
 export function getTreasuryPayment(id: string) {
@@ -156,12 +169,12 @@ export function cancelTreasuryPayment(id: string, request: { reason: string; row
 }
 
 export function getEligiblePurchaseInvoices(params: { partyId: string; search?: string; page?: number; pageSize?: number }) {
-  return unwrapPaged<TreasuryEligibleInvoice>(axiosServices.get('/api/treasury/payments/eligible-purchase-invoices', { params }));
+  return unwrapPaged<TreasuryEligibleInvoice>(axiosServices.get('/api/treasury/payments/eligible-purchase-invoices', { params: clampLookupParams(params) }));
 }
 
 // Transfers
 export function listTreasuryTransfers(params: TreasuryListParams) {
-  return unwrapPaged<TreasuryTransferListItem>(axiosServices.get('/api/treasury/transfers', { params }));
+  return unwrapPaged<TreasuryTransferListItem>(axiosServices.get('/api/treasury/transfers', { params: clampLookupParams(params) }));
 }
 
 export function getTreasuryTransfer(id: string) {

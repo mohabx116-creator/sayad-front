@@ -23,7 +23,7 @@ import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 import { createTreasuryTransfer, getTreasuryTransfer, postTreasuryTransfer, updateTreasuryTransfer } from '../api/treasuryApi';
 import { useTreasuryAccounts } from '../hooks/useTreasury';
-import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { TREASURY_PERMISSIONS, TREASURY_LOOKUP_PAGE_SIZE } from '../utils/treasury.constants';
 import { refreshTreasuryViews } from '../utils/treasuryRefresh';
 import type { TreasuryTransferInput } from '../types/treasury.types';
 
@@ -47,9 +47,13 @@ export default function TreasuryTransferFormPage() {
   const [isLoading, setIsLoading] = useState(Boolean(id));
   const [isSaving, setIsSaving] = useState(false);
 
-  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
+  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
   const fromAccount = useMemo(() => accounts.find((account) => account.id === form.fromAccountId) ?? null, [accounts, form.fromAccountId]);
   const toAccount = useMemo(() => accounts.find((account) => account.id === form.toAccountId) ?? null, [accounts, form.toAccountId]);
+  const destinationAccounts = useMemo(
+    () => accounts.filter((account) => account.id !== form.fromAccountId || account.id === form.toAccountId),
+    [accounts, form.fromAccountId, form.toAccountId]
+  );
   const amountValue = Number(form.amount) || 0;
   const sameAccount = Boolean(form.fromAccountId && form.toAccountId && form.fromAccountId === form.toAccountId);
   const sameCurrency = Boolean(!fromAccount || !toAccount || fromAccount.currencyCode === toAccount.currencyCode);
@@ -101,6 +105,12 @@ export default function TreasuryTransferFormPage() {
       });
     }
   }, [transfer]);
+
+  useEffect(() => {
+    if (form.fromAccountId && form.fromAccountId === form.toAccountId) {
+      setForm((current) => ({ ...current, toAccountId: '' }));
+    }
+  }, [form.fromAccountId, form.toAccountId]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -197,7 +207,7 @@ export default function TreasuryTransferFormPage() {
                 value={form.toAccountId}
                 onChange={(event) => setForm((current) => ({ ...current, toAccountId: event.target.value }))}
               >
-                {accounts.map((account) => (
+                {destinationAccounts.map((account) => (
                   <MenuItem key={account.id} value={account.id}>
                     <CodeNameLabel code={account.code} nameArabic={account.nameArabic} />
                   </MenuItem>

@@ -24,6 +24,9 @@ export const TREASURY_PERMISSIONS = {
   lookupsView: 'treasury.lookups.view'
 } as const;
 
+export const TREASURY_MAX_PAGE_SIZE = 100;
+export const TREASURY_LOOKUP_PAGE_SIZE = 100;
+
 export const TREASURY_VIEW_PERMISSIONS = [
   TREASURY_PERMISSIONS.view,
   TREASURY_PERMISSIONS.accountsView,

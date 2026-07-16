@@ -124,8 +124,8 @@ export default function TreasuryAccountsListPage() {
                 <FormattedMessage id="all" defaultMessage="الكل" />
               </MenuItem>
               {lookups?.accountTypes.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  {type.labelArabic}
+                <MenuItem key={type.id} value={type.value}>
+                  {type.displayName}
                 </MenuItem>
               ))}
             </TextField>

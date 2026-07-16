@@ -7,7 +7,7 @@ export function getTreasurySourceDocumentLabel(sourceDocumentType?: string | nul
     case 'expense':
       return 'مصروف';
     default:
-      return sourceDocumentType ?? '-';
+      return sourceDocumentType ?? '—';
   }
 }
 
@@ -28,7 +28,7 @@ export function getTreasuryStatusLabel(status?: string | null, locale: 'ar' | 'e
     case 'draft':
       return locale === 'en' ? 'Draft' : 'مسودة';
     case 'posted':
-      return locale === 'en' ? 'Posted' : 'مُعتمد';
+      return locale === 'en' ? 'Posted' : 'معتمد';
     case 'cancelled':
       return locale === 'en' ? 'Cancelled' : 'ملغي';
     default:
@@ -51,6 +51,6 @@ export function getTreasuryPaymentMethodLabel(paymentMethod?: string | null) {
     case 'other':
       return 'أخرى';
     default:
-      return paymentMethod ?? '-';
+      return paymentMethod ?? '—';
   }
 }

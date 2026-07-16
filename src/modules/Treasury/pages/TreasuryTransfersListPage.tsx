@@ -25,7 +25,7 @@ import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import CodeNameLabel from 'shared/components/CodeNameLabel';
 import { useTreasuryAccounts, useTreasuryTransfers } from '../hooks/useTreasury';
-import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { TREASURY_PERMISSIONS, TREASURY_LOOKUP_PAGE_SIZE } from '../utils/treasury.constants';
 import TreasuryStatusChip from '../components/TreasuryStatusChip';
 import type { TreasuryListParams } from '../types/treasury.types';
 
@@ -44,7 +44,7 @@ export default function TreasuryTransfersListPage() {
   });
   const [searchInput, setSearchInput] = useState('');
   const { items, meta, isLoading } = useTreasuryTransfers(params);
-  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
+  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
 
   return (
     <Box>

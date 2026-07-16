@@ -27,7 +27,7 @@ import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 import { useTreasuryAccounts, useTreasuryLookups, useTreasuryPayments } from '../hooks/useTreasury';
 import TreasuryStatusChip from '../components/TreasuryStatusChip';
-import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { TREASURY_PERMISSIONS, TREASURY_LOOKUP_PAGE_SIZE } from '../utils/treasury.constants';
 import type { TreasuryListParams } from '../types/treasury.types';
 
 export default function TreasuryPaymentsListPage() {
@@ -46,7 +46,7 @@ export default function TreasuryPaymentsListPage() {
   });
   const [searchInput, setSearchInput] = useState('');
   const { items, meta, isLoading } = useTreasuryPayments(params);
-  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
+  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
   const { lookups } = useTreasuryLookups();
 
   return (
@@ -103,8 +103,8 @@ export default function TreasuryPaymentsListPage() {
                 <FormattedMessage id="all" />
               </MenuItem>
               {lookups?.paymentMethods.map((method) => (
-                <MenuItem key={method.value} value={method.value}>
-                  {method.labelArabic}
+                <MenuItem key={method.id} value={method.value}>
+                  {method.displayName}
                 </MenuItem>
               ))}
             </TextField>

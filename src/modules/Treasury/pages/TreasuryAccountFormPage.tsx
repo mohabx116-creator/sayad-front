@@ -169,8 +169,8 @@ export default function TreasuryAccountFormPage() {
                 onChange={(e) => setForm({ ...form, accountType: e.target.value })}
               >
                 {lookups?.accountTypes.map((type) => (
-                  <MenuItem key={type.value} value={type.value}>
-                    {type.labelArabic}
+                  <MenuItem key={type.id} value={type.value}>
+                    {type.displayName}
                   </MenuItem>
                 ))}
               </TextField>

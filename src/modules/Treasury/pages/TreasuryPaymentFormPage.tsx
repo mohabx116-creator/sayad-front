@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
 import MainCard from 'ui-component/cards/MainCard';
@@ -19,7 +20,7 @@ import TreasuryAllocationTable, { type TreasuryAllocationRow } from '../componen
 import TreasuryVoucherForm, { type VoucherFormState } from '../components/TreasuryVoucherForm';
 import { createTreasuryPayment, getTreasuryPayment, postTreasuryPayment, updateTreasuryPayment } from '../api/treasuryApi';
 import { useEligiblePurchaseInvoices, useTreasuryAccounts, useTreasuryLookups } from '../hooks/useTreasury';
-import { TREASURY_ALLOCATION_TYPES, PAYMENT_PURPOSES, TREASURY_PERMISSIONS } from '../utils/treasury.constants';
+import { TREASURY_ALLOCATION_TYPES, PAYMENT_PURPOSES, TREASURY_PERMISSIONS, TREASURY_LOOKUP_PAGE_SIZE } from '../utils/treasury.constants';
 import type { TreasuryAllocationInput } from '../types/treasury.types';
 import Loader from 'ui-component/Loader';
 
@@ -43,12 +44,13 @@ export default function TreasuryPaymentFormPage() {
   });
   const [allocationMap, setAllocationMap] = useState<Record<string, number>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const previousPartyId = useRef('');
 
-  const { items: accounts, isLoading: accountsLoading } = useTreasuryAccounts({ page: 1, pageSize: 200, status: 'Active' });
-  const { items: parties, isLoading: partiesLoading } = useParties({ page: 1, pageSize: 200, isSupplier: true });
-  const { lookups } = useTreasuryLookups();
+  const { items: accounts, isLoading: accountsLoading, error: accountsError, mutate: mutateAccounts } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
+  const { items: parties, isLoading: partiesLoading, error: partiesError, mutate: mutateParties } = useParties({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true, isSupplier: true });
+  const { lookups, error: lookupsError, mutate: mutateLookups } = useTreasuryLookups();
   const { payment, isLoading: paymentLoading } = useTreasuryPaymentData(id);
-  const { items: eligibleInvoices, isLoading: eligibleLoading } = useEligiblePurchaseInvoices(form.partyId || undefined, 1, 200);
+  const { items: eligibleInvoices, isLoading: eligibleLoading, error: eligibleError, mutate: mutateEligibleInvoices } = useEligiblePurchaseInvoices(form.partyId || undefined, 1, TREASURY_LOOKUP_PAGE_SIZE);
 
   useEffect(() => {
     if (!payment) return;
@@ -75,10 +77,11 @@ export default function TreasuryPaymentFormPage() {
   }, [payment]);
 
   useEffect(() => {
-    if (!isEdit && form.partyId) {
+    if (previousPartyId.current && previousPartyId.current !== form.partyId) {
       setAllocationMap({});
     }
-  }, [form.partyId, isEdit]);
+    previousPartyId.current = form.partyId;
+  }, [form.partyId]);
 
   const eligibleInvoiceMap = useMemo(() => new Map(eligibleInvoices.map((invoice) => [invoice.invoiceId, invoice.invoiceNumber])), [eligibleInvoices]);
   const allocationRows = useMemo<TreasuryAllocationRow[]>(
@@ -142,6 +145,7 @@ export default function TreasuryPaymentFormPage() {
       }
 
       await mutateTreasury((key) => typeof key === 'string' && (key.startsWith('/api/treasury/') || key.startsWith('/api/parties/') || key.startsWith('/api/purchases/invoices') || key.startsWith('/api/expenses/')));
+      await Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices()]);
       notify(intl.formatMessage({ id: 'treasury.payment-saved', defaultMessage: 'تم حفظ سند الصرف بنجاح.' }));
       navigate(`/treasury/payments/${savedPayment?.id ?? payment?.id}`);
     } catch (error) {
@@ -182,6 +186,25 @@ export default function TreasuryPaymentFormPage() {
     <Box>
       <Grid container spacing={3}>
         <Grid item xs={12}>
+          {(accountsError || partiesError || lookupsError || eligibleError) && (
+            <Alert
+              severity="error"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    void Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices()]);
+                  }}
+                >
+                  <FormattedMessage id="retry" defaultMessage="إعادة المحاولة" />
+                </Button>
+              }
+              sx={{ mb: 3 }}
+            >
+              <FormattedMessage id="treasury.lookup-load-error" defaultMessage="تعذر تحميل البيانات" />
+            </Alert>
+          )}
           <TreasuryVoucherForm
             type="payment"
             isEdit={isEdit}
@@ -199,6 +222,10 @@ export default function TreasuryPaymentFormPage() {
             allocationsElement={<TreasuryAllocationTable invoices={allocationRows} onAllocationChange={handleAllocationChange} maxTotalAllocation={form.totalAmount} />}
             totalAllocated={totalAllocated}
             postPermission={TREASURY_PERMISSIONS.paymentsPost}
+            lookupError={accountsError || partiesError || lookupsError || eligibleError ? intl.formatMessage({ id: 'treasury.lookup-load-error', defaultMessage: 'تعذر تحميل البيانات' }) : null}
+            onRetryLookups={() => {
+              void Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices()]);
+            }}
             onSubmit={handleSubmit}
             backUrl="/treasury/payments"
           />

@@ -3,12 +3,14 @@ import useSWR from 'swr';
 
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
+import { TREASURY_MAX_PAGE_SIZE } from '../utils/treasury.constants';
 import type {
   TreasuryAccount,
   TreasuryAccountDeletionPreview,
   TreasuryAccountListItem,
   TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
+  TreasuryLookupOption,
   TreasuryLookups,
   TreasuryListParams,
   TreasuryPagedMeta,
@@ -32,6 +34,41 @@ function buildQuery(params: object) {
   return searchParams.toString();
 }
 
+function normalizePageSize(pageSize?: number) {
+  if (pageSize == null || Number.isNaN(pageSize)) {
+    return undefined;
+  }
+
+  return Math.min(Math.max(1, pageSize), TREASURY_MAX_PAGE_SIZE);
+}
+
+function normalizeParams<T extends { pageSize?: number }>(params: T) {
+  return { ...params, pageSize: normalizePageSize(params.pageSize) };
+}
+
+function mapLookupOption(option: TreasuryLookupOption): TreasuryLookupOption {
+  return {
+    ...option,
+    id: option.value,
+    code: option.value,
+    displayName: option.labelArabic
+  };
+}
+
+function mapLookups(data?: TreasuryLookups | null): TreasuryLookups | null {
+  if (!data) {
+    return null;
+  }
+
+  return {
+    accountTypes: data.accountTypes.map(mapLookupOption),
+    allocationTypes: data.allocationTypes.map(mapLookupOption),
+    movementTypes: data.movementTypes.map(mapLookupOption),
+    documentStatuses: data.documentStatuses.map(mapLookupOption),
+    paymentMethods: data.paymentMethods.map(mapLookupOption)
+  };
+}
+
 function toListResult<T>(data?: ApiResponse<T[]>) {
   return {
     items: data?.data ?? [],
@@ -40,7 +77,8 @@ function toListResult<T>(data?: ApiResponse<T[]>) {
 }
 
 export function useTreasuryAccounts(params: TreasuryListParams) {
-  const key = `/api/treasury/accounts?${buildQuery(params)}`;
+  const normalizedParams = normalizeParams(params);
+  const key = `/api/treasury/accounts?${buildQuery(normalizedParams)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryAccountListItem[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
@@ -57,7 +95,8 @@ export function useTreasuryAccountDeletionPreview(id?: string, enabled = false) 
 }
 
 export function useTreasuryReceipts(params: TreasuryListParams) {
-  const key = `/api/treasury/receipts?${buildQuery(params)}`;
+  const normalizedParams = normalizeParams(params);
+  const key = `/api/treasury/receipts?${buildQuery(normalizedParams)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryReceiptListItem[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
@@ -68,7 +107,8 @@ export function useTreasuryReceipt(id?: string) {
 }
 
 export function useTreasuryPayments(params: TreasuryListParams) {
-  const key = `/api/treasury/payments?${buildQuery(params)}`;
+  const normalizedParams = normalizeParams(params);
+  const key = `/api/treasury/payments?${buildQuery(normalizedParams)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryPaymentListItem[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
@@ -79,7 +119,8 @@ export function useTreasuryPayment(id?: string) {
 }
 
 export function useTreasuryTransfers(params: TreasuryListParams) {
-  const key = `/api/treasury/transfers?${buildQuery(params)}`;
+  const normalizedParams = normalizeParams(params);
+  const key = `/api/treasury/transfers?${buildQuery(normalizedParams)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryTransferListItem[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
@@ -90,14 +131,14 @@ export function useTreasuryTransfer(id?: string) {
 }
 
 export function useTreasuryStatement(params: TreasuryStatementParams | null) {
-  const key = params ? `/api/treasury/statements?${buildQuery(params)}` : null;
+  const key = params ? `/api/treasury/statements?${buildQuery(normalizeParams(params))}` : null;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryStatement>>(key, fetcher);
   return useMemo(() => ({ statement: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useTreasuryLookups() {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryLookups>>('/api/treasury/lookups', fetcher, { revalidateOnFocus: false });
-  return useMemo(() => ({ lookups: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+  return useMemo(() => ({ lookups: mapLookups(data?.data), error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }
 
 export function useTreasuryDashboardSummary(dateFrom?: string, dateTo?: string) {
@@ -107,13 +148,13 @@ export function useTreasuryDashboardSummary(dateFrom?: string, dateTo?: string) 
 }
 
 export function useEligibleSalesInvoices(partyId?: string, page = 1, pageSize = 20, search = '') {
-  const key = partyId ? `/api/treasury/receipts/eligible-sales-invoices?${buildQuery({ partyId, page, pageSize, search })}` : null;
+  const key = partyId ? `/api/treasury/receipts/eligible-sales-invoices?${buildQuery(normalizeParams({ partyId, page, pageSize, search }))}` : null;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryEligibleInvoice[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useEligiblePurchaseInvoices(partyId?: string, page = 1, pageSize = 20, search = '') {
-  const key = partyId ? `/api/treasury/payments/eligible-purchase-invoices?${buildQuery({ partyId, page, pageSize, search })}` : null;
+  const key = partyId ? `/api/treasury/payments/eligible-purchase-invoices?${buildQuery(normalizeParams({ partyId, page, pageSize, search }))}` : null;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryEligibleInvoice[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }

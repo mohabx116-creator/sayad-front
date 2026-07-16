@@ -3,6 +3,7 @@ import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router-dom';
 
 import Autocomplete from '@mui/material/Autocomplete';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -51,6 +52,8 @@ interface Props {
   allocationsTitle?: React.ReactNode;
   totalAllocated: number;
   postPermission: string;
+  lookupError?: string | null;
+  onRetryLookups?: () => void;
   onSubmit: (actionType: 'draft' | 'post') => void;
   backUrl: string;
 }
@@ -72,6 +75,8 @@ export default function TreasuryVoucherForm({
   allocationsTitle,
   totalAllocated,
   postPermission,
+  lookupError,
+  onRetryLookups,
   onSubmit,
   backUrl
 }: Props) {
@@ -104,6 +109,21 @@ export default function TreasuryVoucherForm({
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
+          {lookupError && (
+            <Alert
+              severity="error"
+              action={
+                onRetryLookups ? (
+                  <Button color="inherit" size="small" onClick={onRetryLookups}>
+                    <FormattedMessage id="retry" defaultMessage="إعادة المحاولة" />
+                  </Button>
+                ) : null
+              }
+              sx={{ mb: 3 }}
+            >
+              <FormattedMessage id="treasury.lookup-load-error" defaultMessage="تعذر تحميل البيانات" />
+            </Alert>
+          )}
           <MainCard
             content={false}
             sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0px 2px 4px rgba(0,0,0,0.03)', borderRadius: 3, mb: 3 }}
@@ -140,8 +160,9 @@ export default function TreasuryVoucherForm({
                   <Autocomplete
                     options={accounts.filter((account) => account.isActive || account.id === form.treasuryAccountId)}
                     value={selectedAccount}
+                    noOptionsText={<FormattedMessage id="treasury.no-active-accounts" defaultMessage="لا توجد بيانات متاحة" />}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
-                    getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                    getOptionLabel={(option) => `${option.code} — ${option.nameArabic}`}
                     renderOption={(props, option) => (
                       <li {...props}>
                         <CodeNameLabel code={option.code} nameArabic={option.nameArabic} />
@@ -162,8 +183,9 @@ export default function TreasuryVoucherForm({
                   <Autocomplete
                     options={parties}
                     value={selectedParty}
+                    noOptionsText={<FormattedMessage id="treasury.no-parties" defaultMessage="لا توجد بيانات متاحة" />}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
-                    getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                    getOptionLabel={(option) => `${option.code} — ${option.nameArabic}`}
                     renderOption={(props, option) => (
                       <li {...props}>
                         <CodeNameLabel code={option.code} nameArabic={option.nameArabic} />
@@ -192,11 +214,17 @@ export default function TreasuryVoucherForm({
                     <MenuItem value="">
                       <FormattedMessage id="select" defaultMessage="اختر" />
                     </MenuItem>
-                    {paymentMethods.map((method) => (
-                      <MenuItem key={method.value} value={method.value}>
-                        {method.labelArabic}
+                    {paymentMethods.length === 0 ? (
+                      <MenuItem value="" disabled>
+                        <FormattedMessage id="treasury.no-payment-methods" defaultMessage="لا توجد بيانات متاحة" />
                       </MenuItem>
-                    ))}
+                    ) : (
+                      paymentMethods.map((method) => (
+                        <MenuItem key={method.id} value={method.value}>
+                          {method.displayName}
+                        </MenuItem>
+                      ))
+                    )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -253,7 +281,7 @@ export default function TreasuryVoucherForm({
                 fullWidth
                 multiline
                 rows={3}
-                label={<FormattedMessage id="notes" />}
+                label={<FormattedMessage id="notes" defaultMessage="الملاحظات" />}
                 value={form.notes}
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
               />
