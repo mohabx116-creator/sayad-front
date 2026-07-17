@@ -8,6 +8,9 @@ export interface ExpenseCategoryDto {
   description?: string | null;
   displayOrder: number;
   isActive: boolean;
+  accountingAccountId?: string | null;
+  accountingAccountCode?: string | null;
+  accountingAccountArabicName?: string | null;
   rowVersion: string;
 }
 
@@ -17,6 +20,7 @@ export interface ExpenseCategoryInput {
   nameEnglish?: string | null;
   description?: string | null;
   displayOrder: number;
+  accountingAccountId?: string | null;
 }
 
 export interface ExpensePaymentSummaryDto {
@@ -58,6 +62,8 @@ export interface ExpenseListItemDto {
   status: ExpenseStatus;
   referenceNumber?: string | null;
   treasuryPaymentId?: string | null;
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
   createdAtUtc: string;
   rowVersion: string;
 }
@@ -84,6 +90,16 @@ export interface ExpenseDto {
   description?: string | null;
   treasuryPaymentId?: string | null;
   treasuryPayment?: ExpensePaymentSummaryDto | null;
+  expenseCategoryAccountingAccountId?: string | null;
+  expenseCategoryAccountingAccountCode?: string | null;
+  expenseCategoryAccountingAccountArabicName?: string | null;
+  treasuryAccountAccountingAccountId?: string | null;
+  treasuryAccountAccountingAccountCode?: string | null;
+  treasuryAccountAccountingAccountArabicName?: string | null;
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
   createdAtUtc: string;
   updatedAtUtc?: string | null;
   postedAtUtc?: string | null;

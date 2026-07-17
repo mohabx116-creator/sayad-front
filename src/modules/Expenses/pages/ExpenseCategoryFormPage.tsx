@@ -5,6 +5,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { IconInfoCircle } from '@tabler/icons-react';
@@ -15,6 +16,8 @@ import MainCard from 'ui-component/cards/MainCard';
 import Loader from 'ui-component/Loader';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
+import { useAccountingAccounts } from 'modules/Accounting/hooks/useAccounting';
 
 import { getExpenseCategory, createExpenseCategory, updateExpenseCategory } from '../api/expensesApi';
 import type { ExpenseCategoryInput } from '../types/expense.types';
@@ -25,6 +28,7 @@ export default function ExpenseCategoryFormPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { items: accountingAccounts } = useAccountingAccounts({ page: 1, pageSize: 100, accountType: 'Expense', isActive: true, isPosting: true });
 
   const [isLoading, setIsLoading] = useState(isEdit);
   const [isSaving, setIsSaving] = useState(false);
@@ -35,7 +39,8 @@ export default function ExpenseCategoryFormPage() {
     nameArabic: '',
     nameEnglish: '',
     description: '',
-    displayOrder: 1
+    displayOrder: 1,
+    accountingAccountId: null
   });
 
   useEffect(() => {
@@ -47,7 +52,8 @@ export default function ExpenseCategoryFormPage() {
             nameArabic: data.nameArabic,
             nameEnglish: data.nameEnglish,
             description: data.description,
-            displayOrder: data.displayOrder
+            displayOrder: data.displayOrder,
+            accountingAccountId: data.accountingAccountId ?? null
           });
           setRowVersion(data.rowVersion);
         })
@@ -158,6 +164,25 @@ export default function ExpenseCategoryFormPage() {
                     value={form.nameEnglish || ''}
                     onChange={(e) => setForm({ ...form, nameEnglish: e.target.value })}
                   />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="expenses.category-accounting-account" defaultMessage="الحساب المحاسبي" />}
+                    value={form.accountingAccountId ?? ''}
+                    onChange={(e) => setForm({ ...form, accountingAccountId: e.target.value || null })}
+                    helperText={<FormattedMessage id="expenses.category-accounting-account-help" defaultMessage="يستخدم هذا الحساب عند ترحيل المصروف إلى الحسابات العامة." />}
+                  >
+                    <MenuItem value="">
+                      <FormattedMessage id="expenses.unmapped-accounting" defaultMessage="غير مرتبط محاسبيًا" />
+                    </MenuItem>
+                    {accountingAccounts.map((account) => (
+                      <MenuItem key={account.id} value={account.id}>
+                        <CodeNameLabel code={account.code} nameArabic={account.nameArabic} />
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
                 <Grid item xs={12}>
                   <TextField

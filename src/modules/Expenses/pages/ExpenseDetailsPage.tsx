@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
 import Typography from '@mui/material/Typography';
@@ -15,6 +16,7 @@ import Loader from 'ui-component/Loader';
 
 import { useExpense } from '../hooks/useExpenses';
 import ExpenseStatusChip from '../components/ExpenseStatusChip';
+import ExpenseAccountingStatusChip from '../components/ExpenseAccountingStatusChip';
 import ExpenseLifecycleActions from '../components/ExpenseLifecycleActions';
 import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
 import { getTreasuryStatusLabel } from 'modules/Treasury/utils/treasury.labels';
@@ -81,8 +83,9 @@ export default function ExpenseDetailsPage() {
             <PageTitle>
               {expense.expenseNumber}
             </PageTitle>
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <ExpenseStatusChip status={expense.status} />
+              <ExpenseAccountingStatusChip isAccountingPosted={expense.isAccountingPosted} accountingPostingStatus={expense.accountingPostingStatus} />
             </Box>
           </Box>
           <Box>
@@ -152,6 +155,81 @@ export default function ExpenseDetailsPage() {
               </Grid>
               <Grid item xs={12}>
                 <DetailItem label={<FormattedMessage id="description" />} value={expense.description} />
+              </Grid>
+            </Grid>
+          </MainCard>
+
+          <MainCard
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
+                <Typography variant="h4" fontWeight={600}>
+                  <FormattedMessage id="expenses.accounting-integration" defaultMessage="الربط المحاسبي" />
+                </Typography>
+              </Box>
+            }
+            sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, mb: 3 }}
+          >
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <DetailItem
+                  label={<FormattedMessage id="expenses.expense-accounting-account" defaultMessage="حساب المصروف" />}
+                  value={
+                    expense.expenseCategoryAccountingAccountCode ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" color="primary.main" fontWeight={600}>
+                          {expense.expenseCategoryAccountingAccountCode}
+                        </Typography>
+                        <span>{expense.expenseCategoryAccountingAccountArabicName}</span>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        <FormattedMessage id="expenses.unmapped-accounting" defaultMessage="غير مرتبط محاسبيًا" />
+                      </Typography>
+                    )
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <DetailItem
+                  label={<FormattedMessage id="expenses.treasury-accounting-account" defaultMessage="حساب الخزينة" />}
+                  value={
+                    expense.treasuryAccountAccountingAccountCode ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" color="primary.main" fontWeight={600}>
+                          {expense.treasuryAccountAccountingAccountCode}
+                        </Typography>
+                        <span>{expense.treasuryAccountAccountingAccountArabicName}</span>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        <FormattedMessage id="expenses.unmapped-accounting" defaultMessage="غير مرتبط محاسبيًا" />
+                      </Typography>
+                    )
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <DetailItem
+                  label={<FormattedMessage id="expenses.accounting-entry-number" defaultMessage="رقم القيد المحاسبي" />}
+                  value={
+                    expense.accountingJournalEntryId ? (
+                      <Button component={Link} to={`/accounting/journal-entries/${expense.accountingJournalEntryId}`} size="small" endIcon={<IconArrowRight size={16} />}>
+                        {expense.accountingEntryNumber || expense.accountingJournalEntryId}
+                      </Button>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        -
+                      </Typography>
+                    )
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <DetailItem
+                  label={<FormattedMessage id="expenses.accounting-posting-status" defaultMessage="حالة الترحيل المحاسبي" />}
+                  value={<ExpenseAccountingStatusChip isAccountingPosted={expense.isAccountingPosted} accountingPostingStatus={expense.accountingPostingStatus} />}
+                />
               </Grid>
             </Grid>
           </MainCard>

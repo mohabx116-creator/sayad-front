@@ -27,6 +27,7 @@ import { openSnackbar } from 'store/slices/snackbar';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 import { useExpenseCategories } from '../hooks/useExpenses';
 import { activateExpenseCategory, deactivateExpenseCategory } from '../api/expensesApi';
@@ -159,6 +160,9 @@ export default function ExpenseCategoriesListPage() {
                 <TableCell>
                   <FormattedMessage id="description" defaultMessage="الوصف" />
                 </TableCell>
+                <TableCell>
+                  <FormattedMessage id="expenses.category-accounting-account" defaultMessage="الحساب المحاسبي" />
+                </TableCell>
                 <TableCell align="center">
                   <FormattedMessage id="display-order" defaultMessage="ترتيب العرض" />
                 </TableCell>
@@ -177,6 +181,7 @@ export default function ExpenseCategoriesListPage() {
                     <TableCell><Skeleton width={80} /></TableCell>
                     <TableCell><Skeleton width={150} /></TableCell>
                     <TableCell><Skeleton width={200} /></TableCell>
+                    <TableCell><Skeleton width={220} /></TableCell>
                     <TableCell align="center"><Skeleton width={40} sx={{ mx: 'auto' }} /></TableCell>
                     <TableCell><Skeleton width={60} /></TableCell>
                     <TableCell align="center"><Skeleton width={120} sx={{ mx: 'auto' }} /></TableCell>
@@ -184,7 +189,7 @@ export default function ExpenseCategoriesListPage() {
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
                       <FormattedMessage id="no-records-found" defaultMessage="لا توجد سجلات" />
                     </Typography>
@@ -212,6 +217,15 @@ export default function ExpenseCategoriesListPage() {
                       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 250 }} noWrap>
                         {row.description || '-'}
                       </Typography>
+                    </TableCell>
+                    <TableCell>
+                      {row.accountingAccountCode ? (
+                        <CodeNameLabel code={row.accountingAccountCode} nameArabic={row.accountingAccountArabicName ?? ''} />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="expenses.unmapped-accounting" defaultMessage="غير مرتبط محاسبيًا" />
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell align="center">
                       {row.displayOrder}

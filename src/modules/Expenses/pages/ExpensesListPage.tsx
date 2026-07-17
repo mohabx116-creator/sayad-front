@@ -33,6 +33,7 @@ import { useExpenses, useExpenseCategories } from '../hooks/useExpenses';
 import { EXPENSES_PERMISSIONS } from '../utils/expense.constants';
 import type { ExpensesListParams } from '../types/expense.types';
 import ExpenseStatusChip from '../components/ExpenseStatusChip';
+import ExpenseAccountingStatusChip from '../components/ExpenseAccountingStatusChip';
 import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
 
 export default function ExpensesListPage() {
@@ -251,7 +252,10 @@ export default function ExpensesListPage() {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <ExpenseStatusChip status={row.status} />
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <ExpenseStatusChip status={row.status} />
+                        <ExpenseAccountingStatusChip isAccountingPosted={row.isAccountingPosted} accountingPostingStatus={row.accountingPostingStatus} />
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
                       <PermissionGuard permission={EXPENSES_PERMISSIONS.view}>

@@ -17,6 +17,7 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import type { PartyDto } from 'modules/Parties/types/parties.types';
 import type { TreasuryAccountListItem } from 'modules/Treasury/types/treasury.types';
 import { useTreasuryAccount } from 'modules/Treasury/hooks/useTreasury';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
 
 import type { ExpenseInput, ExpenseCategoryDto, ExpenseStatus } from '../types/expense.types';
 import { formatFinancialBalance } from '../utils/expense.constants';
@@ -54,6 +55,24 @@ export default function ExpenseForm({
   postPermission
 }: Props) {
   const { account, isLoading: isAccountLoading } = useTreasuryAccount(form.treasuryAccountId || undefined);
+  const selectedCategory = categories.find((category) => category.id === form.expenseCategoryId) || null;
+  const selectedTreasuryAccount = accounts.find((item) => item.id === form.treasuryAccountId) || null;
+  const expenseAccountingAccount = selectedCategory?.accountingAccountId
+    ? {
+        id: selectedCategory.accountingAccountId,
+        code: selectedCategory.accountingAccountCode ?? '',
+        nameArabic: selectedCategory.accountingAccountArabicName ?? ''
+      }
+    : null;
+  const treasuryAccountingAccount = selectedTreasuryAccount?.accountingAccountId
+    ? {
+        id: selectedTreasuryAccount.accountingAccountId,
+        code: selectedTreasuryAccount.accountingAccountCode ?? '',
+        nameArabic: selectedTreasuryAccount.accountingAccountArabicName ?? ''
+      }
+    : null;
+  const hasMissingAccountingMapping = !expenseAccountingAccount || !treasuryAccountingAccount;
+  const hasSameAccountingMapping = !!expenseAccountingAccount && !!treasuryAccountingAccount && expenseAccountingAccount.id === treasuryAccountingAccount.id;
 
   if (isLoading) {
     return <Loader />;
@@ -61,6 +80,7 @@ export default function ExpenseForm({
 
   const resultingBalance = account ? (account.balanceNature === 'Credit' ? -account.balance : account.balance) - (form.amount || 0) : 0;
   const isInsufficient: boolean = !!(account && !account.allowNegativeBalance && resultingBalance < 0);
+  const canPostExpense = !isSaving && !isInsufficient && !!form.amount && !hasMissingAccountingMapping && !hasSameAccountingMapping;
 
   const handleDraftSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +100,11 @@ export default function ExpenseForm({
                     <FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" />
                   </Typography>
                 </Box>
-                {expenseNumber && <Typography variant="h5" color="text.secondary">#{expenseNumber}</Typography>}
+                {expenseNumber && (
+                  <Typography variant="h5" color="text.secondary">
+                    #{expenseNumber}
+                  </Typography>
+                )}
               </Box>
             }
             sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, mb: 3 }}
@@ -97,7 +121,7 @@ export default function ExpenseForm({
                 >
                   {categories.map((category) => (
                     <MenuItem key={category.id} value={category.id}>
-                      {category.code} - {category.nameArabic}
+                      <CodeNameLabel code={category.code} nameArabic={category.nameArabic} />
                     </MenuItem>
                   ))}
                 </TextField>
@@ -114,7 +138,7 @@ export default function ExpenseForm({
                 >
                   {parties.map((party) => (
                     <MenuItem key={party.id} value={party.id}>
-                      {party.code} - {party.nameArabic}
+                      <CodeNameLabel code={party.code} nameArabic={party.nameArabic} />
                     </MenuItem>
                   ))}
                 </TextField>
@@ -131,7 +155,7 @@ export default function ExpenseForm({
                 >
                   {accounts.map((acc) => (
                     <MenuItem key={acc.id} value={acc.id}>
-                      {acc.code} - {acc.nameArabic}
+                      <CodeNameLabel code={acc.code} nameArabic={acc.nameArabic} />
                     </MenuItem>
                   ))}
                 </TextField>
@@ -180,7 +204,9 @@ export default function ExpenseForm({
 
             {status && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography color="text.secondary"><FormattedMessage id="status" /></Typography>
+                <Typography color="text.secondary">
+                  <FormattedMessage id="status" />
+                </Typography>
                 <ExpenseStatusChip status={status} />
               </Box>
             )}
@@ -201,7 +227,43 @@ export default function ExpenseForm({
               <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
                 <FormattedMessage id="financial-impact" defaultMessage="التأثير المالي" />
               </Typography>
-              
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <FormattedMessage id="expenses.expense-accounting-account" defaultMessage="حساب المصروف" />:
+                </Typography>
+                {expenseAccountingAccount ? (
+                  <Typography variant="body2" fontWeight={600}>
+                    <CodeNameLabel code={expenseAccountingAccount.code} nameArabic={expenseAccountingAccount.nameArabic} />
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" color="warning.main" fontWeight={600}>
+                    <FormattedMessage id="expenses.category-missing-accounting-mapping" defaultMessage="غير مرتبط محاسبيًا" />
+                  </Typography>
+                )}
+              </Box>
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <FormattedMessage id="expenses.treasury-accounting-account" defaultMessage="حساب الخزينة" />:
+                </Typography>
+                {treasuryAccountingAccount ? (
+                  <Typography variant="body2" fontWeight={600}>
+                    <CodeNameLabel code={treasuryAccountingAccount.code} nameArabic={treasuryAccountingAccount.nameArabic} />
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" color="warning.main" fontWeight={600}>
+                    <FormattedMessage id="expenses.treasury-missing-accounting-mapping" defaultMessage="غير مرتبط محاسبيًا" />
+                  </Typography>
+                )}
+              </Box>
+
+              {hasSameAccountingMapping && (
+                <Typography color="error.main" variant="body2" sx={{ mb: 2, fontWeight: 700 }}>
+                  <FormattedMessage id="expenses.same-accounting-account" defaultMessage="لا يمكن ترحيل المصروف إلى الحساب المحاسبي نفسه." />
+                </Typography>
+              )}
+
               {!form.treasuryAccountId ? (
                 <Typography variant="body2" color="text.disabled">
                   <FormattedMessage id="expenses.select-account-balance" defaultMessage="اختر حساب الخزينة لعرض الرصيد" />
@@ -213,13 +275,17 @@ export default function ExpenseForm({
               ) : account ? (
                 <>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2"><FormattedMessage id="expenses.current-balance" defaultMessage="الرصيد الحالي" />:</Typography>
+                    <Typography variant="body2">
+                      <FormattedMessage id="expenses.current-balance" defaultMessage="الرصيد الحالي" />:
+                    </Typography>
                     <Typography variant="body2" fontWeight={600}>
                       {formatFinancialBalance(account.balance, account.balanceNature, account.currencyCode)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2"><FormattedMessage id="expenses.resulting-balance" defaultMessage="الرصيد بعد المصروف" />:</Typography>
+                    <Typography variant="body2">
+                      <FormattedMessage id="expenses.resulting-balance" defaultMessage="الرصيد بعد المصروف" />:
+                    </Typography>
                     <Typography variant="body2" fontWeight={700} color={resultingBalance < 0 ? 'error.main' : 'success.main'}>
                       {formatFinancialBalance(Math.abs(resultingBalance), resultingBalance < 0 ? 'Credit' : 'Debit', account.currencyCode)}
                     </Typography>
@@ -230,12 +296,16 @@ export default function ExpenseForm({
                   {account.allowNegativeBalance ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.dark' }}>
                       <IconInfoCircle size={16} />
-                      <Typography variant="caption"><FormattedMessage id="expenses.allow-negative-balance" defaultMessage="يسمح برصيد سالب" /></Typography>
+                      <Typography variant="caption">
+                        <FormattedMessage id="expenses.allow-negative-balance" defaultMessage="يسمح برصيد سالب" />
+                      </Typography>
                     </Box>
                   ) : (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
                       <IconInfoCircle size={16} />
-                      <Typography variant="caption"><FormattedMessage id="expenses.negative-not-allowed" defaultMessage="لا يسمح برصيد سالب" /></Typography>
+                      <Typography variant="caption">
+                        <FormattedMessage id="expenses.negative-not-allowed" defaultMessage="لا يسمح برصيد سالب" />
+                      </Typography>
                     </Box>
                   )}
 
@@ -269,14 +339,14 @@ export default function ExpenseForm({
                     variant="contained"
                     color="primary"
                     fullWidth
-                    disabled={isSaving || isInsufficient || !form.amount}
+                    disabled={!canPostExpense}
                     onClick={() => onSubmit('post')}
                   >
                     <FormattedMessage id="expenses.post-expense" defaultMessage="ترحيل المصروف" />
                   </Button>
                 </PermissionGuard>
               )}
-              
+
               <Button component={Link} to={backUrl} variant="text" color="inherit" fullWidth disabled={isSaving}>
                 <FormattedMessage id="cancel" />
               </Button>
