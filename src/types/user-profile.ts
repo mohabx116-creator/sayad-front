@@ -14,6 +14,7 @@ export type UserProfile = {
   role?: string;
   roles?: string[];
   permissions?: string[];
+  isSystemOwner?: boolean;
   about?: string;
   email?: string;
   work_email?: string;

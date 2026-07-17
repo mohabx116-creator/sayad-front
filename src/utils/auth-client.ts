@@ -16,7 +16,7 @@ type LoginRequest = {
 };
 
 const authClient = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_URL || 'http://localhost:5000/',
+  baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:5000/',
   withCredentials: true
 });
 

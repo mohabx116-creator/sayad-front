@@ -36,6 +36,7 @@ export type UserDto = {
   email: string;
   isActive: boolean;
   isLocked: boolean;
+  isSystemOwner: boolean;
   lastLoginAtUtc: string | null;
   createdAtUtc: string;
   updatedAtUtc: string | null;
