@@ -11,7 +11,8 @@ export const JOURNAL_ENTRY_PERMISSIONS = {
   create: ACCOUNTING_PERMISSIONS.journalEntriesCreate,
   update: ACCOUNTING_PERMISSIONS.journalEntriesUpdate,
   post: ACCOUNTING_PERMISSIONS.journalEntriesPost,
-  cancel: ACCOUNTING_PERMISSIONS.journalEntriesCancel
+  cancel: ACCOUNTING_PERMISSIONS.journalEntriesCancel,
+  delete: ACCOUNTING_PERMISSIONS.journalEntriesDelete
 } as const;
 
 export const JOURNAL_ENTRY_ACCOUNT_LOOKUP_PAGE_SIZE = 100;

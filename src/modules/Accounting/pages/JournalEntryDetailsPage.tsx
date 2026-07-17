@@ -27,8 +27,9 @@ import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 
 import JournalEntryCancelDialog from '../components/JournalEntryCancelDialog';
+import JournalEntryDeleteDialog from '../components/JournalEntryDeleteDialog';
 import JournalEntryStatusChip from '../components/JournalEntryStatusChip';
-import { cancelJournalEntry, postJournalEntry } from '../api/journalEntryApi';
+import { cancelJournalEntry, deleteJournalEntry, postJournalEntry } from '../api/journalEntryApi';
 import { useJournalEntry } from '../hooks/useJournalEntries';
 import { JOURNAL_ENTRY_PERMISSIONS, JOURNAL_ENTRY_STATUSES } from '../utils/journal-entry.constants';
 
@@ -54,6 +55,7 @@ export default function JournalEntryDetailsPage() {
   const { entry, isLoading, mutate } = useJournalEntry(id);
   const [isProcessing, setIsProcessing] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -62,6 +64,7 @@ export default function JournalEntryDetailsPage() {
   const canEdit = entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
   const canPost = entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
   const canCancel = entry?.status === JOURNAL_ENTRY_STATUSES.POSTED;
+  const canDelete = entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
 
   const handlePost = async () => {
     if (!id || !entry) {
@@ -100,6 +103,26 @@ export default function JournalEntryDetailsPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!id || !entry) {
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await deleteJournalEntry(id, entry.rowVersion);
+      notify(intl.formatMessage({ id: 'journal-entry-deleted-successfully', defaultMessage: 'تم حذف القيد اليومي بنجاح.' }));
+      await mutate(undefined, { revalidate: false });
+      await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/') && key !== `/api/accounting/journal-entries/${id}`);
+      navigate('/accounting/journal-entries', { replace: true });
+    } catch (error) {
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'Journal entry action failed.' }), 'error');
+    } finally {
+      setIsProcessing(false);
+      setDeleteOpen(false);
+    }
+  };
+
   if (isLoading || !entry) {
     return <Loader />;
   }
@@ -123,7 +146,11 @@ export default function JournalEntryDetailsPage() {
             </PageTitle>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
               <JournalEntryStatusChip status={entry.status} />
-              {entry.reversalJournalEntryNumber && <Button size="small" variant="outlined">{entry.reversalJournalEntryNumber}</Button>}
+              {entry.reversalJournalEntryNumber && entry.reversesJournalEntryId && (
+                <Button component={Link} to={`/accounting/journal-entries/${entry.reversesJournalEntryId}`} size="small" variant="outlined">
+                  {entry.reversalJournalEntryNumber}
+                </Button>
+              )}
             </Stack>
           </Box>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -148,6 +175,13 @@ export default function JournalEntryDetailsPage() {
               <PermissionGuard permission={JOURNAL_ENTRY_PERMISSIONS.cancel}>
                 <Button variant="outlined" color="error" onClick={() => setCancelOpen(true)} startIcon={<IconX size={18} />} disabled={isProcessing}>
                   <FormattedMessage id="cancel-document" defaultMessage="Cancel document" />
+                </Button>
+              </PermissionGuard>
+            )}
+            {canDelete && (
+              <PermissionGuard permission={JOURNAL_ENTRY_PERMISSIONS.delete}>
+                <Button variant="contained" color="error" onClick={() => setDeleteOpen(true)} disabled={isProcessing}>
+                  <FormattedMessage id="delete-draft-journal-entry" defaultMessage="حذف المسودة" />
                 </Button>
               </PermissionGuard>
             )}
@@ -245,6 +279,7 @@ export default function JournalEntryDetailsPage() {
       </Stack>
 
       <JournalEntryCancelDialog open={cancelOpen} isProcessing={isProcessing} onClose={() => setCancelOpen(false)} onConfirm={handleCancel} />
+      <JournalEntryDeleteDialog open={deleteOpen} isProcessing={isProcessing} onClose={() => setDeleteOpen(false)} onConfirm={handleDelete} />
     </Box>
   );
 }

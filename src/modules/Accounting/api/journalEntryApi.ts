@@ -82,3 +82,7 @@ export function postJournalEntry(id: string, rowVersion: string) {
 export function cancelJournalEntry(id: string, request: JournalEntryCancelRequest) {
   return unwrap(axiosServices.post<ApiResponse<JournalEntryDto>>(`/api/accounting/journal-entries/${id}/cancel`, request));
 }
+
+export function deleteJournalEntry(id: string, rowVersion: string) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/accounting/journal-entries/${id}`, { data: { rowVersion } }));
+}

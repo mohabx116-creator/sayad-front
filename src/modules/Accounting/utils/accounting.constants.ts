@@ -10,7 +10,8 @@ export const ACCOUNTING_PERMISSIONS = {
   journalEntriesCreate: 'accounting.journal-entries.create',
   journalEntriesUpdate: 'accounting.journal-entries.update',
   journalEntriesPost: 'accounting.journal-entries.post',
-  journalEntriesCancel: 'accounting.journal-entries.cancel'
+  journalEntriesCancel: 'accounting.journal-entries.cancel',
+  journalEntriesDelete: 'accounting.journal-entries.delete'
 } as const;
 
 export const ACCOUNTING_MAX_PAGE_SIZE = 100;
