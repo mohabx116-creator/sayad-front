@@ -73,6 +73,7 @@ export default function InventoryItemFormPage() {
   });
   const [unitRows, setUnitRows] = useState<EditableUnitRow[]>([]);
   const [openingQuantity, setOpeningQuantity] = useState(0);
+  const [openingUnitCost, setOpeningUnitCost] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -193,7 +194,7 @@ export default function InventoryItemFormPage() {
       ...form,
       categoryId: form.categoryId || null,
       units: normalizedUnits,
-      openingStock: !isEdit && openingQuantity > 0 ? { movementDate: today, unitOfMeasureId: form.baseUnitId, quantity: openingQuantity, notes: 'Opening stock' } : null
+      openingStock: !isEdit && openingQuantity > 0 ? { movementDate: today, unitOfMeasureId: form.baseUnitId, quantity: openingQuantity, unitCost: openingUnitCost, notes: 'Opening stock' } : null
     } satisfies CreateItemRequest;
 
     try {
@@ -359,6 +360,7 @@ export default function InventoryItemFormPage() {
                     {!isEdit && (
                       <Box sx={{ p: 1.5, bgcolor: 'primary.lighter', borderRadius: 1 }}>
                         <TextField size="small" type="number" fullWidth label={<FormattedMessage id="opening-stock" />} value={openingQuantity} onChange={(e) => setOpeningQuantity(Number(e.target.value))} />
+                        <TextField size="small" type="number" fullWidth sx={{ mt: 1 }} label={<FormattedMessage id="unit-cost" defaultMessage="Unit Cost" />} value={openingUnitCost} onChange={(e) => setOpeningUnitCost(Number(e.target.value))} />
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>يُستخدم لتسجيل الرصيد الافتتاحي لأول مرة</Typography>
                       </Box>
                     )}

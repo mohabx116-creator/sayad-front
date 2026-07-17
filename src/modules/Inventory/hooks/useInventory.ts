@@ -10,6 +10,7 @@ import type {
   ItemUnitDto,
   ListMeta,
   LowStockItemDto,
+  InventoryValuationSummaryDto,
   PartyItemRelationDto,
   UnitOfMeasureDto
 } from '../types/inventory.types';
@@ -79,4 +80,16 @@ export function useLowStockItems(params: Record<string, string | number | boolea
   const key = `/api/inventory/alerts/low-stock?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<LowStockItemDto[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
+}
+
+export function useInventoryValuations(params: Record<string, string | number | boolean | undefined | null> = { page: 1, pageSize: 20 }) {
+  const key = `/api/inventory/valuation?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<InventoryValuationSummaryDto[]>>(key, fetcher);
+  return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
+}
+
+export function useInventoryValuation(itemId?: string, warehouseId?: string) {
+  const key = itemId ? `/api/inventory/valuation/${itemId}${warehouseId ? `?warehouseId=${warehouseId}` : ''}` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<InventoryValuationSummaryDto>>(key, fetcher);
+  return useMemo(() => ({ item: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }

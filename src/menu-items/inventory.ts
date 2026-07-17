@@ -1,4 +1,4 @@
-import { IconAlertTriangle, IconCategory, IconLink, IconPackage, IconRulerMeasure, IconTransfer } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCalculator, IconCategory, IconLink, IconPackage, IconRulerMeasure, IconTransfer } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 import { INVENTORY_PERMISSIONS, INVENTORY_VIEW_PERMISSIONS } from 'modules/Inventory/utils/inventory.constants';
@@ -9,7 +9,8 @@ const icons = {
   IconLink,
   IconRulerMeasure,
   IconTransfer,
-  IconAlertTriangle
+  IconAlertTriangle,
+  IconCalculator
 };
 
 const inventory: NavItemType = {
@@ -63,6 +64,15 @@ const inventory: NavItemType = {
       icon: icons.IconAlertTriangle,
       breadcrumbs: true,
       permission: INVENTORY_PERMISSIONS.alertsView
+    },
+    {
+      id: 'inventory-valuation',
+      title: 'inventory-valuation',
+      type: 'item',
+      url: '/inventory/valuation',
+      icon: icons.IconCalculator,
+      breadcrumbs: true,
+      permission: INVENTORY_PERMISSIONS.view
     }
   ]
 };

@@ -11,10 +11,12 @@ import type {
   CreateUnitRequest,
   InventoryAdjustmentRequest,
   InventoryMovementRequest,
+  InitializeInventoryValuationRequest,
   ItemCategoryDto,
   ItemDto,
   ItemUnitInput,
   ItemUnitDto,
+  InventoryValuationSummaryDto,
   PartyItemRelationDto,
   ReverseInventoryMovementRequest,
   UpdateCategoryRequest,
@@ -157,4 +159,20 @@ export function deactivatePartyItemRelation(id: string) {
 
 export function deletePartyItemRelation(id: string) {
   return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/inventory/party-items/${id}`));
+}
+
+export function getInventoryValuations(params: string) {
+  return unwrap(axiosServices.get<ApiResponse<InventoryValuationSummaryDto[]>>(`/api/inventory/valuation${params ? `?${params}` : ''}`));
+}
+
+export function getInventoryValuation(itemId: string, warehouseId?: string | null) {
+  return unwrap(
+    axiosServices.get<ApiResponse<InventoryValuationSummaryDto>>(
+      `/api/inventory/valuation/${itemId}${warehouseId ? `?warehouseId=${warehouseId}` : ''}`
+    )
+  );
+}
+
+export function initializeInventoryValuation(itemId: string, request: InitializeInventoryValuationRequest) {
+  return unwrap(axiosServices.post<ApiResponse<InventoryValuationSummaryDto>>(`/api/inventory/valuation/${itemId}/initialize`, request));
 }

@@ -75,6 +75,7 @@ export default function InventoryItemDetailsPage() {
     movementDate: today,
     unitOfMeasureId: '',
     quantity: 0,
+    unitCost: 0,
     notes: ''
   });
   const [stockInForm, setStockInForm] = useState<InventoryMovementRequest>(initialMovement(''));
@@ -84,7 +85,8 @@ export default function InventoryItemDetailsPage() {
     unitOfMeasureId: '',
     quantity: 0,
     adjustmentType: 'Increase',
-    reason: ''
+    reason: '',
+    unitCost: 0
   });
   const [relationForm, setRelationForm] = useState<CreateItemPartyRelationRequest>({
     partyId: '',
@@ -157,6 +159,7 @@ export default function InventoryItemDetailsPage() {
         movementDate: openingForm.movementDate,
         unitOfMeasureId: openingForm.unitOfMeasureId,
         quantity: Number(openingForm.quantity),
+        unitCost: Number(openingForm.unitCost),
         reason: openingForm.reason || '',
         expectedOpeningMovementId: openingForm.expectedOpeningMovementId ?? openingStock.movementId ?? ''
       } satisfies CorrectOpeningStockRequest));
@@ -167,6 +170,7 @@ export default function InventoryItemDetailsPage() {
       movementDate: openingForm.movementDate,
       unitOfMeasureId: openingForm.unitOfMeasureId,
       quantity: Number(openingForm.quantity),
+      unitCost: Number(openingForm.unitCost),
       notes: openingForm.notes ?? null
     }));
   };
@@ -291,6 +295,37 @@ export default function InventoryItemDetailsPage() {
         </Grid>
 
         <Grid item xs={12}>
+          <MainCard title={<FormattedMessage id="inventory-valuation" defaultMessage="Inventory Valuation" />}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={3}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <FormattedMessage id="valuation-status" defaultMessage="Valuation Status" />
+                </Typography>
+                <Chip label={item.valuationStatus} color={item.isValuationInitialized ? 'success' : 'warning'} variant="outlined" />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <FormattedMessage id="average-unit-cost" defaultMessage="Average Cost" />
+                </Typography>
+                <Typography variant="h5">{item.currentAverageUnitCost == null ? '-' : item.currentAverageUnitCost.toFixed(4)}</Typography>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <FormattedMessage id="inventory-value" defaultMessage="Inventory Value" />
+                </Typography>
+                <Typography variant="h5">{item.currentInventoryValue == null ? '-' : item.currentInventoryValue.toFixed(4)}</Typography>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <FormattedMessage id="valuation-initialized-at" defaultMessage="Initialized At" />
+                </Typography>
+                <Typography variant="h5">{item.valuationInitializedAtUtc ?? '-'}</Typography>
+              </Grid>
+            </Grid>
+          </MainCard>
+        </Grid>
+
+        <Grid item xs={12}>
           <MainCard 
             title={<FormattedMessage id="recent-movements" />}
             secondary={
@@ -378,6 +413,9 @@ export default function InventoryItemDetailsPage() {
                   <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={openingForm.quantity} onChange={(event) => setOpeningForm({ ...openingForm, quantity: Number(event.target.value) })} />
                 </Grid>
                 <Grid item xs={12} md={3}>
+                  <TextField type="number" fullWidth label={<FormattedMessage id="unit-cost" defaultMessage="Unit Cost" />} value={openingForm.unitCost} onChange={(event) => setOpeningForm({ ...openingForm, unitCost: Number(event.target.value) })} />
+                </Grid>
+                <Grid item xs={12} md={3}>
                   <Button type="submit" variant="contained" disabled={isSaving} sx={{ mt: 1 }}>
                     <FormattedMessage id={openingStock?.movementId ? 'correct-opening-stock' : 'set-opening-stock'} />
                   </Button>
@@ -415,6 +453,7 @@ export default function InventoryItemDetailsPage() {
                     {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
                   </TextField>
                   <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={stockInForm.quantity} onChange={(event) => setStockInForm({ ...stockInForm, quantity: Number(event.target.value) })} size="small" />
+                  <TextField type="number" fullWidth label={<FormattedMessage id="unit-cost" defaultMessage="Unit Cost" />} value={stockInForm.unitCost ?? 0} onChange={(event) => setStockInForm({ ...stockInForm, unitCost: Number(event.target.value) })} size="small" />
                   <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} value={stockInForm.notes ?? ''} onChange={(event) => setStockInForm({ ...stockInForm, notes: event.target.value })} size="small" />
                   <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postStockIn(item.id, stockInForm))}><FormattedMessage id="post-stock-in" /></Button>
                 </Stack>
@@ -443,6 +482,7 @@ export default function InventoryItemDetailsPage() {
                     <MenuItem value="Decrease"><FormattedMessage id="decrease" /></MenuItem>
                   </TextField>
                   <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={adjustmentForm.quantity} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, quantity: Number(event.target.value) })} size="small" />
+                  <TextField type="number" fullWidth label={<FormattedMessage id="unit-cost" defaultMessage="Unit Cost" />} value={adjustmentForm.unitCost ?? 0} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, unitCost: Number(event.target.value) })} size="small" />
                   <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="adjustment-reason" />} value={adjustmentForm.reason} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, reason: event.target.value })} size="small" />
                   <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postAdjustment(item.id, adjustmentForm))}><FormattedMessage id="post-adjustment" /></Button>
                 </Stack>

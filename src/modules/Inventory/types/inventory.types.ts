@@ -56,6 +56,11 @@ export type ItemDto = {
   stockStatus: string;
   notes?: string | null;
   rowVersion: string;
+  currentAverageUnitCost?: number | null;
+  currentInventoryValue?: number | null;
+  isValuationInitialized: boolean;
+  valuationInitializedAtUtc?: string | null;
+  valuationStatus: string;
 };
 
 export type InventoryMovementDto = {
@@ -81,6 +86,14 @@ export type InventoryMovementDto = {
   isReversal: boolean;
   reversesMovementId?: string | null;
   createdAtUtc: string;
+  unitCost?: number | null;
+  totalCost?: number | null;
+  quantityAfterBase?: number | null;
+  inventoryValueAfter?: number | null;
+  averageUnitCostAfter?: number | null;
+  costSourceMovementId?: string | null;
+  isCostResolved: boolean;
+  valuationStatus: string;
 };
 
 export type ItemUnitDto = {
@@ -108,6 +121,27 @@ export type LowStockItemDto = {
   stockStatus: string;
 };
 
+export type InventoryValuationSummaryDto = {
+  itemId: string;
+  itemCode: string;
+  itemNameArabic: string;
+  itemNameEnglish?: string | null;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseNameArabic: string;
+  baseUnitId: string;
+  baseUnitCode: string;
+  quantityOnHandBase: number;
+  averageUnitCost?: number | null;
+  inventoryValue?: number | null;
+  isValuationInitialized: boolean;
+  valuationInitializedAtUtc?: string | null;
+  updatedAtUtc?: string | null;
+  valuationStatus: string;
+  stockStatus: string;
+  rowVersion: string;
+};
+
 export type ItemUnitInput = {
   unitOfMeasureId: string;
   factorToBase: number;
@@ -120,6 +154,7 @@ export type OpeningStockRequest = {
   movementDate: string;
   unitOfMeasureId: string;
   quantity: number;
+  unitCost: number;
   notes?: string | null;
 };
 
@@ -127,6 +162,7 @@ export type CorrectOpeningStockRequest = {
   movementDate: string;
   unitOfMeasureId: string;
   quantity: number;
+  unitCost: number;
   reason: string;
   expectedOpeningMovementId: string;
 };
@@ -136,6 +172,7 @@ export type InventoryMovementRequest = {
   unitOfMeasureId: string;
   quantity: number;
   notes?: string | null;
+  unitCost?: number | null;
 };
 
 export type InventoryAdjustmentRequest = {
@@ -144,9 +181,17 @@ export type InventoryAdjustmentRequest = {
   quantity: number;
   adjustmentType: 'Increase' | 'Decrease';
   reason: string;
+  unitCost?: number | null;
 };
 
 export type ReverseInventoryMovementRequest = {
+  reason: string;
+};
+
+export type InitializeInventoryValuationRequest = {
+  warehouseId?: string | null;
+  averageUnitCost: number;
+  effectiveDate: string;
   reason: string;
 };
 
