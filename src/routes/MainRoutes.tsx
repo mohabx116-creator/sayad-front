@@ -13,6 +13,7 @@ import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants'
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
 import SystemOwnerRouteGuard from 'modules/System/components/SystemOwnerRouteGuard';
+import { ACCOUNTING_PERMISSIONS } from 'modules/Accounting/utils/accounting.constants';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -39,6 +40,10 @@ const TreasuryTransfersListPage = Loadable(lazy(() => import('modules/Treasury/p
 const TreasuryTransferDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryTransferDetailsPage')));
 const TreasuryTransferFormPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryTransferFormPage')));
 const TreasuryStatementsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryStatementsPage')));
+const AccountingHomePage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingHomePage')));
+const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
+const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
+const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
 const InventoryItemsListPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemsListPage')));
 const InventoryItemDetailsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemDetailsPage')));
 const InventoryItemFormPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryItemFormPage')));
@@ -228,6 +233,46 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={TREASURY_PERMISSIONS.statementsView}>
           <TreasuryStatementsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.view}>
+          <AccountingHomePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/chart-of-accounts',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsView}>
+          <AccountingChartOfAccountsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/chart-of-accounts/new',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsCreate}>
+          <AccountingAccountFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/chart-of-accounts/:id',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsView}>
+          <AccountingAccountDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/chart-of-accounts/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsUpdate}>
+          <AccountingAccountFormPage />
         </PermissionRouteGuard>
       )
     },
