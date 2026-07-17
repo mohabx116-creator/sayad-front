@@ -1,4 +1,4 @@
-import { IconFileDescription, IconHierarchy2, IconSettings, IconTree } from '@tabler/icons-react';
+import { IconFileDescription, IconHierarchy2, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 
@@ -33,6 +33,33 @@ const accounting: NavItemType = {
       icon: IconFileDescription,
       breadcrumbs: true,
       permission: ACCOUNTING_PERMISSIONS.journalEntriesView
+    },
+    {
+      id: 'accounting-reports',
+      title: 'accounting-reports',
+      type: 'collapse',
+      icon: IconReportAnalytics,
+      anyPermissions: [ACCOUNTING_PERMISSIONS.reportsView],
+      children: [
+        {
+          id: 'general-ledger-report',
+          title: 'general-ledger-report',
+          type: 'item',
+          url: '/accounting/reports/general-ledger',
+          icon: IconFileDescription,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
+          id: 'trial-balance-report',
+          title: 'trial-balance-report',
+          type: 'item',
+          url: '/accounting/reports/trial-balance',
+          icon: IconReportAnalytics,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        }
+      ]
     },
     {
       id: 'accounting-settings',

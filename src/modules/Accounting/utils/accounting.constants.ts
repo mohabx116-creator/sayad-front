@@ -8,6 +8,7 @@ export const ACCOUNTING_PERMISSIONS = {
   accountsDelete: 'accounting.accounts.delete',
   settingsView: 'accounting.settings.view',
   settingsUpdate: 'accounting.settings.update',
+  reportsView: 'accounting.reports.view',
   journalEntriesView: 'accounting.journal-entries.view',
   journalEntriesCreate: 'accounting.journal-entries.create',
   journalEntriesUpdate: 'accounting.journal-entries.update',
@@ -23,6 +24,7 @@ export const ACCOUNTING_VIEW_PERMISSIONS = [
   ACCOUNTING_PERMISSIONS.view,
   ACCOUNTING_PERMISSIONS.accountsView,
   ACCOUNTING_PERMISSIONS.settingsView,
+  ACCOUNTING_PERMISSIONS.reportsView,
   ACCOUNTING_PERMISSIONS.journalEntriesView
 ] as const;
 

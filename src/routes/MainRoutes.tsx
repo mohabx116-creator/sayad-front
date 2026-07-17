@@ -45,6 +45,8 @@ const AccountingSettingsPage = Loadable(lazy(() => import('modules/Accounting/pa
 const JournalEntriesListPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntriesListPage')));
 const JournalEntryDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryDetailsPage')));
 const JournalEntryFormPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryFormPage')));
+const GeneralLedgerPage = Loadable(lazy(() => import('modules/Accounting/pages/GeneralLedgerPage')));
+const TrialBalancePage = Loadable(lazy(() => import('modules/Accounting/pages/TrialBalancePage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
 const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
 const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
@@ -310,6 +312,22 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.journalEntriesUpdate}>
           <JournalEntryFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/general-ledger',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <GeneralLedgerPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/trial-balance',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <TrialBalancePage />
         </PermissionRouteGuard>
       )
     },
