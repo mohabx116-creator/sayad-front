@@ -57,16 +57,25 @@ export default function TreasuryTransferFormPage() {
   const amountValue = Number(form.amount) || 0;
   const sameAccount = Boolean(form.fromAccountId && form.toAccountId && form.fromAccountId === form.toAccountId);
   const sameCurrency = Boolean(!fromAccount || !toAccount || fromAccount.currencyCode === toAccount.currencyCode);
-  const validationMessage = sameAccount
+  const sourceProjectedBalance = fromAccount ? fromAccount.balance - amountValue : 0;
+  const destinationProjectedBalance = toAccount ? toAccount.balance + amountValue : 0;
+  const sourceAccountingAccountLabel = fromAccount?.accountingAccountId ? `${fromAccount.accountingAccountCode} — ${fromAccount.accountingAccountArabicName}` : null;
+  const destinationAccountingAccountLabel = toAccount?.accountingAccountId ? `${toAccount.accountingAccountCode} — ${toAccount.accountingAccountArabicName}` : null;
+  const formValidationMessage = sameAccount
     ? 'لا يمكن التحويل بين نفس الحساب.'
     : !sameCurrency
       ? 'يجب أن يكون الحسابان بنفس العملة.'
       : amountValue <= 0
         ? 'مبلغ التحويل يجب أن يكون أكبر من صفر.'
         : '';
-
-  const sourceProjectedBalance = fromAccount ? fromAccount.balance - amountValue : 0;
-  const destinationProjectedBalance = toAccount ? toAccount.balance + amountValue : 0;
+  const postingValidationMessage = formValidationMessage
+    || (fromAccount && !fromAccount.accountingAccountId
+      ? 'حساب الخزنة المصدر غير مربوط بحساب محاسبي.'
+      : toAccount && !toAccount.accountingAccountId
+        ? 'حساب الخزنة الوجهة غير مربوط بحساب محاسبي.'
+        : fromAccount?.accountingAccountId && toAccount?.accountingAccountId && fromAccount.accountingAccountId === toAccount.accountingAccountId
+          ? 'لا يمكن التحويل بين الحساب نفسه.'
+          : '');
 
   useEffect(() => {
     let isMounted = true;
@@ -117,8 +126,13 @@ export default function TreasuryTransferFormPage() {
   };
 
   const handleSubmit = async (actionType: 'draft' | 'post') => {
-    if (validationMessage) {
-      notify(validationMessage, 'error');
+    if (formValidationMessage) {
+      notify(formValidationMessage, 'error');
+      return;
+    }
+
+    if (actionType === 'post' && postingValidationMessage) {
+      notify(postingValidationMessage, 'error');
       return;
     }
 
@@ -250,9 +264,14 @@ export default function TreasuryTransferFormPage() {
             <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
               <FormattedMessage id="treasury.transfer-preview" defaultMessage="الأرصدة قبل التأكيد" />
             </Typography>
-            {validationMessage ? (
+            {formValidationMessage ? (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {formValidationMessage}
+              </Alert>
+            ) : null}
+            {postingValidationMessage && postingValidationMessage !== formValidationMessage ? (
               <Alert severity="warning" sx={{ mb: 2 }}>
-                {validationMessage}
+                {postingValidationMessage}
               </Alert>
             ) : null}
             <Grid container spacing={2}>
@@ -268,6 +287,19 @@ export default function TreasuryTransferFormPage() {
                   <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
                     <FormattedMessage id="balance-after-transfer" defaultMessage="الرصيد بعد التحويل" />: {fromAccount ? sourceProjectedBalance.toFixed(2) : '—'} {fromAccount?.currencyCode ?? ''}
                   </Typography>
+                  <Box sx={{ mt: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
+                      <FormattedMessage id="source-accounting-account" defaultMessage="الحساب المحاسبي للمصدر" />:
+                    </Typography>
+                    <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                      {sourceAccountingAccountLabel ?? '—'}
+                    </Typography>
+                    {fromAccount && !fromAccount.accountingAccountId && (
+                      <Alert severity="warning" sx={{ mt: 1 }}>
+                        <FormattedMessage id="treasury.transfer-source-unmapped" defaultMessage="حساب الخزنة المصدر غير مربوط بحساب محاسبي." />
+                      </Alert>
+                    )}
+                  </Box>
                 </Box>
               </Grid>
               <Grid item xs={12} md={6}>
@@ -282,20 +314,38 @@ export default function TreasuryTransferFormPage() {
                   <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
                     <FormattedMessage id="balance-after-transfer" defaultMessage="الرصيد بعد التحويل" />: {toAccount ? destinationProjectedBalance.toFixed(2) : '—'} {toAccount?.currencyCode ?? ''}
                   </Typography>
+                  <Box sx={{ mt: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
+                      <FormattedMessage id="destination-accounting-account" defaultMessage="الحساب المحاسبي للوجهة" />:
+                    </Typography>
+                    <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                      {destinationAccountingAccountLabel ?? '—'}
+                    </Typography>
+                    {toAccount && !toAccount.accountingAccountId && (
+                      <Alert severity="warning" sx={{ mt: 1 }}>
+                        <FormattedMessage id="treasury.transfer-destination-unmapped" defaultMessage="حساب الخزنة الوجهة غير مربوط بحساب محاسبي." />
+                      </Alert>
+                    )}
+                  </Box>
                 </Box>
               </Grid>
             </Grid>
+            {fromAccount?.accountingAccountId && toAccount?.accountingAccountId && fromAccount.accountingAccountId === toAccount.accountingAccountId && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <FormattedMessage id="treasury.transfer-same-accounting-account" defaultMessage="لا يمكن التحويل بين الحساب نفسه." />
+              </Alert>
+            )}
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
             <Button variant="outlined" color="inherit" onClick={() => navigate('/treasury/transfers')} disabled={isSaving}>
               <FormattedMessage id="cancel" defaultMessage="إلغاء" />
             </Button>
-            <Button variant="outlined" onClick={() => handleSubmit('draft')} disabled={isSaving || Boolean(validationMessage)}>
+            <Button variant="outlined" onClick={() => handleSubmit('draft')} disabled={isSaving || Boolean(formValidationMessage)}>
               <FormattedMessage id="save-as-draft" defaultMessage="حفظ كمسودة" />
             </Button>
             <PermissionGuard permission={TREASURY_PERMISSIONS.transfersPost}>
-              <Button variant="contained" onClick={() => handleSubmit('post')} disabled={isSaving || Boolean(validationMessage)}>
+              <Button variant="contained" onClick={() => handleSubmit('post')} disabled={isSaving || Boolean(formValidationMessage)}>
                 <FormattedMessage id="post" defaultMessage="اعتماد التحويل" />
               </Button>
             </PermissionGuard>

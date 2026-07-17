@@ -291,9 +291,15 @@ export interface TreasuryTransfer {
   fromAccountId: string;
   fromAccountCode: string;
   fromAccountNameArabic: string;
+  sourceAccountingAccountId: string | null;
+  sourceAccountingAccountCode: string | null;
+  sourceAccountingAccountArabicName: string | null;
   toAccountId: string;
   toAccountCode: string;
   toAccountNameArabic: string;
+  destinationAccountingAccountId: string | null;
+  destinationAccountingAccountCode: string | null;
+  destinationAccountingAccountArabicName: string | null;
   transferDate: string;
   status: string;
   currencyCode: string;
@@ -302,6 +308,10 @@ export interface TreasuryTransfer {
   postedAtUtc: string | null;
   cancelledAtUtc: string | null;
   cancellationReason: string | null;
+  accountingJournalEntryId: string | null;
+  accountingEntryNumber: string | null;
+  accountingPostingStatus: string;
+  isAccountingPosted: boolean;
   rowVersion: string;
 }
 
@@ -314,6 +324,8 @@ export interface TreasuryTransferListItem {
   status: string;
   amount: number;
   currencyCode: string;
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
   rowVersion: string;
 }
 

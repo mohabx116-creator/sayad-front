@@ -4,11 +4,12 @@ import { Link, useParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { IconArrowLeft, IconArrowRight, IconCheck, IconEdit, IconX } from '@tabler/icons-react';
+import { IconArrowLeft, IconArrowRight, IconCheck, IconEdit, IconExternalLink, IconX } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -102,6 +103,12 @@ export default function TreasuryTransferDetailsPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <Typography variant="h3" fontWeight={700}>{transfer.number}</Typography>
               <TreasuryStatusChip status={transfer.status} />
+              <Chip
+                variant="outlined"
+                size="small"
+                label={transfer.accountingPostingStatus}
+                color={transfer.accountingPostingStatus.includes('عكس') ? 'info' : transfer.isAccountingPosted ? 'success' : transfer.accountingPostingStatus.includes('سجل سابق') ? 'warning' : 'default'}
+              />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {transfer.fromAccountCode} <IconArrowRight size={12} style={{ verticalAlign: 'middle' }} /> {transfer.toAccountCode}
@@ -162,10 +169,33 @@ export default function TreasuryTransferDetailsPage() {
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
+                  <InfoRow label={<FormattedMessage id="source-accounting-account" defaultMessage="الحساب المحاسبي للمصدر" />}>
+                    {transfer.sourceAccountingAccountCode && transfer.sourceAccountingAccountArabicName
+                      ? `${transfer.sourceAccountingAccountCode} — ${transfer.sourceAccountingAccountArabicName}`
+                      : '—'}
+                  </InfoRow>
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <InfoRow label={<FormattedMessage id="to-account" defaultMessage="الحساب المحول إليه" />}>
                     <CodeNameLabel code={transfer.toAccountCode} nameArabic={transfer.toAccountNameArabic} />
                   </InfoRow>
                 </Grid>
+                <Grid item xs={12} sm={6}>
+                  <InfoRow label={<FormattedMessage id="destination-accounting-account" defaultMessage="الحساب المحاسبي للوجهة" />}>
+                    {transfer.destinationAccountingAccountCode && transfer.destinationAccountingAccountArabicName
+                      ? `${transfer.destinationAccountingAccountCode} — ${transfer.destinationAccountingAccountArabicName}`
+                      : '—'}
+                  </InfoRow>
+                </Grid>
+                {transfer.accountingJournalEntryId && (
+                  <Grid item xs={12} sm={6}>
+                    <InfoRow label={<FormattedMessage id="accounting-journal-entry" defaultMessage="القيد المحاسبي" />}>
+                      <Button component={Link} to={`/accounting/journal-entries/${transfer.accountingJournalEntryId}`} size="small" variant="text" startIcon={<IconExternalLink size={16} />}>
+                        {transfer.accountingEntryNumber ?? transfer.accountingJournalEntryId}
+                      </Button>
+                    </InfoRow>
+                  </Grid>
+                )}
                 {transfer.notes && (
                   <Grid item xs={12}>
                     <InfoRow label={<FormattedMessage id="notes" defaultMessage="ملاحظات" />}>
