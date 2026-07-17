@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Chip from '@mui/material/Chip';
@@ -11,10 +11,14 @@ import MainCard from 'ui-component/cards/MainCard';
 import Loader from 'ui-component/Loader';
 import RoleStatusChip from '../components/RoleStatusChip';
 import { useRole } from '../hooks/useAdministration';
+import { getAdministrationRouteBase, getAdministrationScope } from '../utils/administration-scope';
 
 export default function RoleDetailsPage() {
   const { id } = useParams();
+  const { pathname } = useLocation();
   const intl = useIntl();
+  const routeBase = getAdministrationRouteBase(pathname);
+  const scope = getAdministrationScope(pathname);
   const { role, isLoading, error } = useRole(id);
   const isArabic = intl.locale.startsWith('ar');
 
@@ -24,8 +28,16 @@ export default function RoleDetailsPage() {
 
   return (
     <>
-      <Breadcrumbs custom heading="role-details" links={[{ title: 'administration' }, { title: 'administration-roles-permissions', to: '/administration/roles' }, { title: 'role-details' }]} />
-      <MainCard title={<FormattedMessage id="role-details" />}>
+      <Breadcrumbs
+        custom
+        heading={scope === 'system' ? 'system-role-details' : 'role-details'}
+        links={[
+          { title: scope === 'system' ? 'system-administration' : 'administration' },
+          { title: scope === 'system' ? 'system-roles-permissions' : 'administration-roles-permissions', to: `${routeBase}/roles` },
+          { title: scope === 'system' ? 'system-role-details' : 'role-details' }
+        ]}
+      />
+      <MainCard title={<FormattedMessage id={scope === 'system' ? 'system-role-details' : 'role-details'} />}>
         {error && <Typography color="error"><FormattedMessage id="administration-load-error" /></Typography>}
         {role && (
           <Grid container spacing={2}>

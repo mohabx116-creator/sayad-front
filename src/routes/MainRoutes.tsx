@@ -12,6 +12,7 @@ import { PURCHASES_PERMISSIONS } from 'modules/Purchases/utils/purchases.constan
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
+import SystemOwnerRouteGuard from 'modules/System/components/SystemOwnerRouteGuard';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -66,6 +67,11 @@ const ExpenseCategoryFormPage = Loadable(lazy(() => import('modules/Expenses/pag
 const ExpensesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpensesListPage')));
 const ExpenseDetailsPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseDetailsPage')));
 const ExpenseFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseFormPage')));
+const SystemDashboardPage = Loadable(lazy(() => import('modules/System/pages/SystemDashboardPage')));
+const SystemPermissionsPage = Loadable(lazy(() => import('modules/System/pages/SystemPermissionsPage')));
+const SystemAuditPage = Loadable(lazy(() => import('modules/System/pages/SystemAuditPage')));
+const SystemMaintenancePage = Loadable(lazy(() => import('modules/System/pages/SystemMaintenancePage')));
+const SystemDangerZonePage = Loadable(lazy(() => import('modules/System/pages/SystemDangerZonePage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -239,6 +245,78 @@ const MainRoutes = {
         <PermissionRouteGuard permission={ADMINISTRATION_PERMISSIONS.usersView}>
           <UserDetailsPage />
         </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/system',
+      element: (
+        <SystemOwnerRouteGuard>
+          <SystemDashboardPage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/users',
+      element: (
+        <SystemOwnerRouteGuard>
+          <UsersListPage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/users/:id',
+      element: (
+        <SystemOwnerRouteGuard>
+          <UserDetailsPage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/roles',
+      element: (
+        <SystemOwnerRouteGuard>
+          <RolesListPage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/roles/:id',
+      element: (
+        <SystemOwnerRouteGuard>
+          <RoleDetailsPage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/permissions',
+      element: (
+        <SystemOwnerRouteGuard>
+          <SystemPermissionsPage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/audit',
+      element: (
+        <SystemOwnerRouteGuard>
+          <SystemAuditPage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/maintenance',
+      element: (
+        <SystemOwnerRouteGuard>
+          <SystemMaintenancePage />
+        </SystemOwnerRouteGuard>
+      )
+    },
+    {
+      path: '/system/danger-zone',
+      element: (
+        <SystemOwnerRouteGuard>
+          <SystemDangerZonePage />
+        </SystemOwnerRouteGuard>
       )
     },
     {

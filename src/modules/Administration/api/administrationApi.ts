@@ -15,6 +15,7 @@ import type {
   UpdateUserRequest,
   UserDto
 } from '../types/administration.types';
+import { getAdministrationApiBasePath } from '../utils/administration-scope';
 
 function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
   return request.then((response) => {
@@ -35,57 +36,61 @@ export function unwrapList<T>(response: ApiResponse<T[]>): { items: T[]; meta: L
 }
 
 export function createUser(request: CreateUserRequest) {
-  return unwrap(axiosServices.post<ApiResponse<UserDto>>('/api/administration/users', request));
+  return unwrap(axiosServices.post<ApiResponse<UserDto>>(`${getAdministrationApiBasePath()}/users`, request));
 }
 
 export function updateUser(id: string, request: UpdateUserRequest) {
-  return unwrap(axiosServices.put<ApiResponse<UserDto>>(`/api/administration/users/${id}`, request));
+  return unwrap(axiosServices.put<ApiResponse<UserDto>>(`${getAdministrationApiBasePath()}/users/${id}`, request));
+}
+
+export function deleteUser(id: string) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`${getAdministrationApiBasePath()}/users/${id}`));
 }
 
 export function activateUser(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/administration/users/${id}/activate`, {}));
+  return unwrap(axiosServices.post<ApiResponse<object>>(`${getAdministrationApiBasePath()}/users/${id}/activate`, {}));
 }
 
 export function deactivateUser(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/administration/users/${id}/deactivate`, {}));
+  return unwrap(axiosServices.post<ApiResponse<object>>(`${getAdministrationApiBasePath()}/users/${id}/deactivate`, {}));
 }
 
 export function lockUser(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/administration/users/${id}/lock`, {}));
+  return unwrap(axiosServices.post<ApiResponse<object>>(`${getAdministrationApiBasePath()}/users/${id}/lock`, {}));
 }
 
 export function unlockUser(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/administration/users/${id}/unlock`, {}));
+  return unwrap(axiosServices.post<ApiResponse<object>>(`${getAdministrationApiBasePath()}/users/${id}/unlock`, {}));
 }
 
 export function resetUserPassword(id: string, request: ResetPasswordRequest) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/administration/users/${id}/reset-password`, request));
+  return unwrap(axiosServices.post<ApiResponse<object>>(`${getAdministrationApiBasePath()}/users/${id}/reset-password`, request));
 }
 
 export function assignUserRoles(id: string, request: AssignRolesRequest) {
-  return unwrap(axiosServices.put<ApiResponse<UserDto>>(`/api/administration/users/${id}/roles`, request));
+  return unwrap(axiosServices.put<ApiResponse<UserDto>>(`${getAdministrationApiBasePath()}/users/${id}/roles`, request));
 }
 
 export function createRole(request: CreateRoleRequest) {
-  return unwrap(axiosServices.post<ApiResponse<RoleDto>>('/api/administration/roles', request));
+  return unwrap(axiosServices.post<ApiResponse<RoleDto>>(`${getAdministrationApiBasePath()}/roles`, request));
 }
 
 export function updateRole(id: string, request: UpdateRoleRequest) {
-  return unwrap(axiosServices.put<ApiResponse<RoleDto>>(`/api/administration/roles/${id}`, request));
+  return unwrap(axiosServices.put<ApiResponse<RoleDto>>(`${getAdministrationApiBasePath()}/roles/${id}`, request));
 }
 
 export function activateRole(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/administration/roles/${id}/activate`, {}));
+  return unwrap(axiosServices.post<ApiResponse<object>>(`${getAdministrationApiBasePath()}/roles/${id}/activate`, {}));
 }
 
 export function deactivateRole(id: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/administration/roles/${id}/deactivate`, {}));
+  return unwrap(axiosServices.post<ApiResponse<object>>(`${getAdministrationApiBasePath()}/roles/${id}/deactivate`, {}));
 }
 
 export function assignRolePermissions(id: string, request: AssignPermissionsRequest) {
-  return unwrap(axiosServices.put<ApiResponse<RoleDto>>(`/api/administration/roles/${id}/permissions`, request));
+  return unwrap(axiosServices.put<ApiResponse<RoleDto>>(`${getAdministrationApiBasePath()}/roles/${id}/permissions`, request));
 }
 
 export function getPermissions() {
-  return unwrap(axiosServices.get<ApiResponse<PermissionDto[]>>('/api/administration/permissions'));
+  return unwrap(axiosServices.get<ApiResponse<PermissionDto[]>>(`${getAdministrationApiBasePath()}/permissions`));
 }

@@ -1,6 +1,10 @@
 import type { UserProfile } from 'types/user-profile';
 
 export function hasPermission(user: UserProfile | null | undefined, code: string): boolean {
+  if (user?.isSystemOwner) {
+    return true;
+  }
+
   return Boolean(user?.permissions?.some((permission) => permission === code));
 }
 

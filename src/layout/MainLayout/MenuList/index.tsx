@@ -48,8 +48,9 @@ function MenuList() {
       .filter((item) => {
         const permissionAllowed = item.permission ? hasPermission(user, item.permission) : true;
         const anyPermissionAllowed = item.anyPermissions ? hasAnyPermission(user, item.anyPermissions) : true;
+        const systemOwnerAllowed = item.systemOwnerOnly ? Boolean(user?.isSystemOwner) : true;
         const hasVisibleChildren = item.children ? item.children.length > 0 : true;
-        return permissionAllowed && anyPermissionAllowed && hasVisibleChildren;
+        return permissionAllowed && anyPermissionAllowed && systemOwnerAllowed && hasVisibleChildren;
       });
 
   useLayoutEffect(() => {

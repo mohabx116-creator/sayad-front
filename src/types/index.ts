@@ -95,6 +95,7 @@ export type NavItemType = {
   search?: string;
   permission?: string;
   anyPermissions?: string[];
+  systemOwnerOnly?: boolean;
 };
 
 export type AuthSliderProps = {

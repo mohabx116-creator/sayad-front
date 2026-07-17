@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -35,11 +36,14 @@ import { usePermissions, useRoles } from '../hooks/useAdministration';
 import { createRoleSchema, updateRoleSchema } from '../schemas/role.schema';
 import type { CreateRoleRequest, RoleDto, UpdateRoleRequest } from '../types/administration.types';
 import { ADMINISTRATION_PERMISSIONS } from '../utils/administration.constants';
+import { getAdministrationScope } from '../utils/administration-scope';
 
 type RoleDialogState = { mode: 'create' | 'edit'; role?: RoleDto } | null;
 
 export default function RolesListPage() {
   const intl = useIntl();
+  const { pathname } = useLocation();
+  const scope = getAdministrationScope(pathname);
   const dispatch = useDispatch();
   const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<RoleDialogState>(null);
@@ -121,7 +125,11 @@ export default function RolesListPage() {
 
   return (
     <>
-      <Breadcrumbs custom heading="roles-and-permissions" links={[{ title: 'administration' }, { title: 'roles-and-permissions' }]} />
+      <Breadcrumbs
+        custom
+        heading={scope === 'system' ? 'system-roles-permissions' : 'roles-and-permissions'}
+        links={[{ title: scope === 'system' ? 'system-administration' : 'administration' }, { title: scope === 'system' ? 'system-roles-permissions' : 'roles-and-permissions' }]}
+      />
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
         <Box>

@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type { ListMeta, PermissionDto, RoleDto, UserDto } from '../types/administration.types';
+import { getAdministrationApiBasePath } from '../utils/administration-scope';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams();
@@ -21,28 +22,28 @@ function toListResult<T>(data?: ApiResponse<T[]>) {
 }
 
 export function useUsers(params: Record<string, string | number | boolean | undefined | null>) {
-  const key = `/api/administration/users?${buildQuery(params)}`;
+  const key = `${getAdministrationApiBasePath()}/users?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<UserDto[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useUser(id?: string) {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<UserDto>>(id ? `/api/administration/users/${id}` : null, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<UserDto>>(id ? `${getAdministrationApiBasePath()}/users/${id}` : null, fetcher);
   return useMemo(() => ({ user: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }
 
 export function useRoles(params: Record<string, string | number | boolean | undefined | null> = {}) {
-  const key = `/api/administration/roles?${buildQuery(params)}`;
+  const key = `${getAdministrationApiBasePath()}/roles?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<RoleDto[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useRole(id?: string) {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<RoleDto>>(id ? `/api/administration/roles/${id}` : null, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<RoleDto>>(id ? `${getAdministrationApiBasePath()}/roles/${id}` : null, fetcher);
   return useMemo(() => ({ role: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }
 
 export function usePermissions() {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PermissionDto[]>>('/api/administration/permissions', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PermissionDto[]>>(`${getAdministrationApiBasePath()}/permissions`, fetcher);
   return useMemo(() => ({ permissions: data?.data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }

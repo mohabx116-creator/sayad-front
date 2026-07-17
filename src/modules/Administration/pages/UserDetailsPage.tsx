@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 
 import Chip from '@mui/material/Chip';
@@ -12,17 +12,29 @@ import Loader from 'ui-component/Loader';
 import UserLockChip from '../components/UserLockChip';
 import UserStatusChip from '../components/UserStatusChip';
 import { useUser } from '../hooks/useAdministration';
+import { getAdministrationRouteBase, getAdministrationScope } from '../utils/administration-scope';
 
 export default function UserDetailsPage() {
   const { id } = useParams();
+  const { pathname } = useLocation();
+  const routeBase = getAdministrationRouteBase(pathname);
+  const scope = getAdministrationScope(pathname);
   const { user, isLoading, error } = useUser(id);
 
   if (isLoading) return <Loader />;
 
   return (
     <>
-      <Breadcrumbs custom heading="user-details" links={[{ title: 'administration' }, { title: 'administration-users', to: '/administration/users' }, { title: 'user-details' }]} />
-      <MainCard title={<FormattedMessage id="user-details" />}>
+      <Breadcrumbs
+        custom
+        heading={scope === 'system' ? 'system-user-details' : 'user-details'}
+        links={[
+          { title: scope === 'system' ? 'system-administration' : 'administration' },
+          { title: scope === 'system' ? 'system-users' : 'administration-users', to: `${routeBase}/users` },
+          { title: scope === 'system' ? 'system-user-details' : 'user-details' }
+        ]}
+      />
+      <MainCard title={<FormattedMessage id={scope === 'system' ? 'system-user-details' : 'user-details'} />}>
         {error && <Typography color="error"><FormattedMessage id="administration-load-error" /></Typography>}
         {!user && !error && <Typography><FormattedMessage id="administration-empty-users" /></Typography>}
         {user && (
