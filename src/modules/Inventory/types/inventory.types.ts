@@ -94,6 +94,13 @@ export type InventoryMovementDto = {
   costSourceMovementId?: string | null;
   isCostResolved: boolean;
   valuationStatus: string;
+  offsetAccountingAccountId?: string | null;
+  offsetAccountingAccountCode?: string | null;
+  offsetAccountingAccountArabicName?: string | null;
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
+  accountingPostingStatus: string;
+  recognizedInventoryCost: number;
 };
 
 export type ItemUnitDto = {
@@ -173,6 +180,7 @@ export type InventoryMovementRequest = {
   quantity: number;
   notes?: string | null;
   unitCost?: number | null;
+  offsetAccountingAccountId?: string | null;
 };
 
 export type InventoryAdjustmentRequest = {
@@ -182,6 +190,7 @@ export type InventoryAdjustmentRequest = {
   adjustmentType: 'Increase' | 'Decrease';
   reason: string;
   unitCost?: number | null;
+  offsetAccountingAccountId?: string | null;
 };
 
 export type ReverseInventoryMovementRequest = {

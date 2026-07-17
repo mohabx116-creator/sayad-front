@@ -119,6 +119,7 @@ export type JournalEntryAccountLookupParams = {
   page?: number;
   pageSize?: number;
   search?: string;
+  excludeInventoryAsset?: boolean;
 };
 
 export type JournalEntryCancelRequest = {

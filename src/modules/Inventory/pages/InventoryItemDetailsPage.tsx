@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+﻿import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -22,6 +22,7 @@ import { IconEdit, IconTrash, IconAdjustments, IconArrowDown, IconArrowUp } from
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
+import { useJournalEntryAccounts } from 'modules/Accounting/hooks/useJournalEntries';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
@@ -56,7 +57,7 @@ import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
 const today = new Date().toISOString().slice(0, 10);
 
 function initialMovement(unitId: string): InventoryMovementRequest {
-  return { movementDate: today, unitOfMeasureId: unitId, quantity: 0, notes: '' };
+  return { movementDate: today, unitOfMeasureId: unitId, quantity: 0, notes: '', offsetAccountingAccountId: null };
 }
 
 export default function InventoryItemDetailsPage() {
@@ -70,6 +71,7 @@ export default function InventoryItemDetailsPage() {
   const { items: relations, mutate: mutateRelations } = usePartyItemRelations({ itemId: id, page: 1, pageSize: 100 });
   const { items: parties } = useParties({ page: 1, pageSize: 100 });
   const { items: units } = useInventoryUnits({ page: 1, pageSize: 100 });
+  const { items: accountingAccounts } = useJournalEntryAccounts({ page: 1, pageSize: 100, excludeInventoryAsset: true });
   
   const [openingForm, setOpeningForm] = useState<OpeningStockRequest & { reason?: string; expectedOpeningMovementId?: string }>({
     movementDate: today,
@@ -86,7 +88,8 @@ export default function InventoryItemDetailsPage() {
     quantity: 0,
     adjustmentType: 'Increase',
     reason: '',
-    unitCost: 0
+    unitCost: 0,
+    offsetAccountingAccountId: null
   });
   const [relationForm, setRelationForm] = useState<CreateItemPartyRelationRequest>({
     partyId: '',
@@ -112,6 +115,23 @@ export default function InventoryItemDetailsPage() {
       setAdjustmentForm((current) => ({ ...current, unitOfMeasureId: firstUnit }));
     }
   }, [adjustmentForm.unitOfMeasureId, openingForm.unitOfMeasureId, stockInForm.unitOfMeasureId, stockOutForm.unitOfMeasureId, units]);
+
+  useEffect(() => {
+    const firstAccountId = accountingAccounts[0]?.id ?? '';
+    if (!firstAccountId) {
+      return;
+    }
+
+    if (!stockInForm.offsetAccountingAccountId) {
+      setStockInForm((current) => ({ ...current, offsetAccountingAccountId: firstAccountId }));
+    }
+    if (!stockOutForm.offsetAccountingAccountId) {
+      setStockOutForm((current) => ({ ...current, offsetAccountingAccountId: firstAccountId }));
+    }
+    if (!adjustmentForm.offsetAccountingAccountId) {
+      setAdjustmentForm((current) => ({ ...current, offsetAccountingAccountId: firstAccountId }));
+    }
+  }, [accountingAccounts, adjustmentForm.offsetAccountingAccountId, stockInForm.offsetAccountingAccountId, stockOutForm.offsetAccountingAccountId]);
 
   useEffect(() => {
     if (openingStock?.movementId) {
@@ -188,7 +208,7 @@ export default function InventoryItemDetailsPage() {
             {item.nameArabic}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            كود الصنف: {item.code}
+            ظƒظˆط¯ ط§ظ„طµظ†ظپ: {item.code}
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
@@ -240,13 +260,13 @@ export default function InventoryItemDetailsPage() {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="approximate-cost-price" />
                 </Typography>
-                <Typography variant="h5">{item.defaultSalePrice.toFixed(2)} ج.م</Typography>
+                <Typography variant="h5">{item.defaultSalePrice.toFixed(2)} ط¬.ظ…</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="primary-supplier" />
                 </Typography>
-                <Typography variant="h5">الشركة الهندسية للبلاستيك</Typography>
+                <Typography variant="h5">ط§ظ„ط´ط±ظƒط© ط§ظ„ظ‡ظ†ط¯ط³ظٹط© ظ„ظ„ط¨ظ„ط§ط³طھظٹظƒ</Typography>
               </Grid>
             </Grid>
           </MainCard>
@@ -256,7 +276,7 @@ export default function InventoryItemDetailsPage() {
           <MainCard title={<FormattedMessage id="stock-summary" />} sx={{ height: '100%' }}>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                الرصيد الحالي
+                ط§ظ„ط±طµظٹط¯ ط§ظ„ط­ط§ظ„ظٹ
               </Typography>
               <Typography variant="h1" sx={{ fontSize: '3rem', fontWeight: 700, mb: 1 }}>
                 {item.currentQuantity}
@@ -377,12 +397,24 @@ export default function InventoryItemDetailsPage() {
                       </TableCell>
                       <TableCell align="center">{movement.runningQuantity}</TableCell>
                       <TableCell align="left">{movement.descriptionArabic || '-'}</TableCell>
+                      <TableCell align="center">
+                        {movement.accountingJournalEntryId ? (
+                          <Stack spacing={0.5} alignItems="center">
+                            <Chip size="small" color="success" variant="outlined" label={movement.accountingPostingStatus} />
+                            <Typography component={Link} to={`/accounting/journal-entries/${movement.accountingJournalEntryId}`} variant="caption" color="primary" sx={{ textDecoration: 'none' }}>
+                              {movement.accountingEntryNumber ?? movement.accountingJournalEntryId}
+                            </Typography>
+                          </Stack>
+                        ) : (
+                          <Chip size="small" variant="outlined" label={movement.accountingPostingStatus} />
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {movements.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
-                        لا توجد حركات
+                      <TableCell colSpan={6} align="center">
+                        ظ„ط§ طھظˆط¬ط¯ ط­ط±ظƒط§طھ
                       </TableCell>
                     </TableRow>
                   )}
@@ -395,7 +427,7 @@ export default function InventoryItemDetailsPage() {
       
       <Box sx={{ mt: 5 }}>
         <Typography variant="h4" color="text.secondary" sx={{ mb: 2, px: 1 }}>
-          إدارة إضافية (Operational Controls)
+          ط¥ط¯ط§ط±ط© ط¥ط¶ط§ظپظٹط© (Operational Controls)
         </Typography>
         <Stack spacing={3}>
           <MainCard title={<FormattedMessage id="opening-stock" />}>
@@ -452,6 +484,10 @@ export default function InventoryItemDetailsPage() {
                   <TextField select fullWidth label={<FormattedMessage id="unit" />} value={stockInForm.unitOfMeasureId} onChange={(event) => setStockInForm({ ...stockInForm, unitOfMeasureId: event.target.value })} size="small">
                     {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
                   </TextField>
+                  <TextField select fullWidth label={<FormattedMessage id="offset-account" defaultMessage="Offset Account" />} value={stockInForm.offsetAccountingAccountId ?? ''} onChange={(event) => setStockInForm({ ...stockInForm, offsetAccountingAccountId: event.target.value || null })} size="small">
+                    <MenuItem value=""><FormattedMessage id="select-account" defaultMessage="Select account" /></MenuItem>
+                    {accountingAccounts.map((account) => <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>)}
+                  </TextField>
                   <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={stockInForm.quantity} onChange={(event) => setStockInForm({ ...stockInForm, quantity: Number(event.target.value) })} size="small" />
                   <TextField type="number" fullWidth label={<FormattedMessage id="unit-cost" defaultMessage="Unit Cost" />} value={stockInForm.unitCost ?? 0} onChange={(event) => setStockInForm({ ...stockInForm, unitCost: Number(event.target.value) })} size="small" />
                   <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} value={stockInForm.notes ?? ''} onChange={(event) => setStockInForm({ ...stockInForm, notes: event.target.value })} size="small" />
@@ -465,6 +501,10 @@ export default function InventoryItemDetailsPage() {
                   <TextField select fullWidth label={<FormattedMessage id="unit" />} value={stockOutForm.unitOfMeasureId} onChange={(event) => setStockOutForm({ ...stockOutForm, unitOfMeasureId: event.target.value })} size="small">
                     {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
                   </TextField>
+                  <TextField select fullWidth label={<FormattedMessage id="offset-account" defaultMessage="Offset Account" />} value={stockOutForm.offsetAccountingAccountId ?? ''} onChange={(event) => setStockOutForm({ ...stockOutForm, offsetAccountingAccountId: event.target.value || null })} size="small">
+                    <MenuItem value=""><FormattedMessage id="select-account" defaultMessage="Select account" /></MenuItem>
+                    {accountingAccounts.map((account) => <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>)}
+                  </TextField>
                   <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={stockOutForm.quantity} onChange={(event) => setStockOutForm({ ...stockOutForm, quantity: Number(event.target.value) })} size="small" />
                   <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} value={stockOutForm.notes ?? ''} onChange={(event) => setStockOutForm({ ...stockOutForm, notes: event.target.value })} size="small" />
                   <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postStockOut(item.id, stockOutForm))}><FormattedMessage id="post-stock-out" /></Button>
@@ -476,6 +516,10 @@ export default function InventoryItemDetailsPage() {
                   <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={adjustmentForm.movementDate} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} size="small" />
                   <TextField select fullWidth label={<FormattedMessage id="unit" />} value={adjustmentForm.unitOfMeasureId} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, unitOfMeasureId: event.target.value })} size="small">
                     {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
+                  </TextField>
+                  <TextField select fullWidth label={<FormattedMessage id="offset-account" defaultMessage="Offset Account" />} value={adjustmentForm.offsetAccountingAccountId ?? ''} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, offsetAccountingAccountId: event.target.value || null })} size="small">
+                    <MenuItem value=""><FormattedMessage id="select-account" defaultMessage="Select account" /></MenuItem>
+                    {accountingAccounts.map((account) => <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>)}
                   </TextField>
                   <TextField select fullWidth label={<FormattedMessage id="adjustment-type" />} value={adjustmentForm.adjustmentType} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, adjustmentType: event.target.value as 'Increase' | 'Decrease' })} size="small">
                     <MenuItem value="Increase"><FormattedMessage id="increase" /></MenuItem>
