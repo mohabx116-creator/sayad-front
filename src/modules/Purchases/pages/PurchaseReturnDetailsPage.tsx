@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { cancelReturn, postReturn } from '../api/purchasesApi';
 import { usePurchaseReturn } from '../hooks/usePurchases';
@@ -69,6 +70,10 @@ export default function PurchaseReturnDetailsPage() {
            <Box sx={{ mr: 1 }}>
               <PurchaseStatusChip status={purchaseReturn.status} />
            </Box>
+           <PurchaseAccountingStatusChip
+             isAccountingPosted={purchaseReturn.isAccountingPosted}
+             accountingPostingStatus={purchaseReturn.accountingPostingStatus}
+           />
            
            <Button component={Link} to="/purchases/returns" variant="outlined" color="inherit" sx={{ borderRadius: 2 }} startIcon={<IconArrowLeft size={18} />}>
               <FormattedMessage id="back" />
@@ -232,6 +237,54 @@ export default function PurchaseReturnDetailsPage() {
                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: purchaseReturn.notes ? 'text.primary' : 'text.disabled' }}>
                         {purchaseReturn.notes || '-'}
                      </Typography>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconInfoCircle color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4">الترحيل المحاسبي</Typography>
+                     </Box>
+                     <Stack spacing={2}>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حالة الترحيل
+                           </Typography>
+                           <PurchaseAccountingStatusChip
+                             isAccountingPosted={purchaseReturn.isAccountingPosted}
+                             accountingPostingStatus={purchaseReturn.accountingPostingStatus}
+                           />
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              القيد المحاسبي
+                           </Typography>
+                           {purchaseReturn.accountingJournalEntryId ? (
+                             <Button component={Link} to={`/accounting/journal-entries/${purchaseReturn.accountingJournalEntryId}`} variant="outlined" size="small" sx={{ borderRadius: 2 }}>
+                                {purchaseReturn.accountingEntryNumber || purchaseReturn.accountingJournalEntryId}
+                             </Button>
+                           ) : (
+                             <Typography variant="body2" color="text.secondary">{purchaseReturn.accountingPostingStatus}</Typography>
+                           )}
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حساب الموردين
+                           </Typography>
+                           <Typography variant="body2" fontWeight={600}>
+                              {purchaseReturn.supplierControlAccountCode ? `${purchaseReturn.supplierControlAccountCode} - ${purchaseReturn.supplierControlAccountArabicName}` : '-'}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حساب المخزون
+                           </Typography>
+                           <Typography variant="body2" fontWeight={600}>
+                              {purchaseReturn.inventoryAssetAccountCode ? `${purchaseReturn.inventoryAssetAccountCode} - ${purchaseReturn.inventoryAssetAccountArabicName}` : '-'}
+                           </Typography>
+                        </Box>
+                     </Stack>
                   </Box>
                </MainCard>
             </Stack>

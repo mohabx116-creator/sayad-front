@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { cancelInvoice, postInvoice } from '../api/purchasesApi';
 import { usePurchaseInvoice } from '../hooks/usePurchases';
@@ -73,6 +74,7 @@ export default function PurchaseInvoiceDetailsPage() {
            <Box sx={{ mr: 1 }}>
               <PurchaseStatusChip status={invoice.status} />
            </Box>
+           <PurchaseAccountingStatusChip isAccountingPosted={invoice.isAccountingPosted} accountingPostingStatus={invoice.accountingPostingStatus} />
            
            <Button component={Link} to="/purchases/invoices" variant="outlined" color="inherit" sx={{ borderRadius: 2 }} startIcon={<IconArrowLeft size={18} />}>
               <FormattedMessage id="back" />
@@ -107,8 +109,7 @@ export default function PurchaseInvoiceDetailsPage() {
       {invoice.status === 'Cancelled' && (
          <Alert severity="error" sx={{ mb: 3, borderRadius: 2, border: '1px solid', borderColor: 'error.light' }}>
             <Typography variant="subtitle1" fontWeight={600} gutterBottom><FormattedMessage id="invoice-cancelled" /></Typography>
-            {/* If there's a reason on the invoice object we show it, else generic message */}
-            <Typography variant="body2">{(invoice as any).cancelReason || <FormattedMessage id="no-cancel-reason" />}</Typography>
+            <Typography variant="body2">{invoice.cancellationReason || <FormattedMessage id="no-cancel-reason" />}</Typography>
          </Alert>
       )}
 
@@ -249,6 +250,54 @@ export default function PurchaseInvoiceDetailsPage() {
                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: invoice.notes ? 'text.primary' : 'text.disabled' }}>
                         {invoice.notes || '-'}
                      </Typography>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconInfoCircle color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4">الترحيل المحاسبي</Typography>
+                     </Box>
+                     <Stack spacing={2}>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حالة الترحيل
+                           </Typography>
+                           <PurchaseAccountingStatusChip
+                             isAccountingPosted={invoice.isAccountingPosted}
+                             accountingPostingStatus={invoice.accountingPostingStatus}
+                           />
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              القيد المحاسبي
+                           </Typography>
+                           {invoice.accountingJournalEntryId ? (
+                             <Button component={Link} to={`/accounting/journal-entries/${invoice.accountingJournalEntryId}`} variant="outlined" size="small" sx={{ borderRadius: 2 }}>
+                                {invoice.accountingEntryNumber || invoice.accountingJournalEntryId}
+                             </Button>
+                           ) : (
+                             <Typography variant="body2" color="text.secondary">{invoice.accountingPostingStatus}</Typography>
+                           )}
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حساب الموردين
+                           </Typography>
+                           <Typography variant="body2" fontWeight={600}>
+                              {invoice.supplierControlAccountCode ? `${invoice.supplierControlAccountCode} - ${invoice.supplierControlAccountArabicName}` : '-'}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حساب المخزون
+                           </Typography>
+                           <Typography variant="body2" fontWeight={600}>
+                              {invoice.inventoryAssetAccountCode ? `${invoice.inventoryAssetAccountCode} - ${invoice.inventoryAssetAccountArabicName}` : '-'}
+                           </Typography>
+                        </Box>
+                     </Stack>
                   </Box>
                </MainCard>
             </Stack>

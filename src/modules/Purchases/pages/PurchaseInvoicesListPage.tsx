@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { usePurchaseInvoices } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
@@ -169,7 +170,15 @@ export default function PurchaseInvoicesListPage() {
                            </Stack>
                          </TableCell>
                          <TableCell><Typography fontWeight={600}>{invoice.grandTotal.toFixed(2)}</Typography></TableCell>
-                         <TableCell><PurchaseStatusChip status={invoice.status} /></TableCell>
+                         <TableCell>
+                           <Stack spacing={0.75} alignItems="flex-start">
+                             <PurchaseStatusChip status={invoice.status} />
+                             <PurchaseAccountingStatusChip
+                               isAccountingPosted={invoice.isAccountingPosted}
+                               accountingPostingStatus={invoice.accountingPostingStatus}
+                             />
+                           </Stack>
+                         </TableCell>
                          <TableCell align="center">
                            <Tooltip title={<FormattedMessage id="details" />}>
                              <IconButton component={Link} to={`/purchases/invoices/${invoice.id}`} size="small">

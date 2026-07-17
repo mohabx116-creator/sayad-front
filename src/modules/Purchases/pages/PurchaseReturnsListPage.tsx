@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { usePurchaseReturns } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
@@ -149,7 +150,15 @@ export default function PurchaseReturnsListPage() {
                          <TableCell><Typography fontWeight={500}>{purchaseReturn.number}</Typography></TableCell>
                          <TableCell>{purchaseReturn.purchaseInvoiceNumber}</TableCell>
                          <TableCell>{purchaseReturn.returnDate}</TableCell>
-                         <TableCell><PurchaseStatusChip status={purchaseReturn.status} /></TableCell>
+                         <TableCell>
+                           <Stack spacing={0.75} alignItems="flex-start">
+                             <PurchaseStatusChip status={purchaseReturn.status} />
+                             <PurchaseAccountingStatusChip
+                               isAccountingPosted={purchaseReturn.isAccountingPosted}
+                               accountingPostingStatus={purchaseReturn.accountingPostingStatus}
+                             />
+                           </Stack>
+                         </TableCell>
                          <TableCell><Typography fontWeight={600}>{purchaseReturn.grandTotal.toFixed(2)} <Typography component="span" variant="caption" color="text.secondary">{intl.formatMessage({ id: 'currency' })}</Typography></Typography></TableCell>
                          <TableCell align="center">
                            <Tooltip title={<FormattedMessage id="details" />}>

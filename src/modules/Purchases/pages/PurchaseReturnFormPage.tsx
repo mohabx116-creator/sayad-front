@@ -17,6 +17,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 
 import { IconPlus, IconTrash, IconInfoCircle, IconBox, IconNotes, IconDeviceFloppy, IconSend } from '@tabler/icons-react';
 
@@ -203,6 +204,9 @@ export default function PurchaseReturnFormPage() {
                         <IconInfoCircle color="var(--mui-palette-primary-main)" />
                         <Typography variant="h4"><FormattedMessage id="basic-information" /></Typography>
                      </Box>
+                     <Alert severity="info" sx={{ mb: 3 }}>
+                       سيتيم ترحيل المرتجع على حساب الموردين وحساب المخزون.
+                     </Alert>
                      <Grid container spacing={3}>
                         <Grid item xs={12} md={6}>
                            <TextField

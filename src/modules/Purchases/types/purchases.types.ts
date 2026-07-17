@@ -71,6 +71,16 @@ export type PurchaseInvoice = {
   supplierInvoiceNumber?: string | null;
   status: PurchaseDocumentStatus;
   currencyCode: 'EGP';
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
+  supplierControlAccountId?: string | null;
+  supplierControlAccountCode?: string | null;
+  supplierControlAccountArabicName?: string | null;
+  inventoryAssetAccountId?: string | null;
+  inventoryAssetAccountCode?: string | null;
+  inventoryAssetAccountArabicName?: string | null;
   subtotal: number;
   lineDiscountTotal: number;
   headerDiscount: number;
@@ -96,6 +106,8 @@ export type PurchaseInvoiceListItem = {
   status: PurchaseDocumentStatus;
   grandTotal: number;
   currencyCode: 'EGP';
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
   rowVersion: string;
 };
 
@@ -111,6 +123,16 @@ export type PurchaseReturn = {
   returnDate: string;
   status: PurchaseDocumentStatus;
   currencyCode: 'EGP';
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
+  supplierControlAccountId?: string | null;
+  supplierControlAccountCode?: string | null;
+  supplierControlAccountArabicName?: string | null;
+  inventoryAssetAccountId?: string | null;
+  inventoryAssetAccountCode?: string | null;
+  inventoryAssetAccountArabicName?: string | null;
   subtotal: number;
   discountTotal: number;
   taxTotal: number;
@@ -134,6 +156,8 @@ export type PurchaseReturnListItem = {
   status: PurchaseDocumentStatus;
   grandTotal: number;
   currencyCode: 'EGP';
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
   rowVersion: string;
 };
 

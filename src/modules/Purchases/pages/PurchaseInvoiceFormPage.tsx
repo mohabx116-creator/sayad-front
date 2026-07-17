@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Autocomplete from '@mui/material/Autocomplete';
 import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
 
 import { IconPlus, IconTrash, IconInfoCircle, IconBox, IconCalculator, IconNotes, IconDeviceFloppy, IconSend } from '@tabler/icons-react';
 
@@ -207,6 +208,9 @@ export default function PurchaseInvoiceFormPage() {
                <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
                <Typography variant="h4" fontWeight={600}><FormattedMessage id="basic-information" /></Typography>
             </Box>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              سيتيم ترحيل الفاتورة على حساب المخزون وحساب الموردين.
+            </Alert>
             <Grid container spacing={4}>
                <Grid item xs={12} md={4}>
                   <Autocomplete
