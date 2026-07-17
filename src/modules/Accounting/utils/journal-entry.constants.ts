@@ -6,6 +6,20 @@ export const JOURNAL_ENTRY_STATUSES = {
   CANCELLED: 'Cancelled'
 } as const;
 
+export const JOURNAL_ENTRY_SOURCE_TYPES = {
+  MANUAL: 'Manual',
+  REVERSAL: 'Reversal',
+  TREASURY_RECEIPT: 'TreasuryReceipt',
+  TREASURY_PAYMENT: 'TreasuryPayment',
+  TREASURY_TRANSFER: 'TreasuryTransfer',
+  EXPENSE: 'Expense',
+  SALES_INVOICE: 'SalesInvoice',
+  SALES_RETURN: 'SalesReturn',
+  PURCHASE_INVOICE: 'PurchaseInvoice',
+  PURCHASE_RETURN: 'PurchaseReturn',
+  INVENTORY_MOVEMENT: 'InventoryMovement'
+} as const;
+
 export const JOURNAL_ENTRY_PERMISSIONS = {
   view: ACCOUNTING_PERMISSIONS.journalEntriesView,
   create: ACCOUNTING_PERMISSIONS.journalEntriesCreate,

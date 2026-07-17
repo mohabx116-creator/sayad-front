@@ -6,6 +6,7 @@ import { useSWRConfig } from 'swr';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
@@ -32,6 +33,7 @@ import JournalEntryStatusChip from '../components/JournalEntryStatusChip';
 import { cancelJournalEntry, deleteJournalEntry, postJournalEntry } from '../api/journalEntryApi';
 import { useJournalEntry } from '../hooks/useJournalEntries';
 import { JOURNAL_ENTRY_PERMISSIONS, JOURNAL_ENTRY_STATUSES } from '../utils/journal-entry.constants';
+import { formatJournalEntrySourceType } from '../utils/journal-entry.format';
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -61,10 +63,11 @@ export default function JournalEntryDetailsPage() {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
-  const canEdit = entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
-  const canPost = entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
-  const canCancel = entry?.status === JOURNAL_ENTRY_STATUSES.POSTED;
-  const canDelete = entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
+  const canMutate = !entry?.isSystemGenerated;
+  const canEdit = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
+  const canPost = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
+  const canCancel = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.POSTED;
+  const canDelete = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
 
   const handlePost = async () => {
     if (!id || !entry) {
@@ -146,6 +149,8 @@ export default function JournalEntryDetailsPage() {
             </PageTitle>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
               <JournalEntryStatusChip status={entry.status} />
+              {entry.isSystemGenerated && <Chip size="small" color="info" label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />} />}
+              <Chip size="small" variant="outlined" label={formatJournalEntrySourceType(entry.sourceType, intl.locale)} />
               {entry.reversalJournalEntryNumber && entry.reversesJournalEntryId && (
                 <Button component={Link} to={`/accounting/journal-entries/${entry.reversesJournalEntryId}`} size="small" variant="outlined">
                   {entry.reversalJournalEntryNumber}
@@ -203,6 +208,14 @@ export default function JournalEntryDetailsPage() {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <InfoRow label={<FormattedMessage id="date" />}>{entry.entryDate}</InfoRow>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <InfoRow label={<FormattedMessage id="source-document-type" />}>{formatJournalEntrySourceType(entry.sourceType, intl.locale)}</InfoRow>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <InfoRow label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />}>
+                      {entry.isSystemGenerated ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}
+                    </InfoRow>
                   </Grid>
                   <Grid item xs={12}>
                     <InfoRow label={<FormattedMessage id="description" />}>{entry.descriptionArabic || entry.descriptionEnglish || '—'}</InfoRow>

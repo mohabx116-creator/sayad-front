@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
@@ -18,7 +19,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import { IconEye, IconPlus } from '@tabler/icons-react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
@@ -28,9 +29,11 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { useJournalEntries } from '../hooks/useJournalEntries';
 import JournalEntryStatusChip from '../components/JournalEntryStatusChip';
 import { JOURNAL_ENTRY_PERMISSIONS, JOURNAL_ENTRY_STATUSES } from '../utils/journal-entry.constants';
+import { formatJournalEntrySourceType } from '../utils/journal-entry.format';
 import type { JournalEntryListParams } from '../types/journal-entry.types';
 
 export default function JournalEntriesListPage() {
+  const intl = useIntl();
   const [searchInput, setSearchInput] = useState('');
   const [params, setParams] = useState<JournalEntryListParams>({
     page: 1,
@@ -165,6 +168,9 @@ export default function JournalEntriesListPage() {
                 <TableCell>
                   <FormattedMessage id="status" />
                 </TableCell>
+                <TableCell>
+                  <FormattedMessage id="source-document-type" />
+                </TableCell>
                 <TableCell align="center">
                   <FormattedMessage id="actions" />
                 </TableCell>
@@ -180,12 +186,13 @@ export default function JournalEntriesListPage() {
                     <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
                     <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
                     <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={120} /></TableCell>
                     <TableCell align="center"><Skeleton width={64} sx={{ mx: 'auto' }} /></TableCell>
                   </TableRow>
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       <FormattedMessage id="journal-entries-empty" defaultMessage="No journal entries found." />
                     </Typography>
@@ -205,6 +212,18 @@ export default function JournalEntriesListPage() {
                     </TableCell>
                     <TableCell>
                       <JournalEntryStatusChip status={entry.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
+                        {entry.isSystemGenerated && (
+                          <Chip
+                            size="small"
+                            color="info"
+                            label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />}
+                          />
+                        )}
+                        <Typography variant="body2">{formatJournalEntrySourceType(entry.sourceType, intl.locale)}</Typography>
+                      </Stack>
                     </TableCell>
                     <TableCell align="center">
                       <Button component={Link} to={`/accounting/journal-entries/${entry.id}`} size="small" startIcon={<IconEye size={16} />}>

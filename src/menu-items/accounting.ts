@@ -1,4 +1,4 @@
-import { IconFileDescription, IconHierarchy2, IconTree } from '@tabler/icons-react';
+import { IconFileDescription, IconHierarchy2, IconSettings, IconTree } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 
@@ -33,6 +33,15 @@ const accounting: NavItemType = {
       icon: IconFileDescription,
       breadcrumbs: true,
       permission: ACCOUNTING_PERMISSIONS.journalEntriesView
+    },
+    {
+      id: 'accounting-settings',
+      title: 'accounting-settings',
+      type: 'item',
+      url: '/accounting/settings',
+      icon: IconSettings,
+      breadcrumbs: true,
+      permission: ACCOUNTING_PERMISSIONS.settingsView
     }
   ]
 };

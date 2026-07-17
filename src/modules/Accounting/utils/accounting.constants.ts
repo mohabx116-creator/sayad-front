@@ -6,6 +6,8 @@ export const ACCOUNTING_PERMISSIONS = {
   accountsActivate: 'accounting.accounts.activate',
   accountsDeactivate: 'accounting.accounts.deactivate',
   accountsDelete: 'accounting.accounts.delete',
+  settingsView: 'accounting.settings.view',
+  settingsUpdate: 'accounting.settings.update',
   journalEntriesView: 'accounting.journal-entries.view',
   journalEntriesCreate: 'accounting.journal-entries.create',
   journalEntriesUpdate: 'accounting.journal-entries.update',
@@ -17,7 +19,12 @@ export const ACCOUNTING_PERMISSIONS = {
 export const ACCOUNTING_MAX_PAGE_SIZE = 100;
 export const ACCOUNTING_PARENT_LOOKUP_PAGE_SIZE = 50;
 
-export const ACCOUNTING_VIEW_PERMISSIONS = [ACCOUNTING_PERMISSIONS.view, ACCOUNTING_PERMISSIONS.accountsView, ACCOUNTING_PERMISSIONS.journalEntriesView] as const;
+export const ACCOUNTING_VIEW_PERMISSIONS = [
+  ACCOUNTING_PERMISSIONS.view,
+  ACCOUNTING_PERMISSIONS.accountsView,
+  ACCOUNTING_PERMISSIONS.settingsView,
+  ACCOUNTING_PERMISSIONS.journalEntriesView
+] as const;
 
 export const ACCOUNTING_ACCOUNT_TYPES = {
   ASSET: 'Asset',

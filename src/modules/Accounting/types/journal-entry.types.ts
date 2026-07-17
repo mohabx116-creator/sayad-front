@@ -1,5 +1,18 @@
 export type JournalEntryStatus = 'Draft' | 'Posted' | 'Cancelled';
 
+export type JournalEntrySourceType =
+  | 'Manual'
+  | 'Reversal'
+  | 'TreasuryReceipt'
+  | 'TreasuryPayment'
+  | 'TreasuryTransfer'
+  | 'Expense'
+  | 'SalesInvoice'
+  | 'SalesReturn'
+  | 'PurchaseInvoice'
+  | 'PurchaseReturn'
+  | 'InventoryMovement';
+
 export type JournalEntryLineRequest = {
   accountId: string;
   debitAmount: number;
@@ -50,6 +63,10 @@ export type JournalEntryDto = {
   entryDate: string;
   status: JournalEntryStatus;
   statusLabel: string;
+  sourceType: JournalEntrySourceType;
+  sourceId: string | null;
+  postingKey: string | null;
+  isSystemGenerated: boolean;
   descriptionArabic: string | null;
   descriptionEnglish: string | null;
   totalDebit: number;
@@ -71,6 +88,10 @@ export type JournalEntryListItemDto = {
   entryDate: string;
   status: JournalEntryStatus;
   statusLabel: string;
+  sourceType: JournalEntrySourceType;
+  sourceId: string | null;
+  postingKey: string | null;
+  isSystemGenerated: boolean;
   descriptionArabic: string | null;
   descriptionEnglish: string | null;
   totalDebit: number;
