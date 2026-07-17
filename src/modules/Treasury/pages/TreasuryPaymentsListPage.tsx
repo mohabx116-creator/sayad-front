@@ -5,9 +5,11 @@ import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -210,7 +212,15 @@ export default function TreasuryPaymentsListPage() {
                       {payment.totalAmount.toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <TreasuryStatusChip status={payment.status} />
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <TreasuryStatusChip status={payment.status} />
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          label={payment.accountingPostingStatus}
+                          color={payment.isAccountingDeferredToExpense ? 'warning' : payment.isAccountingPosted ? 'success' : 'default'}
+                        />
+                      </Stack>
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title={<FormattedMessage id="details" />}>

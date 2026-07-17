@@ -87,6 +87,9 @@ export default function TreasuryVoucherForm({
   const selectedAccount = accounts.find((account) => account.id === form.treasuryAccountId) ?? null;
   const selectedParty = parties.find((party) => party.id === form.partyId) ?? null;
   const selectedOffsetAccount = offsetAccounts?.find((account) => account.id === form.offsetAccountingAccountId) ?? null;
+  const isReceipt = type === 'receipt';
+  const isPaymentSupplierRelated = type === 'payment' && Boolean(selectedParty?.isSupplier);
+  const shouldShowOffsetAccount = Boolean(selectedParty) && ((isReceipt && !selectedParty?.isCustomer) || (type === 'payment' && !selectedParty?.isSupplier));
   const currentBalance = selectedAccount?.balance ?? 0;
   const totalAmount = Number(form.totalAmount) || 0;
   const resultingBalance = type === 'receipt' ? currentBalance + totalAmount : currentBalance - totalAmount;
@@ -207,7 +210,7 @@ export default function TreasuryVoucherForm({
                     )}
                   />
                 </Grid>
-                {type === 'receipt' && selectedParty?.isCustomer && (
+                {isReceipt && selectedParty?.isCustomer && (
                   <Grid item xs={12}>
                     <Alert severity="info" variant="outlined">
                       <FormattedMessage
@@ -217,7 +220,17 @@ export default function TreasuryVoucherForm({
                     </Alert>
                   </Grid>
                 )}
-                {type === 'receipt' && selectedParty && !selectedParty.isCustomer && (
+                {type === 'payment' && isPaymentSupplierRelated && (
+                  <Grid item xs={12}>
+                    <Alert severity="info" variant="outlined">
+                      <FormattedMessage
+                        id="treasury.payment-supplier-helper"
+                        defaultMessage="سيتم الترحيل على حساب الموردين المحدد في إعدادات المحاسبة."
+                      />
+                    </Alert>
+                  </Grid>
+                )}
+                {shouldShowOffsetAccount && (
                   <Grid item xs={12} sm={6}>
                     <Autocomplete
                       options={offsetAccounts ?? []}
@@ -234,9 +247,14 @@ export default function TreasuryVoucherForm({
                       renderInput={(params) => (
                         <TextField
                           {...params}
-                          required
+                          required={isReceipt}
                           label={<FormattedMessage id="offset-account" defaultMessage="الحساب المحاسبي المقابل" />}
-                          helperText={<FormattedMessage id="treasury.receipt-offset-helper" defaultMessage="الحساب يجب أن يكون نشطًا وقابلًا للترحيل، ولن يظهر حساب الخزنة نفسه." />}
+                          helperText={
+                            <FormattedMessage
+                              id="treasury.offset-account-helper"
+                              defaultMessage={isReceipt ? 'الحساب يجب أن يكون نشطًا وقابلًا للترحيل، ولن يظهر حساب الخزنة نفسه.' : 'يجب اختيار حساب محاسبي نشط وقابل للترحيل.'}
+                            />
+                          }
                           InputLabelProps={{ shrink: true }}
                         />
                       )}

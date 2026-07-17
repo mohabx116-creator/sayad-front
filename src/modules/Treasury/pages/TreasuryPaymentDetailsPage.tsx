@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
@@ -103,6 +104,12 @@ export default function TreasuryPaymentDetailsPage() {
                 {payment.number}
               </Typography>
               <TreasuryStatusChip status={payment.status} />
+              <Chip
+                variant="outlined"
+                size="small"
+                label={payment.accountingPostingStatus}
+                color={payment.isAccountingDeferredToExpense ? 'warning' : payment.isAccountingPosted ? 'success' : 'default'}
+              />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {payment.treasuryAccountCode} - {payment.treasuryAccountNameArabic}
@@ -181,10 +188,29 @@ export default function TreasuryPaymentDetailsPage() {
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
+                  <InfoRow label={<FormattedMessage id="treasury-account-gl" defaultMessage="الحساب المحاسبي للخزينة" />}>
+                    {payment.treasuryAccountAccountingAccountCode ?? '-'} - {payment.treasuryAccountAccountingAccountArabicName ?? '-'}
+                  </InfoRow>
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <InfoRow label={<FormattedMessage id="party" />}>
                     {payment.partyCode} - {payment.partyNameArabic}
                   </InfoRow>
                 </Grid>
+                {payment.accountingControlAccountCode && payment.accountingControlAccountArabicName && (
+                  <Grid item xs={12} sm={6}>
+                    <InfoRow label={<FormattedMessage id="accounting-control-account" defaultMessage="حساب الرقابة المحاسبي" />}>
+                      {payment.accountingControlAccountCode} - {payment.accountingControlAccountArabicName}
+                    </InfoRow>
+                  </Grid>
+                )}
+                {payment.offsetAccountingAccountCode && payment.offsetAccountingAccountArabicName && (
+                  <Grid item xs={12} sm={6}>
+                    <InfoRow label={<FormattedMessage id="offset-account" defaultMessage="الحساب المحاسبي المقابل" />}>
+                      {payment.offsetAccountingAccountCode} - {payment.offsetAccountingAccountArabicName}
+                    </InfoRow>
+                  </Grid>
+                )}
                 <Grid item xs={12} sm={6}>
                   <InfoRow label={<FormattedMessage id="reference-number" defaultMessage="رقم المرجع" />}>
                     {payment.relatedDocumentNumber ?? '-'}
@@ -221,6 +247,15 @@ export default function TreasuryPaymentDetailsPage() {
                   <Grid item xs={12}>
                     <InfoRow label={<FormattedMessage id="notes" />}>
                       {payment.notes}
+                    </InfoRow>
+                  </Grid>
+                )}
+                {payment.accountingJournalEntryId && (
+                  <Grid item xs={12}>
+                    <InfoRow label={<FormattedMessage id="accounting-journal-entry" defaultMessage="القيد المحاسبي" />}>
+                      <Button component={Link} to={`/accounting/journal-entries/${payment.accountingJournalEntryId}`} size="small" variant="text" startIcon={<IconExternalLink size={16} />}>
+                        {payment.accountingEntryNumber ?? payment.accountingJournalEntryId}
+                      </Button>
                     </InfoRow>
                   </Grid>
                 )}

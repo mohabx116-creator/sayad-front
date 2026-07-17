@@ -217,10 +217,16 @@ export interface TreasuryPayment {
   treasuryAccountId: string;
   treasuryAccountCode: string;
   treasuryAccountNameArabic: string;
+  treasuryAccountAccountingAccountId: string | null;
+  treasuryAccountAccountingAccountCode: string | null;
+  treasuryAccountAccountingAccountArabicName: string | null;
   partyId: string;
   partyCode: string;
   partyNameArabic: string;
   partyNameEnglish: string | null;
+  accountingControlAccountId: string | null;
+  accountingControlAccountCode: string | null;
+  accountingControlAccountArabicName: string | null;
   paymentDate: string;
   paymentMethod: string;
   paymentMethodLabel: string;
@@ -232,10 +238,18 @@ export interface TreasuryPayment {
   status: string;
   currencyCode: string;
   totalAmount: number;
+  offsetAccountingAccountId: string | null;
+  offsetAccountingAccountCode: string | null;
+  offsetAccountingAccountArabicName: string | null;
   notes: string | null;
   postedAtUtc: string | null;
   cancelledAtUtc: string | null;
   cancellationReason: string | null;
+  accountingJournalEntryId: string | null;
+  accountingEntryNumber: string | null;
+  accountingPostingStatus: string;
+  isAccountingPosted: boolean;
+  isAccountingDeferredToExpense: boolean;
   rowVersion: string;
   allocations: TreasuryAllocation[];
 }
@@ -253,6 +267,9 @@ export interface TreasuryPaymentListItem {
   status: string;
   totalAmount: number;
   currencyCode: string;
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
+  isAccountingDeferredToExpense: boolean;
   rowVersion: string;
 }
 
@@ -264,6 +281,7 @@ export interface TreasuryPaymentInput {
   relatedDocumentNumber: string | null;
   reason: string | null;
   notes: string | null;
+  offsetAccountingAccountId: string | null;
   allocations: TreasuryAllocationInput[];
 }
 
