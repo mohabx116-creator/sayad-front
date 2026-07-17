@@ -60,20 +60,20 @@ export default function AccountingAccountDetailsPage() {
       return;
     }
 
-    setIsProcessing(true);
+      setIsProcessing(true);
     try {
       if (pendingAction === 'activate') {
         await activateAccountingAccount(account.id, account.rowVersion);
-        notify('طھظ… طھظپط¹ظٹظ„ ط§ظ„ط­ط³ط§ط¨ ط¨ظ†ط¬ط§ط­.');
+        notify('تم تفعيل الحساب بنجاح.');
       } else {
         await deactivateAccountingAccount(account.id, account.rowVersion);
-        notify('طھظ… ط¥ظٹظ‚ط§ظپ ط§ظ„ط­ط³ط§ط¨ ط¨ظ†ط¬ط§ط­.');
+        notify('تم إيقاف الحساب بنجاح.');
       }
 
       await mutate();
       await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'ظپط´ظ„طھ ط§ظ„ط¹ظ…ظ„ظٹط©.', 'error');
+      notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
     } finally {
       setIsProcessing(false);
       setPendingAction(null);
@@ -88,11 +88,11 @@ export default function AccountingAccountDetailsPage() {
     setIsProcessing(true);
     try {
       await deleteAccountingAccount(account.id, request);
-      notify('طھظ… ط­ط°ظپ ط§ظ„ط­ط³ط§ط¨ ط¨ظ†ط¬ط§ط­.');
+      notify('تم حذف الحساب بنجاح.');
       await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/'));
       navigate('/accounting/chart-of-accounts');
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'ظپط´ظ„طھ ط§ظ„ط¹ظ…ظ„ظٹط©.', 'error');
+      notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
     } finally {
       setIsProcessing(false);
       setDeleteDialogOpen(false);
@@ -118,19 +118,19 @@ export default function AccountingAccountDetailsPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="account-details" defaultMessage="طھظپط§طµظٹظ„ ط§ظ„ط­ط³ط§ط¨" />
+              <FormattedMessage id="account-details" defaultMessage="تفاصيل الحساب" />
             </PageTitle>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
               <Chip size="small" label={account.accountTypeLabel} />
               <Chip size="small" color={account.isPosting ? 'info' : 'secondary'} label={<FormattedMessage id={account.isPosting ? 'posting-account' : 'header-account'} />} />
               <Chip size="small" color={account.isActive ? 'success' : 'default'} label={<FormattedMessage id={account.isActive ? 'active' : 'inactive'} />} />
-              {account.isSystem && <Chip size="small" color="warning" label={<FormattedMessage id="system-account" defaultMessage="ط­ط³ط§ط¨ ظ†ط¸ط§ظ…ظٹ" />} />}
+              {account.isSystem && <Chip size="small" color="warning" label={<FormattedMessage id="system-account" defaultMessage="حساب نظامي" />} />}
             </Stack>
           </Box>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             {canCreateChild && (
               <Button component={Link} to={`/accounting/chart-of-accounts/new?parentId=${account.id}`} variant="outlined" startIcon={<IconPlus size={18} />}>
-                <FormattedMessage id="add-child-account" defaultMessage="ط¥ط¶ط§ظپط© ط­ط³ط§ط¨ ظپط±ط¹ظٹ" />
+                <FormattedMessage id="add-child-account" defaultMessage="إضافة حساب فرعي" />
               </Button>
             )}
             {canEdit && (
@@ -145,7 +145,7 @@ export default function AccountingAccountDetailsPage() {
             )}
             {canDelete && (
               <Button variant="outlined" color="error" onClick={() => { setSelectedNode({ code: account.code, rowVersion: account.rowVersion }); setDeleteDialogOpen(true); }} startIcon={<IconTrash size={18} />} disabled={account.isSystem}>
-                <FormattedMessage id="delete-permanent" defaultMessage="ط­ط°ظپ ظ†ظ‡ط§ط¦ظٹ" />
+                <FormattedMessage id="delete-permanent" defaultMessage="حذف نهائي" />
               </Button>
             )}
           </Stack>
@@ -155,7 +155,7 @@ export default function AccountingAccountDetailsPage() {
           <Grid container spacing={3}>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="account-code" defaultMessage="ظƒظˆط¯ ط§ظ„ط­ط³ط§ط¨" />
+                <FormattedMessage id="account-code" defaultMessage="كود الحساب" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
                 {account.code}
@@ -179,7 +179,7 @@ export default function AccountingAccountDetailsPage() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="account-type" defaultMessage="ظ†ظˆط¹ ط§ظ„ط­ط³ط§ط¨" />
+                <FormattedMessage id="account-type" defaultMessage="نوع الحساب" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
                 {account.accountTypeLabel}
@@ -187,7 +187,7 @@ export default function AccountingAccountDetailsPage() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="normal-balance" defaultMessage="ط§ظ„ط·ط¨ظٹط¹ط© ط§ظ„ط¹ط§ط¯ظٹط©" />
+                <FormattedMessage id="normal-balance" defaultMessage="الطبيعة العادية" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
                 {account.normalBalanceLabel}
@@ -195,7 +195,7 @@ export default function AccountingAccountDetailsPage() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="parent-account" defaultMessage="ط§ظ„ط­ط³ط§ط¨ ط§ظ„ط£ط¨" />
+                <FormattedMessage id="parent-account" defaultMessage="الحساب الأب" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
                 {account.parentCode ? `${account.parentCode} - ${account.parentNameArabic ?? ''}` : '-'}
@@ -203,7 +203,7 @@ export default function AccountingAccountDetailsPage() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="treasury-account" defaultMessage="ط­ط³ط§ط¨ ط§ظ„ط®ط²ظ†ط©" />
+                <FormattedMessage id="treasury-account" defaultMessage="حساب الخزنة" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
                 {account.treasuryAccountId && account.treasuryAccountCode && account.treasuryAccountArabicName ? (
@@ -217,15 +217,15 @@ export default function AccountingAccountDetailsPage() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="posting-account" defaultMessage="ط­ط³ط§ط¨ طھط±ط­ظٹظ„" />
+                <FormattedMessage id="posting-account" defaultMessage="حساب ترحيل" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
-                {account.isPosting ? <FormattedMessage id="posting-account" defaultMessage="ط­ط³ط§ط¨ طھط±ط­ظٹظ„" /> : <FormattedMessage id="header-account" defaultMessage="ط­ط³ط§ط¨ ط±ط¦ظٹط³ظٹ" />}
+                {account.isPosting ? <FormattedMessage id="posting-account" defaultMessage="حساب ترحيل" /> : <FormattedMessage id="header-account" defaultMessage="حساب رئيسي" />}
               </Typography>
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="system-account" defaultMessage="ط­ط³ط§ط¨ ظ†ط¸ط§ظ…ظٹ" />
+                <FormattedMessage id="system-account" defaultMessage="حساب نظامي" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
                 {account.isSystem ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}
@@ -233,7 +233,7 @@ export default function AccountingAccountDetailsPage() {
             </Grid>
             <Grid item xs={12}>
               <Typography variant="caption" color="text.secondary" display="block">
-                <FormattedMessage id="hierarchy-path" defaultMessage="ط§ظ„ظ…ط³ط§ط± ط§ظ„ظ‡ط±ظ…ظٹ" />
+                <FormattedMessage id="hierarchy-path" defaultMessage="المسار الهرمي" />
               </Typography>
               <Typography variant="body1" fontWeight={700}>
                 {account.hierarchyPath || '-'}
@@ -251,18 +251,18 @@ export default function AccountingAccountDetailsPage() {
         <Card sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={2}>
             <Typography variant="h5" fontWeight={700}>
-              <FormattedMessage id="direct-children" defaultMessage="ط§ظ„ط£ط¨ظ†ط§ط، ط§ظ„ظ…ط¨ط§ط´ط±ظˆظ†" />
+              <FormattedMessage id="direct-children" defaultMessage="الأبناء المباشرون" />
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="direct-children-description" defaultMessage="طھط¸ظ‡ط± ظ‡ظ†ط§ ط§ظ„ط­ط³ط§ط¨ط§طھ ط§ظ„ظپط±ط¹ظٹط© ط§ظ„ظ…ط¨ط§ط´ط±ط© ظپظ‚ط·." />
+              <FormattedMessage id="direct-children-description" defaultMessage="تظهر هنا الحسابات الفرعية المباشرة فقط." />
             </Typography>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell><FormattedMessage id="account-code" defaultMessage="ظƒظˆط¯ ط§ظ„ط­ط³ط§ط¨" /></TableCell>
+                  <TableCell><FormattedMessage id="account-code" defaultMessage="كود الحساب" /></TableCell>
                   <TableCell><FormattedMessage id="name-arabic" /></TableCell>
-                  <TableCell><FormattedMessage id="account-type" defaultMessage="ظ†ظˆط¹ ط§ظ„ط­ط³ط§ط¨" /></TableCell>
-                  <TableCell><FormattedMessage id="posting-account" defaultMessage="ط­ط³ط§ط¨ طھط±ط­ظٹظ„" /></TableCell>
+                  <TableCell><FormattedMessage id="account-type" defaultMessage="نوع الحساب" /></TableCell>
+                  <TableCell><FormattedMessage id="posting-account" defaultMessage="حساب ترحيل" /></TableCell>
                   <TableCell><FormattedMessage id="status" /></TableCell>
                 </TableRow>
               </TableHead>
@@ -271,7 +271,7 @@ export default function AccountingAccountDetailsPage() {
                   <TableRow>
                     <TableCell colSpan={5}>
                       <Typography color="text.secondary">
-                        <FormattedMessage id="accounting-empty" defaultMessage="ظ„ط§ طھظˆط¬ط¯ ط­ط³ط§ط¨ط§طھ." />
+                        <FormattedMessage id="accounting-empty" defaultMessage="لا توجد حسابات." />
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -281,7 +281,7 @@ export default function AccountingAccountDetailsPage() {
                       <TableCell>{child.code}</TableCell>
                       <TableCell>{child.nameArabic}</TableCell>
                       <TableCell>{child.accountTypeLabel}</TableCell>
-                      <TableCell>{child.isPosting ? <FormattedMessage id="posting-account" defaultMessage="ط­ط³ط§ط¨ طھط±ط­ظٹظ„" /> : <FormattedMessage id="header-account" defaultMessage="ط­ط³ط§ط¨ ط±ط¦ظٹط³ظٹ" />}</TableCell>
+                      <TableCell>{child.isPosting ? <FormattedMessage id="posting-account" defaultMessage="حساب ترحيل" /> : <FormattedMessage id="header-account" defaultMessage="حساب رئيسي" />}</TableCell>
                       <TableCell>{child.isActive ? <FormattedMessage id="active" /> : <FormattedMessage id="inactive" />}</TableCell>
                     </TableRow>
                   ))

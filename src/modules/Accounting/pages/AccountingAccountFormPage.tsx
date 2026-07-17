@@ -167,7 +167,7 @@ export default function AccountingAccountFormPage() {
               <Alert severity="info">
                 <FormattedMessage
                   id="parent-selection-help"
-                  defaultMessage="اختيار الحساب الأب يقيّد نوع الحساب تلقائياً على نفس النوع: {type}."
+                  defaultMessage="اختيار الحساب الأب يقيّد نوع الحساب تلقائيًا على نفس النوع: {type}."
                   values={{ type: selectedParentTypeLabel }}
                 />
               </Alert>
@@ -323,4 +323,3 @@ export default function AccountingAccountFormPage() {
     </Box>
   );
 }
-
