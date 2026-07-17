@@ -707,6 +707,7 @@
   "accounting-settings-saved": "تم حفظ إعدادات المحاسبة بنجاح.",
   "accounting-settings-save-failed": "تعذر حفظ إعدادات المحاسبة.",
   "mapping": "الربط",
+  "mapped": "مرتبط",
   "select-account": "اختر حسابًا",
   "not-configured": "غير مضبوط",
   "accounting-workflow": "مسار العمل",

@@ -7,6 +7,7 @@ import { TREASURY_MAX_PAGE_SIZE } from '../utils/treasury.constants';
 import type {
   TreasuryAccount,
   TreasuryAccountDeletionPreview,
+  TreasuryAccountingAccountLookup,
   TreasuryAccountListItem,
   TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
@@ -139,6 +140,12 @@ export function useTreasuryStatement(params: TreasuryStatementParams | null) {
 export function useTreasuryLookups() {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryLookups>>('/api/treasury/lookups', fetcher, { revalidateOnFocus: false });
   return useMemo(() => ({ lookups: mapLookups(data?.data), error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useTreasuryAccountingAccountLookups(treasuryAccountId?: string, search = '') {
+  const key = `/api/treasury/accounts/accounting-lookups?${buildQuery({ page: 1, pageSize: 50, search, treasuryAccountId })}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryAccountingAccountLookup[]>>(key, fetcher, { revalidateOnFocus: false });
+  return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function useTreasuryDashboardSummary(dateFrom?: string, dateTo?: string) {

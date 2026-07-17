@@ -714,6 +714,7 @@
   "accounting-settings-saved": "Accounting settings saved successfully.",
   "accounting-settings-save-failed": "Unable to save accounting settings.",
   "mapping": "Mapping",
+  "mapped": "Mapped",
   "select-account": "Select account",
   "not-configured": "Not configured",
   "accounting-workflow": "Workflow",

@@ -67,6 +67,9 @@ export type AccountingAccountDto = {
   isSystem: boolean;
   description: string | null;
   hierarchyPath: string | null;
+  treasuryAccountId: string | null;
+  treasuryAccountCode: string | null;
+  treasuryAccountArabicName: string | null;
   directChildren: AccountingAccountChildDto[];
   createdAtUtc: string;
   updatedAtUtc: string | null;

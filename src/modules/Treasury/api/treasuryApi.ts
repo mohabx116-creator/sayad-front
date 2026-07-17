@@ -9,6 +9,7 @@ import type {
   TreasuryAccountInput,
   TreasuryAccountListItem,
   TreasuryAccountFinalDeletionStrategy,
+  TreasuryAccountingAccountLookup,
   TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
   TreasuryLookups,
@@ -82,6 +83,10 @@ export function createTreasuryAccount(request: TreasuryAccountInput) {
 
 export function updateTreasuryAccount(id: string, request: TreasuryAccountInput & { rowVersion: string }) {
   return unwrap(axiosServices.put<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}`, request));
+}
+
+export function getTreasuryAccountingAccountLookups(params: { page?: number; pageSize?: number; search?: string; treasuryAccountId?: string }) {
+  return unwrapPaged<TreasuryAccountingAccountLookup>(axiosServices.get('/api/treasury/accounts/accounting-lookups', { params }));
 }
 
 export function activateTreasuryAccount(id: string, rowVersion: string) {

@@ -7,6 +7,12 @@ export interface TreasuryLookupOption {
   labelEnglish: string;
 }
 
+export interface TreasuryAccountingAccountLookup {
+  id: string;
+  code: string;
+  displayName: string;
+}
+
 export interface TreasuryEligibleInvoice {
   invoiceId: string;
   invoiceNumber: string;
@@ -38,6 +44,10 @@ export interface TreasuryAccount {
   currencyCode: string;
   isActive: boolean;
   allowNegativeBalance: boolean;
+  accountingAccountId: string | null;
+  accountingAccountCode: string | null;
+  accountingAccountArabicName: string | null;
+  isAccountingMapped: boolean;
   openingBalance: number;
   openingBalanceNature: string;
   hasNonOpeningMovements: boolean;
@@ -61,6 +71,10 @@ export interface TreasuryAccountListItem {
   currencyCode: string;
   isActive: boolean;
   allowNegativeBalance: boolean;
+  accountingAccountId: string | null;
+  accountingAccountCode: string | null;
+  accountingAccountArabicName: string | null;
+  isAccountingMapped: boolean;
   openingBalance: number;
   debitTotal: number;
   creditTotal: number;
@@ -109,6 +123,7 @@ export interface TreasuryAccountInput {
   openingBalanceAmount: number | null;
   openingBalanceNature: string | null;
   allowNegativeBalance: boolean;
+  accountingAccountId: string | null;
 }
 
 export interface TreasuryAllocation {
