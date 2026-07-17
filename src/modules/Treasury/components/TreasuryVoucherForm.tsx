@@ -18,6 +18,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import type { AccountingAccountListItemDto } from 'modules/Accounting/types/accounting.types';
 import type { PartyDto } from 'modules/Parties/types/parties.types';
 import CodeNameLabel from 'shared/components/CodeNameLabel';
 
@@ -32,6 +33,7 @@ export interface VoucherFormState {
   relatedDocumentNumber: string;
   reason: string;
   notes: string;
+  offsetAccountingAccountId: string;
   totalAmount: number;
 }
 
@@ -46,6 +48,7 @@ interface Props {
   setForm: React.Dispatch<React.SetStateAction<VoucherFormState>>;
   accounts: TreasuryAccountListItem[];
   parties: PartyDto[];
+  offsetAccounts?: AccountingAccountListItemDto[];
   paymentMethods: TreasuryLookupOption[];
   purposes: string[];
   allocationsElement: React.ReactNode;
@@ -69,6 +72,7 @@ export default function TreasuryVoucherForm({
   setForm,
   accounts,
   parties,
+  offsetAccounts,
   paymentMethods,
   purposes,
   allocationsElement,
@@ -82,6 +86,7 @@ export default function TreasuryVoucherForm({
 }: Props) {
   const selectedAccount = accounts.find((account) => account.id === form.treasuryAccountId) ?? null;
   const selectedParty = parties.find((party) => party.id === form.partyId) ?? null;
+  const selectedOffsetAccount = offsetAccounts?.find((account) => account.id === form.offsetAccountingAccountId) ?? null;
   const currentBalance = selectedAccount?.balance ?? 0;
   const totalAmount = Number(form.totalAmount) || 0;
   const resultingBalance = type === 'receipt' ? currentBalance + totalAmount : currentBalance - totalAmount;
@@ -202,6 +207,42 @@ export default function TreasuryVoucherForm({
                     )}
                   />
                 </Grid>
+                {type === 'receipt' && selectedParty?.isCustomer && (
+                  <Grid item xs={12}>
+                    <Alert severity="info" variant="outlined">
+                      <FormattedMessage
+                        id="treasury.receipt-customer-helper"
+                        defaultMessage="سيتم الترحيل على حساب العملاء المحدد في إعدادات المحاسبة."
+                      />
+                    </Alert>
+                  </Grid>
+                )}
+                {type === 'receipt' && selectedParty && !selectedParty.isCustomer && (
+                  <Grid item xs={12} sm={6}>
+                    <Autocomplete
+                      options={offsetAccounts ?? []}
+                      value={selectedOffsetAccount}
+                      noOptionsText={<FormattedMessage id="treasury.no-offset-accounts" defaultMessage="لا توجد حسابات ترحيل متاحة" />}
+                      isOptionEqualToValue={(option, value) => option.id === value.id}
+                      getOptionLabel={(option) => `${option.code} — ${option.nameArabic}`}
+                      renderOption={(props, option) => (
+                        <li {...props}>
+                          <CodeNameLabel code={option.code} nameArabic={option.nameArabic} />
+                        </li>
+                      )}
+                      onChange={(_, newValue) => setForm((current) => ({ ...current, offsetAccountingAccountId: newValue?.id ?? '' }))}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          required
+                          label={<FormattedMessage id="offset-account" defaultMessage="الحساب المحاسبي المقابل" />}
+                          helperText={<FormattedMessage id="treasury.receipt-offset-helper" defaultMessage="الحساب يجب أن يكون نشطًا وقابلًا للترحيل، ولن يظهر حساب الخزنة نفسه." />}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                )}
                 <Grid item xs={12} sm={6}>
                   <TextField
                     select

@@ -17,6 +17,7 @@ import TreasuryAllocationTable, { type TreasuryAllocationRow } from '../componen
 import TreasuryVoucherForm, { type VoucherFormState } from '../components/TreasuryVoucherForm';
 import { createTreasuryReceipt, getTreasuryReceipt, postTreasuryReceipt, updateTreasuryReceipt } from '../api/treasuryApi';
 import { useEligibleSalesInvoices, useTreasuryAccounts, useTreasuryLookups } from '../hooks/useTreasury';
+import { useAccountingAccounts } from 'modules/Accounting/hooks/useAccounting';
 import { useParties } from 'modules/Parties/hooks/useParties';
 import { TREASURY_ALLOCATION_TYPES, TREASURY_PERMISSIONS, RECEIPT_PURPOSES, TREASURY_LOOKUP_PAGE_SIZE } from '../utils/treasury.constants';
 import type { TreasuryAllocationInput } from '../types/treasury.types';
@@ -38,6 +39,7 @@ export default function TreasuryReceiptFormPage() {
     relatedDocumentNumber: '',
     reason: '',
     notes: '',
+    offsetAccountingAccountId: '',
     totalAmount: 0
   });
   const [allocationMap, setAllocationMap] = useState<Record<string, number>>({});
@@ -45,10 +47,14 @@ export default function TreasuryReceiptFormPage() {
   const previousPartyId = useRef('');
 
   const { items: accounts, isLoading: accountsLoading, error: accountsError, mutate: mutateAccounts } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
-  const { items: parties, isLoading: partiesLoading, error: partiesError, mutate: mutateParties } = useParties({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true, isCustomer: true });
+  const { items: parties, isLoading: partiesLoading, error: partiesError, mutate: mutateParties } = useParties({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
   const { lookups, error: lookupsError, mutate: mutateLookups } = useTreasuryLookups();
+  const { items: accountingAccounts, isLoading: accountingAccountsLoading, error: accountingAccountsError, mutate: mutateAccountingAccounts } = useAccountingAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true, isPosting: true });
   const { receipt, isLoading: receiptLoading } = useTreasuryReceiptData(id);
   const { items: eligibleInvoices, isLoading: eligibleLoading, error: eligibleError, mutate: mutateEligibleInvoices } = useEligibleSalesInvoices(form.partyId || undefined, 1, TREASURY_LOOKUP_PAGE_SIZE);
+  const selectedParty = useMemo(() => parties.find((party) => party.id === form.partyId) ?? null, [form.partyId, parties]);
+  const selectedTreasuryAccount = useMemo(() => accounts.find((account) => account.id === form.treasuryAccountId) ?? null, [accounts, form.treasuryAccountId]);
+  const offsetAccounts = useMemo(() => accountingAccounts.filter((account) => account.id !== selectedTreasuryAccount?.accountingAccountId), [accountingAccounts, selectedTreasuryAccount?.accountingAccountId]);
 
   useEffect(() => {
     if (!receipt) return;
@@ -61,6 +67,7 @@ export default function TreasuryReceiptFormPage() {
       relatedDocumentNumber: receipt.relatedDocumentNumber ?? '',
       reason: receipt.reason ?? '',
       notes: receipt.notes ?? '',
+      offsetAccountingAccountId: receipt.offsetAccountingAccountId ?? '',
       totalAmount: receipt.totalAmount
     });
 
@@ -80,6 +87,12 @@ export default function TreasuryReceiptFormPage() {
     }
     previousPartyId.current = form.partyId;
   }, [form.partyId]);
+
+  useEffect(() => {
+    if (selectedParty?.isCustomer && form.offsetAccountingAccountId) {
+      setForm((current) => ({ ...current, offsetAccountingAccountId: '' }));
+    }
+  }, [form.offsetAccountingAccountId, selectedParty?.isCustomer, setForm]);
 
   const eligibleInvoiceMap = useMemo(() => new Map(eligibleInvoices.map((invoice) => [invoice.invoiceId, invoice.invoiceNumber])), [eligibleInvoices]);
   const allocationRows = useMemo<TreasuryAllocationRow[]>(
@@ -127,6 +140,7 @@ export default function TreasuryReceiptFormPage() {
         relatedDocumentNumber: form.relatedDocumentNumber || null,
         reason: form.reason || null,
         notes: form.notes || null,
+        offsetAccountingAccountId: selectedParty?.isCustomer ? null : form.offsetAccountingAccountId || null,
         allocations: buildAllocations()
       };
 
@@ -142,7 +156,7 @@ export default function TreasuryReceiptFormPage() {
       }
 
       await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
-      await Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices()]);
+      await Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices(), mutateAccountingAccounts()]);
       notify(intl.formatMessage({ id: 'treasury.receipt-saved', defaultMessage: 'تم حفظ الإيصال بنجاح.' }));
       navigate(`/treasury/receipts/${savedReceipt?.id ?? receipt?.id}`);
     } catch (error) {
@@ -160,7 +174,7 @@ export default function TreasuryReceiptFormPage() {
     <Box>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          {(accountsError || partiesError || lookupsError || eligibleError) && (
+          {(accountsError || partiesError || lookupsError || eligibleError || accountingAccountsError) && (
             <Alert
               severity="error"
               action={
@@ -168,7 +182,7 @@ export default function TreasuryReceiptFormPage() {
                   color="inherit"
                   size="small"
                   onClick={() => {
-                    void Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices()]);
+                    void Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices(), mutateAccountingAccounts()]);
                   }}
                 >
                   <FormattedMessage id="retry" defaultMessage="إعادة المحاولة" />
@@ -182,7 +196,7 @@ export default function TreasuryReceiptFormPage() {
           <TreasuryVoucherForm
             type="receipt"
             isEdit={isEdit}
-            isLoading={accountsLoading || partiesLoading || eligibleLoading}
+            isLoading={accountsLoading || partiesLoading || eligibleLoading || accountingAccountsLoading}
             isSaving={isSaving}
             status={receipt?.status}
             voucherNumber={receipt?.number}
@@ -190,6 +204,7 @@ export default function TreasuryReceiptFormPage() {
             setForm={setForm}
             accounts={accounts}
             parties={parties as PartyDto[]}
+            offsetAccounts={offsetAccounts}
             paymentMethods={lookups?.paymentMethods ?? []}
             purposes={RECEIPT_PURPOSES}
             allocationsTitle="تسوية فاتورة بيع"
@@ -202,9 +217,9 @@ export default function TreasuryReceiptFormPage() {
             }
             totalAllocated={totalAllocated}
             postPermission={TREASURY_PERMISSIONS.receiptsPost}
-            lookupError={accountsError || partiesError || lookupsError || eligibleError ? intl.formatMessage({ id: 'treasury.lookup-load-error', defaultMessage: 'تعذر تحميل البيانات' }) : null}
+            lookupError={accountsError || partiesError || lookupsError || eligibleError || accountingAccountsError ? intl.formatMessage({ id: 'treasury.lookup-load-error', defaultMessage: 'تعذر تحميل البيانات' }) : null}
             onRetryLookups={() => {
-              void Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices()]);
+              void Promise.all([mutateAccounts(), mutateParties(), mutateLookups(), mutateEligibleInvoices(), mutateAccountingAccounts()]);
             }}
             onSubmit={handleSubmit}
             backUrl="/treasury/receipts"

@@ -5,6 +5,7 @@ import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
@@ -53,6 +54,15 @@ export default function TreasuryReceiptDetailsPage() {
   };
 
   const canEdit = receipt?.status === TREASURY_DOCUMENT_STATUS.DRAFT;
+  const allocationSummary = useMemo(() => receipt?.allocations ?? [], [receipt]);
+  const treasuryAccountingAccountLabel = receipt?.treasuryAccountAccountingAccountCode
+    ? `${receipt.treasuryAccountAccountingAccountCode}${receipt.treasuryAccountAccountingAccountArabicName ? ` - ${receipt.treasuryAccountAccountingAccountArabicName}` : ''}`
+    : '—';
+  const controlAccountLabel = receipt?.offsetAccountingAccountCode
+    ? `${receipt.offsetAccountingAccountCode}${receipt.offsetAccountingAccountArabicName ? ` - ${receipt.offsetAccountingAccountArabicName}` : ''}`
+    : receipt?.status !== TREASURY_DOCUMENT_STATUS.DRAFT
+      ? 'CustomerControl'
+      : '—';
 
   const handleConfirm = async (reason?: string) => {
     if (!id || !receipt) {
@@ -79,8 +89,6 @@ export default function TreasuryReceiptDetailsPage() {
     }
   };
 
-  const allocationSummary = useMemo(() => receipt?.allocations ?? [], [receipt]);
-
   if (isLoading || !receipt) {
     return <Loader />;
   }
@@ -99,6 +107,7 @@ export default function TreasuryReceiptDetailsPage() {
                 {receipt.number}
               </Typography>
               <TreasuryStatusChip status={receipt.status} />
+              <Chip size="small" variant="outlined" color={receipt.isAccountingPosted ? 'success' : 'default'} label={receipt.accountingPostingStatus} />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {receipt.treasuryAccountCode} - {receipt.treasuryAccountNameArabic}
@@ -144,19 +153,18 @@ export default function TreasuryReceiptDetailsPage() {
             <Box sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="receipt-number" defaultMessage="رقم الإيصال" />}>
-                    {receipt.number}
-                  </InfoRow>
+                  <InfoRow label={<FormattedMessage id="receipt-number" defaultMessage="رقم الإيصال" />}>{receipt.number}</InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="date" />}>
-                    {receipt.receiptDate}
-                  </InfoRow>
+                  <InfoRow label={<FormattedMessage id="date" />}>{receipt.receiptDate}</InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />}>
+                  <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزنة" />}>
                     {receipt.treasuryAccountCode} - {receipt.treasuryAccountNameArabic}
                   </InfoRow>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <InfoRow label={<FormattedMessage id="treasury-gl-account" defaultMessage="الحساب المحاسبي للخزنة" />}>{treasuryAccountingAccountLabel}</InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <InfoRow label={<FormattedMessage id="party" />}>
@@ -169,9 +177,10 @@ export default function TreasuryReceiptDetailsPage() {
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <InfoRow label={<FormattedMessage id="payment-method" defaultMessage="طريقة التحصيل" />}>
-                    {receipt.paymentMethodLabel}
-                  </InfoRow>
+                  <InfoRow label={<FormattedMessage id="payment-method" defaultMessage="طريقة التحصيل" />}>{receipt.paymentMethodLabel}</InfoRow>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <InfoRow label={<FormattedMessage id="offset-account" defaultMessage="الحساب المحاسبي المقابل" />}>{controlAccountLabel}</InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Box>
@@ -181,11 +190,20 @@ export default function TreasuryReceiptDetailsPage() {
                     <TreasuryPurposeChip purpose={receipt.reason ?? ''} />
                   </Box>
                 </Grid>
+                <Grid item xs={12} sm={6}>
+                  <InfoRow label={<FormattedMessage id="journal-entry" defaultMessage="القيد المحاسبي" />}>
+                    {receipt.accountingJournalEntryId ? (
+                      <Button component={Link} to={`/accounting/journal-entries/${receipt.accountingJournalEntryId}`} size="small" variant="outlined">
+                        {receipt.accountingEntryNumber ?? receipt.accountingJournalEntryId}
+                      </Button>
+                    ) : (
+                      '—'
+                    )}
+                  </InfoRow>
+                </Grid>
                 {receipt.notes && (
                   <Grid item xs={12}>
-                    <InfoRow label={<FormattedMessage id="notes" />}>
-                      {receipt.notes}
-                    </InfoRow>
+                    <InfoRow label={<FormattedMessage id="notes" />}>{receipt.notes}</InfoRow>
                   </Grid>
                 )}
               </Grid>

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
@@ -18,6 +19,7 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
 import { IconEye, IconPlus } from '@tabler/icons-react';
 
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
@@ -210,7 +212,16 @@ export default function TreasuryReceiptsListPage() {
                       {receipt.totalAmount.toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <TreasuryStatusChip status={receipt.status} />
+                      <Stack spacing={0.5} alignItems="flex-start">
+                        <TreasuryStatusChip status={receipt.status} />
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          color={receipt.isAccountingPosted ? 'success' : 'default'}
+                          label={receipt.accountingPostingStatus}
+                          sx={{ maxWidth: 180 }}
+                        />
+                      </Stack>
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title={<FormattedMessage id="details" />}>

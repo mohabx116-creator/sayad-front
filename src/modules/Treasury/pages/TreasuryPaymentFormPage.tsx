@@ -40,6 +40,7 @@ export default function TreasuryPaymentFormPage() {
     relatedDocumentNumber: '',
     reason: '',
     notes: '',
+    offsetAccountingAccountId: '',
     totalAmount: 0
   });
   const [allocationMap, setAllocationMap] = useState<Record<string, number>>({});
@@ -63,6 +64,7 @@ export default function TreasuryPaymentFormPage() {
       relatedDocumentNumber: payment.relatedDocumentNumber ?? '',
       reason: payment.reason ?? '',
       notes: payment.notes ?? '',
+      offsetAccountingAccountId: '',
       totalAmount: payment.totalAmount
     });
 

@@ -151,6 +151,9 @@ export interface TreasuryReceipt {
   treasuryAccountId: string;
   treasuryAccountCode: string;
   treasuryAccountNameArabic: string;
+  treasuryAccountAccountingAccountId: string | null;
+  treasuryAccountAccountingAccountCode: string | null;
+  treasuryAccountAccountingAccountArabicName: string | null;
   partyId: string;
   partyCode: string;
   partyNameArabic: string;
@@ -163,10 +166,17 @@ export interface TreasuryReceipt {
   status: string;
   currencyCode: string;
   totalAmount: number;
+  offsetAccountingAccountId: string | null;
+  offsetAccountingAccountCode: string | null;
+  offsetAccountingAccountArabicName: string | null;
   notes: string | null;
   postedAtUtc: string | null;
   cancelledAtUtc: string | null;
   cancellationReason: string | null;
+  accountingJournalEntryId: string | null;
+  accountingEntryNumber: string | null;
+  accountingPostingStatus: string;
+  isAccountingPosted: boolean;
   rowVersion: string;
   allocations: TreasuryAllocation[];
 }
@@ -184,6 +194,8 @@ export interface TreasuryReceiptListItem {
   status: string;
   totalAmount: number;
   currencyCode: string;
+  isAccountingPosted: boolean;
+  accountingPostingStatus: string;
   rowVersion: string;
 }
 
@@ -195,6 +207,7 @@ export interface TreasuryReceiptInput {
   relatedDocumentNumber: string | null;
   reason: string | null;
   notes: string | null;
+  offsetAccountingAccountId: string | null;
   allocations: TreasuryAllocationInput[];
 }
 
