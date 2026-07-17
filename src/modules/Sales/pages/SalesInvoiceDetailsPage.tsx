@@ -44,6 +44,15 @@ export default function SalesInvoiceDetailsPage() {
   const revenueAccountLabel = invoice?.revenueOrReturnAccountCode
     ? `${invoice.revenueOrReturnAccountCode}${invoice.revenueOrReturnAccountNameArabic ? ` - ${invoice.revenueOrReturnAccountNameArabic}` : ''}`
     : '—';
+  const inventoryAssetAccountLabel = invoice?.inventoryAssetAccountCode
+    ? `${invoice.inventoryAssetAccountCode}${invoice.inventoryAssetAccountArabicName ? ` - ${invoice.inventoryAssetAccountArabicName}` : ''}`
+    : '—';
+  const cogsAccountLabel = invoice?.costOfGoodsSoldAccountCode
+    ? `${invoice.costOfGoodsSoldAccountCode}${invoice.costOfGoodsSoldAccountArabicName ? ` - ${invoice.costOfGoodsSoldAccountArabicName}` : ''}`
+    : '—';
+  const inventoryCostAccountingStatus = invoice?.inventoryCostAccountingStatus ?? '—';
+  const recognizedInventoryCost = invoice?.recognizedInventoryCost ?? 0;
+  const noInventoryMovement = invoice?.inventoryCostAccountingStatus === 'لا توجد حركة مخزون لهذا المستند';
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -280,6 +289,66 @@ export default function SalesInvoiceDetailsPage() {
                            </Typography>
                            <Typography variant="body2" fontWeight={500}>
                               {revenueAccountLabel}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Journal Entry
+                           </Typography>
+                           {invoice.accountingJournalEntryId ? (
+                              <Button component={Link} to={`/accounting/journal-entries/${invoice.accountingJournalEntryId}`} size="small" variant="outlined">
+                                 {invoice.accountingEntryNumber ?? invoice.accountingJournalEntryId}
+                              </Button>
+                           ) : (
+                              <Typography variant="body2" fontWeight={500}>—</Typography>
+                           )}
+                        </Box>
+                     </Stack>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconBox color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4">التأثير على المخزون والتكلفة</Typography>
+                     </Box>
+                     <Stack spacing={2}>
+                        {noInventoryMovement && (
+                          <Typography variant="body2" color="text.secondary">
+                            لا توجد حركة مخزون لهذا المستند.
+                          </Typography>
+                        )}
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              تكلفة المخزون المعترف بها
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {recognizedInventoryCost.toFixed(2)}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حساب المخزون
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {inventoryAssetAccountLabel}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حساب تكلفة البضاعة المباعة
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {cogsAccountLabel}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              حالة ترحيل التكلفة
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {inventoryCostAccountingStatus}
                            </Typography>
                         </Box>
                         <Box>

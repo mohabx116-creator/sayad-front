@@ -118,6 +118,14 @@ export type SalesInvoice = {
   revenueOrReturnAccountId?: string | null;
   revenueOrReturnAccountCode?: string | null;
   revenueOrReturnAccountNameArabic?: string | null;
+  inventoryCostAccountingStatus?: string | null;
+  recognizedInventoryCost?: number;
+  inventoryAssetAccountId?: string | null;
+  inventoryAssetAccountCode?: string | null;
+  inventoryAssetAccountArabicName?: string | null;
+  costOfGoodsSoldAccountId?: string | null;
+  costOfGoodsSoldAccountCode?: string | null;
+  costOfGoodsSoldAccountArabicName?: string | null;
 };
 
 export type SalesInvoiceListItem = {
@@ -168,6 +176,14 @@ export type SalesReturn = {
   revenueOrReturnAccountId?: string | null;
   revenueOrReturnAccountCode?: string | null;
   revenueOrReturnAccountNameArabic?: string | null;
+  inventoryCostAccountingStatus?: string | null;
+  recognizedInventoryCost?: number;
+  inventoryAssetAccountId?: string | null;
+  inventoryAssetAccountCode?: string | null;
+  inventoryAssetAccountArabicName?: string | null;
+  costOfGoodsSoldAccountId?: string | null;
+  costOfGoodsSoldAccountCode?: string | null;
+  costOfGoodsSoldAccountArabicName?: string | null;
 };
 
 export type SalesReturnListItem = {
