@@ -41,6 +41,9 @@ const TreasuryTransferDetailsPage = Loadable(lazy(() => import('modules/Treasury
 const TreasuryTransferFormPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryTransferFormPage')));
 const TreasuryStatementsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryStatementsPage')));
 const AccountingHomePage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingHomePage')));
+const JournalEntriesListPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntriesListPage')));
+const JournalEntryDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryDetailsPage')));
+const JournalEntryFormPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryFormPage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
 const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
 const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
@@ -273,6 +276,38 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsUpdate}>
           <AccountingAccountFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/journal-entries',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.journalEntriesView}>
+          <JournalEntriesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/journal-entries/new',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.journalEntriesCreate}>
+          <JournalEntryFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/journal-entries/:id',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.journalEntriesView}>
+          <JournalEntryDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/journal-entries/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.journalEntriesUpdate}>
+          <JournalEntryFormPage />
         </PermissionRouteGuard>
       )
     },

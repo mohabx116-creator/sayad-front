@@ -19,7 +19,7 @@ export default function AccountingHomePage() {
       <Breadcrumbs custom heading="general-ledger" links={[{ title: 'general-ledger' }]} />
       <Stack spacing={3}>
         <PageTitle>
-          <FormattedMessage id="general-ledger" defaultMessage="الحسابات العامة" />
+          <FormattedMessage id="general-ledger" defaultMessage="General Ledger" />
         </PageTitle>
         <MainCard contentSX={{ p: 0 }}>
           <Box
@@ -32,23 +32,26 @@ export default function AccountingHomePage() {
           >
             <Stack spacing={2} sx={{ maxWidth: 760 }}>
               <Typography variant="overline" color="primary.main" letterSpacing={1.5}>
-                <FormattedMessage id="accounting" defaultMessage="الحسابات العامة" />
+                <FormattedMessage id="accounting" defaultMessage="Accounting" />
               </Typography>
               <Typography variant="h2" fontWeight={800}>
-                <FormattedMessage id="chart-of-accounts" defaultMessage="شجرة الحسابات" />
+                <FormattedMessage id="chart-of-accounts" defaultMessage="Chart of Accounts" />
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 <FormattedMessage
                   id="accounting-home-description"
-                  defaultMessage="ابدأ من شجرة الحسابات لإدارة الهيكل المحاسبي، ثم افتح أي حساب لعرض مساره وخصائصه أو إنشاء حسابات فرعية."
+                  defaultMessage="Start from the chart of accounts to manage the accounting structure, then open any account to inspect its path and properties or create child accounts."
                 />
               </Typography>
               <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
                 <Button component={Link} to="/accounting/chart-of-accounts" variant="contained" startIcon={<IconHierarchy2 size={18} />}>
-                  <FormattedMessage id="chart-of-accounts" defaultMessage="شجرة الحسابات" />
+                  <FormattedMessage id="chart-of-accounts" defaultMessage="Chart of Accounts" />
+                </Button>
+                <Button component={Link} to="/accounting/journal-entries" variant="outlined">
+                  <FormattedMessage id="journal-entries" defaultMessage="Journal Entries" />
                 </Button>
                 <Button component={Link} to="/accounting/chart-of-accounts/new" variant="outlined" startIcon={<IconPlus size={18} />}>
-                  <FormattedMessage id="create-account" defaultMessage="إضافة حساب" />
+                  <FormattedMessage id="create-account" defaultMessage="Create Account" />
                 </Button>
               </Stack>
             </Stack>
@@ -57,12 +60,12 @@ export default function AccountingHomePage() {
         <Card sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={1}>
             <Typography variant="h5" fontWeight={700}>
-              <FormattedMessage id="accounting-workflow" defaultMessage="مسار العمل" />
+              <FormattedMessage id="accounting-workflow" defaultMessage="Workflow" />
             </Typography>
             <Typography variant="body2" color="text.secondary">
               <FormattedMessage
                 id="accounting-workflow-description"
-                defaultMessage="إنشاء الحسابات، تنظيمها في مستويات هرمية، تفعيلها أو إيقافها، ثم حذفها بأمان عندما لا تكون مرتبطة بأي أبناء."
+                defaultMessage="Create accounts, organize them into hierarchical levels, activate or deactivate them, and safely delete them when they have no children."
               />
             </Typography>
           </Stack>
@@ -71,4 +74,3 @@ export default function AccountingHomePage() {
     </Box>
   );
 }
-
