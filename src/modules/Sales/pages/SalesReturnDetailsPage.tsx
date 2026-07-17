@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { cancelReturn, postReturn } from '../api/salesApi';
 import { useSalesReturn } from '../hooks/useSales';
@@ -37,6 +38,12 @@ export default function SalesReturnDetailsPage() {
   const dispatch = useDispatch();
   const { salesReturn, isLoading, error, mutate } = useSalesReturn(id);
   const [reason, setReason] = useState('');
+  const customerControlAccountLabel = salesReturn?.customerControlAccountCode
+    ? `${salesReturn.customerControlAccountCode}${salesReturn.customerControlAccountNameArabic ? ` - ${salesReturn.customerControlAccountNameArabic}` : ''}`
+    : '—';
+  const returnsAccountLabel = salesReturn?.revenueOrReturnAccountCode
+    ? `${salesReturn.revenueOrReturnAccountCode}${salesReturn.revenueOrReturnAccountNameArabic ? ` - ${salesReturn.revenueOrReturnAccountNameArabic}` : ''}`
+    : '—';
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -68,7 +75,11 @@ export default function SalesReturnDetailsPage() {
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
               <SalesStatusChip status={salesReturn.status} />
-           </Box>
+            </Box>
+            <SalesAccountingStatusChip
+              isAccountingPosted={salesReturn.isAccountingPosted}
+              accountingPostingStatus={salesReturn.accountingPostingStatus}
+            />
            
            <Button component={Link} to="/sales/returns" variant="outlined" color="inherit" sx={{ borderRadius: 2 }} startIcon={<IconArrowLeft size={18} />}>
               <FormattedMessage id="back" />
@@ -218,6 +229,53 @@ export default function SalesReturnDetailsPage() {
                               <Typography variant="h3" fontWeight={700}>{salesReturn.grandTotal.toFixed(2)}</Typography>
                               <Typography variant="body2" color="text.secondary"><FormattedMessage id="currency" /></Typography>
                            </Box>
+                        </Box>
+                     </Stack>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconInfoCircle color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4">Accounting</Typography>
+                     </Box>
+                     <Stack spacing={2}>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Posting Status
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {salesReturn.accountingPostingStatus || 'غير مرحل محاسبيًا'}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Customer Control
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {customerControlAccountLabel}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Sales Returns
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {returnsAccountLabel}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Journal Entry
+                           </Typography>
+                           {salesReturn.accountingJournalEntryId ? (
+                              <Button component={Link} to={`/accounting/journal-entries/${salesReturn.accountingJournalEntryId}`} size="small" variant="outlined">
+                                 {salesReturn.accountingEntryNumber ?? salesReturn.accountingJournalEntryId}
+                              </Button>
+                           ) : (
+                              <Typography variant="body2" fontWeight={500}>—</Typography>
+                           )}
                         </Box>
                      </Stack>
                   </Box>

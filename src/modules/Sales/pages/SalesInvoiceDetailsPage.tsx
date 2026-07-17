@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { cancelInvoice, postInvoice } from '../api/salesApi';
 import { useSalesInvoice } from '../hooks/useSales';
@@ -37,6 +38,12 @@ export default function SalesInvoiceDetailsPage() {
   const dispatch = useDispatch();
   const { invoice, isLoading, error, mutate } = useSalesInvoice(id);
   const [reason, setReason] = useState('');
+  const customerControlAccountLabel = invoice?.customerControlAccountCode
+    ? `${invoice.customerControlAccountCode}${invoice.customerControlAccountNameArabic ? ` - ${invoice.customerControlAccountNameArabic}` : ''}`
+    : '—';
+  const revenueAccountLabel = invoice?.revenueOrReturnAccountCode
+    ? `${invoice.revenueOrReturnAccountCode}${invoice.revenueOrReturnAccountNameArabic ? ` - ${invoice.revenueOrReturnAccountNameArabic}` : ''}`
+    : '—';
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -72,7 +79,11 @@ export default function SalesInvoiceDetailsPage() {
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
               <SalesStatusChip status={invoice.status} />
-           </Box>
+            </Box>
+            <SalesAccountingStatusChip
+              isAccountingPosted={invoice.isAccountingPosted}
+              accountingPostingStatus={invoice.accountingPostingStatus}
+            />
            
            <Button component={Link} to="/sales/invoices" variant="outlined" color="inherit" sx={{ borderRadius: 2 }} startIcon={<IconArrowLeft size={18} />}>
               <FormattedMessage id="back" />
@@ -235,6 +246,53 @@ export default function SalesInvoiceDetailsPage() {
                               <Typography variant="h3" fontWeight={700}>{invoice.grandTotal.toFixed(2)}</Typography>
                               <Typography variant="body2" color="text.secondary"><FormattedMessage id="currency" /></Typography>
                            </Box>
+                        </Box>
+                     </Stack>
+                  </Box>
+               </MainCard>
+
+               <MainCard sx={cardSx} content={false}>
+                  <Box sx={{ p: 3 }}>
+                     <Box sx={headerSx}>
+                        <IconInfoCircle color="var(--mui-palette-primary-main)" />
+                        <Typography variant="h4">Accounting</Typography>
+                     </Box>
+                     <Stack spacing={2}>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Posting Status
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {invoice.accountingPostingStatus || 'غير مرحل محاسبيًا'}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Customer Control
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {customerControlAccountLabel}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Sales Revenue
+                           </Typography>
+                           <Typography variant="body2" fontWeight={500}>
+                              {revenueAccountLabel}
+                           </Typography>
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              Journal Entry
+                           </Typography>
+                           {invoice.accountingJournalEntryId ? (
+                              <Button component={Link} to={`/accounting/journal-entries/${invoice.accountingJournalEntryId}`} size="small" variant="outlined">
+                                 {invoice.accountingEntryNumber ?? invoice.accountingJournalEntryId}
+                              </Button>
+                           ) : (
+                              <Typography variant="body2" fontWeight={500}>—</Typography>
+                           )}
                         </Box>
                      </Stack>
                   </Box>

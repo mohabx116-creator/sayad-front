@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { useSalesInvoices } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
@@ -146,6 +147,7 @@ export default function SalesInvoicesListPage() {
                        <TableCell><FormattedMessage id="customer" /></TableCell>
                        <TableCell><FormattedMessage id="grand-total" /></TableCell>
                        <TableCell><FormattedMessage id="status" /></TableCell>
+                       <TableCell><FormattedMessage id="accounting" /></TableCell>
                        <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
                      </TableRow>
                    </TableHead>
@@ -168,6 +170,12 @@ export default function SalesInvoicesListPage() {
                          </TableCell>
                          <TableCell><Typography fontWeight={600}>{invoice.grandTotal.toFixed(2)}</Typography></TableCell>
                          <TableCell><SalesStatusChip status={invoice.status} /></TableCell>
+                         <TableCell>
+                           <SalesAccountingStatusChip
+                             isAccountingPosted={invoice.isAccountingPosted}
+                             accountingPostingStatus={invoice.accountingPostingStatus}
+                           />
+                         </TableCell>
                          <TableCell align="center">
                            <Tooltip title={<FormattedMessage id="details" />}>
                              <IconButton component={Link} to={`/sales/invoices/${invoice.id}`} size="small">

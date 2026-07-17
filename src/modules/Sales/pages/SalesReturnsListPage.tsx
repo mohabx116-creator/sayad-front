@@ -25,6 +25,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { useSalesReturns } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
@@ -139,6 +140,7 @@ export default function SalesReturnsListPage() {
                        <TableCell><FormattedMessage id="sales-invoice" /></TableCell>
                        <TableCell><FormattedMessage id="return-date" /></TableCell>
                        <TableCell><FormattedMessage id="status" /></TableCell>
+                       <TableCell><FormattedMessage id="accounting" /></TableCell>
                        <TableCell><FormattedMessage id="grand-total" /></TableCell>
                        <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
                       </TableRow>
@@ -150,6 +152,12 @@ export default function SalesReturnsListPage() {
                          <TableCell>{salesReturn.salesInvoiceNumber}</TableCell>
                          <TableCell>{salesReturn.returnDate}</TableCell>
                          <TableCell><SalesStatusChip status={salesReturn.status} /></TableCell>
+                         <TableCell>
+                           <SalesAccountingStatusChip
+                             isAccountingPosted={salesReturn.isAccountingPosted}
+                             accountingPostingStatus={salesReturn.accountingPostingStatus}
+                           />
+                         </TableCell>
                          <TableCell><Typography fontWeight={600}>{salesReturn.grandTotal.toFixed(2)} <Typography component="span" variant="caption" color="text.secondary">{intl.formatMessage({ id: 'currency' })}</Typography></Typography></TableCell>
                          <TableCell align="center">
                            <Tooltip title={<FormattedMessage id="details" />}>

@@ -17,6 +17,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 
 import { IconPlus, IconTrash, IconInfoCircle, IconBox, IconNotes, IconDeviceFloppy, IconSend, IconCalculator } from '@tabler/icons-react';
 
@@ -290,6 +291,10 @@ export default function SalesReturnFormPage() {
           )}
         </Stack>
       </Box>
+
+      <Alert severity="info" sx={{ mb: 3 }}>
+        سيتيم ترحيل المرتجع على حساب مردودات المبيعات وحساب العملاء.
+      </Alert>
 
       <Grid container spacing={3}>
         <Grid item xs={12} lg={8}>

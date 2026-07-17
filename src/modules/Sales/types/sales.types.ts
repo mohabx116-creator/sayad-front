@@ -108,6 +108,16 @@ export type SalesInvoice = {
   cancellationReason?: string | null;
   rowVersion: string;
   lines: SalesLine[];
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
+  isAccountingPosted?: boolean;
+  accountingPostingStatus?: string;
+  customerControlAccountId?: string | null;
+  customerControlAccountCode?: string | null;
+  customerControlAccountNameArabic?: string | null;
+  revenueOrReturnAccountId?: string | null;
+  revenueOrReturnAccountCode?: string | null;
+  revenueOrReturnAccountNameArabic?: string | null;
 };
 
 export type SalesInvoiceListItem = {
@@ -122,6 +132,8 @@ export type SalesInvoiceListItem = {
   grandTotal: number;
   currencyCode: 'EGP';
   rowVersion: string;
+  isAccountingPosted?: boolean;
+  accountingPostingStatus?: string;
 };
 
 export type SalesReturn = {
@@ -146,6 +158,16 @@ export type SalesReturn = {
   cancellationReason?: string | null;
   rowVersion: string;
   lines: SalesReturnLine[];
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
+  isAccountingPosted?: boolean;
+  accountingPostingStatus?: string;
+  customerControlAccountId?: string | null;
+  customerControlAccountCode?: string | null;
+  customerControlAccountNameArabic?: string | null;
+  revenueOrReturnAccountId?: string | null;
+  revenueOrReturnAccountCode?: string | null;
+  revenueOrReturnAccountNameArabic?: string | null;
 };
 
 export type SalesReturnListItem = {
@@ -160,6 +182,8 @@ export type SalesReturnListItem = {
   grandTotal: number;
   currencyCode: 'EGP';
   rowVersion: string;
+  isAccountingPosted?: boolean;
+  accountingPostingStatus?: string;
 };
 
 export type SalesListParams = {

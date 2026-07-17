@@ -19,6 +19,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Autocomplete from '@mui/material/Autocomplete';
 import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
 
 import { IconPlus, IconTrash, IconInfoCircle, IconBox, IconCalculator, IconNotes, IconDeviceFloppy, IconSend } from '@tabler/icons-react';
 
@@ -280,6 +281,10 @@ export default function SalesInvoiceFormPage() {
             )}
          </Box>
       </Box>
+
+      <Alert severity="info" sx={{ mb: 3 }}>
+        سيتيم ترحيل الفاتورة على حساب العملاء وحساب إيرادات المبيعات.
+      </Alert>
 
       {/* Basic Info Card */}
       <MainCard sx={cardSx} content={false}>
