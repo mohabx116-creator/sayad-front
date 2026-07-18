@@ -69,6 +69,15 @@ const accounting: NavItemType = {
           permission: ACCOUNTING_PERMISSIONS.reportsView
         },
         {
+          id: 'cash-flow-report',
+          title: 'cash-flow-report',
+          type: 'item',
+          url: '/accounting/reports/cash-flow',
+          icon: IconReportAnalytics,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
           id: 'trial-balance-report',
           title: 'trial-balance-report',
           type: 'item',

@@ -125,6 +125,11 @@ export default function AccountingAccountDetailsPage() {
               <Chip size="small" color={account.isPosting ? 'info' : 'secondary'} label={<FormattedMessage id={account.isPosting ? 'posting-account' : 'header-account'} />} />
               <Chip size="small" color={account.isActive ? 'success' : 'default'} label={<FormattedMessage id={account.isActive ? 'active' : 'inactive'} />} />
               {account.isSystem && <Chip size="small" color="warning" label={<FormattedMessage id="system-account" defaultMessage="حساب نظامي" />} />}
+              <Chip
+                size="small"
+                color={account.cashFlowActivityType === 'Unclassified' && account.isPosting && !account.treasuryAccountId ? 'warning' : 'default'}
+                label={account.cashFlowActivityTypeLabel}
+              />
             </Stack>
           </Box>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -214,6 +219,22 @@ export default function AccountingAccountDetailsPage() {
                   '-'
                 )}
               </Typography>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                <FormattedMessage id="cash-flow-classification" defaultMessage="Cash flow classification" />
+              </Typography>
+              <Stack spacing={0.5}>
+                <Typography variant="body1" fontWeight={700}>
+                  {account.cashFlowActivityTypeLabel}
+                </Typography>
+                {account.isPosting && account.cashFlowActivityType === 'Unclassified' && !account.treasuryAccountId && (
+                  <Chip size="small" color="warning" variant="outlined" label={<FormattedMessage id="cash-flow-unclassified" defaultMessage="Unclassified" />} />
+                )}
+                {account.treasuryAccountId && (
+                  <Chip size="small" color="info" variant="outlined" label={<FormattedMessage id="cash-flow-cash-account" defaultMessage="Cash account" />} />
+                )}
+              </Stack>
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="caption" color="text.secondary" display="block">

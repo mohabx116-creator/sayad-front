@@ -28,8 +28,8 @@ import { createAccountingAccount, updateAccountingAccount } from '../api/account
 import { useAccountingAccount, useAccountingAccountParents } from '../hooks/useAccounting';
 import { createAccountingAccountSchema, updateAccountingAccountSchema } from '../schemas/accounting.schema';
 import type { AccountingAccountFormValues, AccountingAccountInput } from '../types/accounting.types';
-import { ACCOUNTING_ACCOUNT_TYPE_ORDER, ACCOUNTING_ACCOUNT_TYPES } from '../utils/accounting.constants';
-import { formatAccountingAccountType } from '../utils/accounting.format';
+import { ACCOUNTING_ACCOUNT_TYPE_ORDER, ACCOUNTING_ACCOUNT_TYPES, CASH_FLOW_ACTIVITY_TYPE_ORDER, CASH_FLOW_ACTIVITY_TYPES } from '../utils/accounting.constants';
+import { formatAccountingAccountType, formatCashFlowActivityType } from '../utils/accounting.format';
 
 function toFormValues(account?: ReturnType<typeof useAccountingAccount>['account'], parentId = ''): AccountingAccountFormValues {
   return {
@@ -41,6 +41,7 @@ function toFormValues(account?: ReturnType<typeof useAccountingAccount>['account
     isPosting: account?.isPosting ?? false,
     isActive: account?.isActive ?? true,
     isSystem: account?.isSystem ?? false,
+    cashFlowActivityType: account?.cashFlowActivityType ?? CASH_FLOW_ACTIVITY_TYPES.UNCLASSIFIED,
     description: account?.description ?? '',
     rowVersion: account?.rowVersion
   };
@@ -56,6 +57,7 @@ function toRequest(values: AccountingAccountFormValues): AccountingAccountInput 
     isPosting: values.isPosting,
     isActive: values.isActive,
     isSystem: values.isSystem,
+    cashFlowActivityType: values.cashFlowActivityType,
     description: values.description || null
   };
 }
@@ -77,6 +79,8 @@ export default function AccountingAccountFormPage() {
 
   const selectedParentId = form.watch('parentId');
   const accountType = form.watch('accountType');
+  const isPosting = form.watch('isPosting');
+  const cashFlowActivityType = form.watch('cashFlowActivityType');
   const parentLookup = useAccountingAccountParents({
     page: 1,
     pageSize: 50,
@@ -169,6 +173,24 @@ export default function AccountingAccountFormPage() {
                   id="parent-selection-help"
                   defaultMessage="اختيار الحساب الأب يقيّد نوع الحساب تلقائيًا على نفس النوع: {type}."
                   values={{ type: selectedParentTypeLabel }}
+                />
+              </Alert>
+            )}
+
+            {isEdit && account?.treasuryAccountId && (
+              <Alert severity="info">
+                <FormattedMessage
+                  id="cash-flow-treasury-linked-help"
+                  defaultMessage="This account is linked to Treasury and is treated as a cash account in the Cash Flow Statement."
+                />
+              </Alert>
+            )}
+
+            {isPosting && cashFlowActivityType === CASH_FLOW_ACTIVITY_TYPES.UNCLASSIFIED && !account?.treasuryAccountId && (
+              <Alert severity="warning">
+                <FormattedMessage
+                  id="cash-flow-unclassified-account-warning"
+                  defaultMessage="This posting account is unclassified and will appear under unclassified cash-flow activity when used as a cash counterpart."
                 />
               </Alert>
             )}
@@ -294,6 +316,28 @@ export default function AccountingAccountFormPage() {
                       <MenuItem value="false">
                         <FormattedMessage id="inactive" />
                       </MenuItem>
+                    </TextField>
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Controller
+                  name="cashFlowActivityType"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      select
+                      fullWidth
+                      label={<FormattedMessage id="cash-flow-classification" defaultMessage="Cash flow classification" />}
+                      helperText={fieldState.error?.message || <FormattedMessage id="cash-flow-classification-helper" defaultMessage="Defines the cash-flow section when this account is used as the counterpart to a treasury or bank account." />}
+                      error={!!fieldState.error}
+                    >
+                      {CASH_FLOW_ACTIVITY_TYPE_ORDER.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {formatCashFlowActivityType(type)}
+                        </MenuItem>
+                      ))}
                     </TextField>
                   )}
                 />

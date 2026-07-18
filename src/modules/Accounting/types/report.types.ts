@@ -1,4 +1,4 @@
-import type { AccountingAccountType } from './accounting.types';
+import type { AccountingAccountType, CashFlowActivityType } from './accounting.types';
 
 export type AccountingReportAccountDto = {
   id: string;
@@ -236,5 +236,76 @@ export type BalanceSheetParams = {
   includeZeroBalances?: boolean;
   includeInactiveAccounts?: boolean;
   includeHeaderAccounts?: boolean;
+  search?: string;
+};
+
+export type CashFlowFiltersDto = {
+  fromDate: string;
+  toDate: string;
+  includeZeroRows: boolean;
+  includeInactiveAccounts: boolean;
+  search: string | null;
+};
+
+export type CashFlowRowDto = {
+  accountId: string | null;
+  accountCode: string | null;
+  accountArabicName: string;
+  accountEnglishName: string | null;
+  cashFlowActivityType: CashFlowActivityType;
+  cashFlowActivityTypeLabel: string;
+  isPosting: boolean;
+  isActive: boolean;
+  isTreasuryLinkedCashAccount: boolean;
+  inflowAmount: number;
+  outflowAmount: number;
+  netAmount: number;
+  movementCount: number;
+  isDataIntegrityAdjustment: boolean;
+};
+
+export type CashFlowSectionDto = {
+  cashFlowActivityType: CashFlowActivityType;
+  cashFlowActivityTypeLabel: string;
+  rows: CashFlowRowDto[];
+  totalInflows: number;
+  totalOutflows: number;
+  netCashFlow: number;
+};
+
+export type CashFlowReportDto = {
+  fromDate: string;
+  toDate: string;
+  appliedFilters: CashFlowFiltersDto;
+  openingCashBalance: number;
+  closingCashBalance: number;
+  netIncreaseDecreaseInCash: number;
+  operatingNetCashFlow: number;
+  investingNetCashFlow: number;
+  financingNetCashFlow: number;
+  excludedNetCashFlow: number;
+  unclassifiedNetCashFlow: number;
+  operatingSection: CashFlowSectionDto;
+  investingSection: CashFlowSectionDto;
+  financingSection: CashFlowSectionDto;
+  excludedSection: CashFlowSectionDto;
+  unclassifiedSection: CashFlowSectionDto;
+  cashAccountCount: number;
+  internalTransferCount: number;
+  internalTransferDebit: number;
+  internalTransferCredit: number;
+  reconciliationDifference: number;
+  isReconciled: boolean;
+  hasActivity: boolean;
+  hasUnclassifiedActivity: boolean;
+  hasDataIntegrityWarnings: boolean;
+  dataIntegrityWarnings: string[];
+};
+
+export type CashFlowParams = {
+  fromDate?: string;
+  toDate?: string;
+  includeZeroRows?: boolean;
+  includeInactiveAccounts?: boolean;
   search?: string;
 };

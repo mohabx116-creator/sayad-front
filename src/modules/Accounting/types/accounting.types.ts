@@ -5,6 +5,13 @@ export type AccountingAccountType =
   | 'Revenue'
   | 'Expense';
 
+export type CashFlowActivityType =
+  | 'Operating'
+  | 'Investing'
+  | 'Financing'
+  | 'Excluded'
+  | 'Unclassified';
+
 export type AccountingAccountLookupDto = {
   id: string;
   code: string;
@@ -14,6 +21,8 @@ export type AccountingAccountLookupDto = {
   accountTypeLabel: string;
   isPosting: boolean;
   isSystem: boolean;
+  cashFlowActivityType: CashFlowActivityType;
+  cashFlowActivityTypeLabel: string;
 };
 
 export type AccountingAccountChildDto = {
@@ -28,6 +37,8 @@ export type AccountingAccountChildDto = {
   isPosting: boolean;
   isActive: boolean;
   isSystem: boolean;
+  cashFlowActivityType: CashFlowActivityType;
+  cashFlowActivityTypeLabel: string;
 };
 
 export type AccountingAccountTreeNodeDto = {
@@ -43,6 +54,8 @@ export type AccountingAccountTreeNodeDto = {
   isPosting: boolean;
   isActive: boolean;
   isSystem: boolean;
+  cashFlowActivityType: CashFlowActivityType;
+  cashFlowActivityTypeLabel: string;
   description: string | null;
   hierarchyPath: string | null;
   rowVersion: string;
@@ -65,6 +78,8 @@ export type AccountingAccountDto = {
   isPosting: boolean;
   isActive: boolean;
   isSystem: boolean;
+  cashFlowActivityType: CashFlowActivityType;
+  cashFlowActivityTypeLabel: string;
   description: string | null;
   hierarchyPath: string | null;
   treasuryAccountId: string | null;
@@ -91,6 +106,8 @@ export type AccountingAccountListItemDto = {
   isPosting: boolean;
   isActive: boolean;
   isSystem: boolean;
+  cashFlowActivityType: CashFlowActivityType;
+  cashFlowActivityTypeLabel: string;
   description: string | null;
   rowVersion: string;
 };
@@ -104,6 +121,7 @@ export type AccountingAccountFormValues = {
   isPosting: boolean;
   isActive: boolean;
   isSystem: boolean;
+  cashFlowActivityType: CashFlowActivityType;
   description?: string;
   rowVersion?: string;
 };
@@ -117,6 +135,7 @@ export type AccountingAccountInput = {
   isPosting: boolean;
   isActive: boolean;
   isSystem: boolean;
+  cashFlowActivityType: CashFlowActivityType;
   description: string | null;
 };
 
