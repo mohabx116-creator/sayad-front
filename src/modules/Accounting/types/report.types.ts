@@ -91,12 +91,15 @@ export type TrialBalanceTotalsDto = {
   openingDebit: number;
   openingCredit: number;
   openingDifference: number;
+  isOpeningBalanced: boolean;
   periodDebit: number;
   periodCredit: number;
   periodDifference: number;
+  isPeriodBalanced: boolean;
   closingDebit: number;
   closingCredit: number;
   closingDifference: number;
+  isClosingBalanced: boolean;
   isBalanced: boolean;
 };
 

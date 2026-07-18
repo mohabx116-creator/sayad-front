@@ -41,6 +41,9 @@ export default function TrialBalancePage() {
   });
 
   const { report, error, isLoading } = useTrialBalanceReport(params);
+  const openingBalanced = report?.totals.isOpeningBalanced ?? false;
+  const periodBalanced = report?.totals.isPeriodBalanced ?? false;
+  const closingBalanced = report?.totals.isClosingBalanced ?? false;
 
   return (
     <Box>
@@ -59,18 +62,38 @@ export default function TrialBalancePage() {
             </Typography>
           </Box>
           {report && (
-            <Chip
-              color={report.totals.isBalanced ? 'success' : 'error'}
-              variant="outlined"
-              label={
-                report.totals.isBalanced ? (
-                  <FormattedMessage id="balanced-entry" defaultMessage="Balanced" />
-                ) : (
-                  intl.formatMessage({ id: 'out-of-balance', defaultMessage: 'Out of balance' })
-                )
-              }
-              sx={{ fontWeight: 600 }}
-            />
+            <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="flex-end">
+              <Chip
+                color={report.totals.isBalanced ? 'success' : 'error'}
+                variant="outlined"
+                label={
+                  report.totals.isBalanced ? (
+                    <FormattedMessage id="balanced-entry" defaultMessage="Balanced" />
+                  ) : (
+                    intl.formatMessage({ id: 'out-of-balance', defaultMessage: 'Out of balance' })
+                  )
+                }
+                sx={{ fontWeight: 600 }}
+              />
+              <Chip
+                size="small"
+                color={openingBalanced ? 'success' : 'error'}
+                variant="outlined"
+                label={intl.formatMessage({ id: 'opening-balanced', defaultMessage: openingBalanced ? 'Opening balanced' : 'Opening out of balance' })}
+              />
+              <Chip
+                size="small"
+                color={periodBalanced ? 'success' : 'error'}
+                variant="outlined"
+                label={intl.formatMessage({ id: 'period-balanced', defaultMessage: periodBalanced ? 'Period balanced' : 'Period out of balance' })}
+              />
+              <Chip
+                size="small"
+                color={closingBalanced ? 'success' : 'error'}
+                variant="outlined"
+                label={intl.formatMessage({ id: 'closing-balanced', defaultMessage: closingBalanced ? 'Closing balanced' : 'Closing out of balance' })}
+              />
+            </Stack>
           )}
         </Box>
 
@@ -182,14 +205,14 @@ export default function TrialBalancePage() {
               </Grid>
             </Grid>
 
-            {!report.totals.isBalanced && (
+            {!report.totals.isOpeningBalanced || !report.totals.isPeriodBalanced || !report.totals.isClosingBalanced ? (
               <Alert severity="warning">
                 <FormattedMessage
                   id="trial-balance-imbalance-warning"
-                  defaultMessage="The report is not balanced. The backend returned the exact variance instead of hiding it."
+                  defaultMessage="One or more trial balance sections are not balanced. The backend returned the exact variances instead of hiding them."
                 />
               </Alert>
-            )}
+            ) : null}
 
             <MainCard contentSX={{ p: 0 }}>
               <Table>
