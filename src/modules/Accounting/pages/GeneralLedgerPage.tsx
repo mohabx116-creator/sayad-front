@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -43,15 +43,22 @@ function formatDate(locale: string, value: string) {
 
 export default function GeneralLedgerPage() {
   const intl = useIntl();
+  const [searchParams] = useSearchParams();
+  const initialFromDate = searchParams.get('fromDate') ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+  const initialToDate = searchParams.get('toDate') ?? new Date().toISOString().slice(0, 10);
+  const initialAccountId = searchParams.get('accountId') ?? '';
+  const initialPage = Number.parseInt(searchParams.get('page') ?? '1', 10);
+  const initialPageSize = Number.parseInt(searchParams.get('pageSize') ?? '10', 10);
+  const includeDescendants = searchParams.get('includeDescendants');
   const [accountSearch, setAccountSearch] = useState('');
-  const [selectedAccountId, setSelectedAccountId] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState(initialAccountId);
   const [params, setParams] = useState<GeneralLedgerParams>({
-    accountId: '',
-    fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
-    toDate: new Date().toISOString().slice(0, 10),
-    page: 1,
-    pageSize: 10,
-    includeDescendants: true
+    accountId: initialAccountId,
+    fromDate: initialFromDate,
+    toDate: initialToDate,
+    page: Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1,
+    pageSize: Number.isFinite(initialPageSize) && initialPageSize > 0 ? initialPageSize : 10,
+    includeDescendants: includeDescendants === null ? true : includeDescendants !== 'false'
   });
 
   const { items: accounts, isLoading: accountsLoading } = useAccountingAccounts({

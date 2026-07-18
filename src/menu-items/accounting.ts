@@ -51,6 +51,15 @@ const accounting: NavItemType = {
           permission: ACCOUNTING_PERMISSIONS.reportsView
         },
         {
+          id: 'income-statement-report',
+          title: 'income-statement-report',
+          type: 'item',
+          url: '/accounting/reports/income-statement',
+          icon: IconReportAnalytics,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
           id: 'trial-balance-report',
           title: 'trial-balance-report',
           type: 'item',

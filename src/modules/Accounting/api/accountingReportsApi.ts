@@ -5,6 +5,8 @@ import type { ApiResponse } from 'types/api';
 import type {
   GeneralLedgerParams,
   GeneralLedgerReportDto,
+  IncomeStatementParams,
+  IncomeStatementReportDto,
   TrialBalanceParams,
   TrialBalanceReportDto
 } from '../types/report.types';
@@ -36,4 +38,8 @@ export function getGeneralLedgerReport(params: GeneralLedgerParams) {
 
 export function getTrialBalanceReport(params: TrialBalanceParams) {
   return unwrap(axiosServices.get<ApiResponse<TrialBalanceReportDto>>(`/api/accounting/reports/trial-balance?${buildQuery(params)}`));
+}
+
+export function getIncomeStatementReport(params: IncomeStatementParams) {
+  return unwrap(axiosServices.get<ApiResponse<IncomeStatementReportDto>>(`/api/accounting/reports/income-statement?${buildQuery(params)}`));
 }

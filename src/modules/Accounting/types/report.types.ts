@@ -62,6 +62,62 @@ export type GeneralLedgerParams = {
   includeDescendants?: boolean;
 };
 
+export type IncomeStatementFiltersDto = {
+  fromDate: string;
+  toDate: string;
+  includeZeroBalances: boolean;
+  includeInactiveAccounts: boolean;
+  includeHeaderAccounts: boolean;
+  search: string | null;
+};
+
+export type IncomeStatementRowDto = {
+  accountId: string;
+  accountCode: string;
+  accountArabicName: string;
+  accountEnglishName: string | null;
+  accountType: AccountingAccountType;
+  accountTypeLabel: string;
+  normalBalance: 'Debit' | 'Credit';
+  normalBalanceLabel: string;
+  parentId: string | null;
+  hierarchyLevel: number;
+  hierarchyPath: string;
+  isPosting: boolean;
+  isActive: boolean;
+  isSystem: boolean;
+  debitAmount: number;
+  creditAmount: number;
+  netAmount: number;
+  normalBalanceAmount: number;
+  abnormalBalanceAmount: number;
+  isAbnormalBalance: boolean;
+};
+
+export type IncomeStatementReportDto = {
+  fromDate: string;
+  toDate: string;
+  appliedFilters: IncomeStatementFiltersDto;
+  revenueRows: IncomeStatementRowDto[];
+  expenseRows: IncomeStatementRowDto[];
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfitOrLoss: number;
+  resultType: 'Profit' | 'Loss' | 'BreakEven' | string;
+  revenueAccountCount: number;
+  expenseAccountCount: number;
+  hasActivity: boolean;
+};
+
+export type IncomeStatementParams = {
+  fromDate?: string;
+  toDate?: string;
+  includeZeroBalances?: boolean;
+  includeInactiveAccounts?: boolean;
+  includeHeaderAccounts?: boolean;
+  search?: string;
+};
+
 export type TrialBalanceRowDto = {
   accountId: string;
   code: string;

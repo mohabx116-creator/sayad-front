@@ -5,6 +5,8 @@ import { fetcher } from 'utils/axios';
 import type {
   GeneralLedgerParams,
   GeneralLedgerReportDto,
+  IncomeStatementParams,
+  IncomeStatementReportDto,
   TrialBalanceParams,
   TrialBalanceReportDto
 } from '../types/report.types';
@@ -38,6 +40,21 @@ export function useGeneralLedgerReport(params?: GeneralLedgerParams | null) {
 export function useTrialBalanceReport(params: TrialBalanceParams) {
   const key = `/api/accounting/reports/trial-balance?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TrialBalanceReportDto>>(key, fetcher, {
+    revalidateOnFocus: false
+  });
+
+  return {
+    report: data?.data ?? null,
+    error,
+    isLoading,
+    mutate,
+    key
+  };
+}
+
+export function useIncomeStatementReport(params: IncomeStatementParams) {
+  const key = `/api/accounting/reports/income-statement?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<IncomeStatementReportDto>>(key, fetcher, {
     revalidateOnFocus: false
   });
 
