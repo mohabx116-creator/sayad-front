@@ -3,6 +3,8 @@ import { AxiosResponse } from 'axios';
 import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type {
+  BalanceSheetParams,
+  BalanceSheetReportDto,
   GeneralLedgerParams,
   GeneralLedgerReportDto,
   IncomeStatementParams,
@@ -38,6 +40,10 @@ export function getGeneralLedgerReport(params: GeneralLedgerParams) {
 
 export function getTrialBalanceReport(params: TrialBalanceParams) {
   return unwrap(axiosServices.get<ApiResponse<TrialBalanceReportDto>>(`/api/accounting/reports/trial-balance?${buildQuery(params)}`));
+}
+
+export function getBalanceSheetReport(params: BalanceSheetParams) {
+  return unwrap(axiosServices.get<ApiResponse<BalanceSheetReportDto>>(`/api/accounting/reports/balance-sheet?${buildQuery(params)}`));
 }
 
 export function getIncomeStatementReport(params: IncomeStatementParams) {

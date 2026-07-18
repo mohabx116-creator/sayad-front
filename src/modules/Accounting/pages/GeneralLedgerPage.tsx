@@ -44,7 +44,8 @@ function formatDate(locale: string, value: string) {
 export default function GeneralLedgerPage() {
   const intl = useIntl();
   const [searchParams] = useSearchParams();
-  const initialFromDate = searchParams.get('fromDate') ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+  const hasQueryParams = searchParams.has('accountId') || searchParams.has('fromDate') || searchParams.has('toDate') || searchParams.has('includeDescendants');
+  const initialFromDate = searchParams.get('fromDate') ?? (hasQueryParams ? '' : new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10));
   const initialToDate = searchParams.get('toDate') ?? new Date().toISOString().slice(0, 10);
   const initialAccountId = searchParams.get('accountId') ?? '';
   const initialPage = Number.parseInt(searchParams.get('page') ?? '1', 10);

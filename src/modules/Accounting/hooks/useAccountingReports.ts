@@ -3,6 +3,8 @@ import useSWR from 'swr';
 import type { ApiResponse } from 'types/api';
 import { fetcher } from 'utils/axios';
 import type {
+  BalanceSheetParams,
+  BalanceSheetReportDto,
   GeneralLedgerParams,
   GeneralLedgerReportDto,
   IncomeStatementParams,
@@ -40,6 +42,21 @@ export function useGeneralLedgerReport(params?: GeneralLedgerParams | null) {
 export function useTrialBalanceReport(params: TrialBalanceParams) {
   const key = `/api/accounting/reports/trial-balance?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TrialBalanceReportDto>>(key, fetcher, {
+    revalidateOnFocus: false
+  });
+
+  return {
+    report: data?.data ?? null,
+    error,
+    isLoading,
+    mutate,
+    key
+  };
+}
+
+export function useBalanceSheetReport(params: BalanceSheetParams) {
+  const key = `/api/accounting/reports/balance-sheet?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<BalanceSheetReportDto>>(key, fetcher, {
     revalidateOnFocus: false
   });
 

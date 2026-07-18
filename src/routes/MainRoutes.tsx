@@ -48,6 +48,7 @@ const JournalEntryFormPage = Loadable(lazy(() => import('modules/Accounting/page
 const GeneralLedgerPage = Loadable(lazy(() => import('modules/Accounting/pages/GeneralLedgerPage')));
 const TrialBalancePage = Loadable(lazy(() => import('modules/Accounting/pages/TrialBalancePage')));
 const IncomeStatementPage = Loadable(lazy(() => import('modules/Accounting/pages/IncomeStatementPage')));
+const BalanceSheetPage = Loadable(lazy(() => import('modules/Accounting/pages/BalanceSheetPage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
 const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
 const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
@@ -337,6 +338,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
           <IncomeStatementPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/balance-sheet',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <BalanceSheetPage />
         </PermissionRouteGuard>
       )
     },

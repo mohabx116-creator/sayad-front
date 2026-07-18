@@ -176,3 +176,65 @@ export type TrialBalanceParams = {
   includeZeroBalances?: boolean;
   includeHeaderAccounts?: boolean;
 };
+
+export type BalanceSheetFiltersDto = {
+  asOfDate: string;
+  includeZeroBalances: boolean;
+  includeInactiveAccounts: boolean;
+  includeHeaderAccounts: boolean;
+  search: string | null;
+};
+
+export type BalanceSheetRowDto = {
+  accountId: string | null;
+  accountCode: string | null;
+  accountArabicName: string;
+  accountEnglishName: string | null;
+  accountType: AccountingAccountType;
+  accountTypeLabel: string;
+  normalBalance: 'Debit' | 'Credit';
+  normalBalanceLabel: string;
+  parentId: string | null;
+  hierarchyLevel: number;
+  hierarchyPath: string;
+  isPosting: boolean;
+  isActive: boolean;
+  isSystem: boolean;
+  isDerived: boolean;
+  debitAmount: number;
+  creditAmount: number;
+  netAmount: number;
+  normalBalanceAmount: number;
+  abnormalBalanceAmount: number;
+  isAbnormalBalance: boolean;
+};
+
+export type BalanceSheetReportDto = {
+  asOfDate: string;
+  appliedFilters: BalanceSheetFiltersDto;
+  assetRows: BalanceSheetRowDto[];
+  liabilityRows: BalanceSheetRowDto[];
+  equityRows: BalanceSheetRowDto[];
+  unclosedEarningsRow: BalanceSheetRowDto;
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquityBeforeUnclosedEarnings: number;
+  unclosedEarnings: number;
+  unclosedEarningsResultType: 'Profit' | 'Loss' | 'BreakEven' | string;
+  unclosedEarningsLabel: string;
+  totalEquity: number;
+  totalLiabilitiesAndEquity: number;
+  balanceDifference: number;
+  isBalanced: boolean;
+  hiddenPostingAccountCount: number;
+  hasHiddenBalances: boolean;
+  hasActivity: boolean;
+};
+
+export type BalanceSheetParams = {
+  asOfDate?: string;
+  includeZeroBalances?: boolean;
+  includeInactiveAccounts?: boolean;
+  includeHeaderAccounts?: boolean;
+  search?: string;
+};

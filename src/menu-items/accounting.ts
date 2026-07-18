@@ -60,6 +60,15 @@ const accounting: NavItemType = {
           permission: ACCOUNTING_PERMISSIONS.reportsView
         },
         {
+          id: 'balance-sheet-report',
+          title: 'balance-sheet-report',
+          type: 'item',
+          url: '/accounting/reports/balance-sheet',
+          icon: IconReportAnalytics,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
           id: 'trial-balance-report',
           title: 'trial-balance-report',
           type: 'item',
