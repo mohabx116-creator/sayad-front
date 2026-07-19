@@ -1,4 +1,4 @@
-import { IconCalendar, IconFileDescription, IconHierarchy2, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
+import { IconCalendar, IconFileDescription, IconHierarchy2, IconLock, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 
@@ -105,6 +105,15 @@ const accounting: NavItemType = {
       icon: IconCalendar,
       breadcrumbs: true,
       permission: ACCOUNTING_PERMISSIONS.periodsView
+    },
+    {
+      id: 'year-end-closing',
+      title: 'year-end-closing',
+      type: 'item',
+      url: '/accounting/year-end-closing',
+      icon: IconLock,
+      breadcrumbs: true,
+      permission: ACCOUNTING_PERMISSIONS.yearEndView
     }
   ]
 };

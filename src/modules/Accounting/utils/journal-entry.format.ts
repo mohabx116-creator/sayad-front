@@ -52,6 +52,8 @@ export function formatJournalEntrySourceType(sourceType?: JournalEntrySourceType
       return isArabic ? '\u0645\u0631\u062A\u062C\u0639 \u0634\u0631\u0627\u0621' : 'Purchase Return';
     case JOURNAL_ENTRY_SOURCE_TYPES.INVENTORY_MOVEMENT:
       return isArabic ? '\u062D\u0631\u0643\u0629 \u0645\u062E\u0632\u0648\u0646' : 'Inventory Movement';
+    case JOURNAL_ENTRY_SOURCE_TYPES.FISCAL_YEAR_CLOSING:
+      return isArabic ? 'إقفال سنة مالية' : 'Fiscal Year Closing';
     default:
       return EMPTY_VALUE;
   }

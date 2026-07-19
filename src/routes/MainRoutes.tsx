@@ -43,6 +43,7 @@ const TreasuryStatementsPage = Loadable(lazy(() => import('modules/Treasury/page
 const AccountingHomePage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingHomePage')));
 const AccountingSettingsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingSettingsPage')));
 const AccountingPeriodsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingPeriodsPage')));
+const YearEndClosingPage = Loadable(lazy(() => import('modules/Accounting/pages/YearEndClosingPage')));
 const JournalEntriesListPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntriesListPage')));
 const JournalEntryDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryDetailsPage')));
 const JournalEntryFormPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryFormPage')));
@@ -372,6 +373,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.periodsView}>
           <AccountingPeriodsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/year-end-closing',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.yearEndView}>
+          <YearEndClosingPage />
         </PermissionRouteGuard>
       )
     },

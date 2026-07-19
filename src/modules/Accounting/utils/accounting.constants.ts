@@ -11,6 +11,9 @@ export const ACCOUNTING_PERMISSIONS = {
   periodsView: 'accounting.periods.view',
   periodsManage: 'accounting.periods.manage',
   periodsReopen: 'accounting.periods.reopen',
+  yearEndView: 'accounting.year-end.view',
+  yearEndClose: 'accounting.year-end.close',
+  yearEndReopen: 'accounting.year-end.reopen',
   reportsView: 'accounting.reports.view',
   journalEntriesView: 'accounting.journal-entries.view',
   journalEntriesCreate: 'accounting.journal-entries.create',
@@ -28,6 +31,7 @@ export const ACCOUNTING_VIEW_PERMISSIONS = [
   ACCOUNTING_PERMISSIONS.accountsView,
   ACCOUNTING_PERMISSIONS.settingsView,
   ACCOUNTING_PERMISSIONS.periodsView,
+  ACCOUNTING_PERMISSIONS.yearEndView,
   ACCOUNTING_PERMISSIONS.reportsView,
   ACCOUNTING_PERMISSIONS.journalEntriesView
 ] as const;

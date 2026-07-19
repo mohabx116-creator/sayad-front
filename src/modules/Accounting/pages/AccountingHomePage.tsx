@@ -6,7 +6,7 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { IconHierarchy2, IconPlus } from '@tabler/icons-react';
+import { IconHierarchy2, IconLock, IconPlus } from '@tabler/icons-react';
 import { FormattedMessage } from 'react-intl';
 
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
@@ -49,6 +49,9 @@ export default function AccountingHomePage() {
                 </Button>
                 <Button component={Link} to="/accounting/journal-entries" variant="outlined">
                   <FormattedMessage id="journal-entries" defaultMessage="Journal Entries" />
+                </Button>
+                <Button component={Link} to="/accounting/year-end-closing" variant="outlined" startIcon={<IconLock size={18} />}>
+                  <FormattedMessage id="year-end-closing" defaultMessage="Year-End Closing" />
                 </Button>
                 <Button component={Link} to="/accounting/chart-of-accounts/new" variant="outlined" startIcon={<IconPlus size={18} />}>
                   <FormattedMessage id="create-account" defaultMessage="Create Account" />

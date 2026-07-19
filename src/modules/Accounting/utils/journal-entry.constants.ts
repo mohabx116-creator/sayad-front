@@ -17,7 +17,8 @@ export const JOURNAL_ENTRY_SOURCE_TYPES = {
   SALES_RETURN: 'SalesReturn',
   PURCHASE_INVOICE: 'PurchaseInvoice',
   PURCHASE_RETURN: 'PurchaseReturn',
-  INVENTORY_MOVEMENT: 'InventoryMovement'
+  INVENTORY_MOVEMENT: 'InventoryMovement',
+  FISCAL_YEAR_CLOSING: 'FiscalYearClosing'
 } as const;
 
 export const JOURNAL_ENTRY_PERMISSIONS = {
