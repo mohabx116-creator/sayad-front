@@ -87,6 +87,15 @@ const accounting: NavItemType = {
           permission: ACCOUNTING_PERMISSIONS.reportsView
         },
         {
+          id: 'supplier-payables-aging-report',
+          title: 'supplier-payables-aging-report',
+          type: 'item',
+          url: '/accounting/reports/supplier-payables-aging',
+          icon: IconFileInvoice,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
           id: 'trial-balance-report',
           title: 'trial-balance-report',
           type: 'item',

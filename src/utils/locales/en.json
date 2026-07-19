@@ -886,5 +886,7 @@
   "journal-entry-posted-successfully": "Journal entry posted successfully.",
   "journal-entry-cancelled-successfully": "Journal entry cancelled successfully.",
   "journal-entry-created-successfully": "Journal entry created successfully.",
-  "journal-entry-updated-successfully": "Journal entry updated successfully."
+  "journal-entry-updated-successfully": "Journal entry updated successfully.",
+  "supplier-payables-aging-report": "Supplier Payables Aging",
+  "supplier-payables-aging-report-description": "Review supplier payables by invoice due date, aging bucket, and reconciliation status."
 }

@@ -32,6 +32,15 @@ import { cancelInvoice, postInvoice } from '../api/purchasesApi';
 import { usePurchaseInvoice } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
 
+function formatDate(value: string | null | undefined, locale: string) {
+  if (!value) {
+    return '-';
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(locale);
+}
+
 export default function PurchaseInvoiceDetailsPage() {
   const { id } = useParams();
   const intl = useIntl();
@@ -129,7 +138,11 @@ export default function PurchaseInvoiceDetailsPage() {
                         </Grid>
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="invoice-date" /></Typography>
-                           <Typography variant="body1" fontWeight={500}>{invoice.invoiceDate}</Typography>
+                           <Typography variant="body1" fontWeight={500}>{formatDate(invoice.invoiceDate, intl.locale)}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="due-date" defaultMessage="Due date" /></Typography>
+                           <Typography variant="body1" fontWeight={500}>{formatDate(invoice.dueDate, intl.locale)}</Typography>
                         </Grid>
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="invoice-number" /></Typography>

@@ -407,3 +407,102 @@ export type CustomerReceivablesAgingParams = {
   page?: number;
   pageSize?: number;
 };
+
+export type SupplierPayablesAgingFiltersDto = {
+  asOfDate: string;
+  supplierId: string | null;
+  search: string | null;
+  agingBucket: string | null;
+  includeZeroBalances: boolean;
+  includeSupplierAdvances: boolean;
+  onlyOverdue: boolean;
+  page: number;
+  pageSize: number;
+};
+
+export type SupplierPayablesAgingInvoiceRowDto = {
+  purchaseInvoiceId: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string | null;
+  agingBaseDate: string;
+  isDueDateEstimated: boolean;
+  supplierId: string;
+  supplierCode: string;
+  supplierArabicName: string;
+  supplierEnglishName: string | null;
+  supplierInvoiceNumber: string | null;
+  grossInvoiceAmount: number;
+  appliedPurchaseReturns: number;
+  appliedSupplierPayments: number;
+  outstandingAmount: number;
+  daysPastDue: number;
+  agingBucket: string;
+  agingBucketLabel: string;
+  isOverdue: boolean;
+  overAllocatedAmount: number;
+  hasIntegrityWarning: boolean;
+};
+
+export type SupplierPayablesAgingSupplierRowDto = {
+  supplierId: string;
+  supplierCode: string;
+  supplierArabicName: string;
+  supplierEnglishName: string | null;
+  invoiceCount: number;
+  currentAmount: number;
+  days1To30Amount: number;
+  days31To60Amount: number;
+  days61To90Amount: number;
+  over90Amount: number;
+  totalOutstandingInvoices: number;
+  supplierAdvanceBalance: number;
+  netSupplierPayable: number;
+  oldestDueDate: string | null;
+  maxDaysPastDue: number;
+  hasOverdueInvoices: boolean;
+  hasIntegrityWarnings: boolean;
+};
+
+export type SupplierPayablesAgingReportDto = {
+  asOfDate: string;
+  appliedFilters: SupplierPayablesAgingFiltersDto;
+  supplierCount: number;
+  invoiceCount: number;
+  currentAmount: number;
+  days1To30Amount: number;
+  days31To60Amount: number;
+  days61To90Amount: number;
+  over90Amount: number;
+  totalOutstandingInvoices: number;
+  totalUnallocatedSupplierDebit: number;
+  netSupplierPayable: number;
+  overdueAmount: number;
+  overdueSupplierCount: number;
+  operationalNetSupplierPayable: number;
+  supplierControlLedgerBalance: number;
+  reconciliationDifference: number;
+  isReconciled: boolean;
+  hasIntegrityWarnings: boolean;
+  supplierControlAccountingAccountId: string | null;
+  supplierControlAccountingAccountCode: string | null;
+  supplierControlAccountingAccountArabicName: string | null;
+  invoiceRows: SupplierPayablesAgingInvoiceRowDto[];
+  supplierRows: SupplierPayablesAgingSupplierRowDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
+export type SupplierPayablesAgingParams = {
+  asOfDate?: string;
+  supplierId?: string;
+  search?: string;
+  agingBucket?: string;
+  includeZeroBalances?: boolean;
+  includeSupplierAdvances?: boolean;
+  onlyOverdue?: boolean;
+  page?: number;
+  pageSize?: number;
+};

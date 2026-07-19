@@ -1,4 +1,4 @@
-{
+﻿{
   "dashboard": "لوحة التحكم",
   "default": "افتراضي",
   "analytics": "التحليلات",
@@ -879,5 +879,7 @@
   "journal-entry-posted-successfully": "تم ترحيل القيد اليومي بنجاح.",
   "journal-entry-cancelled-successfully": "تم إلغاء القيد اليومي بنجاح.",
   "journal-entry-created-successfully": "تم إنشاء القيد اليومي بنجاح.",
-  "journal-entry-updated-successfully": "تم تعديل القيد اليومي بنجاح."
+  "journal-entry-updated-successfully": "تم تعديل القيد اليومي بنجاح.",
+  "supplier-payables-aging-report": "تسنين مستحقات الموردين",
+  "supplier-payables-aging-report-description": "راجع مستحقات الموردين حسب تاريخ استحقاق الفاتورة، فئة التسنين، وحالة التسوية."
 }

@@ -20,6 +20,7 @@ export type PurchaseLineInput = {
 export type PurchaseInvoiceInput = {
   supplierId: string;
   invoiceDate: string;
+  dueDate?: string | null;
   supplierInvoiceNumber?: string | null;
   headerDiscount: number;
   otherCosts: number;
@@ -68,6 +69,7 @@ export type PurchaseInvoice = {
   supplierNameArabic: string;
   supplierNameEnglish?: string | null;
   invoiceDate: string;
+  dueDate?: string | null;
   supplierInvoiceNumber?: string | null;
   status: PurchaseDocumentStatus;
   currencyCode: 'EGP';
@@ -99,6 +101,7 @@ export type PurchaseInvoiceListItem = {
   id: string;
   number: string;
   invoiceDate: string;
+  dueDate?: string | null;
   supplierCode: string;
   supplierNameArabic: string;
   supplierNameEnglish?: string | null;

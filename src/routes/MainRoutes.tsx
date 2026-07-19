@@ -54,6 +54,7 @@ const IncomeStatementPage = Loadable(lazy(() => import('modules/Accounting/pages
 const BalanceSheetPage = Loadable(lazy(() => import('modules/Accounting/pages/BalanceSheetPage')));
 const CashFlowPage = Loadable(lazy(() => import('modules/Accounting/pages/CashFlowPage')));
 const CustomerReceivablesAgingPage = Loadable(lazy(() => import('modules/Accounting/pages/CustomerReceivablesAgingPage')));
+const SupplierPayablesAgingPage = Loadable(lazy(() => import('modules/Accounting/pages/SupplierPayablesAgingPage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
 const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
 const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
@@ -367,6 +368,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
           <CustomerReceivablesAgingPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/supplier-payables-aging',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <SupplierPayablesAgingPage />
         </PermissionRouteGuard>
       )
     },

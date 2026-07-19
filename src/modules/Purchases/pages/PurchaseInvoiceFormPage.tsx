@@ -56,6 +56,7 @@ export default function PurchaseInvoiceFormPage() {
   const [form, setForm] = useState<PurchaseInvoiceInput>({
     supplierId: '',
     invoiceDate: today,
+    dueDate: '',
     supplierInvoiceNumber: '',
     headerDiscount: 0,
     otherCosts: 0,
@@ -67,12 +68,13 @@ export default function PurchaseInvoiceFormPage() {
 
   useEffect(() => {
     if (invoice) {
-      setForm({
-        supplierId: invoice.supplierId,
-        invoiceDate: invoice.invoiceDate,
-        supplierInvoiceNumber: invoice.supplierInvoiceNumber ?? '',
-        headerDiscount: invoice.headerDiscount,
-        otherCosts: invoice.otherCosts,
+        setForm({
+          supplierId: invoice.supplierId,
+          invoiceDate: invoice.invoiceDate,
+          dueDate: invoice.dueDate ?? '',
+          supplierInvoiceNumber: invoice.supplierInvoiceNumber ?? '',
+          headerDiscount: invoice.headerDiscount,
+          otherCosts: invoice.otherCosts,
         notes: invoice.notes ?? '',
         lines: []
       });
@@ -141,6 +143,7 @@ export default function PurchaseInvoiceFormPage() {
     const request: PurchaseInvoiceInput = {
       ...form,
       supplierInvoiceNumber: form.supplierInvoiceNumber || null,
+      dueDate: form.dueDate || null,
       notes: form.notes || null,
       lines
     };
@@ -223,6 +226,17 @@ export default function PurchaseInvoiceFormPage() {
                </Grid>
                <Grid item xs={12} md={4}>
                   <TextField type="date" required fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="invoice-date" />} value={form.invoiceDate} onChange={(event) => setForm({ ...form, invoiceDate: event.target.value })} />
+               </Grid>
+               <Grid item xs={12} md={4}>
+                  <TextField
+                     type="date"
+                     fullWidth
+                     InputLabelProps={{ shrink: true }}
+                     label={<FormattedMessage id="due-date" defaultMessage="Due date" />}
+                     value={form.dueDate ?? ''}
+                     onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
+                     helperText={<FormattedMessage id="due-date-helper" defaultMessage="Optional. Use it to show the aging base date in supplier payables aging." />}
+                  />
                </Grid>
                <Grid item xs={12} md={4}>
                   <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1, border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>

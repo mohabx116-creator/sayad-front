@@ -13,6 +13,8 @@ import type {
   GeneralLedgerReportDto,
   IncomeStatementParams,
   IncomeStatementReportDto,
+  SupplierPayablesAgingParams,
+  SupplierPayablesAgingReportDto,
   TrialBalanceParams,
   TrialBalanceReportDto
 } from '../types/report.types';
@@ -91,6 +93,21 @@ export function useCashFlowReport(params: CashFlowParams) {
 export function useCustomerReceivablesAgingReport(params?: CustomerReceivablesAgingParams | null) {
   const key = params ? `/api/accounting/reports/customer-receivables-aging?${buildQuery(params)}` : null;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<CustomerReceivablesAgingReportDto>>(key, fetcher, {
+    revalidateOnFocus: false
+  });
+
+  return {
+    report: data?.data ?? null,
+    error,
+    isLoading,
+    mutate,
+    key
+  };
+}
+
+export function useSupplierPayablesAgingReport(params?: SupplierPayablesAgingParams | null) {
+  const key = params ? `/api/accounting/reports/supplier-payables-aging?${buildQuery(params)}` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<SupplierPayablesAgingReportDto>>(key, fetcher, {
     revalidateOnFocus: false
   });
 
