@@ -1,4 +1,4 @@
-import { IconFileDescription, IconHierarchy2, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
+import { IconCalendar, IconFileDescription, IconHierarchy2, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 
@@ -96,6 +96,15 @@ const accounting: NavItemType = {
       icon: IconSettings,
       breadcrumbs: true,
       permission: ACCOUNTING_PERMISSIONS.settingsView
+    },
+    {
+      id: 'accounting-periods',
+      title: 'fiscal-period-control',
+      type: 'item',
+      url: '/accounting/periods',
+      icon: IconCalendar,
+      breadcrumbs: true,
+      permission: ACCOUNTING_PERMISSIONS.periodsView
     }
   ]
 };

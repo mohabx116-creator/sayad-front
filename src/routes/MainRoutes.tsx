@@ -42,6 +42,7 @@ const TreasuryTransferFormPage = Loadable(lazy(() => import('modules/Treasury/pa
 const TreasuryStatementsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryStatementsPage')));
 const AccountingHomePage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingHomePage')));
 const AccountingSettingsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingSettingsPage')));
+const AccountingPeriodsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingPeriodsPage')));
 const JournalEntriesListPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntriesListPage')));
 const JournalEntryDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryDetailsPage')));
 const JournalEntryFormPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryFormPage')));
@@ -363,6 +364,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.settingsView}>
           <AccountingSettingsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/periods',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.periodsView}>
+          <AccountingPeriodsPage />
         </PermissionRouteGuard>
       )
     },
