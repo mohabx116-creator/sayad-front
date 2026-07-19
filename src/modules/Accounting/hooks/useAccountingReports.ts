@@ -7,6 +7,8 @@ import type {
   BalanceSheetReportDto,
   CashFlowParams,
   CashFlowReportDto,
+  CustomerReceivablesAgingParams,
+  CustomerReceivablesAgingReportDto,
   GeneralLedgerParams,
   GeneralLedgerReportDto,
   IncomeStatementParams,
@@ -74,6 +76,21 @@ export function useBalanceSheetReport(params: BalanceSheetParams) {
 export function useCashFlowReport(params: CashFlowParams) {
   const key = `/api/accounting/reports/cash-flow?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<CashFlowReportDto>>(key, fetcher, {
+    revalidateOnFocus: false
+  });
+
+  return {
+    report: data?.data ?? null,
+    error,
+    isLoading,
+    mutate,
+    key
+  };
+}
+
+export function useCustomerReceivablesAgingReport(params?: CustomerReceivablesAgingParams | null) {
+  const key = params ? `/api/accounting/reports/customer-receivables-aging?${buildQuery(params)}` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<CustomerReceivablesAgingReportDto>>(key, fetcher, {
     revalidateOnFocus: false
   });
 

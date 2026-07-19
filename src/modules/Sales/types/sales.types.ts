@@ -20,6 +20,7 @@ export type SalesLineInput = {
 export type SalesInvoiceInput = {
   customerId: string;
   invoiceDate: string;
+  dueDate?: string | null;
   customerReferenceNumber?: string | null;
   headerDiscount: number;
   otherCharges: number;
@@ -93,6 +94,7 @@ export type SalesInvoice = {
   customerNameArabic: string;
   customerNameEnglish?: string | null;
   invoiceDate: string;
+  dueDate?: string | null;
   customerReferenceNumber?: string | null;
   status: SalesDocumentStatus;
   currencyCode: 'EGP';
@@ -132,6 +134,7 @@ export type SalesInvoiceListItem = {
   id: string;
   number: string;
   invoiceDate: string;
+  dueDate?: string | null;
   customerCode: string;
   customerNameArabic: string;
   customerNameEnglish?: string | null;

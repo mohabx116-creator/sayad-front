@@ -1,4 +1,4 @@
-import { IconCalendar, IconFileDescription, IconHierarchy2, IconLock, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
+import { IconCalendar, IconFileDescription, IconFileInvoice, IconHierarchy2, IconLock, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 
@@ -74,6 +74,15 @@ const accounting: NavItemType = {
           type: 'item',
           url: '/accounting/reports/cash-flow',
           icon: IconReportAnalytics,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
+          id: 'customer-receivables-aging-report',
+          title: 'customer-receivables-aging-report',
+          type: 'item',
+          url: '/accounting/reports/customer-receivables-aging',
+          icon: IconFileInvoice,
           breadcrumbs: true,
           permission: ACCOUNTING_PERMISSIONS.reportsView
         },

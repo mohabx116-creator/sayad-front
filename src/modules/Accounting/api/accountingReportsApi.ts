@@ -7,6 +7,8 @@ import type {
   BalanceSheetReportDto,
   CashFlowParams,
   CashFlowReportDto,
+  CustomerReceivablesAgingParams,
+  CustomerReceivablesAgingReportDto,
   GeneralLedgerParams,
   GeneralLedgerReportDto,
   IncomeStatementParams,
@@ -50,6 +52,10 @@ export function getBalanceSheetReport(params: BalanceSheetParams) {
 
 export function getCashFlowReport(params: CashFlowParams) {
   return unwrap(axiosServices.get<ApiResponse<CashFlowReportDto>>(`/api/accounting/reports/cash-flow?${buildQuery(params)}`));
+}
+
+export function getCustomerReceivablesAgingReport(params: CustomerReceivablesAgingParams) {
+  return unwrap(axiosServices.get<ApiResponse<CustomerReceivablesAgingReportDto>>(`/api/accounting/reports/customer-receivables-aging?${buildQuery(params)}`));
 }
 
 export function getIncomeStatementReport(params: IncomeStatementParams) {

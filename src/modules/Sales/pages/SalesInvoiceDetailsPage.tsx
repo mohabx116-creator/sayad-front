@@ -151,6 +151,10 @@ export default function SalesInvoiceDetailsPage() {
                            <Typography variant="body1" fontWeight={500}>{invoice.invoiceDate}</Typography>
                         </Grid>
                         <Grid item xs={12} md={4}>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="due-date" defaultMessage="تاريخ الاستحقاق" /></Typography>
+                           <Typography variant="body1" fontWeight={500}>{invoice.dueDate ?? '-'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="invoice-number" /></Typography>
                            <Typography variant="body1" fontWeight={500}>{invoice.number}</Typography>
                         </Grid>

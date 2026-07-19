@@ -80,6 +80,7 @@ export default function SalesInvoiceFormPage() {
   const [form, setForm] = useState<SalesInvoiceInput>({
     customerId: '',
     invoiceDate: today,
+    dueDate: '',
     customerReferenceNumber: '',
     headerDiscount: 0,
     otherCharges: 0,
@@ -96,6 +97,7 @@ export default function SalesInvoiceFormPage() {
       setForm({
         customerId: invoice.customerId,
         invoiceDate: invoice.invoiceDate,
+        dueDate: invoice.dueDate ?? '',
         customerReferenceNumber: invoice.customerReferenceNumber ?? '',
         headerDiscount: invoice.headerDiscount,
         otherCharges: invoice.otherCharges,
@@ -160,6 +162,7 @@ export default function SalesInvoiceFormPage() {
 
   const addRow = () => setRows((current) => [...current, emptyLine()]);
   const removeRow = (index: number) => setRows((current) => current.filter((_, rowIndex) => rowIndex !== index));
+  const dueDateError = Boolean(form.dueDate && form.dueDate < form.invoiceDate);
 
   const onItemChange = async (index: number, itemId: string) => {
     const item = itemLookup.get(itemId);
@@ -202,6 +205,10 @@ export default function SalesInvoiceFormPage() {
       notify(intl.formatMessage({ id: 'sales-customer-required' }), 'error');
       return;
     }
+    if (form.dueDate && form.dueDate < form.invoiceDate) {
+      notify(intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' }), 'error');
+      return;
+    }
     const lines = rows
       .filter((row) => row.itemId && row.unitOfMeasureId)
       .map(({ itemId, unitOfMeasureId, quantity, unitPrice, discountAmount, taxAmount, notes }) => ({
@@ -221,6 +228,7 @@ export default function SalesInvoiceFormPage() {
 
     const request: SalesInvoiceInput = {
       ...form,
+      dueDate: form.dueDate || null,
       customerReferenceNumber: form.customerReferenceNumber || null,
       notes: form.notes || null,
       lines
@@ -305,6 +313,18 @@ export default function SalesInvoiceFormPage() {
                </Grid>
                <Grid item xs={12} md={4}>
                   <TextField type="date" required fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="invoice-date" />} value={form.invoiceDate} onChange={(event) => setForm({ ...form, invoiceDate: event.target.value })} />
+               </Grid>
+               <Grid item xs={12} md={4}>
+                  <TextField
+                    type="date"
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    label={<FormattedMessage id="due-date" defaultMessage="تاريخ الاستحقاق" />}
+                    value={form.dueDate || ''}
+                    onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
+                    error={dueDateError}
+                    helperText={dueDateError ? intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' }) : intl.formatMessage({ id: 'optional-field', defaultMessage: 'اختياري' })}
+                  />
                </Grid>
                <Grid item xs={12} md={4}>
                   <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1, border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>

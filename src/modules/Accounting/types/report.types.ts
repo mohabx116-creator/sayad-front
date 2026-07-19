@@ -309,3 +309,101 @@ export type CashFlowParams = {
   includeInactiveAccounts?: boolean;
   search?: string;
 };
+
+export type CustomerReceivablesAgingFiltersDto = {
+  asOfDate: string;
+  customerId: string | null;
+  search: string | null;
+  agingBucket: string | null;
+  includeZeroBalances: boolean;
+  includeCustomerCredits: boolean;
+  onlyOverdue: boolean;
+  page: number;
+  pageSize: number;
+};
+
+export type CustomerReceivablesAgingInvoiceRowDto = {
+  salesInvoiceId: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string | null;
+  agingBaseDate: string;
+  isDueDateEstimated: boolean;
+  customerId: string;
+  customerCode: string;
+  customerArabicName: string;
+  customerEnglishName: string | null;
+  grossInvoiceAmount: number;
+  appliedSalesReturns: number;
+  appliedReceipts: number;
+  outstandingAmount: number;
+  daysPastDue: number;
+  agingBucket: string;
+  agingBucketLabel: string;
+  isOverdue: boolean;
+  overAllocatedAmount: number;
+  hasIntegrityWarning: boolean;
+};
+
+export type CustomerReceivablesAgingCustomerRowDto = {
+  customerId: string;
+  customerCode: string;
+  customerArabicName: string;
+  customerEnglishName: string | null;
+  invoiceCount: number;
+  currentAmount: number;
+  days1To30Amount: number;
+  days31To60Amount: number;
+  days61To90Amount: number;
+  over90Amount: number;
+  totalOutstandingInvoices: number;
+  customerCreditBalance: number;
+  netReceivable: number;
+  oldestDueDate: string | null;
+  maxDaysPastDue: number;
+  hasOverdueInvoices: boolean;
+  hasIntegrityWarnings: boolean;
+};
+
+export type CustomerReceivablesAgingReportDto = {
+  asOfDate: string;
+  appliedFilters: CustomerReceivablesAgingFiltersDto;
+  customerCount: number;
+  invoiceCount: number;
+  currentAmount: number;
+  days1To30Amount: number;
+  days31To60Amount: number;
+  days61To90Amount: number;
+  over90Amount: number;
+  totalOutstandingInvoices: number;
+  totalUnallocatedCustomerCredit: number;
+  netReceivable: number;
+  overdueAmount: number;
+  overdueCustomerCount: number;
+  operationalNetReceivable: number;
+  customerControlLedgerBalance: number;
+  reconciliationDifference: number;
+  isReconciled: boolean;
+  hasIntegrityWarnings: boolean;
+  customerControlAccountingAccountId: string | null;
+  customerControlAccountingAccountCode: string | null;
+  customerControlAccountingAccountArabicName: string | null;
+  invoiceRows: CustomerReceivablesAgingInvoiceRowDto[];
+  customerRows: CustomerReceivablesAgingCustomerRowDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
+export type CustomerReceivablesAgingParams = {
+  asOfDate?: string;
+  customerId?: string;
+  search?: string;
+  agingBucket?: string;
+  includeZeroBalances?: boolean;
+  includeCustomerCredits?: boolean;
+  onlyOverdue?: boolean;
+  page?: number;
+  pageSize?: number;
+};
