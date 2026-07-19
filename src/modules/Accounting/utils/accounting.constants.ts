@@ -11,6 +11,8 @@ export const ACCOUNTING_PERMISSIONS = {
   periodsView: 'accounting.periods.view',
   periodsManage: 'accounting.periods.manage',
   periodsReopen: 'accounting.periods.reopen',
+  fiscalYearsRollOver: 'accounting.fiscal-years.rollover',
+  fiscalYearsRollback: 'accounting.fiscal-years.rollback',
   yearEndView: 'accounting.year-end.view',
   yearEndClose: 'accounting.year-end.close',
   yearEndReopen: 'accounting.year-end.reopen',

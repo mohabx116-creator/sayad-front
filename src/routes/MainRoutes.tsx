@@ -43,6 +43,7 @@ const TreasuryStatementsPage = Loadable(lazy(() => import('modules/Treasury/page
 const AccountingHomePage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingHomePage')));
 const AccountingSettingsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingSettingsPage')));
 const AccountingPeriodsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingPeriodsPage')));
+const FiscalYearRolloverPage = Loadable(lazy(() => import('modules/Accounting/pages/FiscalYearRolloverPage')));
 const YearEndClosingPage = Loadable(lazy(() => import('modules/Accounting/pages/YearEndClosingPage')));
 const JournalEntriesListPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntriesListPage')));
 const JournalEntryDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/JournalEntryDetailsPage')));
@@ -373,6 +374,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.periodsView}>
           <AccountingPeriodsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/fiscal-years/:id/rollover',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.periodsView}>
+          <FiscalYearRolloverPage />
         </PermissionRouteGuard>
       )
     },

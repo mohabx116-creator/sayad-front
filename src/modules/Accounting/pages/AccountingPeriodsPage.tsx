@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Box from '@mui/material/Box';
@@ -20,7 +21,7 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import { IconCheck, IconPlus, IconRotateClockwise2, IconX } from '@tabler/icons-react';
+import { IconArrowRight, IconCheck, IconPlus, IconRotateClockwise2, IconX } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -72,6 +73,7 @@ function createDefaultForm(): CreateFormState {
 export default function AccountingPeriodsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const { control, isLoading: controlLoading, error: controlError, mutate: mutateControl } = useAccountingPeriodControl();
@@ -88,6 +90,7 @@ export default function AccountingPeriodsPage() {
   const canToggleControl = Boolean(control);
   const canManagePeriods = hasPermission(user, ACCOUNTING_PERMISSIONS.periodsManage);
   const canReopenPeriods = hasPermission(user, ACCOUNTING_PERMISSIONS.periodsReopen);
+  const canRollOverYears = hasPermission(user, ACCOUNTING_PERMISSIONS.fiscalYearsRollOver);
   const periodCount = useMemo(() => years.reduce((sum, year) => sum + year.periods.length, 0), [years]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -303,6 +306,15 @@ export default function AccountingPeriodsPage() {
                       <Chip color="success" label={`${year.openPeriodsCount} ${intl.formatMessage({ id: 'open-periods', defaultMessage: 'open' })}`} />
                       <Chip color="default" label={`${year.closedPeriodsCount} ${intl.formatMessage({ id: 'closed-periods', defaultMessage: 'closed' })}`} />
                       <Chip variant="outlined" label={`${year.periods.length} ${intl.formatMessage({ id: 'periods', defaultMessage: 'periods' })}`} />
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<IconArrowRight size={16} />}
+                        onClick={() => navigate(`/accounting/fiscal-years/${year.id}/rollover`)}
+                        disabled={!canRollOverYears}
+                      >
+                        <FormattedMessage id="create-next-year" defaultMessage="Create Next Year" />
+                      </Button>
                     </Stack>
                   </Stack>
                 </Box>
