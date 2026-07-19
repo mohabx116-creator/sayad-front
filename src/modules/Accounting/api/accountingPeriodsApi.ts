@@ -6,6 +6,7 @@ import type {
   AccountingFiscalYearDto,
   AccountingFiscalYearInput,
   AccountingPeriodControlDto,
+  AccountingPeriodActionInput,
   AccountingPeriodControlInput
 } from '../types/accounting-periods.types';
 
@@ -36,10 +37,10 @@ export function createAccountingFiscalYear(request: AccountingFiscalYearInput) {
   return unwrap(axiosServices.post<ApiResponse<AccountingFiscalYearDto>>('/api/accounting/fiscal-years', request));
 }
 
-export function closeAccountingPeriod(id: string, rowVersion: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/accounting/periods/${id}/close`, { rowVersion }));
+export function closeAccountingPeriod(id: string, rowVersion: string, reason: string) {
+  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/accounting/periods/${id}/close`, { rowVersion, reason }));
 }
 
-export function reopenAccountingPeriod(id: string, rowVersion: string) {
-  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/accounting/periods/${id}/reopen`, { rowVersion }));
+export function reopenAccountingPeriod(id: string, request: AccountingPeriodActionInput) {
+  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/accounting/periods/${id}/reopen`, request));
 }

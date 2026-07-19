@@ -48,4 +48,10 @@ export type AccountingFiscalYearInput = {
 export type AccountingPeriodControlInput = {
   isEnabled: boolean;
   rowVersion: string;
+  reason?: string | null;
+};
+
+export type AccountingPeriodActionInput = {
+  rowVersion: string;
+  reason: string;
 };

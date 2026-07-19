@@ -10,6 +10,7 @@ export const ACCOUNTING_PERMISSIONS = {
   settingsUpdate: 'accounting.settings.update',
   periodsView: 'accounting.periods.view',
   periodsManage: 'accounting.periods.manage',
+  periodsReopen: 'accounting.periods.reopen',
   reportsView: 'accounting.reports.view',
   journalEntriesView: 'accounting.journal-entries.view',
   journalEntriesCreate: 'accounting.journal-entries.create',

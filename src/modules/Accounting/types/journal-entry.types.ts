@@ -61,6 +61,13 @@ export type JournalEntryDto = {
   id: string;
   number: string;
   entryDate: string;
+  accountingPeriodId: string | null;
+  fiscalYearId: string | null;
+  periodNumber: number | null;
+  fiscalYearNameArabic: string | null;
+  fiscalYearNameEnglish: string | null;
+  periodStartDate: string | null;
+  periodEndDate: string | null;
   status: JournalEntryStatus;
   statusLabel: string;
   sourceType: JournalEntrySourceType;
@@ -86,6 +93,13 @@ export type JournalEntryListItemDto = {
   id: string;
   number: string;
   entryDate: string;
+  accountingPeriodId: string | null;
+  fiscalYearId: string | null;
+  periodNumber: number | null;
+  fiscalYearNameArabic: string | null;
+  fiscalYearNameEnglish: string | null;
+  periodStartDate: string | null;
+  periodEndDate: string | null;
   status: JournalEntryStatus;
   statusLabel: string;
   sourceType: JournalEntrySourceType;

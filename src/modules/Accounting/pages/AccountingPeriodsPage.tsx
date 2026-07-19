@@ -24,6 +24,8 @@ import { IconCheck, IconPlus, IconRotateClockwise2, IconX } from '@tabler/icons-
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
+import useAuth from 'hooks/useAuth';
+import { hasPermission } from 'modules/Administration/utils/permission-utils';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
@@ -36,6 +38,7 @@ import {
   updateAccountingPeriodControl
 } from '../api/accountingPeriodsApi';
 import { useAccountingFiscalYears, useAccountingPeriodControl } from '../hooks/useAccountingPeriods';
+import { ACCOUNTING_PERMISSIONS } from '../utils/accounting.constants';
 import type { AccountingFiscalYearInput } from '../types/accounting-periods.types';
 
 type CreateFormState = AccountingFiscalYearInput;
@@ -69,6 +72,7 @@ function createDefaultForm(): CreateFormState {
 export default function AccountingPeriodsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { user } = useAuth();
 
   const { control, isLoading: controlLoading, error: controlError, mutate: mutateControl } = useAccountingPeriodControl();
   const { years, isLoading: yearsLoading, error: yearsError, mutate: mutateYears } = useAccountingFiscalYears();
@@ -82,6 +86,8 @@ export default function AccountingPeriodsPage() {
   const isLoading = controlLoading || yearsLoading;
   const controlLabel = control?.isEnabled ? intl.formatMessage({ id: 'enabled', defaultMessage: 'Enabled' }) : intl.formatMessage({ id: 'disabled', defaultMessage: 'Disabled' });
   const canToggleControl = Boolean(control);
+  const canManagePeriods = hasPermission(user, ACCOUNTING_PERMISSIONS.periodsManage);
+  const canReopenPeriods = hasPermission(user, ACCOUNTING_PERMISSIONS.periodsReopen);
   const periodCount = useMemo(() => years.reduce((sum, year) => sum + year.periods.length, 0), [years]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -97,12 +103,21 @@ export default function AccountingPeriodsPage() {
       return;
     }
 
+    const nextState = !control.isEnabled;
+    const reason = nextState
+      ? null
+      : window.prompt(intl.formatMessage({ id: 'period-control-disable-reason', defaultMessage: 'Please enter a reason for disabling period control.' }))?.trim();
+
+    if (!nextState && !reason) {
+      return;
+    }
+
     setIsUpdatingControl(true);
     try {
-      await updateAccountingPeriodControl({ isEnabled: !control.isEnabled, rowVersion: control.rowVersion });
+      await updateAccountingPeriodControl({ isEnabled: nextState, rowVersion: control.rowVersion, reason });
       await refresh();
       notify(
-        control.isEnabled
+        nextState
           ? intl.formatMessage({ id: 'period-control-disabled-success', defaultMessage: 'Period control disabled successfully.' })
           : intl.formatMessage({ id: 'period-control-enabled-success', defaultMessage: 'Period control enabled successfully.' })
       );
@@ -143,10 +158,25 @@ export default function AccountingPeriodsPage() {
     setPendingPeriodId(periodId);
     try {
       if (action === 'close') {
-        await closeAccountingPeriod(periodId, rowVersion);
+        const reason = window.prompt(intl.formatMessage({ id: 'period-close-reason', defaultMessage: 'Please enter a reason for closing this period.' }))?.trim();
+        if (!reason) {
+          return;
+        }
+
+        await closeAccountingPeriod(periodId, rowVersion, reason);
         notify(intl.formatMessage({ id: 'period-closed-successfully', defaultMessage: 'Accounting period closed successfully.' }));
       } else {
-        await reopenAccountingPeriod(periodId, rowVersion);
+        if (!canReopenPeriods) {
+          notify(intl.formatMessage({ id: 'period-reopen-forbidden', defaultMessage: 'You do not have permission to reopen periods.' }), 'error');
+          return;
+        }
+
+        const reason = window.prompt(intl.formatMessage({ id: 'period-reopen-reason', defaultMessage: 'Please enter a reason for reopening this period.' }))?.trim();
+        if (!reason) {
+          return;
+        }
+
+        await reopenAccountingPeriod(periodId, { rowVersion, reason });
         notify(intl.formatMessage({ id: 'period-reopened-successfully', defaultMessage: 'Accounting period reopened successfully.' }));
       }
 
@@ -180,7 +210,7 @@ export default function AccountingPeriodsPage() {
           </Box>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
             <Chip color={control?.isEnabled ? 'success' : 'default'} label={controlLabel} />
-            <Button variant="outlined" onClick={() => setCreateOpen(true)} startIcon={<IconPlus size={18} />}>
+            <Button variant="outlined" onClick={() => setCreateOpen(true)} startIcon={<IconPlus size={18} />} disabled={!canManagePeriods}>
               <FormattedMessage id="create-fiscal-year" defaultMessage="Create Fiscal Year" />
             </Button>
           </Stack>
@@ -222,7 +252,7 @@ export default function AccountingPeriodsPage() {
                   label={control?.isEnabled ? intl.formatMessage({ id: 'period-control-enabled', defaultMessage: 'Control enabled' }) : intl.formatMessage({ id: 'period-control-disabled', defaultMessage: 'Control disabled' })}
                 />
                 <FormControlLabel
-                  control={<Switch checked={control?.isEnabled ?? false} onChange={handleToggleControl} disabled={!canToggleControl || isUpdatingControl} />}
+                  control={<Switch checked={control?.isEnabled ?? false} onChange={handleToggleControl} disabled={!canToggleControl || isUpdatingControl || !canManagePeriods} />}
                   label={intl.formatMessage({ id: 'toggle', defaultMessage: 'Toggle' })}
                 />
               </Stack>
@@ -324,7 +354,7 @@ export default function AccountingPeriodsPage() {
                               variant={period.status === 'Open' ? 'outlined' : 'contained'}
                               size="small"
                               onClick={() => handlePeriodAction(period.id, period.rowVersion, period.status === 'Open' ? 'close' : 'reopen')}
-                              disabled={pendingPeriodId === period.id}
+                              disabled={pendingPeriodId === period.id || (period.status === 'Open' && !canManagePeriods) || (period.status === 'Closed' && !canReopenPeriods)}
                               startIcon={period.status === 'Open' ? <IconX size={16} /> : <IconRotateClockwise2 size={16} />}
                             >
                               {period.status === 'Open' ? (
