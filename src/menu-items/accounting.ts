@@ -78,6 +78,15 @@ const accounting: NavItemType = {
           permission: ACCOUNTING_PERMISSIONS.reportsView
         },
         {
+          id: 'treasury-gl-reconciliation-report',
+          title: 'treasury-gl-reconciliation-report',
+          type: 'item',
+          url: '/accounting/reports/treasury-gl-reconciliation',
+          icon: IconReportAnalytics,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
           id: 'customer-receivables-aging-report',
           title: 'customer-receivables-aging-report',
           type: 'item',

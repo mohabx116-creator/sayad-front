@@ -32,6 +32,16 @@ export default function TreasuryStatementsPage() {
   const [partyId, setPartyId] = useState('');
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    setTreasuryAccountId(searchParams.get('accountId') ?? searchParams.get('treasuryAccountId') ?? '');
+    setDateFrom(searchParams.get('dateFrom') ?? '');
+    setDateTo(searchParams.get('dateTo') ?? '');
+    setMovementType(searchParams.get('movementType') ?? '');
+    setReferenceNumber(searchParams.get('referenceNumber') ?? '');
+    setPartyId(searchParams.get('partyId') ?? '');
+    setPage(1);
+  }, [searchParams]);
+
   const { items: accounts, error: accountsError, mutate: mutateAccounts } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
   const { items: parties, error: partiesError, mutate: mutateParties } = useParties({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true, sortBy: 'nameArabic' });
   const { lookups, error: lookupsError, mutate: mutateLookups } = useTreasuryLookups();

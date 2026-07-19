@@ -13,6 +13,8 @@ import type {
   GeneralLedgerReportDto,
   IncomeStatementParams,
   IncomeStatementReportDto,
+  TreasuryGlReconciliationParams,
+  TreasuryGlReconciliationReportDto,
   SupplierPayablesAgingParams,
   SupplierPayablesAgingReportDto,
   TrialBalanceParams,
@@ -54,6 +56,10 @@ export function getBalanceSheetReport(params: BalanceSheetParams) {
 
 export function getCashFlowReport(params: CashFlowParams) {
   return unwrap(axiosServices.get<ApiResponse<CashFlowReportDto>>(`/api/accounting/reports/cash-flow?${buildQuery(params)}`));
+}
+
+export function getTreasuryGlReconciliationReport(params: TreasuryGlReconciliationParams) {
+  return unwrap(axiosServices.get<ApiResponse<TreasuryGlReconciliationReportDto>>(`/api/accounting/reports/treasury-gl-reconciliation?${buildQuery(params)}`));
 }
 
 export function getCustomerReceivablesAgingReport(params: CustomerReceivablesAgingParams) {

@@ -53,6 +53,7 @@ const TrialBalancePage = Loadable(lazy(() => import('modules/Accounting/pages/Tr
 const IncomeStatementPage = Loadable(lazy(() => import('modules/Accounting/pages/IncomeStatementPage')));
 const BalanceSheetPage = Loadable(lazy(() => import('modules/Accounting/pages/BalanceSheetPage')));
 const CashFlowPage = Loadable(lazy(() => import('modules/Accounting/pages/CashFlowPage')));
+const TreasuryGlReconciliationPage = Loadable(lazy(() => import('modules/Accounting/pages/TreasuryGlReconciliationPage')));
 const CustomerReceivablesAgingPage = Loadable(lazy(() => import('modules/Accounting/pages/CustomerReceivablesAgingPage')));
 const SupplierPayablesAgingPage = Loadable(lazy(() => import('modules/Accounting/pages/SupplierPayablesAgingPage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
@@ -360,6 +361,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
           <CashFlowPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/treasury-gl-reconciliation',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <TreasuryGlReconciliationPage />
         </PermissionRouteGuard>
       )
     },

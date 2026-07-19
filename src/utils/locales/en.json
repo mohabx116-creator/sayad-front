@@ -733,6 +733,8 @@
   "balance-sheet-hidden-balances-warning": "Display filters are hiding one or more posting accounts, but the summary totals remain unchanged.",
   "cash-flow-report": "Cash Flow Statement",
   "cash-flow-report-description": "Direct-method cash flow from mapped treasury cash accounts and explicitly classified counterpart accounts.",
+  "treasury-gl-reconciliation-report": "Treasury to General Ledger Reconciliation",
+  "treasury-gl-reconciliation-report-description": "Compare treasury balances with the mapped general ledger accounts, inspect warnings, and drill into source activity.",
   "cash-flow-load-error": "Unable to load the Cash Flow Statement.",
   "cash-flow-empty-section": "No cash-flow rows matched this section.",
   "cash-flow-empty-period": "No cash flows exist during the selected period.",

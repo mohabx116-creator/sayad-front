@@ -310,6 +310,75 @@ export type CashFlowParams = {
   search?: string;
 };
 
+export type TreasuryGlReconciliationRowDto = {
+  treasuryAccountId: string;
+  treasuryCode: string;
+  treasuryArabicName: string;
+  treasuryEnglishName: string | null;
+  treasuryType: string;
+  isTreasuryAccountActive: boolean;
+  accountingAccountId: string | null;
+  accountingAccountCode: string | null;
+  accountingAccountArabicName: string | null;
+  accountingAccountEnglishName: string | null;
+  isSharedMapping: boolean;
+  sharedTreasuryAccountCount: number;
+  openingBalance: number;
+  receiptTotal: number;
+  paymentTotal: number;
+  incomingTransferTotal: number;
+  outgoingTransferTotal: number;
+  operationalTreasuryBalance: number;
+  storedCurrentBalance: number;
+  storedBalanceDifference: number;
+  generalLedgerDebit: number;
+  generalLedgerCredit: number;
+  generalLedgerBalance: number;
+  reconciliationDifference: number;
+  isReconciled: boolean;
+  hasConfigurationWarning: boolean;
+  configurationWarnings: string[];
+  hasIntegrityWarning: boolean;
+  integrityWarnings: string[];
+};
+
+export type TreasuryGlReconciliationReportDto = {
+  asOfDate: string;
+  treasuryAccountCount: number;
+  validMappedAccountCount: number;
+  unmappedAccountCount: number;
+  invalidMappingCount: number;
+  reconciledAccountCount: number;
+  unreconciledAccountCount: number;
+  totalOperationalTreasuryBalance: number;
+  totalMappedOperationalBalance: number;
+  totalGeneralLedgerBalance: number;
+  totalReconciliationDifference: number;
+  totalUnmappedOperationalBalance: number;
+  isFullyReconciled: boolean;
+  hasConfigurationWarnings: boolean;
+  hasIntegrityWarnings: boolean;
+  rows: TreasuryGlReconciliationRowDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hiddenRowCount: number;
+  hasHiddenRows: boolean;
+};
+
+export type TreasuryGlReconciliationParams = {
+  asOfDate?: string;
+  treasuryAccountId?: string;
+  search?: string;
+  includeInactiveAccounts?: boolean;
+  includeZeroBalances?: boolean;
+  onlyDifferences?: boolean;
+  includeUnmappedAccounts?: boolean;
+  page?: number;
+  pageSize?: number;
+};
+
 export type CustomerReceivablesAgingFiltersDto = {
   asOfDate: string;
   customerId: string | null;
