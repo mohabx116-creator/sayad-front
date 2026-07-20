@@ -13,6 +13,8 @@ import type {
   GeneralLedgerReportDto,
   IncomeStatementParams,
   IncomeStatementReportDto,
+  InventoryGlReconciliationParams,
+  InventoryGlReconciliationReportDto,
   TreasuryGlReconciliationParams,
   TreasuryGlReconciliationReportDto,
   SupplierPayablesAgingParams,
@@ -80,6 +82,21 @@ export function useBalanceSheetReport(params: BalanceSheetParams) {
 export function useCashFlowReport(params: CashFlowParams) {
   const key = `/api/accounting/reports/cash-flow?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<CashFlowReportDto>>(key, fetcher, {
+    revalidateOnFocus: false
+  });
+
+  return {
+    report: data?.data ?? null,
+    error,
+    isLoading,
+    mutate,
+    key
+  };
+}
+
+export function useInventoryGlReconciliationReport(params?: InventoryGlReconciliationParams | null) {
+  const key = params ? `/api/accounting/reports/inventory-gl-reconciliation?${buildQuery(params)}` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<InventoryGlReconciliationReportDto>>(key, fetcher, {
     revalidateOnFocus: false
   });
 

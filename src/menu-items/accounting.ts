@@ -1,4 +1,4 @@
-import { IconCalendar, IconFileDescription, IconFileInvoice, IconHierarchy2, IconLock, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
+import { IconBox, IconCalendar, IconFileDescription, IconFileInvoice, IconHierarchy2, IconLock, IconReportAnalytics, IconSettings, IconTree } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 
@@ -83,6 +83,15 @@ const accounting: NavItemType = {
           type: 'item',
           url: '/accounting/reports/treasury-gl-reconciliation',
           icon: IconReportAnalytics,
+          breadcrumbs: true,
+          permission: ACCOUNTING_PERMISSIONS.reportsView
+        },
+        {
+          id: 'inventory-gl-reconciliation-report',
+          title: 'inventory-gl-reconciliation-report',
+          type: 'item',
+          url: '/accounting/reports/inventory-gl-reconciliation',
+          icon: IconBox,
           breadcrumbs: true,
           permission: ACCOUNTING_PERMISSIONS.reportsView
         },

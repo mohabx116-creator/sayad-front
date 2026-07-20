@@ -310,6 +310,109 @@ export type CashFlowParams = {
   search?: string;
 };
 
+export type InventoryGlReconciliationAccountDto = {
+  accountingAccountId: string;
+  accountingAccountCode: string;
+  accountingAccountArabicName: string;
+  accountingAccountEnglishName: string | null;
+  parentAccountingAccountId: string | null;
+  parentAccountingAccountCode: string | null;
+  parentAccountingAccountArabicName: string | null;
+  parentAccountingAccountEnglishName: string | null;
+  accountingAccountType: string;
+  isPosting: boolean;
+  isActive: boolean;
+  isHeader: boolean;
+};
+
+export type InventoryGlReconciliationSourceTypeTotalsDto = {
+  sourceType: string;
+  sourceTypeLabel: string;
+  journalEntryCount: number;
+  journalEntryLineCount: number;
+  totalDebit: number;
+  totalCredit: number;
+  balance: number;
+};
+
+export type InventoryGlReconciliationRowDto = {
+  itemId: string;
+  itemCode: string;
+  itemArabicName: string;
+  itemEnglishName: string | null;
+  categoryId: string | null;
+  categoryCode: string | null;
+  categoryArabicName: string | null;
+  categoryEnglishName: string | null;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseArabicName: string;
+  warehouseEnglishName: string | null;
+  isItemActive: boolean;
+  isWarehouseActive: boolean;
+  openingQuantity: number;
+  quantityIn: number;
+  quantityOut: number;
+  closingQuantity: number;
+  averageUnitCost: number;
+  operationalInventoryValue: number;
+  movementCount: number;
+  warningCount: number;
+  hasIntegrityWarnings: boolean;
+  integrityWarnings: string[];
+};
+
+export type InventoryGlReconciliationReportDto = {
+  asOfDate: string;
+  inventoryAssetAccount: InventoryGlReconciliationAccountDto;
+  itemCount: number;
+  warehouseCount: number;
+  warningItemCount: number;
+  openingStockValue: number;
+  purchaseReceiptValue: number;
+  purchaseReturnValue: number;
+  salesCostValue: number;
+  salesReturnCostValue: number;
+  positiveAdjustmentValue: number;
+  negativeAdjustmentValue: number;
+  otherIncreaseValue: number;
+  otherDecreaseValue: number;
+  closingOperationalInventoryValue: number;
+  inventoryAssetLedgerBalance: number;
+  reconciliationDifference: number;
+  isReconciled: boolean;
+  hasIntegrityWarnings: boolean;
+  fullOperationalInventoryValue: number;
+  fullInventoryAssetLedgerBalance: number;
+  fullReconciliationDifference: number;
+  fullIsReconciled: boolean;
+  filteredOperationalInventoryValue: number;
+  filteredRowCount: number;
+  hiddenRowCount: number;
+  hasHiddenRows: boolean;
+  sourceTypeTotals: InventoryGlReconciliationSourceTypeTotalsDto[];
+  rows: InventoryGlReconciliationRowDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
+export type InventoryGlReconciliationParams = {
+  asOfDate?: string;
+  warehouseId?: string;
+  itemId?: string;
+  categoryId?: string;
+  search?: string;
+  includeInactiveItems?: boolean;
+  includeZeroQuantity?: boolean;
+  includeZeroValue?: boolean;
+  onlyDifferences?: boolean;
+  onlyWarnings?: boolean;
+  page?: number;
+  pageSize?: number;
+};
+
 export type TreasuryGlReconciliationRowDto = {
   treasuryAccountId: string;
   treasuryCode: string;
