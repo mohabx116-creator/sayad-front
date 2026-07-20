@@ -3,6 +3,7 @@ import useSWR from 'swr';
 import type { ApiResponse } from 'types/api';
 import fetcher from 'utils/axios';
 import type { AccountingFiscalYearDto, AccountingPeriodControlDto } from '../types/accounting-periods.types';
+import { normalizeArrayPayload } from '../utils/api-normalizers';
 
 export function useAccountingPeriodControl() {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<AccountingPeriodControlDto>>('/api/accounting/period-control', fetcher, {
@@ -23,7 +24,7 @@ export function useAccountingFiscalYears() {
   });
 
   return {
-    years: data?.data ?? [],
+    years: normalizeArrayPayload<AccountingFiscalYearDto>(data?.data),
     error,
     isLoading,
     mutate
