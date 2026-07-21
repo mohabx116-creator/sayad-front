@@ -1,4 +1,4 @@
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router-dom';
 
 import Table from '@mui/material/Table';
@@ -19,7 +19,28 @@ import { useItemMovements } from '../hooks/useInventory';
 
 export default function InventoryItemMovementsPage() {
   const { id } = useParams();
+  const intl = useIntl();
   const { items, isLoading, error } = useItemMovements(id);
+
+  const getMovementTypeLabel = (movementType: string) => {
+    switch (movementType) {
+      case 'OpeningStock':
+        return intl.formatMessage({ id: 'inventory-movement-type.opening-stock', defaultMessage: 'Opening stock' });
+      case 'StockIn':
+        return intl.formatMessage({ id: 'inventory-movement-type.stock-in', defaultMessage: 'Stock in' });
+      case 'StockOut':
+        return intl.formatMessage({ id: 'inventory-movement-type.stock-out', defaultMessage: 'Stock out' });
+      case 'AdjustmentIncrease':
+        return intl.formatMessage({ id: 'inventory-movement-type.adjustment-increase', defaultMessage: 'Adjustment increase' });
+      case 'AdjustmentDecrease':
+        return intl.formatMessage({ id: 'inventory-movement-type.adjustment-decrease', defaultMessage: 'Adjustment decrease' });
+      case 'Reversal':
+        return intl.formatMessage({ id: 'inventory-movement-type.reversal', defaultMessage: 'Reversal' });
+      default:
+        return movementType;
+    }
+  };
+
   return (
     <>
       <Breadcrumbs custom heading="inventory-movements" links={[{ title: 'inventory' }, { title: 'inventory-movements' }]} />
@@ -28,12 +49,12 @@ export default function InventoryItemMovementsPage() {
         {error && <Typography color="error"><FormattedMessage id="inventory-load-error" /></Typography>}
         <TableContainer>
           <Table>
-            <TableHead><TableRow><TableCell><FormattedMessage id="date" /></TableCell><TableCell><FormattedMessage id="entry-type" /></TableCell><TableCell><FormattedMessage id="quantity" /></TableCell><TableCell><FormattedMessage id="running-balance" /></TableCell><TableCell><FormattedMessage id="description" /></TableCell><TableCell><FormattedMessage id="accounting" defaultMessage="Accounting" /></TableCell></TableRow></TableHead>
+            <TableHead><TableRow><TableCell><FormattedMessage id="date" /></TableCell><TableCell><FormattedMessage id="entry-type" /></TableCell><TableCell><FormattedMessage id="quantity" /></TableCell><TableCell><FormattedMessage id="running-balance" /></TableCell><TableCell><FormattedMessage id="description" /></TableCell><TableCell><FormattedMessage id="accounting" defaultMessage="الحسابات العامة" /></TableCell></TableRow></TableHead>
             <TableBody>
               {items.map((movement) => (
                 <TableRow key={movement.id}>
                   <TableCell>{movement.movementDate}</TableCell>
-                  <TableCell>{movement.movementType}</TableCell>
+                  <TableCell>{getMovementTypeLabel(movement.movementType)}</TableCell>
                   <TableCell>{movement.quantity} {movement.unitCode}</TableCell>
                   <TableCell>{movement.runningQuantity}</TableCell>
                   <TableCell>{movement.descriptionArabic}</TableCell>

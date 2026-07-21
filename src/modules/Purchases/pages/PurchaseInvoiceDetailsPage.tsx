@@ -141,7 +141,7 @@ export default function PurchaseInvoiceDetailsPage() {
                            <Typography variant="body1" fontWeight={500}>{formatDate(invoice.invoiceDate, intl.locale)}</Typography>
                         </Grid>
                         <Grid item xs={12} md={4}>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="due-date" defaultMessage="Due date" /></Typography>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>تاريخ الاستحقاق</Typography>
                            <Typography variant="body1" fontWeight={500}>{formatDate(invoice.dueDate, intl.locale)}</Typography>
                         </Grid>
                         <Grid item xs={12} md={4}>

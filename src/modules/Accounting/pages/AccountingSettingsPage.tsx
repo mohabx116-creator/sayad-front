@@ -102,12 +102,12 @@ export default function AccountingSettingsPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="accounting-settings" defaultMessage="Accounting Settings" />
+              <FormattedMessage id="accounting-settings" defaultMessage="إعدادات المحاسبة" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               <FormattedMessage
                 id="accounting-settings-description"
-                defaultMessage="Configure the central accounts used by future automatic posting flows."
+                defaultMessage="اضبط الحسابات المركزية المستخدمة في مسارات الترحيل التلقائي المستقبلية."
               />
             </Typography>
           </Box>
@@ -135,10 +135,10 @@ export default function AccountingSettingsPage() {
             <TableHead>
               <TableRow>
                 <TableCell>
-                  <FormattedMessage id="mapping" defaultMessage="Mapping" />
+                  <FormattedMessage id="mapping" defaultMessage="الربط" />
                 </TableCell>
                 <TableCell>
-                  <FormattedMessage id="account" defaultMessage="Account" />
+                  <FormattedMessage id="account" defaultMessage="الحساب" />
                 </TableCell>
                 <TableCell>
                   <FormattedMessage id="status" />
@@ -155,15 +155,12 @@ export default function AccountingSettingsPage() {
                     <TableCell sx={{ minWidth: 280 }}>
                       <Stack spacing={0.5}>
                         <Typography fontWeight={700}>{getDisplayLabel(intl.locale, definition.labelArabic, definition.labelEnglish)}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {definition.key}
-                        </Typography>
                       </Stack>
                     </TableCell>
                     <TableCell sx={{ minWidth: 360 }}>
                       <TextField select fullWidth value={row.accountId ?? ''} onChange={(event) => handleChange(index, event.target.value)}>
                         <MenuItem value="">
-                          <FormattedMessage id="select-account" defaultMessage="Select account" />
+                          <FormattedMessage id="select-account" defaultMessage="اختر حسابًا" />
                         </MenuItem>
                         {accountOptions.map((account) => (
                           <MenuItem key={account.id} value={account.id}>
@@ -176,11 +173,11 @@ export default function AccountingSettingsPage() {
                       {selectedAccount ? (
                         <Stack spacing={0.75} direction="row" flexWrap="wrap" alignItems="center">
                           <Chip size="small" color="primary" label={selectedAccount.accountTypeLabel} />
-                          <Chip size="small" color={selectedAccount.isSystem ? 'warning' : 'default'} label={selectedAccount.isSystem ? <FormattedMessage id="system-account" defaultMessage="System account" /> : <FormattedMessage id="active" />} />
+                          <Chip size="small" color={selectedAccount.isSystem ? 'warning' : 'default'} label={selectedAccount.isSystem ? <FormattedMessage id="system-account" defaultMessage="حساب نظامي" /> : <FormattedMessage id="active" />} />
                         </Stack>
                       ) : (
                         <Typography color="text.secondary">
-                          <FormattedMessage id="not-configured" defaultMessage="Not configured" />
+                          <FormattedMessage id="not-configured" defaultMessage="غير مضبوط" />
                         </Typography>
                       )}
                     </TableCell>

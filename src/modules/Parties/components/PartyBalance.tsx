@@ -7,13 +7,19 @@ type PartyBalanceProps = {
   balanceNature: string;
 };
 
+const formatMoney = (value: number) =>
+  new Intl.NumberFormat('ar-EG', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+
 export default function PartyBalance({ balance, balanceNature }: PartyBalanceProps) {
   if (balanceNature === 'Debit') {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'error.main', fontWeight: 600 }}>
         <IconTrendingDown size={16} />
         <Typography variant="body2" sx={{ fontWeight: 600, color: 'inherit' }}>
-          {balance.toFixed(2)} ج.م
+          {formatMoney(balance)} ج.م.
         </Typography>
       </Box>
     );
@@ -24,7 +30,7 @@ export default function PartyBalance({ balance, balanceNature }: PartyBalancePro
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#1b5e20', fontWeight: 600 }}>
         <IconTrendingUp size={16} />
         <Typography variant="body2" sx={{ fontWeight: 600, color: 'inherit' }}>
-          {balance.toFixed(2)} ج.م
+          {formatMoney(balance)} ج.م.
         </Typography>
       </Box>
     );
@@ -32,7 +38,7 @@ export default function PartyBalance({ balance, balanceNature }: PartyBalancePro
 
   return (
     <Typography variant="body2" sx={{ color: 'text.secondary', opacity: 0.5 }}>
-      0.00 ج.م
+      0.00 ج.م.
     </Typography>
   );
 }

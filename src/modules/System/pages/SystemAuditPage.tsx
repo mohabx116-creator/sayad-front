@@ -68,9 +68,15 @@ export default function SystemAuditPage() {
             <MenuItem value="">
               <FormattedMessage id="all" />
             </MenuItem>
-            <MenuItem value="User">User</MenuItem>
-            <MenuItem value="Role">Role</MenuItem>
-            <MenuItem value="SystemOwner">SystemOwner</MenuItem>
+            <MenuItem value="User">
+              <FormattedMessage id="user" defaultMessage="مستخدم" />
+            </MenuItem>
+            <MenuItem value="Role">
+              <FormattedMessage id="role" defaultMessage="دور" />
+            </MenuItem>
+            <MenuItem value="SystemOwner">
+              <FormattedMessage id="system-owner" defaultMessage="مالك النظام" />
+            </MenuItem>
           </TextField>
           <TextField
             select
@@ -86,9 +92,15 @@ export default function SystemAuditPage() {
             <MenuItem value="">
               <FormattedMessage id="all" />
             </MenuItem>
-            <MenuItem value="SystemOwner">SystemOwner</MenuItem>
-            <MenuItem value="User">User</MenuItem>
-            <MenuItem value="Role">Role</MenuItem>
+            <MenuItem value="SystemOwner">
+              <FormattedMessage id="system-owner" defaultMessage="مالك النظام" />
+            </MenuItem>
+            <MenuItem value="User">
+              <FormattedMessage id="user" defaultMessage="مستخدم" />
+            </MenuItem>
+            <MenuItem value="Role">
+              <FormattedMessage id="role" defaultMessage="دور" />
+            </MenuItem>
           </TextField>
         </Stack>
 

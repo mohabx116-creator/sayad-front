@@ -268,12 +268,12 @@ export default function SalesInvoiceDetailsPage() {
                   <Box sx={{ p: 3 }}>
                      <Box sx={headerSx}>
                         <IconInfoCircle color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4">Accounting</Typography>
+                        <Typography variant="h4"><FormattedMessage id="accounting" defaultMessage="الحسابات العامة" /></Typography>
                      </Box>
                      <Stack spacing={2}>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Posting Status
+                              <FormattedMessage id="accounting-posting-status" defaultMessage="حالة الترحيل" />
                            </Typography>
                            <Typography variant="body2" fontWeight={500}>
                               {invoice.accountingPostingStatus || 'غير مرحل محاسبيًا'}
@@ -281,7 +281,7 @@ export default function SalesInvoiceDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Customer Control
+                              <FormattedMessage id="customer-control" defaultMessage="حساب العملاء" />
                            </Typography>
                            <Typography variant="body2" fontWeight={500}>
                               {customerControlAccountLabel}
@@ -289,7 +289,7 @@ export default function SalesInvoiceDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Sales Revenue
+                              <FormattedMessage id="sales-revenue" defaultMessage="إيراد المبيعات" />
                            </Typography>
                            <Typography variant="body2" fontWeight={500}>
                               {revenueAccountLabel}
@@ -297,7 +297,7 @@ export default function SalesInvoiceDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Journal Entry
+                              <FormattedMessage id="journal-entry" defaultMessage="القيد اليومي" />
                            </Typography>
                            {invoice.accountingJournalEntryId ? (
                               <Button component={Link} to={`/accounting/journal-entries/${invoice.accountingJournalEntryId}`} size="small" variant="outlined">
@@ -357,7 +357,7 @@ export default function SalesInvoiceDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Journal Entry
+                              <FormattedMessage id="journal-entry" defaultMessage="القيد اليومي" />
                            </Typography>
                            {invoice.accountingJournalEntryId ? (
                               <Button component={Link} to={`/accounting/journal-entries/${invoice.accountingJournalEntryId}`} size="small" variant="outlined">

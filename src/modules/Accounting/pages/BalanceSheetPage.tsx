@@ -82,7 +82,7 @@ export default function BalanceSheetPage() {
     if (row.isDerived) {
       return (
         <Button component={Link} to={buildIncomeStatementUrl(report?.asOfDate ?? params.asOfDate ?? today)} size="small" variant="outlined" startIcon={<IconArrowRight size={16} />}>
-          <FormattedMessage id="income-statement-report" defaultMessage="Income Statement Report" />
+          <FormattedMessage id="income-statement-report" defaultMessage="تقرير قائمة الدخل" />
         </Button>
       );
     }
@@ -94,7 +94,7 @@ export default function BalanceSheetPage() {
     return (
       <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap">
         <Button component={Link} to={`/accounting/chart-of-accounts/${row.accountId}`} size="small" startIcon={<IconExternalLink size={16} />}>
-          <FormattedMessage id="account" defaultMessage="Account" />
+          <FormattedMessage id="account" defaultMessage="الحساب" />
         </Button>
         <Button
           component={Link}
@@ -103,7 +103,7 @@ export default function BalanceSheetPage() {
           variant="outlined"
           startIcon={<IconArrowRight size={16} />}
         >
-          <FormattedMessage id="view-general-ledger" defaultMessage="View general ledger" />
+          <FormattedMessage id="view-general-ledger" defaultMessage="عرض الأستاذ العام" />
         </Button>
       </Stack>
     );
@@ -136,25 +136,25 @@ export default function BalanceSheetPage() {
         <TableHead>
           <TableRow>
             <TableCell>
-              <FormattedMessage id="account-code" defaultMessage="Account code" />
+              <FormattedMessage id="account-code" defaultMessage="كود الحساب" />
             </TableCell>
             <TableCell>
-              <FormattedMessage id="account" defaultMessage="Account name" />
+              <FormattedMessage id="account" defaultMessage="اسم الحساب" />
             </TableCell>
             <TableCell align="right">
-              <FormattedMessage id="debit" defaultMessage="Debit" />
+              <FormattedMessage id="debit" defaultMessage="مدين" />
             </TableCell>
             <TableCell align="right">
-              <FormattedMessage id="credit" defaultMessage="Credit" />
+              <FormattedMessage id="credit" defaultMessage="دائن" />
             </TableCell>
             <TableCell align="right">
-              <FormattedMessage id="net-balance" defaultMessage="Net balance" />
+              <FormattedMessage id="net-balance" defaultMessage="صافي الرصيد" />
             </TableCell>
             <TableCell align="right">
-              <FormattedMessage id="normal-balance" defaultMessage="Normal balance" />
+              <FormattedMessage id="normal-balance" defaultMessage="الرصيد الطبيعي" />
             </TableCell>
             <TableCell align="center">
-              <FormattedMessage id="actions" defaultMessage="Actions" />
+              <FormattedMessage id="actions" defaultMessage="الإجراءات" />
             </TableCell>
           </TableRow>
         </TableHead>
@@ -175,7 +175,7 @@ export default function BalanceSheetPage() {
             <TableRow>
               <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                 <Typography color="text.secondary">
-                  <FormattedMessage id="balance-sheet-empty" defaultMessage="No balances matched the selected filters." />
+                  <FormattedMessage id="balance-sheet-empty" defaultMessage="لا توجد أرصدة تطابق الفلاتر المحددة." />
                 </Typography>
               </TableCell>
             </TableRow>
@@ -247,12 +247,12 @@ export default function BalanceSheetPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="balance-sheet-report" defaultMessage="Balance Sheet Report" />
+              <FormattedMessage id="balance-sheet-report" defaultMessage="تقرير الميزانية العمومية" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               <FormattedMessage
                 id="balance-sheet-report-description"
-                defaultMessage="Review assets, liabilities, equity, unclosed earnings, and the exact balance equation as of a selected date."
+                defaultMessage="راجع الأصول والالتزامات وحقوق الملكية ونتائج الأعمال غير المقفلة ومعادلة الرصيد الدقيقة حتى تاريخ محدد."
               />
             </Typography>
           </Box>
@@ -285,7 +285,7 @@ export default function BalanceSheetPage() {
               <TextField
                 type="date"
                 fullWidth
-                label={<FormattedMessage id="as-of-date" defaultMessage="As of date" />}
+                label={<FormattedMessage id="as-of-date" defaultMessage="حتى تاريخ" />}
                 value={params.asOfDate}
                 onChange={(event) => setParams((current) => ({ ...current, asOfDate: event.target.value }))}
                 InputLabelProps={{ shrink: true }}
@@ -294,10 +294,10 @@ export default function BalanceSheetPage() {
             <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
-                label={<FormattedMessage id="search" defaultMessage="Search" />}
+                label={<FormattedMessage id="search" defaultMessage="بحث" />}
                 value={params.search ?? ''}
                 onChange={(event) => setParams((current) => ({ ...current, search: event.target.value }))}
-                helperText={<FormattedMessage id="balance-sheet-search-helper" defaultMessage="Filter by code, Arabic name, or English name." />}
+                helperText={<FormattedMessage id="balance-sheet-search-helper" defaultMessage="صفِّ حسب الكود أو الاسم العربي أو الاسم الإنجليزي." />}
               />
             </Grid>
             <Grid item xs={12} md={2}>
@@ -308,7 +308,7 @@ export default function BalanceSheetPage() {
                     onChange={(event) => setParams((current) => ({ ...current, includeZeroBalances: event.target.checked }))}
                   />
                 }
-                label={<FormattedMessage id="include-zero-balances" defaultMessage="Include zero balances" />}
+                label={<FormattedMessage id="include-zero-balances" defaultMessage="تضمين الأرصدة الصفرية" />}
               />
             </Grid>
             <Grid item xs={12} md={2}>
@@ -319,7 +319,7 @@ export default function BalanceSheetPage() {
                     onChange={(event) => setParams((current) => ({ ...current, includeInactiveAccounts: event.target.checked }))}
                   />
                 }
-                label={<FormattedMessage id="include-inactive-accounts" defaultMessage="Include inactive" />}
+                label={<FormattedMessage id="include-inactive-accounts" defaultMessage="تضمين الحسابات غير النشطة" />}
               />
             </Grid>
             <Grid item xs={12} md={2}>
@@ -330,7 +330,7 @@ export default function BalanceSheetPage() {
                     onChange={(event) => setParams((current) => ({ ...current, includeHeaderAccounts: event.target.checked }))}
                   />
                 }
-                label={<FormattedMessage id="include-header-rows" defaultMessage="Include header rows" />}
+                label={<FormattedMessage id="include-header-rows" defaultMessage="تضمين الحسابات الرئيسية" />}
               />
             </Grid>
           </Grid>
@@ -341,7 +341,7 @@ export default function BalanceSheetPage() {
             severity="error"
             action={
               <Button color="inherit" size="small" startIcon={<IconRefresh size={16} />} onClick={() => mutate()}>
-                <FormattedMessage id="retry" defaultMessage="Retry" />
+                <FormattedMessage id="retry" defaultMessage="إعادة المحاولة" />
               </Button>
             }
           >
@@ -353,7 +353,7 @@ export default function BalanceSheetPage() {
 
         {isLoading && !report && !error && (
           <Alert severity="info">
-            <FormattedMessage id="loading" defaultMessage="Loading..." />
+            <FormattedMessage id="loading" defaultMessage="جارٍ التحميل..." />
           </Alert>
         )}
 
@@ -363,7 +363,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="overline" color="text.secondary">
-                    <FormattedMessage id="total-assets" defaultMessage="Total assets" />
+                    <FormattedMessage id="total-assets" defaultMessage="إجمالي الأصول" />
                   </Typography>
                   <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }}>
                     {formatAmount(intl.locale, report.totalAssets)}
@@ -373,7 +373,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="overline" color="text.secondary">
-                    <FormattedMessage id="total-liabilities" defaultMessage="Total liabilities" />
+                    <FormattedMessage id="total-liabilities" defaultMessage="إجمالي الالتزامات" />
                   </Typography>
                   <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }}>
                     {formatAmount(intl.locale, report.totalLiabilities)}
@@ -383,7 +383,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="overline" color="text.secondary">
-                    <FormattedMessage id="total-equity" defaultMessage="Total equity" />
+                    <FormattedMessage id="total-equity" defaultMessage="إجمالي حقوق الملكية" />
                   </Typography>
                   <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }}>
                     {formatAmount(intl.locale, report.totalEquity)}
@@ -393,7 +393,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="overline" color="text.secondary">
-                    <FormattedMessage id="balance-difference" defaultMessage="Balance difference" />
+                    <FormattedMessage id="balance-difference" defaultMessage="فرق الرصيد" />
                   </Typography>
                   <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }} color={report.isBalanced ? 'success.main' : 'error.main'}>
                     {formatAmount(intl.locale, report.balanceDifference)}
@@ -403,7 +403,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="overline" color="text.secondary">
-                    <FormattedMessage id="total-equity-before-unclosed-earnings" defaultMessage="Equity before unclosed earnings" />
+                    <FormattedMessage id="total-equity-before-unclosed-earnings" defaultMessage="حقوق الملكية قبل الأرباح غير المقفلة" />
                   </Typography>
                   <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }}>
                     {formatAmount(intl.locale, report.totalEquityBeforeUnclosedEarnings)}
@@ -413,7 +413,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                     <Typography variant="overline" color="text.secondary">
-                      <FormattedMessage id="unclosed-earnings" defaultMessage="Unclosed earnings" />
+                      <FormattedMessage id="unclosed-earnings" defaultMessage="نتيجة الأعمال غير المقفلة" />
                     </Typography>
                     <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }} color={report.unclosedEarnings > 0 ? 'success.main' : report.unclosedEarnings < 0 ? 'error.main' : 'text.primary'}>
                       {formatAmount(intl.locale, report.unclosedEarnings)}
@@ -426,7 +426,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="overline" color="text.secondary">
-                    <FormattedMessage id="total-liabilities-and-equity" defaultMessage="Liabilities and equity" />
+                    <FormattedMessage id="total-liabilities-and-equity" defaultMessage="إجمالي الالتزامات وحقوق الملكية" />
                   </Typography>
                   <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }}>
                     {formatAmount(intl.locale, report.totalLiabilitiesAndEquity)}
@@ -436,7 +436,7 @@ export default function BalanceSheetPage() {
               <Grid item xs={12} md={3}>
                 <Card sx={{ p: 2.5, borderRadius: 3 }}>
                   <Typography variant="overline" color="text.secondary">
-                    <FormattedMessage id="balance-sheet-result-type" defaultMessage="Result type" />
+                    <FormattedMessage id="balance-sheet-result-type" defaultMessage="نوع النتيجة" />
                   </Typography>
                   <Typography variant="h4" fontWeight={800} sx={{ mt: 1 }}>
                     {intl.formatMessage({
@@ -452,7 +452,7 @@ export default function BalanceSheetPage() {
               <Alert severity="warning">
                 <FormattedMessage
                   id="balance-sheet-hidden-balances-warning"
-                  defaultMessage="Display filters are hiding one or more posting accounts, but the summary totals remain unchanged."
+                  defaultMessage="الفلاتر المعروضة تُخفي حساب ترحيل واحدًا أو أكثر، لكن الإجماليات الموجزة تبقى دون تغيير."
                 />
               </Alert>
             )}
@@ -461,7 +461,7 @@ export default function BalanceSheetPage() {
               <Alert severity="info">
                 <FormattedMessage
                   id="balance-sheet-empty-asof"
-                  defaultMessage="No accounting balances exist up to the selected date."
+                  defaultMessage="لا توجد أرصدة محاسبية حتى التاريخ المحدد."
                 />
               </Alert>
             )}

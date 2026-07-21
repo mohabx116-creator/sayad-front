@@ -62,16 +62,16 @@ export default function TreasuryAccountDetailsPage() {
       const currentRowVersion = account.rowVersion;
       if (actionDialog.action === 'activate') {
         await activateTreasuryAccount(id, currentRowVersion);
-        notify('طھظ… طھظپط¹ظٹظ„ ط§ظ„ط­ط³ط§ط¨ ط¨ظ†ط¬ط§ط­.');
+        notify('تم تفعيل الحساب بنجاح.');
       } else if (actionDialog.action === 'deactivate') {
         await deactivateTreasuryAccount(id, currentRowVersion);
-        notify('طھظ… ط¥ظٹظ‚ط§ظپ ط§ظ„ط­ط³ط§ط¨ ط¨ظ†ط¬ط§ط­.');
+        notify('تم إيقاف الحساب بنجاح.');
       }
 
       await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
       await mutate();
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'ظپط´ظ„طھ ط§ظ„ط¹ظ…ظ„ظٹط©.', 'error');
+      notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
     } finally {
       setIsProcessing(false);
       setActionDialog({ open: false, action: 'activate', code: '' });
@@ -100,25 +100,25 @@ export default function TreasuryAccountDetailsPage() {
               <PageTitle>{account.nameArabic}</PageTitle>
               <Chip
                 size="small"
-                label={<FormattedMessage id={account.isActive ? 'active' : 'inactive'} defaultMessage={account.isActive ? 'ظ†ط´ط·' : 'ظ…ظˆظ‚ظˆظپ'} />}
+                label={<FormattedMessage id={account.isActive ? 'active' : 'inactive'} defaultMessage={account.isActive ? 'نشط' : 'موقوف'} />}
                 color={account.isActive ? 'success' : 'default'}
                 variant="outlined"
               />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {account.code} â€¢ {account.accountTypeLabel}
+              {account.code} • {account.accountTypeLabel}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <PermissionGuard permission={TREASURY_PERMISSIONS.statementsView}>
               <Button component={Link} to={`/treasury/statements?accountId=${account.id}`} variant="outlined" startIcon={<IconReport size={18} />} sx={{ borderRadius: 2 }}>
-                <FormattedMessage id="statement" defaultMessage="ظƒط´ظپ ط§ظ„ط­ط³ط§ط¨" />
+                <FormattedMessage id="statement" defaultMessage="كشف الحساب" />
               </Button>
             </PermissionGuard>
 
             <PermissionGuard permission={TREASURY_PERMISSIONS.accountsUpdate}>
               <Button component={Link} to={`/treasury/accounts/${account.id}/edit`} variant="outlined" color="secondary" startIcon={<IconEdit size={18} />} sx={{ borderRadius: 2 }}>
-                <FormattedMessage id="edit" defaultMessage="طھط¹ط¯ظٹظ„" />
+                <FormattedMessage id="edit" defaultMessage="تعديل" />
               </Button>
             </PermissionGuard>
 
@@ -131,7 +131,7 @@ export default function TreasuryAccountDetailsPage() {
                   onClick={() => setActionDialog({ open: true, action: 'deactivate', code: '' })}
                   sx={{ borderRadius: 2 }}
                 >
-                  <FormattedMessage id="deactivate" defaultMessage="ط¥ظٹظ‚ط§ظپ" />
+                  <FormattedMessage id="deactivate" defaultMessage="إيقاف" />
                 </Button>
               </PermissionGuard>
             ) : (
@@ -143,7 +143,7 @@ export default function TreasuryAccountDetailsPage() {
                   onClick={() => setActionDialog({ open: true, action: 'activate', code: '' })}
                   sx={{ borderRadius: 2 }}
                 >
-                  <FormattedMessage id="activate" defaultMessage="طھظپط¹ظٹظ„" />
+                  <FormattedMessage id="activate" defaultMessage="تفعيل" />
                 </Button>
               </PermissionGuard>
             )}
@@ -156,7 +156,7 @@ export default function TreasuryAccountDetailsPage() {
                 onClick={() => setDeleteDialogOpen(true)}
                 sx={{ borderRadius: 2 }}
               >
-                <FormattedMessage id="delete-permanent" defaultMessage="ط­ط°ظپ ظ†ظ‡ط§ط¦ظٹ" />
+                <FormattedMessage id="delete-permanent" defaultMessage="حذف نهائي" />
               </Button>
             )}
           </Box>
@@ -176,14 +176,14 @@ export default function TreasuryAccountDetailsPage() {
           <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, height: '100%' }} content={false}>
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
-                <FormattedMessage id="account-details" defaultMessage="طھظپط§طµظٹظ„ ط§ظ„ط­ط³ط§ط¨" />
+                <FormattedMessage id="account-details" defaultMessage="تفاصيل الحساب" />
               </Typography>
             </Box>
             <Box sx={{ p: 3 }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="code" defaultMessage="ط§ظ„ظƒظˆط¯" />
+                    <FormattedMessage id="code" defaultMessage="الكود" />
                   </Typography>
                   <Typography variant="body1" fontWeight={500}>
                     {account.code}
@@ -191,7 +191,7 @@ export default function TreasuryAccountDetailsPage() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="account-type" defaultMessage="ظ†ظˆط¹ ط§ظ„ط­ط³ط§ط¨" />
+                    <FormattedMessage id="account-type" defaultMessage="نوع الحساب" />
                   </Typography>
                   <Typography variant="body1" fontWeight={500}>
                     {account.accountTypeLabel}
@@ -199,7 +199,7 @@ export default function TreasuryAccountDetailsPage() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="mapping" defaultMessage="ط§ظ„ط±ط¨ط· ط§ظ„ظ…ط­ط§ط³ط¨ظٹ" />
+                    <FormattedMessage id="mapping" defaultMessage="الربط المحاسبي" />
                   </Typography>
                   <Typography variant="body1" fontWeight={500}>
                     {account.isAccountingMapped && account.accountingAccountId && account.accountingAccountCode && account.accountingAccountArabicName ? (
@@ -213,7 +213,7 @@ export default function TreasuryAccountDetailsPage() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="name-arabic" defaultMessage="ط§ظ„ط§ط³ظ… ط¨ط§ظ„ط¹ط±ط¨ظٹط©" />
+                    <FormattedMessage id="name-arabic" defaultMessage="الاسم بالعربية" />
                   </Typography>
                   <Typography variant="body1" fontWeight={500}>
                     {account.nameArabic}
@@ -221,7 +221,7 @@ export default function TreasuryAccountDetailsPage() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="name-english" defaultMessage="ط§ظ„ط§ط³ظ… ط¨ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹط©" />
+                    <FormattedMessage id="name-english" defaultMessage="الاسم بالإنجليزية" />
                   </Typography>
                   <Typography variant="body1" fontWeight={500}>
                     {account.nameEnglish || '-'}
@@ -229,7 +229,7 @@ export default function TreasuryAccountDetailsPage() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="current-balance" defaultMessage="ط§ظ„ط±طµظٹط¯ ط§ظ„ط­ط§ظ„ظٹ" />
+                    <FormattedMessage id="current-balance" defaultMessage="الرصيد الحالي" />
                   </Typography>
                   <Typography variant="body1" fontWeight={700}>
                     {formatTreasuryMoney(account.balance, account.currencyCode)}
@@ -237,15 +237,15 @@ export default function TreasuryAccountDetailsPage() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="balance-nature" defaultMessage="ط§طھط¬ط§ظ‡ ط§ظ„ط±طµظٹط¯" />
+                    <FormattedMessage id="balance-nature" defaultMessage="اتجاه الرصيد" />
                   </Typography>
                   <Typography variant="body1" fontWeight={500}>
-                    {account.balanceNature === 'Debit' ? 'ظ…ط¯ظٹظ† - ط±طµظٹط¯ ظ…ظˆط¬ط¨' : account.balanceNature === 'Credit' ? 'ط¯ط§ط¦ظ† - ط±طµظٹط¯ ط³ط§ظ„ط¨' : 'ظ…ط³طھظ‚ط±'}
+                    {account.balanceNature === 'Debit' ? 'مدين - رصيد موجب' : account.balanceNature === 'Credit' ? 'دائن - رصيد سالب' : 'مستقر'}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25 }}>
-                    <FormattedMessage id="notes" defaultMessage="ظ…ظ„ط§ط­ط¸ط§طھ" />
+                    <FormattedMessage id="notes" defaultMessage="ملاحظات" />
                   </Typography>
                   <Typography variant="body1">{account.notes || '-'}</Typography>
                 </Grid>
@@ -267,7 +267,7 @@ export default function TreasuryAccountDetailsPage() {
           >
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
-                <FormattedMessage id="recent-movements" defaultMessage="ط£ط­ط¯ط« ط§ظ„ط­ط±ظƒط§طھ" />
+                <FormattedMessage id="recent-movements" defaultMessage="أحدث الحركات" />
               </Typography>
             </Box>
             <Box sx={{ p: 3 }}>
@@ -277,7 +277,7 @@ export default function TreasuryAccountDetailsPage() {
                 <TreasuryMovementTable movements={statement.movements} page={statement.page} totalPages={statement.totalPages} isLoading={false} currencyCode={account.currencyCode} />
               ) : (
                 <Typography color="text.secondary">
-                  <FormattedMessage id="treasury.empty" defaultMessage="ظ„ط§ طھظˆط¬ط¯ ط³ط¬ظ„ط§طھ." />
+                  <FormattedMessage id="treasury.empty" defaultMessage="لا توجد سجلات." />
                 </Typography>
               )}
             </Box>
@@ -287,7 +287,7 @@ export default function TreasuryAccountDetailsPage() {
 
       <Box sx={{ mt: 3 }}>
         <Button onClick={() => navigate(-1)} startIcon={<IconArrowLeft size={18} />} color="inherit">
-          <FormattedMessage id="back" defaultMessage="ط±ط¬ظˆط¹" />
+          <FormattedMessage id="back" defaultMessage="رجوع" />
         </Button>
       </Box>
 
@@ -313,12 +313,12 @@ export default function TreasuryAccountDetailsPage() {
           setIsProcessing(true);
           try {
             await finalDeleteTreasuryAccount(id, request);
-            notify('طھظ… ط­ط°ظپ ط§ظ„ط­ط³ط§ط¨ ظ†ظ‡ط§ط¦ظٹظ‹ط§.');
+            notify('تم حذف الحساب نهائيًا.');
             await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
             await mutate();
             navigate('/treasury/accounts');
           } catch (error) {
-            notify(error instanceof Error ? error.message : 'ظپط´ظ„طھ ط§ظ„ط¹ظ…ظ„ظٹط©.', 'error');
+            notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
           } finally {
             setIsProcessing(false);
             setDeleteDialogOpen(false);

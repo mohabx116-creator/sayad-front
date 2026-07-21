@@ -143,7 +143,7 @@ export default function InventoryGlReconciliationPage() {
         <TableRow>
           <TableCell colSpan={12} align="center" sx={{ py: 4 }}>
             <Typography color="text.secondary">
-              <FormattedMessage id="inventory-gl-reconciliation-empty" defaultMessage="No inventory reconciliation rows matched the selected filters." />
+              <FormattedMessage id="inventory-gl-reconciliation-empty" defaultMessage="لا توجد صفوف مطابقة لمطابقة المخزون مع الأستاذ العام وفق الفلاتر المحددة." />
             </Typography>
           </TableCell>
         </TableRow>
@@ -226,7 +226,7 @@ export default function InventoryGlReconciliationPage() {
           <Stack spacing={0.75} sx={{ minWidth: 240 }}>
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Button component={Link} to={buildItemUrl(row.itemId)} size="small" variant="outlined" startIcon={<IconArrowRight size={16} />}>
-                <FormattedMessage id="inventory-item" defaultMessage="Item" />
+                <FormattedMessage id="inventory-item" defaultMessage="الصنف" />
               </Button>
             </Stack>
             {row.integrityWarnings.slice(0, 3).map((warning) => (
@@ -256,12 +256,12 @@ export default function InventoryGlReconciliationPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="inventory-gl-reconciliation-report" defaultMessage="Inventory Valuation to General Ledger Reconciliation" />
+              <FormattedMessage id="inventory-gl-reconciliation-report" defaultMessage="تسوية تقييم المخزون مع الأستاذ العام" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 900 }}>
               <FormattedMessage
                 id="inventory-gl-reconciliation-report-description"
-                defaultMessage="Compare persisted inventory valuation against the mapped inventory asset general ledger account, while keeping authoritative totals separate from filtered rows."
+                defaultMessage="قارن تقييم المخزون المحفوظ مع حساب أصول المخزون المرتبط في الأستاذ العام، مع إبقاء الإجماليات المعتمدة منفصلة عن الصفوف المفلترة."
               />
             </Typography>
           </Box>
@@ -279,7 +279,7 @@ export default function InventoryGlReconciliationPage() {
               <TextField
                 type="date"
                 fullWidth
-                label={<FormattedMessage id="as-of-date" defaultMessage="As of date" />}
+                label={<FormattedMessage id="as-of-date" defaultMessage="حتى تاريخ" />}
                 value={params.asOfDate ?? ''}
                 onChange={(event) => setParams((current) => ({ ...current, asOfDate: event.target.value, page: 1 }))}
                 InputLabelProps={{ shrink: true }}
@@ -288,26 +288,26 @@ export default function InventoryGlReconciliationPage() {
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
-                label={<FormattedMessage id="warehouse-id" defaultMessage="Warehouse ID" />}
+                label={<FormattedMessage id="warehouse-id" defaultMessage="معرف المخزن" />}
                 value={params.warehouseId ?? ''}
                 onChange={(event) => setParams((current) => ({ ...current, warehouseId: event.target.value, page: 1 }))}
-                helperText={<FormattedMessage id="warehouse-id-helper" defaultMessage="Paste a warehouse ID to narrow the reconciliation." />}
+                helperText={<FormattedMessage id="warehouse-id-helper" defaultMessage="الصق معرف مخزن لتضييق نطاق المطابقة." />}
               />
             </Grid>
             <Grid item xs={12} md={2.4}>
               <TextField
                 select
                 fullWidth
-                label={<FormattedMessage id="inventory-item" defaultMessage="Item" />}
+                label={<FormattedMessage id="inventory-item" defaultMessage="الصنف" />}
                 value={params.itemId ?? ''}
                 onChange={(event) => setParams((current) => ({ ...current, itemId: event.target.value, page: 1 }))}
               >
                 <MenuItem value="">
-                  <FormattedMessage id="all" defaultMessage="All" />
+                  <FormattedMessage id="all" defaultMessage="الكل" />
                 </MenuItem>
                 {inventoryItemsLoading && (
                   <MenuItem value="" disabled>
-                    <FormattedMessage id="loading" defaultMessage="Loading..." />
+                    <FormattedMessage id="loading" defaultMessage="جارٍ التحميل..." />
                   </MenuItem>
                 )}
                 {inventoryItems.map((item) => (
@@ -321,16 +321,16 @@ export default function InventoryGlReconciliationPage() {
               <TextField
                 select
                 fullWidth
-                label={<FormattedMessage id="category" defaultMessage="Category" />}
+                label={<FormattedMessage id="category" defaultMessage="الفئة" />}
                 value={params.categoryId ?? ''}
                 onChange={(event) => setParams((current) => ({ ...current, categoryId: event.target.value, page: 1 }))}
               >
                 <MenuItem value="">
-                  <FormattedMessage id="all" defaultMessage="All" />
+                  <FormattedMessage id="all" defaultMessage="الكل" />
                 </MenuItem>
                 {categoriesLoading && (
                   <MenuItem value="" disabled>
-                    <FormattedMessage id="loading" defaultMessage="Loading..." />
+                    <FormattedMessage id="loading" defaultMessage="جارٍ التحميل..." />
                   </MenuItem>
                 )}
                 {categories.map((category) => (
@@ -343,10 +343,10 @@ export default function InventoryGlReconciliationPage() {
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
-                label={<FormattedMessage id="search" defaultMessage="Search" />}
+                label={<FormattedMessage id="search" defaultMessage="بحث" />}
                 value={params.search ?? ''}
                 onChange={(event) => setParams((current) => ({ ...current, search: event.target.value, page: 1 }))}
-                helperText={<FormattedMessage id="inventory-gl-reconciliation-search-helper" defaultMessage="Search by item code, item name, warehouse code, or category name." />}
+                helperText={<FormattedMessage id="inventory-gl-reconciliation-search-helper" defaultMessage="ابحث حسب كود الصنف أو اسم الصنف أو كود المخزن أو اسم الفئة." />}
               />
             </Grid>
             <Grid item xs={12} md={2.4}>
@@ -356,7 +356,7 @@ export default function InventoryGlReconciliationPage() {
                 startIcon={<IconRefresh size={16} />}
                 sx={{ width: '100%', height: '100%' }}
               >
-                <FormattedMessage id="refresh" defaultMessage="Refresh" />
+                <FormattedMessage id="refresh" defaultMessage="تحديث" />
               </Button>
             </Grid>
             <Grid item xs={12} md={2.4}>
@@ -367,7 +367,7 @@ export default function InventoryGlReconciliationPage() {
                     onChange={(event) => setParams((current) => ({ ...current, includeInactiveItems: event.target.checked, page: 1 }))}
                   />
                 }
-                label={<FormattedMessage id="include-inactive-items" defaultMessage="Include inactive items" />}
+                label={<FormattedMessage id="include-inactive-items" defaultMessage="تضمين الأصناف غير النشطة" />}
               />
             </Grid>
             <Grid item xs={12} md={2.4}>
@@ -378,7 +378,7 @@ export default function InventoryGlReconciliationPage() {
                     onChange={(event) => setParams((current) => ({ ...current, includeZeroQuantity: event.target.checked, page: 1 }))}
                   />
                 }
-                label={<FormattedMessage id="include-zero-quantity" defaultMessage="Include zero quantity" />}
+                label={<FormattedMessage id="include-zero-quantity" defaultMessage="تضمين الكمية الصفرية" />}
               />
             </Grid>
             <Grid item xs={12} md={2.4}>
@@ -389,7 +389,7 @@ export default function InventoryGlReconciliationPage() {
                     onChange={(event) => setParams((current) => ({ ...current, includeZeroValue: event.target.checked, page: 1 }))}
                   />
                 }
-                label={<FormattedMessage id="include-zero-value" defaultMessage="Include zero value" />}
+                label={<FormattedMessage id="include-zero-value" defaultMessage="تضمين القيمة الصفرية" />}
               />
             </Grid>
             <Grid item xs={12} md={2.4}>
@@ -400,7 +400,7 @@ export default function InventoryGlReconciliationPage() {
                     onChange={(event) => setParams((current) => ({ ...current, onlyDifferences: event.target.checked, page: 1 }))}
                   />
                 }
-                label={<FormattedMessage id="only-differences" defaultMessage="Only differences" />}
+                label={<FormattedMessage id="only-differences" defaultMessage="الفروق فقط" />}
               />
             </Grid>
             <Grid item xs={12} md={2.4}>
@@ -411,7 +411,7 @@ export default function InventoryGlReconciliationPage() {
                     onChange={(event) => setParams((current) => ({ ...current, onlyWarnings: event.target.checked, page: 1 }))}
                   />
                 }
-                label={<FormattedMessage id="only-warnings" defaultMessage="Only warnings" />}
+                label={<FormattedMessage id="only-warnings" defaultMessage="التحذيرات فقط" />}
               />
             </Grid>
           </Grid>
@@ -422,7 +422,7 @@ export default function InventoryGlReconciliationPage() {
             severity="error"
             action={
               <Button color="inherit" size="small" onClick={() => mutate()}>
-                <FormattedMessage id="retry" defaultMessage="Retry" />
+                <FormattedMessage id="retry" defaultMessage="إعادة المحاولة" />
               </Button>
             }
           >
@@ -463,7 +463,7 @@ export default function InventoryGlReconciliationPage() {
 
             {!report.rows.length && (
               <Alert severity="info">
-                <FormattedMessage id="inventory-gl-reconciliation-empty-rows" defaultMessage="No inventory reconciliation rows matched the selected filters." />
+                <FormattedMessage id="inventory-gl-reconciliation-empty-rows" defaultMessage="لا توجد صفوف مطابقة لمطابقة المخزون مع الأستاذ العام وفق الفلاتر المحددة." />
               </Alert>
             )}
 
@@ -473,7 +473,7 @@ export default function InventoryGlReconciliationPage() {
                   <Stack direction="row" spacing={1} alignItems="center">
                     <IconBox size={18} />
                     <Typography variant="h6" component="span">
-                      <FormattedMessage id="inventory-gl-reconciliation-rows" defaultMessage="Reconciliation rows" />
+                      <FormattedMessage id="inventory-gl-reconciliation-rows" defaultMessage="صفوف المطابقة" />
                     </Typography>
                     <Chip size="small" variant="outlined" label={report.totalCount.toString()} />
                   </Stack>
@@ -487,18 +487,18 @@ export default function InventoryGlReconciliationPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell><FormattedMessage id="inventory-item" defaultMessage="Item" /></TableCell>
-                    <TableCell><FormattedMessage id="warehouse" defaultMessage="Warehouse" /></TableCell>
-                    <TableCell><FormattedMessage id="category" defaultMessage="Category" /></TableCell>
-                    <TableCell align="right"><FormattedMessage id="opening-quantity" defaultMessage="Opening" /></TableCell>
-                    <TableCell align="right"><FormattedMessage id="quantity-in" defaultMessage="In" /></TableCell>
-                    <TableCell align="right"><FormattedMessage id="quantity-out" defaultMessage="Out" /></TableCell>
-                    <TableCell align="right"><FormattedMessage id="closing-quantity" defaultMessage="Closing" /></TableCell>
-                    <TableCell align="right"><FormattedMessage id="average-unit-cost" defaultMessage="Avg cost" /></TableCell>
-                    <TableCell align="right"><FormattedMessage id="inventory-value" defaultMessage="Inventory value" /></TableCell>
-                    <TableCell align="center"><FormattedMessage id="movement-count" defaultMessage="Movements" /></TableCell>
-                    <TableCell align="center"><FormattedMessage id="status" defaultMessage="Status" /></TableCell>
-                    <TableCell align="center"><FormattedMessage id="actions" defaultMessage="Actions" /></TableCell>
+                    <TableCell><FormattedMessage id="inventory-item" defaultMessage="الصنف" /></TableCell>
+                    <TableCell><FormattedMessage id="warehouse" defaultMessage="المخزن" /></TableCell>
+                    <TableCell><FormattedMessage id="category" defaultMessage="الفئة" /></TableCell>
+                    <TableCell align="right"><FormattedMessage id="opening-quantity" defaultMessage="الافتتاحي" /></TableCell>
+                    <TableCell align="right"><FormattedMessage id="quantity-in" defaultMessage="داخل" /></TableCell>
+                    <TableCell align="right"><FormattedMessage id="quantity-out" defaultMessage="خارج" /></TableCell>
+                    <TableCell align="right"><FormattedMessage id="closing-quantity" defaultMessage="الختامي" /></TableCell>
+                    <TableCell align="right"><FormattedMessage id="average-unit-cost" defaultMessage="متوسط التكلفة" /></TableCell>
+                    <TableCell align="right"><FormattedMessage id="inventory-value" defaultMessage="قيمة المخزون" /></TableCell>
+                    <TableCell align="center"><FormattedMessage id="movement-count" defaultMessage="الحركات" /></TableCell>
+                    <TableCell align="center"><FormattedMessage id="status" defaultMessage="الحالة" /></TableCell>
+                    <TableCell align="center"><FormattedMessage id="actions" defaultMessage="الإجراءات" /></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>{renderRows()}</TableBody>

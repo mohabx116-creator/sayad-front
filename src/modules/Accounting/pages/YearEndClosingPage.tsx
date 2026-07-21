@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Box from '@mui/material/Box';
@@ -58,6 +58,7 @@ export default function YearEndClosingPage() {
   const dispatch = useDispatch();
   const { user } = useAuth();
   const { years, isLoading: yearsLoading, error: yearsError } = useAccountingFiscalYears();
+  const fiscalYears = Array.isArray(years) ? years : [];
 
   const [selectedFiscalYearId, setSelectedFiscalYearId] = useState<string>('');
   const { overview, isLoading: overviewLoading, error: overviewError, mutate } = useFiscalYearClosingOverview(selectedFiscalYearId || null);
@@ -67,13 +68,13 @@ export default function YearEndClosingPage() {
   const canReopen = hasPermission(user, ACCOUNTING_PERMISSIONS.yearEndReopen);
 
   useEffect(() => {
-    if (!selectedFiscalYearId && years.length > 0) {
-      setSelectedFiscalYearId(years[0].id);
+    if (!selectedFiscalYearId && fiscalYears.length > 0) {
+      setSelectedFiscalYearId(fiscalYears[0].id);
     }
-  }, [selectedFiscalYearId, years]);
+  }, [selectedFiscalYearId, fiscalYears]);
 
-  const selectedYear = useMemo(() => years.find((year) => year.id === selectedFiscalYearId) ?? null, [selectedFiscalYearId, years]);
-  const isLoading = yearsLoading || (!selectedFiscalYearId && years.length > 0) || (Boolean(selectedFiscalYearId) && overviewLoading);
+  const selectedYear = useMemo(() => fiscalYears.find((year) => year.id === selectedFiscalYearId) ?? null, [fiscalYears, selectedFiscalYearId]);
+  const isLoading = yearsLoading || (!selectedFiscalYearId && fiscalYears.length > 0) || (Boolean(selectedFiscalYearId) && overviewLoading);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -85,20 +86,20 @@ export default function YearEndClosingPage() {
     }
 
     if (action === 'Close' && !overview.canClose) {
-      notify(intl.formatMessage({ id: 'fiscal-year-close-not-allowed', defaultMessage: 'Fiscal year cannot be closed yet.' }), 'error');
+      notify(intl.formatMessage({ id: 'fiscal-year-close-not-allowed', defaultMessage: 'لا يمكن إقفال السنة المالية بعد.' }), 'error');
       return;
     }
 
     if (action === 'Reopen' && !overview.canReopen) {
-      notify(intl.formatMessage({ id: 'fiscal-year-reopen-not-allowed', defaultMessage: 'Fiscal year is not currently closed.' }), 'error');
+      notify(intl.formatMessage({ id: 'fiscal-year-reopen-not-allowed', defaultMessage: 'السنة المالية غير مقفلة حاليًا.' }), 'error');
       return;
     }
 
     const reason = window
       .prompt(
         action === 'Close'
-          ? intl.formatMessage({ id: 'fiscal-year-close-reason', defaultMessage: 'Enter a reason for fiscal year closing.' })
-          : intl.formatMessage({ id: 'fiscal-year-reopen-reason', defaultMessage: 'Enter a reason for reopening fiscal year closing.' })
+          ? intl.formatMessage({ id: 'fiscal-year-close-reason', defaultMessage: 'أدخل سبب إقفال السنة المالية.' })
+          : intl.formatMessage({ id: 'fiscal-year-reopen-reason', defaultMessage: 'أدخل سبب إعادة فتح إقفال السنة المالية.' })
       )
       ?.trim();
 
@@ -115,11 +116,11 @@ export default function YearEndClosingPage() {
       await mutate({ success: true, message: null, data: updated, errors: [] }, { revalidate: false });
       notify(
         action === 'Close'
-          ? intl.formatMessage({ id: 'fiscal-year-closed-successfully', defaultMessage: 'Fiscal year closed successfully.' })
-          : intl.formatMessage({ id: 'fiscal-year-reopened-successfully', defaultMessage: 'Fiscal year closing reopened successfully.' })
+          ? intl.formatMessage({ id: 'fiscal-year-closed-successfully', defaultMessage: 'تم إقفال السنة المالية بنجاح.' })
+          : intl.formatMessage({ id: 'fiscal-year-reopened-successfully', defaultMessage: 'تمت إعادة فتح إقفال السنة المالية بنجاح.' })
       );
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'fiscal-year-closing-action-failed', defaultMessage: 'Fiscal year closing action failed.' }), 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'fiscal-year-closing-action-failed', defaultMessage: 'فشلت عملية إقفال السنة المالية.' }), 'error');
     }
   };
 
@@ -138,24 +139,24 @@ export default function YearEndClosingPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="year-end-closing" defaultMessage="Year-End Closing" />
+              <FormattedMessage id="year-end-closing" defaultMessage="إقفال السنة المالية" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 840 }}>
               <FormattedMessage
                 id="year-end-closing-description"
-                defaultMessage="Review the fiscal year activity, close profit and expense balances to retained earnings, and reopen the closing when adjustments are required."
+                defaultMessage="راجع نشاط السنة المالية، وأقفل أرصدة الأرباح والمصروفات على الأرباح المحتجزة، وأعد فتح الإقفال عند الحاجة."
               />
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-            <Chip color={overview?.isClosed ? 'success' : overview?.isReopened ? 'warning' : 'default'} label={overview?.currentStatusLabel ?? intl.formatMessage({ id: 'not-closed', defaultMessage: 'Not closed' })} />
+              <Chip color={overview?.isClosed ? 'success' : overview?.isReopened ? 'warning' : 'default'} label={overview?.currentStatusLabel ?? intl.formatMessage({ id: 'not-closed', defaultMessage: 'غير مقفلة' })} />
             <Button
               variant="contained"
               startIcon={<IconLock size={18} />}
               onClick={() => handleAction('Close')}
               disabled={!overview?.canClose || !canClose}
             >
-              <FormattedMessage id="close-fiscal-year" defaultMessage="Close fiscal year" />
+              <FormattedMessage id="close-fiscal-year" defaultMessage="إقفال السنة المالية" />
             </Button>
             <Button
               variant="outlined"
@@ -163,7 +164,7 @@ export default function YearEndClosingPage() {
               onClick={() => handleAction('Reopen')}
               disabled={!overview?.canReopen || !canReopen}
             >
-              <FormattedMessage id="reopen-fiscal-year" defaultMessage="Reopen closing" />
+              <FormattedMessage id="reopen-fiscal-year" defaultMessage="إعادة فتح الإقفال" />
             </Button>
           </Stack>
         </Box>
@@ -171,7 +172,7 @@ export default function YearEndClosingPage() {
         {yearsError && (
           <Card sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'error.light' }}>
             <Typography color="error">
-              {yearsError instanceof Error ? yearsError.message : intl.formatMessage({ id: 'fiscal-years-load-failed', defaultMessage: 'Failed to load fiscal years.' })}
+              {yearsError instanceof Error ? yearsError.message : intl.formatMessage({ id: 'fiscal-years-load-failed', defaultMessage: 'تعذر تحميل السنوات المالية.' })}
             </Typography>
           </Card>
         )}
@@ -179,7 +180,7 @@ export default function YearEndClosingPage() {
         {overviewError && (
           <Card sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'error.light' }}>
             <Typography color="error">
-              {overviewError instanceof Error ? overviewError.message : intl.formatMessage({ id: 'year-end-closing-load-failed', defaultMessage: 'Failed to load year-end closing details.' })}
+              {overviewError instanceof Error ? overviewError.message : intl.formatMessage({ id: 'year-end-closing-load-failed', defaultMessage: 'تعذر تحميل تفاصيل إقفال السنة المالية.' })}
             </Typography>
           </Card>
         )}
@@ -187,16 +188,16 @@ export default function YearEndClosingPage() {
         <Card sx={{ p: 2.5, borderRadius: 3 }}>
           <Stack spacing={2}>
             <Typography variant="overline" color="text.secondary">
-              <FormattedMessage id="fiscal-year" defaultMessage="Fiscal Year" />
+              <FormattedMessage id="fiscal-year" defaultMessage="السنة المالية" />
             </Typography>
             <TextField
               select
               fullWidth
-              label={<FormattedMessage id="select-fiscal-year" defaultMessage="Select fiscal year" />}
+              label={<FormattedMessage id="select-fiscal-year" defaultMessage="اختر السنة المالية" />}
               value={selectedFiscalYearId}
               onChange={(event) => setSelectedFiscalYearId(event.target.value)}
             >
-              {years.map((year) => (
+              {fiscalYears.map((year) => (
                 <MenuItem key={year.id} value={year.id}>
                   {getDisplayLabel(intl.locale, year.nameArabic, year.nameEnglish ?? year.nameArabic)}
                 </MenuItem>
@@ -215,41 +216,41 @@ export default function YearEndClosingPage() {
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
               <Card sx={{ p: 2.5, flex: 1, borderRadius: 3 }}>
                 <Typography variant="overline" color="text.secondary">
-                  <FormattedMessage id="retained-earnings-account" defaultMessage="Retained earnings account" />
+                  <FormattedMessage id="retained-earnings-account" defaultMessage="حساب الأرباح المحتجزة" />
                 </Typography>
                 <Typography variant="h5" fontWeight={700} sx={{ mt: 0.5 }}>
-                  {overview.retainedEarningsAccountCode ?? '—'}
+                  {overview.retainedEarningsAccountCode ?? '-'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {getDisplayLabel(intl.locale, overview.retainedEarningsAccountNameArabic ?? '—', overview.retainedEarningsAccountNameEnglish ?? overview.retainedEarningsAccountNameArabic ?? '—')}
+                  {getDisplayLabel(intl.locale, overview.retainedEarningsAccountNameArabic ?? '-', overview.retainedEarningsAccountNameEnglish ?? overview.retainedEarningsAccountNameArabic ?? '-')}
                 </Typography>
               </Card>
               <Card sx={{ p: 2.5, flex: 1, borderRadius: 3 }}>
                 <Typography variant="overline" color="text.secondary">
-                  <FormattedMessage id="net-profit-or-loss" defaultMessage="Net profit or loss" />
+                  <FormattedMessage id="net-profit-or-loss" defaultMessage="صافي الربح أو الخسارة" />
                 </Typography>
                 <Typography variant="h5" fontWeight={700} sx={{ mt: 0.5 }}>
                   {formatMoney(intl.locale, overview.netProfitOrLoss)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {overview.netProfitOrLoss > 0 ? (
-                    <FormattedMessage id="profit" defaultMessage="Profit" />
+                    <FormattedMessage id="profit" defaultMessage="ربح" />
                   ) : overview.netProfitOrLoss < 0 ? (
-                    <FormattedMessage id="loss" defaultMessage="Loss" />
+                    <FormattedMessage id="loss" defaultMessage="خسارة" />
                   ) : (
-                    <FormattedMessage id="break-even" defaultMessage="Break even" />
+                    <FormattedMessage id="break-even" defaultMessage="تعادل" />
                   )}
                 </Typography>
               </Card>
               <Card sx={{ p: 2.5, flex: 1, borderRadius: 3 }}>
                 <Typography variant="overline" color="text.secondary">
-                  <FormattedMessage id="period-summary" defaultMessage="Period summary" />
+                  <FormattedMessage id="period-summary" defaultMessage="ملخص الفترة" />
                 </Typography>
                 <Typography variant="h5" fontWeight={700} sx={{ mt: 0.5 }}>
                   {overview.closedPeriodCount}/{overview.periodCount}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  <FormattedMessage id="closed-periods" defaultMessage="closed periods" /> {overview.allPeriodsClosed ? <FormattedMessage id="ready-for-close" defaultMessage="ready for close" /> : <FormattedMessage id="not-ready-for-close" defaultMessage="not ready" />}
+                  <FormattedMessage id="closed-periods" defaultMessage="الفترات المغلقة" /> {overview.allPeriodsClosed ? <FormattedMessage id="ready-for-close" defaultMessage="جاهزة للإقفال" /> : <FormattedMessage id="not-ready-for-close" defaultMessage="غير جاهزة" />}
                 </Typography>
               </Card>
             </Stack>
@@ -259,10 +260,10 @@ export default function YearEndClosingPage() {
                 <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2}>
                   <Box>
                     <Typography variant="h6" fontWeight={700}>
-                      <FormattedMessage id="closing-preview" defaultMessage="Closing preview" />
+                      <FormattedMessage id="closing-preview" defaultMessage="معاينة الإقفال" />
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                      <FormattedMessage id="closing-preview-description" defaultMessage="These lines will be posted to zero revenue and expense balances against retained earnings." />
+                      <FormattedMessage id="closing-preview-description" defaultMessage="ستُرحَّل هذه القيود لتصفير أرصدة الإيرادات والمصروفات مقابل الأرباح المحتجزة." />
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -287,10 +288,10 @@ export default function YearEndClosingPage() {
                   <TableHead>
                     <TableRow>
                       <TableCell>
-                        <FormattedMessage id="account" defaultMessage="Account" />
+                        <FormattedMessage id="account" defaultMessage="الحساب" />
                       </TableCell>
                       <TableCell>
-                        <FormattedMessage id="type" defaultMessage="Type" />
+                        <FormattedMessage id="type" defaultMessage="النوع" />
                       </TableCell>
                       <TableCell align="right">
                         <FormattedMessage id="debit" />
@@ -299,10 +300,10 @@ export default function YearEndClosingPage() {
                         <FormattedMessage id="credit" />
                       </TableCell>
                       <TableCell align="right">
-                        <FormattedMessage id="net-amount" defaultMessage="Net amount" />
+                        <FormattedMessage id="net-amount" defaultMessage="صافي المبلغ" />
                       </TableCell>
                       <TableCell>
-                        <FormattedMessage id="retained-earnings" defaultMessage="Retained earnings" />
+                        <FormattedMessage id="retained-earnings" defaultMessage="الأرباح المحتجزة" />
                       </TableCell>
                     </TableRow>
                   </TableHead>
@@ -311,7 +312,7 @@ export default function YearEndClosingPage() {
                       <TableRow>
                         <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                           <Typography color="text.secondary">
-                            <FormattedMessage id="no-closing-lines" defaultMessage="No closing lines are required for this fiscal year." />
+                            <FormattedMessage id="no-closing-lines" defaultMessage="لا توجد قيود إقفال مطلوبة لهذه السنة المالية." />
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -330,7 +331,7 @@ export default function YearEndClosingPage() {
                           <TableCell align="right">{formatMoney(intl.locale, line.debitAmount)}</TableCell>
                           <TableCell align="right">{formatMoney(intl.locale, line.creditAmount)}</TableCell>
                           <TableCell align="right">{formatMoney(intl.locale, line.netAmount)}</TableCell>
-                          <TableCell>{line.isRetainedEarningsLine ? <IconCheck size={16} /> : '—'}</TableCell>
+                          <TableCell>{line.isRetainedEarningsLine ? <IconCheck size={16} /> : '-'}</TableCell>
                         </TableRow>
                       ))
                     )}
@@ -342,25 +343,25 @@ export default function YearEndClosingPage() {
             <Card sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
               <Stack spacing={2}>
                 <Typography variant="h6" fontWeight={700}>
-                  <FormattedMessage id="closing-history" defaultMessage="Closing history" />
+                  <FormattedMessage id="closing-history" defaultMessage="سجل الإقفال" />
                 </Typography>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell>
-                        <FormattedMessage id="action" defaultMessage="Action" />
+                        <FormattedMessage id="action" defaultMessage="الإجراء" />
                       </TableCell>
                       <TableCell>
                         <FormattedMessage id="date" />
                       </TableCell>
                       <TableCell>
-                        <FormattedMessage id="journal-entry" defaultMessage="Journal entry" />
+                        <FormattedMessage id="journal-entry" defaultMessage="القيد اليومي" />
                       </TableCell>
                       <TableCell>
-                        <FormattedMessage id="reason" defaultMessage="Reason" />
+                        <FormattedMessage id="reason" defaultMessage="السبب" />
                       </TableCell>
                       <TableCell align="right">
-                        <FormattedMessage id="net-amount" defaultMessage="Net amount" />
+                        <FormattedMessage id="net-amount" defaultMessage="صافي المبلغ" />
                       </TableCell>
                     </TableRow>
                   </TableHead>
@@ -369,7 +370,7 @@ export default function YearEndClosingPage() {
                       <TableRow>
                         <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                           <Typography color="text.secondary">
-                            <FormattedMessage id="no-closing-history" defaultMessage="No closing actions have been recorded yet." />
+                            <FormattedMessage id="no-closing-history" defaultMessage="لا توجد إجراءات إقفال مسجلة حتى الآن." />
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -385,8 +386,8 @@ export default function YearEndClosingPage() {
                             </Stack>
                           </TableCell>
                           <TableCell>{formatDate(intl.locale, item.actionDate)}</TableCell>
-                          <TableCell>{item.journalEntryNumber ?? '—'}</TableCell>
-                          <TableCell>{item.reason ?? '—'}</TableCell>
+                          <TableCell>{item.journalEntryNumber ?? '-'}</TableCell>
+                          <TableCell>{item.reason ?? '-'}</TableCell>
                           <TableCell align="right">{formatMoney(intl.locale, item.netProfitOrLoss)}</TableCell>
                         </TableRow>
                       ))
@@ -401,7 +402,7 @@ export default function YearEndClosingPage() {
                 <Typography variant="body2" color="info.dark">
                   <FormattedMessage
                     id="zero-activity-year-note"
-                    defaultMessage="This fiscal year has no revenue or expense activity. Closing it will still create a closing history record, but no journal lines are required."
+                    defaultMessage="لا توجد في هذه السنة المالية أي حركة إيرادات أو مصروفات. سيؤدي إقفالها إلى إنشاء سجل إقفال فقط، دون الحاجة إلى قيود يومية."
                   />
                 </Typography>
               </Card>

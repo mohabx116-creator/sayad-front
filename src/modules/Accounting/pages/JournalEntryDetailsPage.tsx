@@ -77,11 +77,11 @@ export default function JournalEntryDetailsPage() {
     setIsProcessing(true);
     try {
       await postJournalEntry(id, entry.rowVersion);
-      notify(intl.formatMessage({ id: 'journal-entry-posted-successfully', defaultMessage: 'Journal entry posted successfully.' }));
+      notify(intl.formatMessage({ id: 'journal-entry-posted-successfully', defaultMessage: 'تم ترحيل القيد اليومي بنجاح.' }));
       await mutate();
       await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'Journal entry action failed.' }), 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }), 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -95,11 +95,11 @@ export default function JournalEntryDetailsPage() {
     setIsProcessing(true);
     try {
       await cancelJournalEntry(id, { reason, rowVersion: entry.rowVersion });
-      notify(intl.formatMessage({ id: 'journal-entry-cancelled-successfully', defaultMessage: 'Journal entry cancelled successfully.' }));
+      notify(intl.formatMessage({ id: 'journal-entry-cancelled-successfully', defaultMessage: 'تم إلغاء القيد اليومي بنجاح.' }));
       await mutate();
       await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'Journal entry action failed.' }), 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }), 'error');
     } finally {
       setIsProcessing(false);
       setCancelOpen(false);
@@ -119,7 +119,7 @@ export default function JournalEntryDetailsPage() {
       await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/') && key !== `/api/accounting/journal-entries/${id}`);
       navigate('/accounting/journal-entries', { replace: true });
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'Journal entry action failed.' }), 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }), 'error');
     } finally {
       setIsProcessing(false);
       setDeleteOpen(false);
@@ -145,7 +145,7 @@ export default function JournalEntryDetailsPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="journal-entry-details" defaultMessage="Journal Entry Details" />
+              <FormattedMessage id="journal-entry-details" defaultMessage="تفاصيل القيد اليومي" />
             </PageTitle>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
               <JournalEntryStatusChip status={entry.status} />
@@ -179,7 +179,7 @@ export default function JournalEntryDetailsPage() {
             {canCancel && (
               <PermissionGuard permission={JOURNAL_ENTRY_PERMISSIONS.cancel}>
                 <Button variant="outlined" color="error" onClick={() => setCancelOpen(true)} startIcon={<IconX size={18} />} disabled={isProcessing}>
-                  <FormattedMessage id="cancel-document" defaultMessage="Cancel document" />
+                  <FormattedMessage id="cancel-document" defaultMessage="إلغاء المستند" />
                 </Button>
               </PermissionGuard>
             )}
@@ -204,7 +204,7 @@ export default function JournalEntryDetailsPage() {
               <Box sx={{ p: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <InfoRow label={<FormattedMessage id="journal-entry-number" defaultMessage="Journal entry number" />}>{entry.number}</InfoRow>
+                    <InfoRow label={<FormattedMessage id="journal-entry-number" defaultMessage="رقم القيد اليومي" />}>{entry.number}</InfoRow>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <InfoRow label={<FormattedMessage id="date" />}>{entry.entryDate}</InfoRow>
@@ -227,7 +227,7 @@ export default function JournalEntryDetailsPage() {
             <MainCard sx={{ borderRadius: 3 }} content={false}>
               <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Typography variant="h5" fontWeight={700}>
-                  <FormattedMessage id="journal-entry-lines" defaultMessage="Journal entry lines" />
+                  <FormattedMessage id="journal-entry-lines" defaultMessage="سطور القيد اليومي" />
                 </Typography>
               </Box>
               <Box sx={{ p: 3 }}>
@@ -236,7 +236,7 @@ export default function JournalEntryDetailsPage() {
                     <TableRow>
                       <TableCell>#</TableCell>
                       <TableCell>
-                        <FormattedMessage id="account" defaultMessage="Account" />
+                        <FormattedMessage id="account" defaultMessage="الحساب" />
                       </TableCell>
                       <TableCell>
                         <FormattedMessage id="description-arabic" />
@@ -271,19 +271,19 @@ export default function JournalEntryDetailsPage() {
             <MainCard sx={{ borderRadius: 3, position: { md: 'sticky' }, top: { md: 24 } }} content={false}>
               <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Typography variant="h5" fontWeight={700}>
-                  <FormattedMessage id="totals-summary" defaultMessage="Totals summary" />
+                  <FormattedMessage id="totals-summary" defaultMessage="ملخص الإجماليات" />
                 </Typography>
               </Box>
               <Box sx={{ p: 3 }}>
                 <Stack spacing={2}>
-                  <InfoRow label={<FormattedMessage id="total-debit" defaultMessage="Total debit" />}>{entry.totalDebit.toFixed(2)}</InfoRow>
-                  <InfoRow label={<FormattedMessage id="total-credit" defaultMessage="Total credit" />}>{entry.totalCredit.toFixed(2)}</InfoRow>
+                  <InfoRow label={<FormattedMessage id="total-debit" defaultMessage="إجمالي المدين" />}>{entry.totalDebit.toFixed(2)}</InfoRow>
+                  <InfoRow label={<FormattedMessage id="total-credit" defaultMessage="إجمالي الدائن" />}>{entry.totalCredit.toFixed(2)}</InfoRow>
                   <Divider />
-                  <InfoRow label={<FormattedMessage id="created-date" defaultMessage="Created date" />}>{entry.createdAtUtc}</InfoRow>
-                  {entry.updatedAtUtc && <InfoRow label={<FormattedMessage id="updated-at" defaultMessage="Updated at" />}>{entry.updatedAtUtc}</InfoRow>}
-                  {entry.postedAtUtc && <InfoRow label={<FormattedMessage id="posted-at" defaultMessage="Posted at" />}>{entry.postedAtUtc}</InfoRow>}
-                  {entry.cancelledAtUtc && <InfoRow label={<FormattedMessage id="cancelled-at" defaultMessage="Cancelled at" />}>{entry.cancelledAtUtc}</InfoRow>}
-                  {entry.cancellationReason && <InfoRow label={<FormattedMessage id="cancellation-reason" defaultMessage="Cancellation reason" />}>{entry.cancellationReason}</InfoRow>}
+                  <InfoRow label={<FormattedMessage id="created-date" defaultMessage="تاريخ الإنشاء" />}>{entry.createdAtUtc}</InfoRow>
+                  {entry.updatedAtUtc && <InfoRow label={<FormattedMessage id="updated-at" defaultMessage="تاريخ التعديل" />}>{entry.updatedAtUtc}</InfoRow>}
+                  {entry.postedAtUtc && <InfoRow label={<FormattedMessage id="posted-at" defaultMessage="تاريخ الترحيل" />}>{entry.postedAtUtc}</InfoRow>}
+                  {entry.cancelledAtUtc && <InfoRow label={<FormattedMessage id="cancelled-at" defaultMessage="تاريخ الإلغاء" />}>{entry.cancelledAtUtc}</InfoRow>}
+                  {entry.cancellationReason && <InfoRow label={<FormattedMessage id="cancellation-reason" defaultMessage="سبب الإلغاء" />}>{entry.cancellationReason}</InfoRow>}
                 </Stack>
               </Box>
             </MainCard>

@@ -86,7 +86,7 @@ export default function AccountingPeriodsPage() {
   const [pendingPeriodId, setPendingPeriodId] = useState<string | null>(null);
 
   const isLoading = controlLoading || yearsLoading;
-  const controlLabel = control?.isEnabled ? intl.formatMessage({ id: 'enabled', defaultMessage: 'Enabled' }) : intl.formatMessage({ id: 'disabled', defaultMessage: 'Disabled' });
+  const controlLabel = control?.isEnabled ? intl.formatMessage({ id: 'enabled', defaultMessage: 'مفعّل' }) : intl.formatMessage({ id: 'disabled', defaultMessage: 'معطّل' });
   const canToggleControl = Boolean(control);
   const canManagePeriods = hasPermission(user, ACCOUNTING_PERMISSIONS.periodsManage);
   const canReopenPeriods = hasPermission(user, ACCOUNTING_PERMISSIONS.periodsReopen);
@@ -109,7 +109,7 @@ export default function AccountingPeriodsPage() {
     const nextState = !control.isEnabled;
     const reason = nextState
       ? null
-      : window.prompt(intl.formatMessage({ id: 'period-control-disable-reason', defaultMessage: 'Please enter a reason for disabling period control.' }))?.trim();
+      : window.prompt(intl.formatMessage({ id: 'period-control-disable-reason', defaultMessage: 'يرجى إدخال سبب تعطيل التحكم في الفترات.' }))?.trim();
 
     if (!nextState && !reason) {
       return;
@@ -121,14 +121,14 @@ export default function AccountingPeriodsPage() {
       await refresh();
       notify(
         nextState
-          ? intl.formatMessage({ id: 'period-control-disabled-success', defaultMessage: 'Period control disabled successfully.' })
-          : intl.formatMessage({ id: 'period-control-enabled-success', defaultMessage: 'Period control enabled successfully.' })
+          ? intl.formatMessage({ id: 'period-control-disabled-success', defaultMessage: 'تم تعطيل التحكم في الفترات بنجاح.' })
+          : intl.formatMessage({ id: 'period-control-enabled-success', defaultMessage: 'تم تفعيل التحكم في الفترات بنجاح.' })
       );
     } catch (error) {
       notify(
         error instanceof Error
           ? error.message
-          : intl.formatMessage({ id: 'period-control-update-failed', defaultMessage: 'Period control update failed.' }),
+          : intl.formatMessage({ id: 'period-control-update-failed', defaultMessage: 'تعذر تحديث التحكم في الفترات.' }),
         'error'
       );
     } finally {
@@ -149,9 +149,9 @@ export default function AccountingPeriodsPage() {
       await refresh();
       setCreateOpen(false);
       setCreateForm(createDefaultForm());
-      notify(intl.formatMessage({ id: 'fiscal-year-created-successfully', defaultMessage: 'Fiscal year created successfully.' }));
+      notify(intl.formatMessage({ id: 'fiscal-year-created-successfully', defaultMessage: 'تم إنشاء السنة المالية بنجاح.' }));
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'fiscal-year-create-failed', defaultMessage: 'Fiscal year creation failed.' }), 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'fiscal-year-create-failed', defaultMessage: 'تعذر إنشاء السنة المالية.' }), 'error');
     } finally {
       setIsCreating(false);
     }
@@ -161,31 +161,31 @@ export default function AccountingPeriodsPage() {
     setPendingPeriodId(periodId);
     try {
       if (action === 'close') {
-        const reason = window.prompt(intl.formatMessage({ id: 'period-close-reason', defaultMessage: 'Please enter a reason for closing this period.' }))?.trim();
+        const reason = window.prompt(intl.formatMessage({ id: 'period-close-reason', defaultMessage: 'يرجى إدخال سبب إغلاق هذه الفترة.' }))?.trim();
         if (!reason) {
           return;
         }
 
         await closeAccountingPeriod(periodId, rowVersion, reason);
-        notify(intl.formatMessage({ id: 'period-closed-successfully', defaultMessage: 'Accounting period closed successfully.' }));
+        notify(intl.formatMessage({ id: 'period-closed-successfully', defaultMessage: 'تم إغلاق الفترة المحاسبية بنجاح.' }));
       } else {
         if (!canReopenPeriods) {
-          notify(intl.formatMessage({ id: 'period-reopen-forbidden', defaultMessage: 'You do not have permission to reopen periods.' }), 'error');
+          notify(intl.formatMessage({ id: 'period-reopen-forbidden', defaultMessage: 'ليس لديك صلاحية إعادة فتح الفترات.' }), 'error');
           return;
         }
 
-        const reason = window.prompt(intl.formatMessage({ id: 'period-reopen-reason', defaultMessage: 'Please enter a reason for reopening this period.' }))?.trim();
+        const reason = window.prompt(intl.formatMessage({ id: 'period-reopen-reason', defaultMessage: 'يرجى إدخال سبب إعادة فتح هذه الفترة.' }))?.trim();
         if (!reason) {
           return;
         }
 
         await reopenAccountingPeriod(periodId, { rowVersion, reason });
-        notify(intl.formatMessage({ id: 'period-reopened-successfully', defaultMessage: 'Accounting period reopened successfully.' }));
+        notify(intl.formatMessage({ id: 'period-reopened-successfully', defaultMessage: 'تمت إعادة فتح الفترة المحاسبية بنجاح.' }));
       }
 
       await refresh();
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'period-action-failed', defaultMessage: 'Period action failed.' }), 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'period-action-failed', defaultMessage: 'تعذر تنفيذ عملية الفترة.' }), 'error');
     } finally {
       setPendingPeriodId(null);
     }
@@ -202,19 +202,19 @@ export default function AccountingPeriodsPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="fiscal-period-control" defaultMessage="Fiscal Period Control" />
+              <FormattedMessage id="fiscal-period-control" defaultMessage="التحكم في الفترات المالية" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               <FormattedMessage
                 id="fiscal-period-control-description"
-                defaultMessage="Create fiscal years, review their periods, and lock or unlock posting through one central control."
+                defaultMessage="أنشئ السنوات المالية، وراجع فتراتها، ثم فعّل أو أوقف الترحيل من خلال تحكم مركزي واحد."
               />
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
             <Chip color={control?.isEnabled ? 'success' : 'default'} label={controlLabel} />
             <Button variant="outlined" onClick={() => setCreateOpen(true)} startIcon={<IconPlus size={18} />} disabled={!canManagePeriods}>
-              <FormattedMessage id="create-fiscal-year" defaultMessage="Create Fiscal Year" />
+              <FormattedMessage id="create-fiscal-year" defaultMessage="إنشاء سنة مالية" />
             </Button>
           </Stack>
         </Box>
@@ -240,12 +240,12 @@ export default function AccountingPeriodsPage() {
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
               <Box>
                 <Typography variant="h6" fontWeight={700}>
-                  <FormattedMessage id="period-control" defaultMessage="Period Control" />
+                  <FormattedMessage id="period-control" defaultMessage="التحكم في الفترات" />
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                   <FormattedMessage
                     id="period-control-summary"
-                    defaultMessage="When enabled, journal entries and reversals must use an open accounting period that matches the entry date."
+                    defaultMessage="عند التفعيل، يجب أن تستخدم القيود اليومية وعكسها فترة محاسبية مفتوحة تطابق تاريخ القيد."
                   />
                 </Typography>
               </Box>
@@ -266,7 +266,7 @@ export default function AccountingPeriodsPage() {
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <Card sx={{ p: 2.5, flex: 1, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
             <Typography variant="overline" color="text.secondary">
-              <FormattedMessage id="fiscal-years" defaultMessage="Fiscal Years" />
+              <FormattedMessage id="fiscal-years" defaultMessage="السنوات المالية" />
             </Typography>
             <Typography variant="h4" fontWeight={800}>
               {years.length}
@@ -274,7 +274,7 @@ export default function AccountingPeriodsPage() {
           </Card>
           <Card sx={{ p: 2.5, flex: 1, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
             <Typography variant="overline" color="text.secondary">
-              <FormattedMessage id="accounting-periods" defaultMessage="Accounting Periods" />
+              <FormattedMessage id="accounting-periods" defaultMessage="الفترات المحاسبية" />
             </Typography>
             <Typography variant="h4" fontWeight={800}>
               {periodCount}
@@ -286,7 +286,7 @@ export default function AccountingPeriodsPage() {
           {years.length === 0 ? (
             <Card sx={{ p: 3, borderRadius: 3, border: '1px dashed', borderColor: 'divider' }}>
               <Typography color="text.secondary">
-                <FormattedMessage id="no-fiscal-years" defaultMessage="No fiscal years have been created yet." />
+                <FormattedMessage id="no-fiscal-years" defaultMessage="لم يتم إنشاء أي سنوات مالية بعد." />
               </Typography>
             </Card>
           ) : (
@@ -313,7 +313,7 @@ export default function AccountingPeriodsPage() {
                         onClick={() => navigate(`/accounting/fiscal-years/${year.id}/rollover`)}
                         disabled={!canRollOverYears}
                       >
-                        <FormattedMessage id="create-next-year" defaultMessage="Create Next Year" />
+                        <FormattedMessage id="create-next-year" defaultMessage="إنشاء السنة التالية" />
                       </Button>
                     </Stack>
                   </Stack>
@@ -324,10 +324,10 @@ export default function AccountingPeriodsPage() {
                     <TableHead>
                       <TableRow>
                         <TableCell>
-                          <FormattedMessage id="period-number" defaultMessage="Period" />
+                          <FormattedMessage id="period-number" defaultMessage="الفترة" />
                         </TableCell>
                         <TableCell>
-                          <FormattedMessage id="date-range" defaultMessage="Date Range" />
+                          <FormattedMessage id="date-range" defaultMessage="النطاق الزمني" />
                         </TableCell>
                         <TableCell>
                           <FormattedMessage id="status" />
@@ -370,9 +370,9 @@ export default function AccountingPeriodsPage() {
                               startIcon={period.status === 'Open' ? <IconX size={16} /> : <IconRotateClockwise2 size={16} />}
                             >
                               {period.status === 'Open' ? (
-                                <FormattedMessage id="close" defaultMessage="Close" />
+                                <FormattedMessage id="close" defaultMessage="إغلاق" />
                               ) : (
-                                <FormattedMessage id="reopen" defaultMessage="Reopen" />
+                                <FormattedMessage id="reopen" defaultMessage="إعادة فتح" />
                               )}
                             </Button>
                           </TableCell>
@@ -389,25 +389,25 @@ export default function AccountingPeriodsPage() {
 
       <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>
-          <FormattedMessage id="create-fiscal-year" defaultMessage="Create Fiscal Year" />
+          <FormattedMessage id="create-fiscal-year" defaultMessage="إنشاء سنة مالية" />
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField
-              label={<FormattedMessage id="name-arabic" defaultMessage="Arabic Name" />}
+              label={<FormattedMessage id="name-arabic" defaultMessage="الاسم بالعربية" />}
               value={createForm.nameArabic}
               onChange={(event) => setCreateForm((current) => ({ ...current, nameArabic: event.target.value }))}
               fullWidth
               required
             />
             <TextField
-              label={<FormattedMessage id="name-english" defaultMessage="English Name" />}
+              label={<FormattedMessage id="name-english" defaultMessage="الاسم بالإنجليزية" />}
               value={createForm.nameEnglish ?? ''}
               onChange={(event) => setCreateForm((current) => ({ ...current, nameEnglish: event.target.value }))}
               fullWidth
             />
             <TextField
-              label={<FormattedMessage id="start-date" defaultMessage="Start Date" />}
+              label={<FormattedMessage id="start-date" defaultMessage="تاريخ البداية" />}
               type="date"
               value={createForm.startDate}
               onChange={(event) => setCreateForm((current) => ({ ...current, startDate: event.target.value }))}
@@ -415,7 +415,7 @@ export default function AccountingPeriodsPage() {
               InputLabelProps={{ shrink: true }}
             />
             <TextField
-              label={<FormattedMessage id="end-date" defaultMessage="End Date" />}
+              label={<FormattedMessage id="end-date" defaultMessage="تاريخ النهاية" />}
               type="date"
               value={createForm.endDate}
               onChange={(event) => setCreateForm((current) => ({ ...current, endDate: event.target.value }))}
@@ -423,7 +423,7 @@ export default function AccountingPeriodsPage() {
               InputLabelProps={{ shrink: true }}
             />
             <TextField
-              label={<FormattedMessage id="period-count" defaultMessage="Period Count" />}
+              label={<FormattedMessage id="period-count" defaultMessage="عدد الفترات" />}
               type="number"
               value={createForm.periodCount}
               onChange={(event) => setCreateForm((current) => ({ ...current, periodCount: Number(event.target.value) }))}

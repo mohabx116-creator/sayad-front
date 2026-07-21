@@ -88,7 +88,7 @@ export default function CashFlowPage() {
         <TableRow>
           <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
             <Typography color="text.secondary">
-              <FormattedMessage id="cash-flow-empty-section" defaultMessage="No cash-flow rows matched this section." />
+              <FormattedMessage id="cash-flow-empty-section" defaultMessage="لا توجد صفوف تدفق نقدي تطابق هذا القسم." />
             </Typography>
           </TableCell>
         </TableRow>
@@ -107,7 +107,7 @@ export default function CashFlowPage() {
               {row.accountEnglishName || row.cashFlowActivityTypeLabel}
             </Typography>
             {row.isDataIntegrityAdjustment && (
-              <Chip size="small" color="warning" variant="outlined" label={<FormattedMessage id="cash-flow-integrity-adjustment" defaultMessage="Integrity adjustment" />} />
+              <Chip size="small" color="warning" variant="outlined" label={<FormattedMessage id="cash-flow-integrity-adjustment" defaultMessage="تسوية سلامة" />} />
             )}
           </Stack>
         </TableCell>
@@ -128,7 +128,7 @@ export default function CashFlowPage() {
               variant="outlined"
               startIcon={<IconArrowRight size={16} />}
             >
-              <FormattedMessage id="view-general-ledger" defaultMessage="View general ledger" />
+              <FormattedMessage id="view-general-ledger" defaultMessage="عرض الأستاذ العام" />
             </Button>
           ) : (
             '-'
@@ -159,13 +159,13 @@ export default function CashFlowPage() {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell><FormattedMessage id="account-code" defaultMessage="Account code" /></TableCell>
-            <TableCell><FormattedMessage id="account" defaultMessage="Account" /></TableCell>
-            <TableCell align="right"><FormattedMessage id="cash-flow-inflows" defaultMessage="Inflows" /></TableCell>
-            <TableCell align="right"><FormattedMessage id="cash-flow-outflows" defaultMessage="Outflows" /></TableCell>
-            <TableCell align="right"><FormattedMessage id="cash-flow-net" defaultMessage="Net cash flow" /></TableCell>
-            <TableCell align="center"><FormattedMessage id="movement-count" defaultMessage="Movements" /></TableCell>
-            <TableCell align="center"><FormattedMessage id="actions" defaultMessage="Actions" /></TableCell>
+            <TableCell><FormattedMessage id="account-code" defaultMessage="كود الحساب" /></TableCell>
+            <TableCell><FormattedMessage id="account" defaultMessage="الحساب" /></TableCell>
+            <TableCell align="right"><FormattedMessage id="cash-flow-inflows" defaultMessage="الواردات" /></TableCell>
+            <TableCell align="right"><FormattedMessage id="cash-flow-outflows" defaultMessage="الصادرات" /></TableCell>
+            <TableCell align="right"><FormattedMessage id="cash-flow-net" defaultMessage="صافي التدفق النقدي" /></TableCell>
+            <TableCell align="center"><FormattedMessage id="movement-count" defaultMessage="الحركات" /></TableCell>
+            <TableCell align="center"><FormattedMessage id="actions" defaultMessage="الإجراءات" /></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>{renderRows(section.rows)}</TableBody>
@@ -188,10 +188,10 @@ export default function CashFlowPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="cash-flow-report" defaultMessage="Cash Flow Statement" />
+              <FormattedMessage id="cash-flow-report" defaultMessage="قائمة التدفقات النقدية" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              <FormattedMessage id="cash-flow-report-description" defaultMessage="Direct-method cash flow from mapped treasury cash accounts and explicitly classified counterpart accounts." />
+              <FormattedMessage id="cash-flow-report-description" defaultMessage="تدفقات نقدية بالطريقة المباشرة من حسابات الخزينة المرتبطة والحسابات المقابلة المصنفة صراحةً." />
             </Typography>
           </Box>
           {report && (
@@ -199,9 +199,9 @@ export default function CashFlowPage() {
               <Chip
                 color={report.isReconciled ? 'success' : 'error'}
                 variant="outlined"
-                label={report.isReconciled ? intl.formatMessage({ id: 'cash-flow-reconciled', defaultMessage: 'Reconciled' }) : intl.formatMessage({ id: 'cash-flow-not-reconciled', defaultMessage: 'Not reconciled' })}
+                label={report.isReconciled ? intl.formatMessage({ id: 'cash-flow-reconciled', defaultMessage: 'متطابق' }) : intl.formatMessage({ id: 'cash-flow-not-reconciled', defaultMessage: 'غير متطابق' })}
               />
-              <Chip variant="outlined" label={`${intl.formatMessage({ id: 'cash-account-count', defaultMessage: 'Cash accounts' })}: ${report.cashAccountCount}`} />
+              <Chip variant="outlined" label={`${intl.formatMessage({ id: 'cash-account-count', defaultMessage: 'حسابات النقد' })}: ${report.cashAccountCount}`} />
             </Stack>
           )}
         </Box>
@@ -209,26 +209,26 @@ export default function CashFlowPage() {
         <Card sx={{ p: 2, borderRadius: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={2.4}>
-              <TextField type="date" fullWidth label={<FormattedMessage id="date-from" defaultMessage="From date" />} value={params.fromDate ?? ''} onChange={(event) => setParams((current) => ({ ...current, fromDate: event.target.value }))} InputLabelProps={{ shrink: true }} />
+              <TextField type="date" fullWidth label={<FormattedMessage id="date-from" defaultMessage="من تاريخ" />} value={params.fromDate ?? ''} onChange={(event) => setParams((current) => ({ ...current, fromDate: event.target.value }))} InputLabelProps={{ shrink: true }} />
             </Grid>
             <Grid item xs={12} md={2.4}>
-              <TextField type="date" fullWidth label={<FormattedMessage id="date-to" defaultMessage="To date" />} value={params.toDate ?? ''} onChange={(event) => setParams((current) => ({ ...current, toDate: event.target.value }))} InputLabelProps={{ shrink: true }} />
+              <TextField type="date" fullWidth label={<FormattedMessage id="date-to" defaultMessage="إلى تاريخ" />} value={params.toDate ?? ''} onChange={(event) => setParams((current) => ({ ...current, toDate: event.target.value }))} InputLabelProps={{ shrink: true }} />
             </Grid>
             <Grid item xs={12} md={2.4}>
-              <TextField fullWidth label={<FormattedMessage id="search" defaultMessage="Search" />} value={params.search ?? ''} onChange={(event) => setParams((current) => ({ ...current, search: event.target.value }))} />
+              <TextField fullWidth label={<FormattedMessage id="search" defaultMessage="بحث" />} value={params.search ?? ''} onChange={(event) => setParams((current) => ({ ...current, search: event.target.value }))} />
             </Grid>
             <Grid item xs={12} md={2.4}>
-              <FormControlLabel control={<Switch checked={params.includeZeroRows ?? false} onChange={(event) => setParams((current) => ({ ...current, includeZeroRows: event.target.checked }))} />} label={<FormattedMessage id="include-zero-rows" defaultMessage="Include zero rows" />} />
+              <FormControlLabel control={<Switch checked={params.includeZeroRows ?? false} onChange={(event) => setParams((current) => ({ ...current, includeZeroRows: event.target.checked }))} />} label={<FormattedMessage id="include-zero-rows" defaultMessage="تضمين الصفوف الصفرية" />} />
             </Grid>
             <Grid item xs={12} md={2.4}>
-              <FormControlLabel control={<Switch checked={params.includeInactiveAccounts ?? false} onChange={(event) => setParams((current) => ({ ...current, includeInactiveAccounts: event.target.checked }))} />} label={<FormattedMessage id="include-inactive-accounts" defaultMessage="Include inactive" />} />
+              <FormControlLabel control={<Switch checked={params.includeInactiveAccounts ?? false} onChange={(event) => setParams((current) => ({ ...current, includeInactiveAccounts: event.target.checked }))} />} label={<FormattedMessage id="include-inactive-accounts" defaultMessage="تضمين غير النشطة" />} />
             </Grid>
           </Grid>
         </Card>
 
         {error && (
-          <Alert severity="error" action={<Button color="inherit" size="small" startIcon={<IconRefresh size={16} />} onClick={() => mutate()}><FormattedMessage id="retry" defaultMessage="Retry" /></Button>}>
-            {error instanceof Error ? error.message : intl.formatMessage({ id: 'cash-flow-load-error', defaultMessage: 'Unable to load the Cash Flow Statement.' })}
+          <Alert severity="error" action={<Button color="inherit" size="small" startIcon={<IconRefresh size={16} />} onClick={() => mutate()}><FormattedMessage id="retry" defaultMessage="إعادة المحاولة" /></Button>}>
+            {error instanceof Error ? error.message : intl.formatMessage({ id: 'cash-flow-load-error', defaultMessage: 'تعذر تحميل قائمة التدفقات النقدية.' })}
           </Alert>
         )}
 
@@ -236,14 +236,14 @@ export default function CashFlowPage() {
           <>
             <Grid container spacing={2}>
               {[
-                { id: 'opening-cash-balance', defaultMessage: 'Opening cash balance', value: report.openingCashBalance },
-                { id: 'operating-net-cash-flow', defaultMessage: 'Operating net cash flow', value: report.operatingNetCashFlow },
-                { id: 'investing-net-cash-flow', defaultMessage: 'Investing net cash flow', value: report.investingNetCashFlow },
-                { id: 'financing-net-cash-flow', defaultMessage: 'Financing net cash flow', value: report.financingNetCashFlow },
-                { id: 'net-increase-decrease-in-cash', defaultMessage: 'Net increase/decrease in cash', value: report.netIncreaseDecreaseInCash },
-                { id: 'closing-cash-balance', defaultMessage: 'Closing cash balance', value: report.closingCashBalance },
-                { id: 'reconciliation-difference', defaultMessage: 'Reconciliation difference', value: report.reconciliationDifference },
-                { id: 'internal-transfer-count', defaultMessage: 'Internal transfers', value: report.internalTransferCount, isCount: true }
+                { id: 'opening-cash-balance', defaultMessage: 'رصيد النقد الافتتاحي', value: report.openingCashBalance },
+                { id: 'operating-net-cash-flow', defaultMessage: 'صافي التدفق النقدي من الأنشطة التشغيلية', value: report.operatingNetCashFlow },
+                { id: 'investing-net-cash-flow', defaultMessage: 'صافي التدفق النقدي من الأنشطة الاستثمارية', value: report.investingNetCashFlow },
+                { id: 'financing-net-cash-flow', defaultMessage: 'صافي التدفق النقدي من الأنشطة التمويلية', value: report.financingNetCashFlow },
+                { id: 'net-increase-decrease-in-cash', defaultMessage: 'صافي الزيادة / النقص في النقد', value: report.netIncreaseDecreaseInCash },
+                { id: 'closing-cash-balance', defaultMessage: 'رصيد النقد الختامي', value: report.closingCashBalance },
+                { id: 'reconciliation-difference', defaultMessage: 'فرق المطابقة', value: report.reconciliationDifference },
+                { id: 'internal-transfer-count', defaultMessage: 'التحويلات الداخلية', value: report.internalTransferCount, isCount: true }
               ].map(({ id, defaultMessage, value, isCount }) => (
                 <Grid item xs={12} md={3} key={id}>
                   <Card sx={{ p: 2.5, borderRadius: 3 }}>
@@ -260,17 +260,17 @@ export default function CashFlowPage() {
 
             {report.isReconciled ? (
               <Alert severity="success">
-                <FormattedMessage id="cash-flow-reconciled-message" defaultMessage="Cash movement reconciles to the closing cash balance." />
+                <FormattedMessage id="cash-flow-reconciled-message" defaultMessage="تتطابق حركة النقد مع رصيد النقد الختامي." />
               </Alert>
             ) : (
               <Alert severity="warning">
-                <FormattedMessage id="cash-flow-not-reconciled-message" defaultMessage="Cash movement does not reconcile to the closing cash balance." />
+                <FormattedMessage id="cash-flow-not-reconciled-message" defaultMessage="لا تتطابق حركة النقد مع رصيد النقد الختامي." />
               </Alert>
             )}
 
             {report.hasUnclassifiedActivity && (
               <Alert severity="warning">
-                <FormattedMessage id="cash-flow-unclassified-warning" defaultMessage="Unclassified counterpart cash movement is visible and included in reconciliation." />
+                <FormattedMessage id="cash-flow-unclassified-warning" defaultMessage="حركة النقد المقابلة غير المصنفة ظاهرة ومشمولة في المطابقة." />
               </Alert>
             )}
 
@@ -278,7 +278,7 @@ export default function CashFlowPage() {
               <Alert severity="warning">
                 <Stack spacing={0.5}>
                   <Typography variant="body2">
-                    <FormattedMessage id="cash-flow-integrity-warning" defaultMessage="One or more entries required an unclassified integrity adjustment." />
+                    <FormattedMessage id="cash-flow-integrity-warning" defaultMessage="تطلب قيد واحد أو أكثر تسوية سلامة غير مصنفة." />
                   </Typography>
                   {report.dataIntegrityWarnings.slice(0, 3).map((warning) => (
                     <Typography key={warning} variant="caption">
@@ -291,7 +291,7 @@ export default function CashFlowPage() {
 
             {!report.hasActivity && (
               <Alert severity="info">
-                <FormattedMessage id="cash-flow-empty-period" defaultMessage="No cash flows exist during the selected period." />
+                <FormattedMessage id="cash-flow-empty-period" defaultMessage="لا توجد تدفقات نقدية خلال الفترة المحددة." />
               </Alert>
             )}
 

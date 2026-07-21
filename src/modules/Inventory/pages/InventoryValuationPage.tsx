@@ -31,6 +31,19 @@ import type { InventoryValuationSummaryDto, InitializeInventoryValuationRequest 
 
 const today = new Date().toISOString().slice(0, 10);
 
+function getValuationStatusLabel(intl: ReturnType<typeof useIntl>, status: string) {
+  switch (status) {
+    case 'Resolved':
+      return intl.formatMessage({ id: 'inventory-valuation-status.resolved', defaultMessage: 'Valuation resolved' });
+    case 'LegacyUnresolved':
+      return intl.formatMessage({ id: 'inventory-valuation-status.legacy-unresolved', defaultMessage: 'Legacy unresolved' });
+    case 'NotApplicable':
+      return intl.formatMessage({ id: 'inventory-valuation-status.not-applicable', defaultMessage: 'Not applicable' });
+    default:
+      return intl.formatMessage({ id: 'inventory-valuation-status.unknown', defaultMessage: 'Unknown' });
+  }
+}
+
 function money(value?: number | null) {
   return value == null ? '-' : value.toFixed(4);
 }
@@ -96,10 +109,10 @@ export default function InventoryValuationPage() {
         <Box>
           <Typography variant="h3" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconCalculator color="var(--mui-palette-primary-main)" size={28} />
-            <FormattedMessage id="inventory-valuation" defaultMessage="تقييم المخزون" />
+            <FormattedMessage id="inventory-valuation" defaultMessage="Inventory Valuation" />
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            <FormattedMessage id="inventory-valuation-help" defaultMessage="عرض حالة التقييم المتحرك المتوسط وتهيئة الرصيد القديم عند الحاجة." />
+            <FormattedMessage id="inventory-valuation-help" defaultMessage="Review the moving-average valuation state and initialize the legacy balance when needed." />
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
@@ -112,12 +125,15 @@ export default function InventoryValuationPage() {
       <MainCard content={false}>
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
           <Typography variant="subtitle1" color="text.secondary">
-            <FormattedMessage id="inventory-valuation-summary" defaultMessage="ملخص تقييم الأصناف" />
+            <FormattedMessage id="inventory-valuation-summary" defaultMessage="Inventory valuation summary" />
           </Typography>
           <TextField
             size="small"
             value={search}
-            onChange={(event) => { setSearch(event.target.value); setPage(0); }}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(0);
+            }}
             placeholder={intl.formatMessage({ id: 'search' })}
             InputProps={{
               startAdornment: (
@@ -130,9 +146,25 @@ export default function InventoryValuationPage() {
           />
         </Box>
 
-        {isLoading && <Box sx={{ p: 2 }}><Loader /></Box>}
-        {error && <Box sx={{ p: 2 }}><Typography color="error"><FormattedMessage id="inventory-load-error" /></Typography></Box>}
-        {!isLoading && items.length === 0 && <Box sx={{ p: 2 }}><Typography><FormattedMessage id="inventory-empty-items" /></Typography></Box>}
+        {isLoading && (
+          <Box sx={{ p: 2 }}>
+            <Loader />
+          </Box>
+        )}
+        {error && (
+          <Box sx={{ p: 2 }}>
+            <Typography color="error">
+              <FormattedMessage id="inventory-load-error" />
+            </Typography>
+          </Box>
+        )}
+        {!isLoading && items.length === 0 && (
+          <Box sx={{ p: 2 }}>
+            <Typography>
+              <FormattedMessage id="inventory-empty-items" />
+            </Typography>
+          </Box>
+        )}
 
         {items.length > 0 && (
           <>
@@ -155,7 +187,9 @@ export default function InventoryValuationPage() {
                     <TableRow hover key={`${item.itemId}-${item.warehouseId}`}>
                       <TableCell>{item.itemCode}</TableCell>
                       <TableCell>
-                        <Typography variant="body2" fontWeight={600}>{item.itemNameArabic}</Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {item.itemNameArabic}
+                        </Typography>
                       </TableCell>
                       <TableCell>{item.warehouseCode}</TableCell>
                       <TableCell align="right">{item.quantityOnHandBase}</TableCell>
@@ -164,7 +198,7 @@ export default function InventoryValuationPage() {
                       <TableCell>
                         <Chip
                           size="small"
-                          label={item.isValuationInitialized ? item.valuationStatus : 'Legacy'}
+                          label={item.isValuationInitialized ? getValuationStatusLabel(intl, item.valuationStatus) : getValuationStatusLabel(intl, 'LegacyUnresolved')}
                           color={item.isValuationInitialized ? 'success' : 'warning'}
                           variant="outlined"
                         />
@@ -189,7 +223,10 @@ export default function InventoryValuationPage() {
               page={page}
               rowsPerPage={pageSize}
               onPageChange={(_, nextPage) => setPage(nextPage)}
-              onRowsPerPageChange={(event) => { setPageSize(parseInt(event.target.value, 10)); setPage(0); }}
+              onRowsPerPageChange={(event) => {
+                setPageSize(parseInt(event.target.value, 10));
+                setPage(0);
+              }}
             />
           </>
         )}
@@ -197,7 +234,7 @@ export default function InventoryValuationPage() {
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>
-          <FormattedMessage id="initialize-inventory-valuation" defaultMessage="تهيئة تقييم المخزون" />
+          <FormattedMessage id="initialize-inventory-valuation" defaultMessage="Initialize inventory valuation" />
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>

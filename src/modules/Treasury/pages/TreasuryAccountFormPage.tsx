@@ -117,17 +117,17 @@ export default function TreasuryAccountFormPage() {
 
       if (isEdit && account) {
         await updateTreasuryAccount(account.id, { ...request, rowVersion: account.rowVersion });
-        notify('طھظ… طھط­ط¯ظٹط« ط§ظ„ط­ط³ط§ط¨ ط¨ظ†ط¬ط§ط­.');
+        notify('تم تحديث الحساب بنجاح.');
         await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
         navigate(`/treasury/accounts/${account.id}`);
       } else {
         const created = await createTreasuryAccount(request);
-        notify('طھظ… ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨ ط¨ظ†ط¬ط§ط­.');
+        notify('تم إنشاء الحساب بنجاح.');
         await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
         navigate(`/treasury/accounts/${created.id}`);
       }
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'ظپط´ظ„طھ ط§ظ„ط¹ظ…ظ„ظٹط©.', 'error');
+      notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -149,12 +149,12 @@ export default function TreasuryAccountFormPage() {
         />
       </Box>
 
-      <MainCard title={<FormattedMessage id={isEdit ? 'edit-account' : 'create-account'} defaultMessage={isEdit ? 'طھط¹ط¯ظٹظ„ ط­ط³ط§ط¨' : 'ط¥ظ†ط´ط§ط، ط­ط³ط§ط¨'} />}>
+      <MainCard title={<FormattedMessage id={isEdit ? 'edit-account' : 'create-account'} defaultMessage={isEdit ? 'تعديل حساب' : 'إنشاء حساب'} />}>
         <Box sx={{ pt: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1, mb: 2 }}>
             <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
             <Typography variant="h4" fontWeight={600}>
-              <FormattedMessage id="basic-information" defaultMessage="ط§ظ„ظ…ط¹ظ„ظˆظ…ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©" />
+              <FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" />
             </Typography>
           </Box>
           <Divider sx={{ mb: 3 }} />
@@ -164,7 +164,7 @@ export default function TreasuryAccountFormPage() {
               <TextField
                 required
                 fullWidth
-                label={<FormattedMessage id="code" defaultMessage="ط§ظ„ظƒظˆط¯" />}
+                label={<FormattedMessage id="code" defaultMessage="الكود" />}
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value })}
               />
@@ -173,7 +173,7 @@ export default function TreasuryAccountFormPage() {
               <TextField
                 required
                 fullWidth
-                label={<FormattedMessage id="name-arabic" defaultMessage="ط§ظ„ط§ط³ظ… ط¨ط§ظ„ط¹ط±ط¨ظٹط©" />}
+                label={<FormattedMessage id="name-arabic" defaultMessage="الاسم بالعربية" />}
                 value={form.nameArabic}
                 onChange={(e) => setForm({ ...form, nameArabic: e.target.value })}
               />
@@ -181,7 +181,7 @@ export default function TreasuryAccountFormPage() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label={<FormattedMessage id="name-english" defaultMessage="ط§ظ„ط§ط³ظ… ط¨ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹط©" />}
+                label={<FormattedMessage id="name-english" defaultMessage="الاسم بالإنجليزية" />}
                 value={form.nameEnglish}
                 onChange={(e) => setForm({ ...form, nameEnglish: e.target.value })}
               />
@@ -191,7 +191,7 @@ export default function TreasuryAccountFormPage() {
                 required
                 select
                 fullWidth
-                label={<FormattedMessage id="account-type" defaultMessage="ظ†ظˆط¹ ط§ظ„ط­ط³ط§ط¨" />}
+                label={<FormattedMessage id="account-type" defaultMessage="نوع الحساب" />}
                 value={form.accountType}
                 onChange={(e) => setForm({ ...form, accountType: e.target.value })}
               >
@@ -225,19 +225,19 @@ export default function TreasuryAccountFormPage() {
             <Grid item xs={12} md={6}>
               <FormControlLabel
                 control={<Checkbox checked={form.allowNegativeBalance} onChange={(e) => setForm({ ...form, allowNegativeBalance: e.target.checked })} />}
-                label={<FormattedMessage id="allow-overdraft" defaultMessage="ط§ظ„ط³ظ…ط§ط­ ط¨ط§ظ„ط³ط­ط¨ ط¹ظ„ظ‰ ط§ظ„ظ…ظƒط´ظˆظپ" />}
+                label={<FormattedMessage id="allow-overdraft" defaultMessage="السماح بالسحب على المكشوف" />}
               />
             </Grid>
 
             <Grid item xs={12}>
               <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-                <FormattedMessage id="opening-balance" defaultMessage="ط§ظ„ط±طµظٹط¯ ط§ظ„ط§ظپطھطھط§ط­ظٹ" />
+                <FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" />
               </Typography>
               {hasNonOpeningMovements && (
                 <Alert severity="warning" sx={{ mb: 3 }}>
                   <FormattedMessage
                     id="opening-balance-locked"
-                    defaultMessage="ظ„ط§ ظٹظ…ظƒظ† طھط¹ط¯ظٹظ„ ط§ظ„ط±طµظٹط¯ ط§ظ„ط§ظپطھطھط§ط­ظٹ ط¨ط¹ط¯ ظˆط¬ظˆط¯ ط­ط±ظƒط§طھ ظ…ط§ظ„ظٹط© ط؛ظٹط± ط§ظپطھطھط§ط­ظٹط© ط¹ظ„ظ‰ ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨."
+                    defaultMessage="لا يمكن تعديل الرصيد الافتتاحي بعد وجود حركات مالية غير افتتاحية على هذا الحساب."
                   />
                 </Alert>
               )}
@@ -247,7 +247,7 @@ export default function TreasuryAccountFormPage() {
                     required
                     fullWidth
                     type="number"
-                    label={<FormattedMessage id="amount" defaultMessage="ط§ظ„ظ…ط¨ظ„ط؛" />}
+                    label={<FormattedMessage id="amount" defaultMessage="المبلغ" />}
                     value={form.openingBalanceAmount}
                     onChange={(e) => setForm({ ...form, openingBalanceAmount: Number(e.target.value) })}
                     disabled={hasNonOpeningMovements}
@@ -260,16 +260,16 @@ export default function TreasuryAccountFormPage() {
                     required
                     select
                     fullWidth
-                    label={<FormattedMessage id="balance-nature" defaultMessage="ط§طھط¬ط§ظ‡ ط§ظ„ط±طµظٹط¯" />}
+                    label={<FormattedMessage id="balance-nature" defaultMessage="اتجاه الرصيد" />}
                     value={form.openingBalanceNature}
                     onChange={(e) => setForm({ ...form, openingBalanceNature: e.target.value })}
                     disabled={hasNonOpeningMovements || !form.openingBalanceAmount}
                   >
                     <MenuItem value="Debit">
-                      <FormattedMessage id="debit" defaultMessage="ظ…ط¯ظٹظ† â€” ط±طµظٹط¯ ظ…ظˆط¬ط¨" />
+                      <FormattedMessage id="debit" defaultMessage="مدين - رصيد موجب" />
                     </MenuItem>
                     <MenuItem value="Credit">
-                      <FormattedMessage id="credit" defaultMessage="ط¯ط§ط¦ظ† â€” ط±طµظٹط¯ ط³ط§ظ„ط¨" />
+                      <FormattedMessage id="credit" defaultMessage="دائن - رصيد سالب" />
                     </MenuItem>
                   </TextField>
                 </Grid>
@@ -281,7 +281,7 @@ export default function TreasuryAccountFormPage() {
                 fullWidth
                 multiline
                 rows={3}
-                label={<FormattedMessage id="notes" defaultMessage="ظ…ظ„ط§ط­ط¸ط§طھ" />}
+                label={<FormattedMessage id="notes" defaultMessage="ملاحظات" />}
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
               />
@@ -292,10 +292,10 @@ export default function TreasuryAccountFormPage() {
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
         <Button component={Link} to="/treasury/accounts" variant="outlined" color="inherit" disabled={isSaving} sx={{ borderRadius: 2, px: 4 }}>
-          <FormattedMessage id="cancel" defaultMessage="ط¥ظ„ط؛ط§ط،" />
+          <FormattedMessage id="cancel" defaultMessage="إلغاء" />
         </Button>
         <Button type="submit" variant="contained" color="primary" disabled={isSaving} sx={{ borderRadius: 2, px: 4, boxShadow: 2 }} startIcon={<IconDeviceFloppy size={18} />}>
-          <FormattedMessage id="save" defaultMessage="ط­ظپط¸" />
+          <FormattedMessage id="save" defaultMessage="حفظ" />
         </Button>
       </Box>
     </Box>

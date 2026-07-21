@@ -34,6 +34,7 @@ import PartyFinalDeleteDialog from '../components/PartyFinalDeleteDialog';
 import PartyStatusChip from '../components/PartyStatusChip';
 import { usePartyDeletionPreview, useParties } from '../hooks/useParties';
 import { PARTIES_PERMISSIONS } from '../utils/parties.constants';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 
 export default function PartiesListPage() {
   const intl = useIntl();
@@ -108,12 +109,12 @@ export default function PartiesListPage() {
               <FormattedMessage id="parties" />
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              ط¥ط¯ط§ط±ط© ط§ظ„ط¹ظ…ظ„ط§ط، ظˆط§ظ„ظ…ظˆط±ط¯ظٹظ†
+              إدارة العملاء والموردين
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Button variant="contained" color="inherit" sx={{ bgcolor: 'background.paper', color: 'text.primary', boxShadow: 1, '&:hover': { bgcolor: 'grey.100' } }} startIcon={<IconDownload size={18} />}>
-              طھطµط¯ظٹط±
+              تصدير
             </Button>
             <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
               <Button component={Link} to="/parties/new" variant="contained" color="primary" startIcon={<IconPlus size={18} />}>
@@ -129,7 +130,7 @@ export default function PartiesListPage() {
         <Box sx={{ flex: 1, minWidth: 200, position: 'relative' }}>
           <OutlinedInput
             fullWidth
-            placeholder="ط§ظ„ط¨ط­ط« ط¨ط§ظ„ط§ط³ظ…طŒ ط§ظ„ظƒظˆط¯طŒ ط£ظˆ ط§ظ„ظ‡ط§طھظپ..."
+            placeholder="البحث بالاسم، الكود، أو الهاتف..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
             startAdornment={<IconSearch size={20} style={{ marginRight: 8, color: '#9e9e9e' }} />}
@@ -144,7 +145,7 @@ export default function PartiesListPage() {
             onChange={(e) => { setClassification(e.target.value); setPage(0); }}
             sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
           >
-            <MenuItem value="">ظƒظ„ ط§ظ„ط£ظ†ظˆط§ط¹</MenuItem>
+            <MenuItem value="">كل الأنواع</MenuItem>
             <MenuItem value="customer"><FormattedMessage id="party-customer" /></MenuItem>
             <MenuItem value="supplier"><FormattedMessage id="party-supplier" /></MenuItem>
           </Select>
@@ -157,7 +158,7 @@ export default function PartiesListPage() {
             onChange={(e) => { setIsActive(e.target.value); setPage(0); }}
             sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
           >
-            <MenuItem value="">ظƒظ„ ط§ظ„ط­ط§ظ„ط§طھ</MenuItem>
+            <MenuItem value="">كل الحالات</MenuItem>
             <MenuItem value="true"><FormattedMessage id="active" /></MenuItem>
             <MenuItem value="false"><FormattedMessage id="inactive" /></MenuItem>
           </Select>
@@ -196,7 +197,7 @@ export default function PartiesListPage() {
                       }}
                     >
                       <TableCell sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>{party.code}</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>{party.nameArabic}</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>{resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}</TableCell>
                       <TableCell><PartyClassificationChips isCustomer={party.isCustomer} isSupplier={party.isSupplier} /></TableCell>
                       <TableCell sx={{ color: 'text.secondary' }} dir="ltr">{party.primaryPhone ?? '-'}</TableCell>
                       <TableCell><PartyBalance balance={party.balance} balanceNature={party.balanceNature} /></TableCell>
@@ -218,7 +219,7 @@ export default function PartiesListPage() {
                             </Tooltip>
                           </PermissionGuard>
                           {user?.isSystemOwner && (
-                            <Tooltip title="ط­ط°ظپ ظ†ظ‡ط§ط¦ظٹ">
+                            <Tooltip title="حذف نهائي">
                               <IconButton
                                 size="small"
                                 onClick={() => {

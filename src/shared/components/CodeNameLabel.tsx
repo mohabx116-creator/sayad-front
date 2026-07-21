@@ -12,7 +12,7 @@ export default function CodeNameLabel({ code, nameArabic }: CodeNameLabelProps) 
         {code}
       </Box>
       <Box component="span" aria-hidden="true">
-        —
+        -
       </Box>
       <Box component="span" dir="auto">
         {nameArabic}

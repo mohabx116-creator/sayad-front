@@ -247,12 +247,12 @@ export default function SalesReturnDetailsPage() {
                   <Box sx={{ p: 3 }}>
                      <Box sx={headerSx}>
                         <IconInfoCircle color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4">Accounting</Typography>
+                        <Typography variant="h4"><FormattedMessage id="accounting" defaultMessage="الحسابات العامة" /></Typography>
                      </Box>
                      <Stack spacing={2}>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Posting Status
+                              <FormattedMessage id="accounting-posting-status" defaultMessage="حالة الترحيل" />
                            </Typography>
                            <Typography variant="body2" fontWeight={500}>
                               {salesReturn.accountingPostingStatus || 'غير مرحل محاسبيًا'}
@@ -260,7 +260,7 @@ export default function SalesReturnDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Customer Control
+                              <FormattedMessage id="customer-control" defaultMessage="حساب العملاء" />
                            </Typography>
                            <Typography variant="body2" fontWeight={500}>
                               {customerControlAccountLabel}
@@ -268,7 +268,7 @@ export default function SalesReturnDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Sales Returns
+                              <FormattedMessage id="sales-returns" defaultMessage="مرتجعات المبيعات" />
                            </Typography>
                            <Typography variant="body2" fontWeight={500}>
                               {returnsAccountLabel}
@@ -276,7 +276,7 @@ export default function SalesReturnDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Journal Entry
+                              <FormattedMessage id="journal-entry" defaultMessage="القيد اليومي" />
                            </Typography>
                            {salesReturn.accountingJournalEntryId ? (
                               <Button component={Link} to={`/accounting/journal-entries/${salesReturn.accountingJournalEntryId}`} size="small" variant="outlined">
@@ -336,7 +336,7 @@ export default function SalesReturnDetailsPage() {
                         </Box>
                         <Box>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Journal Entry
+                              <FormattedMessage id="journal-entry" defaultMessage="القيد اليومي" />
                            </Typography>
                            {salesReturn.accountingJournalEntryId ? (
                               <Button component={Link} to={`/accounting/journal-entries/${salesReturn.accountingJournalEntryId}`} size="small" variant="outlined">
