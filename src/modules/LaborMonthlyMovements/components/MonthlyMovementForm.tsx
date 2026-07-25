@@ -70,6 +70,20 @@ function getMovementTitleId(movementType: string) {
   return MONTHLY_MOVEMENT_TYPE_OPTIONS.find((option) => option.value === movementType)?.labelId ?? 'monthly-movement-type';
 }
 
+function getMovementEffectLabelId(movementType: string) {
+  switch (movementType) {
+    case '1':
+    case '4':
+      return 'monthly-movement-effect-deduction';
+    case '2':
+    case '3':
+    case '5':
+      return 'monthly-movement-effect-addition';
+    default:
+      return 'monthly-movement-effect';
+  }
+}
+
 type MonthlyMovementFormProps = {
   mode: 'create' | 'edit';
   initialValues: MonthlyMovementFormValues;
@@ -418,6 +432,9 @@ export default function MonthlyMovementForm({ mode, initialValues, workers, isSa
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     <FormattedMessage id="monthly-movement-preview-amount" />: {formatMoney(intl.locale, preview.amount)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <FormattedMessage id="monthly-movement-effect" />: <FormattedMessage id={getMovementEffectLabelId(String(preview.movementType))} />
                   </Typography>
                   <Divider />
                   <Typography variant="body2" color="text.secondary">

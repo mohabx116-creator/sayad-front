@@ -293,8 +293,8 @@ export default function MonthlyMovementsListPage() {
                       <TableCell><FormattedMessage id={MONTHLY_MOVEMENT_TYPE_OPTIONS.find((option) => option.value === String(movement.movementType))?.labelId ?? 'monthly-movement-type'} /></TableCell>
                       <TableCell dir="ltr">{movement.quantity == null ? '-' : movement.quantity.toFixed(4)}</TableCell>
                       <TableCell dir="ltr">
-                        <Typography color={movement.amount < 0 ? 'error.main' : 'success.main'} fontWeight={700}>
-                          {movement.amount < 0 ? '-' : '+'}{formatMoney(intl.locale, Math.abs(movement.amount))}
+                        <Typography fontWeight={700}>
+                          {formatMoney(intl.locale, Math.abs(movement.amount))}
                         </Typography>
                       </TableCell>
                       <TableCell>
