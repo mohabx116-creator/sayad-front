@@ -2,6 +2,7 @@ import dashboard from './dashboard';
 import administration from './administration';
 import accounting from './accounting';
 import parties from './parties';
+import labor from './labor';
 import treasury from './treasury';
 import expenses from './expenses';
 import inventory from './inventory';
@@ -13,7 +14,7 @@ import { NavItemType } from 'types';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems: { items: NavItemType[] } = {
-  items: [dashboard, parties, treasury, accounting, expenses, sales, purchases, inventory, administration, system]
+  items: [dashboard, parties, labor, treasury, accounting, expenses, sales, purchases, inventory, administration, system]
 };
 
 export default menuItems;

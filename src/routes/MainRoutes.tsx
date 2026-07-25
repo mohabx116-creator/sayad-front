@@ -9,6 +9,9 @@ import { ADMINISTRATION_PERMISSIONS } from 'modules/Administration/utils/adminis
 import { INVENTORY_PERMISSIONS } from 'modules/Inventory/utils/inventory.constants';
 import { PARTIES_PERMISSIONS } from 'modules/Parties/utils/parties.constants';
 import { PURCHASES_PERMISSIONS } from 'modules/Purchases/utils/purchases.constants';
+import { WORKERS_PERMISSIONS } from 'modules/Workers/utils/workers.constants';
+import { OPERATIONAL_JOBS_PERMISSIONS } from 'modules/OperationalJobs/utils/operationalJobs.constants';
+import { MONTHLY_MOVEMENTS_PERMISSIONS } from 'modules/LaborMonthlyMovements/utils/monthlyMovements.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
@@ -26,6 +29,17 @@ const PartyDetailsPage = Loadable(lazy(() => import('modules/Parties/pages/Party
 const PartyCreatePage = Loadable(lazy(() => import('modules/Parties/pages/PartyCreatePage')));
 const PartyEditPage = Loadable(lazy(() => import('modules/Parties/pages/PartyEditPage')));
 const PartyStatementPage = Loadable(lazy(() => import('modules/Parties/pages/PartyStatementPage')));
+const WorkersListPage = Loadable(lazy(() => import('modules/Workers/pages/WorkersListPage')));
+const WorkerCreatePage = Loadable(lazy(() => import('modules/Workers/pages/WorkerCreatePage')));
+const WorkerDetailsPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerDetailsPage')));
+const WorkerEditPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerEditPage')));
+const MonthlyMovementsListPage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementsListPage')));
+const MonthlyMovementCreatePage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementCreatePage')));
+const MonthlyMovementEditPage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementEditPage')));
+const OperationalJobsListPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobsListPage')));
+const OperationalJobCreatePage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobCreatePage')));
+const OperationalJobDetailsPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobDetailsPage')));
+const OperationalJobEditPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobEditPage')));
 const TreasuryHomePage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryHomePage')));
 const TreasuryAccountsListPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountsListPage')));
 const TreasuryAccountDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountDetailsPage')));
@@ -114,6 +128,94 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={TREASURY_PERMISSIONS.view}>
           <TreasuryHomePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/workers',
+      element: (
+        <PermissionRouteGuard permission={WORKERS_PERMISSIONS.view}>
+          <WorkersListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/workers/new',
+      element: (
+        <PermissionRouteGuard permission={WORKERS_PERMISSIONS.create}>
+          <WorkerCreatePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/workers/:id',
+      element: (
+        <PermissionRouteGuard permission={WORKERS_PERMISSIONS.view}>
+          <WorkerDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/workers/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={WORKERS_PERMISSIONS.edit}>
+          <WorkerEditPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/monthly-movements',
+      element: (
+        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.view}>
+          <MonthlyMovementsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/monthly-movements/new',
+      element: (
+        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.create}>
+          <MonthlyMovementCreatePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/monthly-movements/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.view}>
+          <MonthlyMovementEditPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/operational-jobs',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
+          <OperationalJobsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/operational-jobs/new',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONAL_JOBS_PERMISSIONS.create}>
+          <OperationalJobCreatePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/operational-jobs/:id',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
+          <OperationalJobDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/operational-jobs/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONAL_JOBS_PERMISSIONS.edit}>
+          <OperationalJobEditPage />
         </PermissionRouteGuard>
       )
     },
