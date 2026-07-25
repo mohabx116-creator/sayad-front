@@ -294,7 +294,7 @@ export default function MonthlyMovementsListPage() {
                       <TableCell dir="ltr">{movement.quantity == null ? '-' : movement.quantity.toFixed(4)}</TableCell>
                       <TableCell dir="ltr">
                         <Typography fontWeight={700}>
-                          {formatMoney(intl.locale, Math.abs(movement.amount))}
+                          {formatMoney(intl.locale, movement.amount)}
                         </Typography>
                       </TableCell>
                       <TableCell>
