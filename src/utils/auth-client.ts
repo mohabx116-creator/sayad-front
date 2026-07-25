@@ -1,7 +1,8 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosHeaders, AxiosResponse } from 'axios';
 
 import type { ApiResponse } from 'types/api';
 import type { UserProfile } from 'types/user-profile';
+import { authTokenStore } from './auth-token';
 import { getHttpErrorMessage } from './http-error';
 
 export type AuthSessionDto = {
@@ -18,6 +19,18 @@ type LoginRequest = {
 const authClient = axios.create({
   baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:5000/',
   withCredentials: true
+});
+
+authClient.interceptors.request.use((config) => {
+  const accessToken = authTokenStore.getToken();
+  const headers = AxiosHeaders.from(config.headers);
+
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
+  }
+
+  config.headers = headers;
+  return config;
 });
 
 async function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {

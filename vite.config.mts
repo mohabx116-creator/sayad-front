@@ -14,7 +14,14 @@ export default defineConfig(({ mode }) => {
       open: true,
       // this sets a default port to 3000
       port: PORT,
-      host: true
+      host: true,
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:5000',
+          changeOrigin: true,
+          secure: false
+        }
+      }
     },
     build: {
       chunkSizeWarningLimit: 1000,
