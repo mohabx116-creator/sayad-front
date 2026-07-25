@@ -1,0 +1,690 @@
+import { useEffect, useMemo, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
+
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Grid from '@mui/material/GridLegacy';
+import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Select from '@mui/material/Select';
+import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TablePagination from '@mui/material/TablePagination';
+import TableRow from '@mui/material/TableRow';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { IconCalculator, IconEye, IconPlus, IconRefresh, IconSearch, IconTrash } from '@tabler/icons-react';
+
+import { useDispatch } from 'store';
+import { openSnackbar } from 'store/slices/snackbar';
+import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import Loader from 'ui-component/Loader';
+import MainCard from 'ui-component/cards/MainCard';
+
+import { calculatePayrollPeriod, createPayrollPeriod, deletePayrollPeriod, recalculatePayrollPeriod } from '../api/payrollApi';
+import { usePayrollPeriod, usePayrollPeriods } from '../hooks/usePayroll';
+import { PAYROLL_PAGE_SIZE, PAYROLL_PERIOD_STATUS, PAYROLL_PERMISSIONS } from '../utils/payroll.constants';
+import type { PayrollPeriodFormValues, PayrollPeriodListItemDto, PayrollStatementDto } from '../types/payroll.types';
+
+function formatCurrency(locale: string, value: number) {
+  return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+}
+
+function formatDate(locale: string, value: string | null) {
+  if (!value) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(value));
+}
+
+function formatMonthLabel(locale: string, year: number, month: number) {
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1));
+}
+
+function getStatusLabelId(status: number) {
+  return status === PAYROLL_PERIOD_STATUS.Calculated ? 'payroll-period-status-calculated' : 'payroll-period-status-draft';
+}
+
+function getMovementEffectColor(effectSnapshot: number) {
+  return effectSnapshot === 2 ? 'warning' : 'success';
+}
+
+function createDefaultForm(): PayrollPeriodFormValues {
+  const today = new Date();
+  return {
+    year: String(today.getFullYear()),
+    month: String(today.getMonth() + 1),
+    notes: ''
+  };
+}
+
+function toPayload(form: PayrollPeriodFormValues) {
+  return {
+    year: Number(form.year),
+    month: Number(form.month),
+    notes: form.notes.trim() || null
+  };
+}
+
+function SummaryCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <Card sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+      <Stack spacing={0.75}>
+        <Typography variant="body2" color="text.secondary">
+          {label}
+        </Typography>
+        <Typography variant="h4" fontWeight={800}>
+          {value}
+        </Typography>
+      </Stack>
+    </Card>
+  );
+}
+
+function StatementCard({ locale, statement }: { locale: string; statement: PayrollStatementDto }) {
+  return (
+    <Card sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: statement.hasNegativeNetWage ? 'warning.light' : 'divider' }}>
+      <Stack spacing={2}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+          <Box>
+            <Typography variant="h6" fontWeight={800}>
+              {statement.workerCodeSnapshot} - {statement.workerNameSnapshot}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {statement.operationalJobNameSnapshot}
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Chip label={statement.mealAllowanceTypeLabel} size="small" variant="outlined" />
+            <Chip label={statement.overtimeCalculationTypeLabel} size="small" variant="outlined" />
+            {statement.hasNegativeNetWage && <Chip color="warning" label={<FormattedMessage id="payroll-negative-net-warning" />} size="small" />}
+          </Stack>
+        </Stack>
+
+        <Grid container spacing={1.5}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="worker-daily-wage" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.dailyWageSnapshot)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="worker-monthly-days-basis" />
+            </Typography>
+            <Typography fontWeight={700}>{statement.monthlyDaysBasisSnapshot}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-basic-wage" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.basicWage)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-net-wage" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.netWage)}</Typography>
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={1.5}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-meal-allowance" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.mealAllowance)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-overtime" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.overtimeAmount)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-night-work" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.nightWorkAmount)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-bonuses" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.bonusAmount)}</Typography>
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={1.5}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-absence-deductions" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.absenceDeduction)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-other-deductions" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.otherDeductionAmount)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-total-deductions" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.totalDeductions)}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-gross-wage" />
+            </Typography>
+            <Typography fontWeight={700}>{formatCurrency(locale, statement.grossWage)}</Typography>
+          </Grid>
+        </Grid>
+
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <FormattedMessage id="payroll-statement-movements" />
+          </Typography>
+          {statement.movements.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="payroll-statement-movements-empty" />
+            </Typography>
+          ) : (
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell><FormattedMessage id="monthly-movement-type" /></TableCell>
+                  <TableCell><FormattedMessage id="monthly-movement-date" /></TableCell>
+                  <TableCell><FormattedMessage id="monthly-movement-quantity" /></TableCell>
+                  <TableCell><FormattedMessage id="monthly-movement-amount" /></TableCell>
+                  <TableCell><FormattedMessage id="effect" /></TableCell>
+                  <TableCell><FormattedMessage id="reason" /></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {statement.movements.map((movement) => (
+                  <TableRow key={movement.id}>
+                    <TableCell>{movement.movementTypeLabel}</TableCell>
+                    <TableCell>{formatDate(locale, movement.movementDateSnapshot)}</TableCell>
+                    <TableCell>{movement.quantitySnapshot ?? '-'}</TableCell>
+                    <TableCell>{formatCurrency(locale, movement.amountSnapshot)}</TableCell>
+                    <TableCell>
+                      <Chip size="small" color={getMovementEffectColor(movement.effectSnapshot)} label={movement.effectLabel} />
+                    </TableCell>
+                    <TableCell>{movement.reasonSnapshot}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Box>
+      </Stack>
+    </Card>
+  );
+}
+
+export default function PayrollPeriodsPage() {
+  const intl = useIntl();
+  const dispatch = useDispatch();
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(PAYROLL_PAGE_SIZE);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  const [year, setYear] = useState('');
+  const [month, setMonth] = useState('');
+  const [sortBy, setSortBy] = useState('year');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<PayrollPeriodFormValues>(() => createDefaultForm());
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
+  const [actionPeriodId, setActionPeriodId] = useState<string | null>(null);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setSearch(searchInput.trim()), 350);
+    return () => window.clearTimeout(handle);
+  }, [searchInput]);
+
+  const query = useMemo(() => ({
+    page: page + 1,
+    pageSize,
+    search,
+    year: year === '' ? undefined : Number(year),
+    month: month === '' ? undefined : Number(month),
+    sortBy,
+    sortDirection
+  }), [month, page, pageSize, search, sortBy, sortDirection, year]);
+
+  const { items, meta, isLoading, error, mutate } = usePayrollPeriods(query);
+  const { period: selectedPeriod, isLoading: selectedLoading, error: selectedError, mutate: mutateSelected } = usePayrollPeriod(selectedPeriodId ?? undefined);
+
+  const notify = (message: string, severity: 'success' | 'error' = 'success') => {
+    dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
+  };
+
+  const refresh = async () => {
+    await mutate();
+    if (selectedPeriodId) {
+      await mutateSelected();
+    }
+  };
+
+  const runAction = async (action: () => Promise<unknown>, successMessage: string) => {
+    setActionPeriodId('busy');
+    try {
+      await action();
+      await refresh();
+      notify(successMessage);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'payroll-period-action-failed' }), 'error');
+    } finally {
+      setActionPeriodId(null);
+    }
+  };
+
+  const handleCreate = async () => {
+    setCreateLoading(true);
+    try {
+      await createPayrollPeriod(toPayload(createForm));
+      await mutate();
+      setCreateOpen(false);
+      setCreateForm(createDefaultForm());
+      notify(intl.formatMessage({ id: 'payroll-period-created-successfully' }));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'payroll-period-create-failed' }), 'error');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleDelete = async (period: PayrollPeriodListItemDto) => {
+    if (!window.confirm(intl.formatMessage({ id: 'payroll-period-delete-confirm' }, { year: period.year, month: period.month }))) {
+      return;
+    }
+
+    setDeleteLoadingId(period.id);
+    try {
+      await deletePayrollPeriod(period.id, period.rowVersion);
+      await mutate();
+      if (selectedPeriodId === period.id) {
+        setSelectedPeriodId(null);
+      }
+      notify(intl.formatMessage({ id: 'payroll-period-deleted-successfully' }));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'payroll-period-delete-failed' }), 'error');
+    } finally {
+      setDeleteLoadingId(null);
+    }
+  };
+
+  const handleCalculate = async (period: PayrollPeriodListItemDto) => {
+    await runAction(
+      () => (period.status === PAYROLL_PERIOD_STATUS.Calculated ? recalculatePayrollPeriod(period.id) : calculatePayrollPeriod(period.id)),
+      period.status === PAYROLL_PERIOD_STATUS.Calculated
+        ? intl.formatMessage({ id: 'payroll-period-recalculated-successfully' })
+        : intl.formatMessage({ id: 'payroll-period-calculated-successfully' })
+    );
+  };
+
+  const summary = useMemo(() => ({
+    drafts: items.filter((item) => item.status === PAYROLL_PERIOD_STATUS.Draft).length,
+    calculated: items.filter((item) => item.status === PAYROLL_PERIOD_STATUS.Calculated).length,
+    netTotal: items.reduce((sum, item) => sum + item.totalNetWage, 0)
+  }), [items]);
+
+  const selectedStatementCount = selectedPeriod?.statements.length ?? 0;
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Breadcrumbs custom heading="payroll-periods" links={[{ title: 'labor', to: '/labor/workers' }, { title: 'payroll-periods' }]} />
+
+      <Box>
+        <Typography variant="h2" sx={{ fontWeight: 700 }}>
+          <FormattedMessage id="payroll-periods" />
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+          <FormattedMessage id="payroll-periods-page-description" />
+        </Typography>
+      </Box>
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={3}>
+          <SummaryCard label={intl.formatMessage({ id: 'payroll-periods-total' })} value={meta.totalCount} />
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <SummaryCard label={intl.formatMessage({ id: 'payroll-periods-draft' })} value={summary.drafts} />
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <SummaryCard label={intl.formatMessage({ id: 'payroll-periods-calculated' })} value={summary.calculated} />
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <SummaryCard label={intl.formatMessage({ id: 'payroll-periods-net-total' })} value={formatCurrency(intl.locale, summary.netTotal)} />
+        </Grid>
+      </Grid>
+
+      <MainCard content={false}>
+        <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr 1fr 1fr' }, gap: 2, alignItems: 'center' }}>
+          <OutlinedInput
+            value={searchInput}
+            onChange={(event) => {
+              setSearchInput(event.target.value);
+              setPage(0);
+            }}
+            placeholder={intl.formatMessage({ id: 'payroll-periods-search-placeholder' })}
+            startAdornment={<IconSearch size={18} style={{ marginInlineEnd: 8, opacity: 0.7 }} />}
+          />
+          <TextField
+            type="number"
+            value={year}
+            onChange={(event) => {
+              setYear(event.target.value);
+              setPage(0);
+            }}
+            placeholder={intl.formatMessage({ id: 'payroll-period-year-placeholder' })}
+          />
+          <TextField
+            type="number"
+            value={month}
+            onChange={(event) => {
+              setMonth(event.target.value);
+              setPage(0);
+            }}
+            placeholder={intl.formatMessage({ id: 'payroll-period-month-placeholder' })}
+          />
+          <Select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+            <MenuItem value="year"><FormattedMessage id="payroll-period-sort-year" /></MenuItem>
+            <MenuItem value="month"><FormattedMessage id="payroll-period-sort-month" /></MenuItem>
+            <MenuItem value="status"><FormattedMessage id="payroll-period-sort-status" /></MenuItem>
+            <MenuItem value="calculatedAtUtc"><FormattedMessage id="payroll-period-sort-calculated-at" /></MenuItem>
+            <MenuItem value="createdAtUtc"><FormattedMessage id="created-at" /></MenuItem>
+            <MenuItem value="updatedAtUtc"><FormattedMessage id="updated-at" /></MenuItem>
+          </Select>
+          <Select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as 'asc' | 'desc')}>
+            <MenuItem value="asc"><FormattedMessage id="sort-ascending" /></MenuItem>
+            <MenuItem value="desc"><FormattedMessage id="sort-descending" /></MenuItem>
+          </Select>
+          <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setSearchInput('');
+                setSearch('');
+                setYear('');
+                setMonth('');
+                setSortBy('year');
+                setSortDirection('desc');
+                setPage(0);
+              }}
+              startIcon={<IconRefresh size={18} />}
+            >
+              <FormattedMessage id="refresh" />
+            </Button>
+            <PermissionGuard permission={PAYROLL_PERMISSIONS.create}>
+              <Button variant="contained" onClick={() => setCreateOpen(true)} startIcon={<IconPlus size={18} />}>
+                <FormattedMessage id="create-payroll-period" />
+              </Button>
+            </PermissionGuard>
+          </Stack>
+        </Box>
+
+        {isLoading && (
+          <Box sx={{ py: 6 }}>
+            <Loader />
+          </Box>
+        )}
+
+        {error && !isLoading && (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography color="error" sx={{ mb: 2 }}>
+              <FormattedMessage id="payroll-periods-load-error" />
+            </Typography>
+            <Button variant="outlined" onClick={() => mutate()}>
+              <FormattedMessage id="retry" />
+            </Button>
+          </Box>
+        )}
+
+        {!isLoading && !error && items.length === 0 && (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary">
+              <FormattedMessage id="payroll-periods-empty" />
+            </Typography>
+          </Box>
+        )}
+
+        {!isLoading && !error && items.length > 0 && (
+          <>
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ bgcolor: 'grey.50' }}>
+                  <TableRow>
+                    <TableCell><FormattedMessage id="payroll-period" /></TableCell>
+                    <TableCell><FormattedMessage id="date-range" /></TableCell>
+                    <TableCell><FormattedMessage id="status" /></TableCell>
+                    <TableCell><FormattedMessage id="payroll-workers-count" /></TableCell>
+                    <TableCell><FormattedMessage id="payroll-gross-wage" /></TableCell>
+                    <TableCell><FormattedMessage id="payroll-total-deductions" /></TableCell>
+                    <TableCell><FormattedMessage id="payroll-net-wage" /></TableCell>
+                    <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {items.map((period) => (
+                    <TableRow key={period.id} hover>
+                      <TableCell>
+                        <Stack spacing={0.5}>
+                          <Typography fontWeight={700}>{formatMonthLabel(intl.locale, period.year, period.month)}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {period.notes ?? '-'}
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(intl.locale, period.startDate)} - {formatDate(intl.locale, period.endDate)}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          color={period.status === PAYROLL_PERIOD_STATUS.Calculated ? 'success' : 'default'}
+                          label={<FormattedMessage id={getStatusLabelId(period.status)} />}
+                        />
+                      </TableCell>
+                      <TableCell>{period.workerCount}</TableCell>
+                      <TableCell>{formatCurrency(intl.locale, period.totalGrossWage)}</TableCell>
+                      <TableCell>{formatCurrency(intl.locale, period.totalDeductions)}</TableCell>
+                      <TableCell>{formatCurrency(intl.locale, period.totalNetWage)}</TableCell>
+                      <TableCell align="center">
+                        <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap">
+                          <IconButton size="small" onClick={() => setSelectedPeriodId(period.id)}>
+                            <IconEye size={18} />
+                          </IconButton>
+                          <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleCalculate(period)}
+                              disabled={actionPeriodId === 'busy'}
+                            >
+                              <IconCalculator size={18} />
+                            </IconButton>
+                          </PermissionGuard>
+                          <PermissionGuard permission={PAYROLL_PERMISSIONS.delete}>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDelete(period)}
+                              disabled={deleteLoadingId === period.id}
+                            >
+                              <IconTrash size={18} />
+                            </IconButton>
+                          </PermissionGuard>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
+              <TablePagination
+                component="div"
+                count={meta.totalCount}
+                page={page}
+                rowsPerPage={pageSize}
+                onPageChange={(_, nextPage) => setPage(nextPage)}
+                onRowsPerPageChange={(event) => {
+                  setPageSize(parseInt(event.target.value, 10));
+                  setPage(0);
+                }}
+                labelRowsPerPage=""
+              />
+            </Box>
+          </>
+        )}
+      </MainCard>
+
+      <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          <FormattedMessage id="create-payroll-period" />
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <TextField
+              label={<FormattedMessage id="payroll-period-year" />}
+              type="number"
+              value={createForm.year}
+              onChange={(event) => setCreateForm((current) => ({ ...current, year: event.target.value }))}
+              fullWidth
+              required
+            />
+            <TextField
+              label={<FormattedMessage id="payroll-period-month" />}
+              type="number"
+              value={createForm.month}
+              onChange={(event) => setCreateForm((current) => ({ ...current, month: event.target.value }))}
+              fullWidth
+              required
+              inputProps={{ min: 1, max: 12 }}
+            />
+            <TextField
+              label={<FormattedMessage id="notes" />}
+              value={createForm.notes}
+              onChange={(event) => setCreateForm((current) => ({ ...current, notes: event.target.value }))}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateOpen(false)}>
+            <FormattedMessage id="cancel" />
+          </Button>
+          <Button variant="contained" onClick={handleCreate} disabled={createLoading || !createForm.year || !createForm.month}>
+            <FormattedMessage id="create" />
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(selectedPeriodId)} onClose={() => setSelectedPeriodId(null)} fullWidth maxWidth="xl">
+        <DialogTitle sx={{ pb: 1 }}>
+          {selectedPeriod ? formatMonthLabel(intl.locale, selectedPeriod.year, selectedPeriod.month) : <FormattedMessage id="loading" />}
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedLoading && <Loader />}
+          {selectedError && (
+            <Typography color="error">
+              <FormattedMessage id="payroll-period-detail-load-error" />
+            </Typography>
+          )}
+          {selectedPeriod && (
+            <Stack spacing={2.5}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    <FormattedMessage id="payroll-period-range" />
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800}>
+                    {formatDate(intl.locale, selectedPeriod.startDate)} - {formatDate(intl.locale, selectedPeriod.endDate)}
+                  </Typography>
+                </Box>
+                <Stack direction="row" spacing={1} flexWrap="wrap">
+                  <Chip
+                    label={<FormattedMessage id={getStatusLabelId(selectedPeriod.status)} />}
+                    color={selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated ? 'success' : 'default'}
+                  />
+                  <Chip variant="outlined" label={`${selectedPeriod.workerCount} ${intl.formatMessage({ id: 'payroll-workers-count' })}`} />
+                  <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleCalculate(selectedPeriod)}
+                      startIcon={<IconCalculator size={16} />}
+                    >
+                      {selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated ? (
+                        <FormattedMessage id="recalculate" />
+                      ) : (
+                        <FormattedMessage id="calculate" />
+                      )}
+                    </Button>
+                  </PermissionGuard>
+                </Stack>
+              </Stack>
+
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}><SummaryCard label={intl.formatMessage({ id: 'payroll-basic-wage' })} value={formatCurrency(intl.locale, selectedPeriod.totalBasicWage)} /></Grid>
+                <Grid item xs={12} sm={6} md={3}><SummaryCard label={intl.formatMessage({ id: 'payroll-meal-allowance' })} value={formatCurrency(intl.locale, selectedPeriod.totalMealAllowance)} /></Grid>
+                <Grid item xs={12} sm={6} md={3}><SummaryCard label={intl.formatMessage({ id: 'payroll-total-deductions' })} value={formatCurrency(intl.locale, selectedPeriod.totalDeductions)} /></Grid>
+                <Grid item xs={12} sm={6} md={3}><SummaryCard label={intl.formatMessage({ id: 'payroll-net-wage' })} value={formatCurrency(intl.locale, selectedPeriod.totalNetWage)} /></Grid>
+              </Grid>
+
+              <Card sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                <Stack spacing={1.5}>
+                  <Box>
+                    <Typography variant="h6" fontWeight={800}>
+                      <FormattedMessage id="payroll-statements" />
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <FormattedMessage id="payroll-statements-description" values={{ count: selectedStatementCount }} />
+                    </Typography>
+                  </Box>
+
+                  {selectedPeriod.statements.length === 0 ? (
+                    <Typography color="text.secondary">
+                      <FormattedMessage id="payroll-statements-empty" />
+                    </Typography>
+                  ) : (
+                    <Stack spacing={2}>
+                      {selectedPeriod.statements.map((statement) => (
+                        <StatementCard key={statement.id} locale={intl.locale} statement={statement} />
+                      ))}
+                    </Stack>
+                  )}
+                </Stack>
+              </Card>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedPeriodId(null)}>
+            <FormattedMessage id="close" />
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
