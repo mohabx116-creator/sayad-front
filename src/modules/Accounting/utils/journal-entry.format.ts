@@ -54,6 +54,8 @@ export function formatJournalEntrySourceType(sourceType?: JournalEntrySourceType
       return isArabic ? '\u062D\u0631\u0643\u0629 \u0645\u062E\u0632\u0648\u0646' : 'Inventory Movement';
     case JOURNAL_ENTRY_SOURCE_TYPES.FISCAL_YEAR_CLOSING:
       return isArabic ? 'إقفال سنة مالية' : 'Fiscal Year Closing';
+    case JOURNAL_ENTRY_SOURCE_TYPES.PAYROLL_PAYMENT:
+      return isArabic ? 'صرف رواتب' : 'Payroll Payment';
     default:
       return EMPTY_VALUE;
   }

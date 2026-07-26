@@ -12,7 +12,8 @@ export type JournalEntrySourceType =
   | 'PurchaseInvoice'
   | 'PurchaseReturn'
   | 'InventoryMovement'
-  | 'FiscalYearClosing';
+  | 'FiscalYearClosing'
+  | 'PayrollPayment';
 
 export type JournalEntryLineRequest = {
   accountId: string;

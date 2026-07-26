@@ -6,7 +6,8 @@ export const ACCOUNTING_SETTING_MAPPINGS = [
   { key: 'InventoryAsset', labelArabic: 'حساب مخزون الأصناف', labelEnglish: 'Inventory asset' },
   { key: 'OpeningBalanceEquity', labelArabic: 'حساب رأس المال المفتتح', labelEnglish: 'Opening balance equity' },
   { key: 'RetainedEarnings', labelArabic: 'حساب الأرباح المحتجزة', labelEnglish: 'Retained earnings' },
-  { key: 'CostOfGoodsSold', labelArabic: 'حساب تكلفة البضاعة المباعة', labelEnglish: 'Cost of goods sold' }
+  { key: 'CostOfGoodsSold', labelArabic: 'حساب تكلفة البضاعة المباعة', labelEnglish: 'Cost of goods sold' },
+  { key: 'PayrollExpense', labelArabic: 'حساب مصروف الرواتب والأجور', labelEnglish: 'Payroll and wages expense' }
 ] as const;
 
 export type AccountingSettingMappingKey = (typeof ACCOUNTING_SETTING_MAPPINGS)[number]['key'];

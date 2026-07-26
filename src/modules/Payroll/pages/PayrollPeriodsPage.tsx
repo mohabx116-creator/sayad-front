@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
@@ -24,7 +25,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { IconCalculator, IconCheck, IconEye, IconPlus, IconRefresh, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconCalculator, IconCashBanknote, IconCheck, IconEye, IconPlus, IconRefresh, IconSearch, IconTrash } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -33,10 +34,12 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 
-import { approvePayrollPeriod, calculatePayrollPeriod, createPayrollPeriod, deletePayrollPeriod, recalculatePayrollPeriod } from '../api/payrollApi';
+import { approvePayrollPeriod, calculatePayrollPeriod, createPayrollPeriod, deletePayrollPeriod, payPayrollPeriod, recalculatePayrollPeriod } from '../api/payrollApi';
 import { usePayrollPeriod, usePayrollPeriods } from '../hooks/usePayroll';
 import { PAYROLL_PAGE_SIZE, PAYROLL_PERIOD_STATUS, PAYROLL_PERMISSIONS } from '../utils/payroll.constants';
 import type { PayrollPeriodFormValues, PayrollPeriodListItemDto, PayrollStatementDto } from '../types/payroll.types';
+import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
+import { TREASURY_LOOKUP_PAGE_SIZE } from 'modules/Treasury/utils/treasury.constants';
 
 function formatCurrency(locale: string, value: number) {
   return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
@@ -67,6 +70,10 @@ function getStatusLabelId(status: number) {
     return 'payroll-period-status-approved';
   }
 
+  if (status === PAYROLL_PERIOD_STATUS.Paid) {
+    return 'payroll-period-status-paid';
+  }
+
   return status === PAYROLL_PERIOD_STATUS.Calculated ? 'payroll-period-status-calculated' : 'payroll-period-status-draft';
 }
 
@@ -75,11 +82,19 @@ function getStatusColor(status: number) {
     return 'info' as const;
   }
 
+  if (status === PAYROLL_PERIOD_STATUS.Paid) {
+    return 'success' as const;
+  }
+
   if (status === PAYROLL_PERIOD_STATUS.Calculated) {
     return 'success' as const;
   }
 
   return 'default' as const;
+}
+
+function isActionableForCalculation(status: number) {
+  return status === PAYROLL_PERIOD_STATUS.Draft || status === PAYROLL_PERIOD_STATUS.Calculated;
 }
 
 function getMovementEffectColor(effectSnapshot: number) {
@@ -281,6 +296,12 @@ export default function PayrollPeriodsPage() {
   const [approveOpen, setApproveOpen] = useState(false);
   const [approveNotes, setApproveNotes] = useState('');
   const [approveLoading, setApproveLoading] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
+  const [payTargetPeriod, setPayTargetPeriod] = useState<PayrollPeriodListItemDto | null>(null);
+  const [payTreasuryAccountId, setPayTreasuryAccountId] = useState('');
+  const [payPaymentDate, setPayPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [payNotes, setPayNotes] = useState('');
+  const [payLoading, setPayLoading] = useState(false);
 
   useEffect(() => {
     const handle = window.setTimeout(() => setSearch(searchInput.trim()), 350);
@@ -299,6 +320,7 @@ export default function PayrollPeriodsPage() {
 
   const { items, meta, isLoading, error, mutate } = usePayrollPeriods(query);
   const { period: selectedPeriod, isLoading: selectedLoading, error: selectedError, mutate: mutateSelected } = usePayrollPeriod(selectedPeriodId ?? undefined);
+  const { items: treasuryAccounts, isLoading: treasuryAccountsLoading } = useTreasuryAccounts({ page: 1, pageSize: TREASURY_LOOKUP_PAGE_SIZE, isActive: true });
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -373,8 +395,23 @@ export default function PayrollPeriodsPage() {
       return;
     }
 
+    setPayOpen(false);
+    setPayTargetPeriod(null);
     setApproveNotes(selectedPeriod.approvalNotes ?? '');
     setApproveOpen(true);
+  };
+
+  const openPayDialog = (period: PayrollPeriodListItemDto) => {
+    if (period.status !== PAYROLL_PERIOD_STATUS.Approved) {
+      return;
+    }
+
+    setApproveOpen(false);
+    setPayTargetPeriod(period);
+    setPayTreasuryAccountId((current) => current || treasuryAccounts.find((account) => account.isActive)?.id || '');
+    setPayPaymentDate(new Date().toISOString().slice(0, 10));
+    setPayNotes(period.notes ?? '');
+    setPayOpen(true);
   };
 
   const handleApprove = async () => {
@@ -398,11 +435,46 @@ export default function PayrollPeriodsPage() {
     }
   };
 
+  const handlePay = async () => {
+    if (!payTargetPeriod) {
+      return;
+    }
+
+    setPayLoading(true);
+    try {
+      await payPayrollPeriod(payTargetPeriod.id, {
+        rowVersion: payTargetPeriod.rowVersion,
+        treasuryAccountId: payTreasuryAccountId,
+        paymentDate: payPaymentDate,
+        notes: payNotes.trim() || null
+      });
+      setPayOpen(false);
+      setPayTargetPeriod(null);
+      await refresh();
+      notify(intl.formatMessage({ id: 'payroll-period-paid-successfully' }));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'payroll-period-pay-failed' }), 'error');
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
   const summary = useMemo(() => ({
     drafts: items.filter((item) => item.status === PAYROLL_PERIOD_STATUS.Draft).length,
     calculated: items.filter((item) => item.status === PAYROLL_PERIOD_STATUS.Calculated).length,
     netTotal: items.reduce((sum, item) => sum + item.totalNetWage, 0)
   }), [items]);
+
+  const selectedPayTreasuryAccount = useMemo(
+    () => treasuryAccounts.find((account) => account.id === payTreasuryAccountId) ?? null,
+    [payTreasuryAccountId, treasuryAccounts]
+  );
+
+  useEffect(() => {
+    if (payOpen && !payTreasuryAccountId && treasuryAccounts.length > 0) {
+      setPayTreasuryAccountId(treasuryAccounts[0].id);
+    }
+  }, [payOpen, payTreasuryAccountId, treasuryAccounts]);
 
   const selectedStatementCount = selectedPeriod?.statements.length ?? 0;
   const selectedNegativeNetCount = selectedPeriod?.statements.filter((statement) => statement.hasNegativeNetWage).length ?? 0;
@@ -572,7 +644,7 @@ export default function PayrollPeriodsPage() {
                           <IconButton size="small" onClick={() => setSelectedPeriodId(period.id)}>
                             <IconEye size={18} />
                           </IconButton>
-                          {period.status !== PAYROLL_PERIOD_STATUS.Approved && (
+                          {isActionableForCalculation(period.status) && (
                             <>
                               <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
                                 <IconButton
@@ -594,6 +666,13 @@ export default function PayrollPeriodsPage() {
                                 </IconButton>
                               </PermissionGuard>
                             </>
+                          )}
+                          {period.status === PAYROLL_PERIOD_STATUS.Approved && (
+                            <PermissionGuard permission={PAYROLL_PERMISSIONS.pay}>
+                              <IconButton size="small" color="success" onClick={() => openPayDialog(period)}>
+                                <IconCashBanknote size={18} />
+                              </IconButton>
+                            </PermissionGuard>
                           )}
                         </Stack>
                       </TableCell>
@@ -691,7 +770,7 @@ export default function PayrollPeriodsPage() {
                     color={getStatusColor(selectedPeriod.status)}
                   />
                   <Chip variant="outlined" label={`${selectedPeriod.workerCount} ${intl.formatMessage({ id: 'payroll-workers-count' })}`} />
-                  {selectedPeriod.status !== PAYROLL_PERIOD_STATUS.Approved && (
+                  {isActionableForCalculation(selectedPeriod.status) && (
                     <>
                       <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
                         <Button
@@ -707,20 +786,33 @@ export default function PayrollPeriodsPage() {
                           )}
                         </Button>
                       </PermissionGuard>
-                      <PermissionGuard permission={PAYROLL_PERMISSIONS.approve}>
-                        {selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated && (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={openApproveDialog}
-                            startIcon={<IconCheck size={16} />}
-                          >
-                            <FormattedMessage id="approve" />
-                          </Button>
-                        )}
-                      </PermissionGuard>
                     </>
                   )}
+                  <PermissionGuard permission={PAYROLL_PERMISSIONS.approve}>
+                    {selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={openApproveDialog}
+                        startIcon={<IconCheck size={16} />}
+                      >
+                        <FormattedMessage id="approve" />
+                      </Button>
+                    )}
+                  </PermissionGuard>
+                  <PermissionGuard permission={PAYROLL_PERMISSIONS.pay}>
+                    {selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved && !selectedPeriod.payment && (
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={() => openPayDialog(selectedPeriod)}
+                        startIcon={<IconCashBanknote size={16} />}
+                      >
+                        <FormattedMessage id="payroll-period-pay" />
+                      </Button>
+                    )}
+                  </PermissionGuard>
                 </Stack>
               </Stack>
 
@@ -757,6 +849,60 @@ export default function PayrollPeriodsPage() {
                         <Typography fontWeight={700}>{selectedPeriod.approvalNotes ?? '-'}</Typography>
                       </Grid>
                     </Grid>
+                  </Stack>
+                </Card>
+              )}
+
+              {selectedPeriod.payment && (
+                <Card sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'success.light', bgcolor: 'success.lighter' }}>
+                  <Stack spacing={1.25}>
+                    <Typography variant="h6" fontWeight={800}>
+                      <FormattedMessage id="payroll-period-payment-details" />
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-payment-date" />
+                        </Typography>
+                        <Typography fontWeight={700}>{formatDate(intl.locale, selectedPeriod.payment.paymentDate)}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-payment-treasury-account" />
+                        </Typography>
+                        <Typography fontWeight={700}>
+                          {selectedPeriod.payment.treasuryAccountCode} - {selectedPeriod.payment.treasuryAccountNameArabic}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-payment-amount" />
+                        </Typography>
+                        <Typography fontWeight={700}>{formatCurrency(intl.locale, selectedPeriod.payment.amount)}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-payment-reference" />
+                        </Typography>
+                        <Typography fontWeight={700}>{selectedPeriod.payment.treasuryTransactionReferenceNumber ?? '-'}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-payment-journal-entry" />
+                        </Typography>
+                        <Typography fontWeight={700}>{selectedPeriod.payment.journalEntryNumber}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-payment-by" />
+                        </Typography>
+                        <Typography fontWeight={700}>{selectedPeriod.payment.paidByDisplayName ?? '-'}</Typography>
+                      </Grid>
+                    </Grid>
+                    <Typography variant="body2" color="text.secondary">
+                      <FormattedMessage id="payroll-period-payment-notes" />
+                    </Typography>
+                    <Typography fontWeight={700}>{selectedPeriod.payment.notes ?? '-'}</Typography>
                   </Stack>
                 </Card>
               )}
@@ -835,12 +981,111 @@ export default function PayrollPeriodsPage() {
             </Stack>
           )}
         </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setApproveOpen(false)} disabled={approveLoading}>
+          <FormattedMessage id="cancel" />
+        </Button>
+        <Button variant="contained" onClick={handleApprove} disabled={approveLoading || !selectedPeriod}>
+          <FormattedMessage id="approve" />
+        </Button>
+      </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={payOpen && Boolean(payTargetPeriod)}
+        onClose={() => {
+          setPayOpen(false);
+          setPayTargetPeriod(null);
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          <FormattedMessage id="payroll-period-pay-title" />
+        </DialogTitle>
+        <DialogContent>
+          {payTargetPeriod && (
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              <Alert severity="info">
+                <FormattedMessage
+                  id="payroll-period-pay-summary"
+                  values={{
+                    month: formatMonthLabel(intl.locale, payTargetPeriod.year, payTargetPeriod.month),
+                    amount: formatCurrency(intl.locale, payTargetPeriod.totalNetWage)
+                  }}
+                />
+              </Alert>
+              <TextField
+                select
+                label={<FormattedMessage id="treasury-account" />}
+                value={payTreasuryAccountId}
+                onChange={(event) => setPayTreasuryAccountId(event.target.value)}
+                fullWidth
+                required
+              >
+                {treasuryAccounts.map((account) => (
+                  <MenuItem key={account.id} value={account.id}>
+                    {account.code} - {account.nameArabic} ({formatCurrency(intl.locale, account.balance)})
+                  </MenuItem>
+                ))}
+              </TextField>
+              {selectedPayTreasuryAccount && (
+                <Card sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
+                  <Stack spacing={0.75}>
+                    <Typography variant="body2" color="text.secondary">
+                      <FormattedMessage id="treasury-account-balance" />
+                    </Typography>
+                    <Typography fontWeight={700}>
+                      {formatCurrency(intl.locale, selectedPayTreasuryAccount.balance)} {selectedPayTreasuryAccount.balanceNature}
+                    </Typography>
+                    <Typography variant="body2" color={selectedPayTreasuryAccount.balance >= payTargetPeriod.totalNetWage ? 'success.main' : 'error.main'}>
+                      <FormattedMessage
+                        id="payroll-period-pay-remaining"
+                        values={{
+                          amount: formatCurrency(intl.locale, selectedPayTreasuryAccount.balance - payTargetPeriod.totalNetWage)
+                        }}
+                      />
+                    </Typography>
+                  </Stack>
+                </Card>
+              )}
+              <TextField
+                label={<FormattedMessage id="payment-date" />}
+                type="date"
+                value={payPaymentDate}
+                onChange={(event) => setPayPaymentDate(event.target.value)}
+                fullWidth
+                required
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label={<FormattedMessage id="notes" />}
+                value={payNotes}
+                onChange={(event) => setPayNotes(event.target.value)}
+                fullWidth
+                multiline
+                minRows={3}
+              />
+            </Stack>
+          )}
+        </DialogContent>
         <DialogActions>
-          <Button onClick={() => setApproveOpen(false)} disabled={approveLoading}>
+          <Button
+            onClick={() => {
+              setPayOpen(false);
+              setPayTargetPeriod(null);
+            }}
+            disabled={payLoading}
+          >
             <FormattedMessage id="cancel" />
           </Button>
-          <Button variant="contained" onClick={handleApprove} disabled={approveLoading || !selectedPeriod}>
-            <FormattedMessage id="approve" />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handlePay}
+            disabled={payLoading || !payTargetPeriod || !payTreasuryAccountId || treasuryAccountsLoading || (selectedPayTreasuryAccount ? selectedPayTreasuryAccount.balance < payTargetPeriod.totalNetWage : true)}
+          >
+            <FormattedMessage id="payroll-period-pay" />
           </Button>
         </DialogActions>
       </Dialog>

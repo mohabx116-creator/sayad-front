@@ -8,7 +8,8 @@ import type {
   PayrollPeriodInput,
   PayrollPeriodListItemDto,
   PayrollPeriodListParams,
-  PayrollListMeta
+  PayrollListMeta,
+  PayrollPeriodPaymentRequest
 } from '../types/payroll.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
@@ -60,6 +61,10 @@ export function recalculatePayrollPeriod(id: string) {
 
 export function approvePayrollPeriod(id: string, request: PayrollPeriodApprovalRequest) {
   return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/approve`, request));
+}
+
+export function payPayrollPeriod(id: string, request: PayrollPeriodPaymentRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/pay`, request));
 }
 
 export function deletePayrollPeriod(id: string, rowVersion: string) {

@@ -1,6 +1,6 @@
 import type { ListMeta } from 'modules/Workers/types/workers.types';
 
-export type PayrollPeriodStatus = 1 | 2 | 3;
+export type PayrollPeriodStatus = 1 | 2 | 3 | 4;
 
 export type PayrollPeriodListItemDto = {
   id: string;
@@ -87,7 +87,27 @@ export type PayrollStatementDto = {
   movements: PayrollStatementMovementDto[];
 };
 
+export type PayrollPeriodPaymentDto = {
+  id: string;
+  payrollPeriodId: string;
+  treasuryAccountId: string;
+  treasuryAccountCode: string;
+  treasuryAccountNameArabic: string;
+  paymentDate: string;
+  amount: number;
+  paidAtUtc: string;
+  paidByUserId: string;
+  paidByDisplayName: string | null;
+  notes: string | null;
+  treasuryTransactionId: string;
+  treasuryTransactionReferenceNumber: string | null;
+  journalEntryId: string;
+  journalEntryNumber: string;
+  postingKey: string;
+};
+
 export type PayrollPeriodDetailDto = PayrollPeriodListItemDto & {
+  payment: PayrollPeriodPaymentDto | null;
   statements: PayrollStatementDto[];
 };
 
@@ -114,6 +134,13 @@ export type PayrollPeriodInput = {
 export type PayrollPeriodApprovalRequest = {
   rowVersion: string;
   approvalNotes?: string | null;
+};
+
+export type PayrollPeriodPaymentRequest = {
+  rowVersion: string;
+  treasuryAccountId: string;
+  paymentDate: string;
+  notes?: string | null;
 };
 
 export type PayrollPeriodListParams = {
