@@ -52,7 +52,7 @@ const labor: NavItemType = {
       id: 'payroll-periods',
       title: 'payroll-periods',
       type: 'item',
-      url: '/payroll/periods',
+      url: '/labor/payroll',
       icon: icons.IconCoins,
       breadcrumbs: true,
       permission: PAYROLL_PERMISSIONS.view

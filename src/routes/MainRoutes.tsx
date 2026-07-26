@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+import { Navigate } from 'react-router-dom';
 
 // project imports
 import MainLayout from 'layout/MainLayout';
@@ -190,12 +191,16 @@ const MainRoutes = {
       )
     },
     {
-      path: '/payroll/periods',
+      path: '/labor/payroll',
       element: (
         <PermissionRouteGuard permission={PAYROLL_PERMISSIONS.view}>
           <PayrollPeriodsPage />
         </PermissionRouteGuard>
       )
+    },
+    {
+      path: '/payroll/periods',
+      element: <Navigate to="/labor/payroll" replace />
     },
     {
       path: '/labor/operational-jobs',
