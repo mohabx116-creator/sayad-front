@@ -3,6 +3,7 @@ import { AxiosResponse } from 'axios';
 import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type {
+  PayrollPeriodApprovalRequest,
   PayrollPeriodDetailDto,
   PayrollPeriodInput,
   PayrollPeriodListItemDto,
@@ -55,6 +56,10 @@ export function calculatePayrollPeriod(id: string) {
 
 export function recalculatePayrollPeriod(id: string) {
   return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/recalculate`));
+}
+
+export function approvePayrollPeriod(id: string, request: PayrollPeriodApprovalRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/approve`, request));
 }
 
 export function deletePayrollPeriod(id: string, rowVersion: string) {

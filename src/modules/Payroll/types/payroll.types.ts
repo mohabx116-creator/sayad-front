@@ -1,6 +1,6 @@
 import type { ListMeta } from 'modules/Workers/types/workers.types';
 
-export type PayrollPeriodStatus = 1 | 2;
+export type PayrollPeriodStatus = 1 | 2 | 3;
 
 export type PayrollPeriodListItemDto = {
   id: string;
@@ -12,6 +12,10 @@ export type PayrollPeriodListItemDto = {
   statusLabel: string;
   calculatedAtUtc: string | null;
   calculatedByUserId: string | null;
+  approvedAtUtc: string | null;
+  approvedByUserId: string | null;
+  approvedByDisplayName: string | null;
+  approvalNotes: string | null;
   notes: string | null;
   workerCount: number;
   totalBasicWage: number;
@@ -105,6 +109,11 @@ export type PayrollPeriodInput = {
   year: number;
   month: number;
   notes?: string | null;
+};
+
+export type PayrollPeriodApprovalRequest = {
+  rowVersion: string;
+  approvalNotes?: string | null;
 };
 
 export type PayrollPeriodListParams = {

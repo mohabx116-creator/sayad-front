@@ -24,7 +24,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { IconCalculator, IconEye, IconPlus, IconRefresh, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconCalculator, IconCheck, IconEye, IconPlus, IconRefresh, IconSearch, IconTrash } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -33,7 +33,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 
-import { calculatePayrollPeriod, createPayrollPeriod, deletePayrollPeriod, recalculatePayrollPeriod } from '../api/payrollApi';
+import { approvePayrollPeriod, calculatePayrollPeriod, createPayrollPeriod, deletePayrollPeriod, recalculatePayrollPeriod } from '../api/payrollApi';
 import { usePayrollPeriod, usePayrollPeriods } from '../hooks/usePayroll';
 import { PAYROLL_PAGE_SIZE, PAYROLL_PERIOD_STATUS, PAYROLL_PERMISSIONS } from '../utils/payroll.constants';
 import type { PayrollPeriodFormValues, PayrollPeriodListItemDto, PayrollStatementDto } from '../types/payroll.types';
@@ -50,12 +50,36 @@ function formatDate(locale: string, value: string | null) {
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(value));
 }
 
+function formatDateTime(locale: string, value: string | null) {
+  if (!value) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}
+
 function formatMonthLabel(locale: string, year: number, month: number) {
   return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1));
 }
 
 function getStatusLabelId(status: number) {
+  if (status === PAYROLL_PERIOD_STATUS.Approved) {
+    return 'payroll-period-status-approved';
+  }
+
   return status === PAYROLL_PERIOD_STATUS.Calculated ? 'payroll-period-status-calculated' : 'payroll-period-status-draft';
+}
+
+function getStatusColor(status: number) {
+  if (status === PAYROLL_PERIOD_STATUS.Approved) {
+    return 'info' as const;
+  }
+
+  if (status === PAYROLL_PERIOD_STATUS.Calculated) {
+    return 'success' as const;
+  }
+
+  return 'default' as const;
 }
 
 function getMovementEffectColor(effectSnapshot: number) {
@@ -254,6 +278,9 @@ export default function PayrollPeriodsPage() {
   const [actionPeriodId, setActionPeriodId] = useState<string | null>(null);
   const [createLoading, setCreateLoading] = useState(false);
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [approveNotes, setApproveNotes] = useState('');
+  const [approveLoading, setApproveLoading] = useState(false);
 
   useEffect(() => {
     const handle = window.setTimeout(() => setSearch(searchInput.trim()), 350);
@@ -341,6 +368,36 @@ export default function PayrollPeriodsPage() {
     );
   };
 
+  const openApproveDialog = () => {
+    if (!selectedPeriod || selectedPeriod.status !== PAYROLL_PERIOD_STATUS.Calculated) {
+      return;
+    }
+
+    setApproveNotes(selectedPeriod.approvalNotes ?? '');
+    setApproveOpen(true);
+  };
+
+  const handleApprove = async () => {
+    if (!selectedPeriod) {
+      return;
+    }
+
+    setApproveLoading(true);
+    try {
+      await approvePayrollPeriod(selectedPeriod.id, {
+        rowVersion: selectedPeriod.rowVersion,
+        approvalNotes: approveNotes.trim() || null
+      });
+      setApproveOpen(false);
+      await refresh();
+      notify(intl.formatMessage({ id: 'payroll-period-approved-successfully' }));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'payroll-period-approve-failed' }), 'error');
+    } finally {
+      setApproveLoading(false);
+    }
+  };
+
   const summary = useMemo(() => ({
     drafts: items.filter((item) => item.status === PAYROLL_PERIOD_STATUS.Draft).length,
     calculated: items.filter((item) => item.status === PAYROLL_PERIOD_STATUS.Calculated).length,
@@ -348,6 +405,8 @@ export default function PayrollPeriodsPage() {
   }), [items]);
 
   const selectedStatementCount = selectedPeriod?.statements.length ?? 0;
+  const selectedNegativeNetCount = selectedPeriod?.statements.filter((statement) => statement.hasNegativeNetWage).length ?? 0;
+  const selectedIsApproved = selectedPeriod?.status === PAYROLL_PERIOD_STATUS.Approved;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -500,7 +559,7 @@ export default function PayrollPeriodsPage() {
                       <TableCell>
                         <Chip
                           size="small"
-                          color={period.status === PAYROLL_PERIOD_STATUS.Calculated ? 'success' : 'default'}
+                          color={getStatusColor(period.status)}
                           label={<FormattedMessage id={getStatusLabelId(period.status)} />}
                         />
                       </TableCell>
@@ -513,25 +572,29 @@ export default function PayrollPeriodsPage() {
                           <IconButton size="small" onClick={() => setSelectedPeriodId(period.id)}>
                             <IconEye size={18} />
                           </IconButton>
-                          <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleCalculate(period)}
-                              disabled={actionPeriodId === 'busy'}
-                            >
-                              <IconCalculator size={18} />
-                            </IconButton>
-                          </PermissionGuard>
-                          <PermissionGuard permission={PAYROLL_PERMISSIONS.delete}>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDelete(period)}
-                              disabled={deleteLoadingId === period.id}
-                            >
-                              <IconTrash size={18} />
-                            </IconButton>
-                          </PermissionGuard>
+                          {period.status !== PAYROLL_PERIOD_STATUS.Approved && (
+                            <>
+                              <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCalculate(period)}
+                                  disabled={actionPeriodId === 'busy'}
+                                >
+                                  <IconCalculator size={18} />
+                                </IconButton>
+                              </PermissionGuard>
+                              <PermissionGuard permission={PAYROLL_PERMISSIONS.delete}>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDelete(period)}
+                                  disabled={deleteLoadingId === period.id}
+                                >
+                                  <IconTrash size={18} />
+                                </IconButton>
+                              </PermissionGuard>
+                            </>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -625,23 +688,39 @@ export default function PayrollPeriodsPage() {
                 <Stack direction="row" spacing={1} flexWrap="wrap">
                   <Chip
                     label={<FormattedMessage id={getStatusLabelId(selectedPeriod.status)} />}
-                    color={selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated ? 'success' : 'default'}
+                    color={getStatusColor(selectedPeriod.status)}
                   />
                   <Chip variant="outlined" label={`${selectedPeriod.workerCount} ${intl.formatMessage({ id: 'payroll-workers-count' })}`} />
-                  <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleCalculate(selectedPeriod)}
-                      startIcon={<IconCalculator size={16} />}
-                    >
-                      {selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated ? (
-                        <FormattedMessage id="recalculate" />
-                      ) : (
-                        <FormattedMessage id="calculate" />
-                      )}
-                    </Button>
-                  </PermissionGuard>
+                  {selectedPeriod.status !== PAYROLL_PERIOD_STATUS.Approved && (
+                    <>
+                      <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleCalculate(selectedPeriod)}
+                          startIcon={<IconCalculator size={16} />}
+                        >
+                          {selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated ? (
+                            <FormattedMessage id="recalculate" />
+                          ) : (
+                            <FormattedMessage id="calculate" />
+                          )}
+                        </Button>
+                      </PermissionGuard>
+                      <PermissionGuard permission={PAYROLL_PERMISSIONS.approve}>
+                        {selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated && (
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={openApproveDialog}
+                            startIcon={<IconCheck size={16} />}
+                          >
+                            <FormattedMessage id="approve" />
+                          </Button>
+                        )}
+                      </PermissionGuard>
+                    </>
+                  )}
                 </Stack>
               </Stack>
 
@@ -651,6 +730,36 @@ export default function PayrollPeriodsPage() {
                 <Grid item xs={12} sm={6} md={3}><SummaryCard label={intl.formatMessage({ id: 'payroll-total-deductions' })} value={formatCurrency(intl.locale, selectedPeriod.totalDeductions)} /></Grid>
                 <Grid item xs={12} sm={6} md={3}><SummaryCard label={intl.formatMessage({ id: 'payroll-net-wage' })} value={formatCurrency(intl.locale, selectedPeriod.totalNetWage)} /></Grid>
               </Grid>
+
+              {selectedIsApproved && (
+                <Card sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'success.light', bgcolor: 'success.lighter' }}>
+                  <Stack spacing={1.25}>
+                    <Typography variant="h6" fontWeight={800}>
+                      <FormattedMessage id="payroll-period-approval-details" />
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-approved-at" />
+                        </Typography>
+                        <Typography fontWeight={700}>{formatDateTime(intl.locale, selectedPeriod.approvedAtUtc)}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-approved-by" />
+                        </Typography>
+                        <Typography fontWeight={700}>{selectedPeriod.approvedByDisplayName ?? '-'}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="body2" color="text.secondary">
+                          <FormattedMessage id="payroll-period-approval-notes" />
+                        </Typography>
+                        <Typography fontWeight={700}>{selectedPeriod.approvalNotes ?? '-'}</Typography>
+                      </Grid>
+                    </Grid>
+                  </Stack>
+                </Card>
+              )}
 
               <Card sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
                 <Stack spacing={1.5}>
@@ -682,6 +791,56 @@ export default function PayrollPeriodsPage() {
         <DialogActions>
           <Button onClick={() => setSelectedPeriodId(null)}>
             <FormattedMessage id="close" />
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={approveOpen && Boolean(selectedPeriod)} onClose={() => setApproveOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          <FormattedMessage id="payroll-period-approve-confirm-title" />
+        </DialogTitle>
+        <DialogContent>
+          {selectedPeriod && (
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                <FormattedMessage
+                  id="payroll-period-approve-confirm-message"
+                  values={{
+                    month: formatMonthLabel(intl.locale, selectedPeriod.year, selectedPeriod.month),
+                    workers: selectedPeriod.workerCount,
+                    negativeCount: selectedNegativeNetCount
+                  }}
+                />
+              </Typography>
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <SummaryCard label={intl.formatMessage({ id: 'payroll-basic-wage' })} value={formatCurrency(intl.locale, selectedPeriod.totalBasicWage)} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <SummaryCard label={intl.formatMessage({ id: 'payroll-net-wage' })} value={formatCurrency(intl.locale, selectedPeriod.totalNetWage)} />
+                </Grid>
+              </Grid>
+              {selectedNegativeNetCount > 0 && (
+                <Chip color="warning" label={intl.formatMessage({ id: 'payroll-period-approve-negative-net-warning' }, { count: selectedNegativeNetCount })} />
+              )}
+              <TextField
+                label={<FormattedMessage id="payroll-period-approve-notes" />}
+                value={approveNotes}
+                onChange={(event) => setApproveNotes(event.target.value)}
+                multiline
+                minRows={3}
+                fullWidth
+                placeholder={intl.formatMessage({ id: 'payroll-period-approve-notes-placeholder' })}
+              />
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setApproveOpen(false)} disabled={approveLoading}>
+            <FormattedMessage id="cancel" />
+          </Button>
+          <Button variant="contained" onClick={handleApprove} disabled={approveLoading || !selectedPeriod}>
+            <FormattedMessage id="approve" />
           </Button>
         </DialogActions>
       </Dialog>
