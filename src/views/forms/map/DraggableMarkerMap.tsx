@@ -1,12 +1,11 @@
 import { useState, useCallback } from 'react';
 
 // third party
-import { StyleSpecification } from 'maplibre-gl';
 import type { Marker } from 'maplibre-gl';
 import { Event, RMap, RMarker } from 'maplibre-react-components';
 
 // project imports
-import osm_bright from './map-data/osm_bright.json';
+import { mapStyles } from './mapStyles';
 
 // ==============================|| MAPLIBRE - DRAGGABLE MARKER MAP ||============================== //
 
@@ -21,7 +20,7 @@ export default function DraggableMarker() {
   const center: [number, number] = [marker.longitude, marker.latitude];
 
   return (
-    <RMap initialCenter={center} initialZoom={4} mapStyle={osm_bright as StyleSpecification}>
+    <RMap initialCenter={center} initialZoom={4} mapStyle={mapStyles.streets}>
       <RMarker longitude={marker.longitude} latitude={marker.latitude} draggable={true} initialAnchor="bottom" onDrag={onMarkerDrag} />
     </RMap>
   );

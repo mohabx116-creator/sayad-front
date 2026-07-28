@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react';
 import { useColorScheme, useTheme } from '@mui/material/styles';
 
 // third party
-import { StyleSpecification } from 'maplibre-gl';
 import { RMap, RSource, RLayer, RNavigationControl } from 'maplibre-react-components';
 
 // project imports
-import osm_bright from './map-data/osm_bright.json';
+import { mapStyles } from './mapStyles';
 
 interface Point {
   type: 'Point';
@@ -73,7 +72,7 @@ export default function GeoJSONAnimation() {
   }, []);
 
   return (
-    <RMap initialCenter={[72.8691665, 21.2330191]} initialZoom={5} mapStyle={osm_bright as StyleSpecification}>
+    <RMap initialCenter={[72.8691665, 21.2330191]} initialZoom={5} mapStyle={mapStyles.streets}>
       <RNavigationControl position="top-left" />
       {pointData && (
         <>

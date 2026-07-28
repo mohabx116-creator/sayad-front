@@ -1,9 +1,6 @@
 // material-ui
 import Grid from '@mui/material/Grid';
 
-// third party
-import { StyleSpecification } from 'maplibre-gl';
-
 // project imports
 import ThemeVariants from './ThemeVariants';
 import RegionalMap from './RegionalMap';
@@ -20,16 +17,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import MapContainerStyled from 'ui-component/third-party/map/MapContainerStyled';
 
 import { countries } from 'data/location';
-
-import osm_bright from './map-data/osm_bright.json';
-import alidade_smooth from './map-data/alidade_smooth.json';
-import alidade_smooth_dark from './map-data/alidade_smooth_dark.json';
-
-export const MAPBOX_THEMES = {
-  light: alidade_smooth as StyleSpecification,
-  dark: alidade_smooth_dark as StyleSpecification,
-  streets: osm_bright as StyleSpecification
-};
+import { mapStyles } from './mapStyles';
 
 // ==============================|| MAPLIBRE - MAP ||============================== //
 
@@ -39,7 +27,7 @@ export default function Map() {
       <Grid size={12}>
         <MainCard title="Theme Variants">
           <MapContainerStyled>
-            <ThemeVariants themes={MAPBOX_THEMES} />
+            <ThemeVariants themes={mapStyles} />
           </MapContainerStyled>
         </MainCard>
       </Grid>

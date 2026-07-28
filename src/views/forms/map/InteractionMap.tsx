@@ -8,11 +8,10 @@ import FormGroup from '@mui/material/FormGroup';
 import Box from '@mui/material/Box';
 
 // third party
-import { StyleSpecification } from 'maplibre-gl';
 import { RMap, RNavigationControl, RGeolocateControl, RFullscreenControl, RScaleControl } from 'maplibre-react-components';
 
 // project imports
-import osm_bright from './map-data/osm_bright.json';
+import { mapStyles } from './mapStyles';
 
 const interactionList = [
   { key: 'dragPan', label: 'Drag Pan' },
@@ -37,7 +36,7 @@ export default function InteractionMap() {
 
   return (
     <Box sx={{ height: 1 }}>
-      <RMap initialCenter={[72.8, 21.1]} initialZoom={4} mapStyle={osm_bright as StyleSpecification} {...interactions}>
+      <RMap initialCenter={[72.8, 21.1]} initialZoom={4} mapStyle={mapStyles.streets} {...interactions}>
         <RGeolocateControl position="top-left" />
         <RFullscreenControl position="top-left" />
         <RNavigationControl position="top-left" />

@@ -6,12 +6,11 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // third party
-import { StyleSpecification } from 'maplibre-gl';
 import { RMap, RMarker, RPopup, RNavigationControl, markerPopupOffset } from 'maplibre-react-components';
 
 // project imports
 import SubCard from 'ui-component/cards/SubCard';
-import osm_bright from './map-data/osm_bright.json';
+import { mapStyles } from './mapStyles';
 
 type CountryProps = {
   name: string;
@@ -31,7 +30,7 @@ export default function MarkersPopups({ data }: Props) {
   const [popupInfo, setPopupInfo] = useState<CountryProps | null>(null);
 
   return (
-    <RMap initialZoom={3.5} initialCenter={[78.96, 20.59]} mapStyle={osm_bright as StyleSpecification}>
+    <RMap initialZoom={3.5} initialCenter={[78.96, 20.59]} mapStyle={mapStyles.streets}>
       <RNavigationControl position="top-left" />
       {data.map((city, index) => (
         <RMarker

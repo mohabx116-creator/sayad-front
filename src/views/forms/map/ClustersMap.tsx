@@ -1,12 +1,10 @@
 // material-ui
 import { useColorScheme, useTheme } from '@mui/material/styles';
 
-// third-party
-import { StyleSpecification } from 'maplibre-gl';
 import { RMap, RLayer, RSource } from 'maplibre-react-components';
 
 // project imports
-import osm_bright from './map-data/osm_bright.json';
+import { mapStyles } from './mapStyles';
 
 // types
 import type { CircleLayerSpecification, SymbolLayerSpecification } from 'maplibre-gl';
@@ -66,7 +64,7 @@ export default function ClustersMap() {
   };
 
   return (
-    <RMap initialCenter={[-0.5, 47.5]} initialZoom={1} mapStyle={osm_bright as StyleSpecification}>
+    <RMap initialCenter={[-0.5, 47.5]} initialZoom={1} mapStyle={mapStyles.streets}>
       <RSource
         id="earthquakes"
         type="geojson"
