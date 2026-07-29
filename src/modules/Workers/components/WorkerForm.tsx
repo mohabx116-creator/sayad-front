@@ -155,6 +155,7 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
     resolver: workerResolver(mode),
     values: initialValues
   });
+  const expectedMonthlySalary = Number(form.watch('dailyWage') || 0) * 30;
 
   useEffect(() => {
     form.reset(initialValues);
@@ -291,6 +292,15 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
                   onChange={(event) => field.onChange(event.target.value)}
                 />
               )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              value={expectedMonthlySalary.toFixed(2)}
+              label={<FormattedMessage id="expected-monthly-salary" />}
+              inputProps={{ readOnly: true, dir: 'ltr' }}
+              sx={numberInputSx}
             />
           </Grid>
           <Grid item xs={12} md={6}>

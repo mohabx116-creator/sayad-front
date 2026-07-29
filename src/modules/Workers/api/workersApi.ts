@@ -6,9 +6,13 @@ import type {
   CreateWorkerRequest,
   ListMeta,
   UpdateWorkerRequest,
+  WorkerMonthlySalaryDto,
+  WorkerMonthlySalaryListItemDto,
+  WorkerMonthlySalaryRequest,
   WorkerDto,
   WorkerListItemDto,
   WorkerListParams,
+  WorkerSalarySettingsDto,
   WorkerWageProfileDto,
   WorkerWageProfileInput
 } from '../types/workers.types';
@@ -52,6 +56,18 @@ export function getWorkerWageProfiles(id: string) {
   return unwrap(axiosServices.get<ApiResponse<WorkerWageProfileDto[]>>(`/api/labor/workers/${id}/wage-profiles`));
 }
 
+export function getWorkerSalarySettings(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<WorkerSalarySettingsDto>>(`/api/labor/workers/${id}/salary-settings`));
+}
+
+export function getWorkerMonthlySalaries(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<WorkerMonthlySalaryListItemDto[]>>(`/api/labor/workers/${id}/monthly-salaries`));
+}
+
+export function getWorkerMonthlySalary(id: string, salaryId: string) {
+  return unwrap(axiosServices.get<ApiResponse<WorkerMonthlySalaryDto>>(`/api/labor/workers/${id}/monthly-salaries/${salaryId}`));
+}
+
 export function createWorker(request: CreateWorkerRequest) {
   return unwrap(axiosServices.post<ApiResponse<WorkerDto>>('/api/labor/workers', request));
 }
@@ -74,4 +90,8 @@ export function deleteWorker(id: string, rowVersion: string) {
 
 export function upsertWorkerWageProfile(id: string, request: WorkerWageProfileInput) {
   return unwrap(axiosServices.post<ApiResponse<WorkerWageProfileDto>>(`/api/labor/workers/${id}/wage-profiles`, request));
+}
+
+export function createWorkerMonthlySalary(id: string, request: WorkerMonthlySalaryRequest) {
+  return unwrap(axiosServices.post<ApiResponse<WorkerMonthlySalaryDto>>(`/api/labor/workers/${id}/monthly-salaries`, request));
 }

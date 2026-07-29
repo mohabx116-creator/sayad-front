@@ -25,6 +25,20 @@ export type WorkerWageProfileDto = {
   rowVersion: string;
 };
 
+export type WorkerSalarySettingsDto = {
+  workerId: string;
+  workerCode: string;
+  workerName: string;
+  operationalJobId: string;
+  operationalJobName: string;
+  dailyWage: number;
+  mealAllowance: number;
+  expectedMonthlySalary: number;
+  effectiveFrom: string | null;
+  updatedAtUtc: string | null;
+  rowVersion: string | null;
+};
+
 export type WorkerDto = {
   id: string;
   code: string;
@@ -55,6 +69,55 @@ export type WorkerListItemDto = {
   updatedAtUtc: string | null;
   rowVersion: string;
   currentWageProfile: WorkerWageProfileDto | null;
+};
+
+export type WorkerMonthlySalaryDeductionDto = {
+  amount: number;
+  reason: string;
+  source: string;
+};
+
+export type WorkerMonthlySalaryListItemDto = {
+  id: string;
+  workerId: string;
+  year: number;
+  month: number;
+  monthLabel: string;
+  baseSalary: number;
+  additions: number;
+  deductions: number;
+  netSalary: number;
+  createdAtUtc: string;
+  updatedAtUtc: string | null;
+  rowVersion: string;
+};
+
+export type WorkerMonthlySalaryDto = {
+  id: string;
+  workerId: string;
+  workerCode: string;
+  workerName: string;
+  operationalJobId: string;
+  operationalJobName: string;
+  year: number;
+  month: number;
+  monthLabel: string;
+  dailyWageSnapshot: number;
+  mealAllowanceSnapshot: number;
+  calculatedDays: number;
+  absenceDays: number;
+  normalOvertimeAmount: number;
+  nightOvertimeAmount: number;
+  bonusAmount: number;
+  baseSalary: number;
+  totalAdditions: number;
+  totalDeductions: number;
+  netSalary: number;
+  notes: string | null;
+  createdAtUtc: string;
+  updatedAtUtc: string | null;
+  rowVersion: string;
+  deductions: WorkerMonthlySalaryDeductionDto[];
 };
 
 export type WorkerListParams = {
@@ -93,6 +156,24 @@ export type CreateWorkerRequest = {
 export type UpdateWorkerRequest = CreateWorkerRequest & {
   code: string;
   rowVersion: string;
+};
+
+export type WorkerMonthlySalaryDeductionInput = {
+  amount: number;
+  reason: string;
+  source: 'Manager' | 'Accountant';
+};
+
+export type WorkerMonthlySalaryRequest = {
+  year: number;
+  month: number;
+  calculatedDays?: number;
+  absenceDays?: number;
+  normalOvertimeAmount?: number;
+  nightOvertimeAmount?: number;
+  bonusAmount?: number;
+  deductions?: WorkerMonthlySalaryDeductionInput[];
+  notes?: string | null;
 };
 
 export type OperationalJobOption = OperationalJobListItemDto;

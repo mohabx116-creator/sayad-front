@@ -12,8 +12,6 @@ import { PARTIES_PERMISSIONS } from 'modules/Parties/utils/parties.constants';
 import { PURCHASES_PERMISSIONS } from 'modules/Purchases/utils/purchases.constants';
 import { WORKERS_PERMISSIONS } from 'modules/Workers/utils/workers.constants';
 import { OPERATIONAL_JOBS_PERMISSIONS } from 'modules/OperationalJobs/utils/operationalJobs.constants';
-import { MONTHLY_MOVEMENTS_PERMISSIONS } from 'modules/LaborMonthlyMovements/utils/monthlyMovements.constants';
-import { PAYROLL_PERMISSIONS } from 'modules/Payroll/utils/payroll.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
@@ -35,10 +33,6 @@ const WorkersListPage = Loadable(lazy(() => import('modules/Workers/pages/Worker
 const WorkerCreatePage = Loadable(lazy(() => import('modules/Workers/pages/WorkerCreatePage')));
 const WorkerDetailsPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerDetailsPage')));
 const WorkerEditPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerEditPage')));
-const MonthlyMovementsListPage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementsListPage')));
-const MonthlyMovementCreatePage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementCreatePage')));
-const MonthlyMovementEditPage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementEditPage')));
-const PayrollPeriodsPage = Loadable(lazy(() => import('modules/Payroll/pages/PayrollPeriodsPage')));
 const OperationalJobsListPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobsListPage')));
 const OperationalJobCreatePage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobCreatePage')));
 const OperationalJobDetailsPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobDetailsPage')));
@@ -166,42 +160,11 @@ const MainRoutes = {
         </PermissionRouteGuard>
       )
     },
-    {
-      path: '/labor/monthly-movements',
-      element: (
-        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.view}>
-          <MonthlyMovementsListPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/labor/monthly-movements/new',
-      element: (
-        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.create}>
-          <MonthlyMovementCreatePage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/labor/monthly-movements/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.view}>
-          <MonthlyMovementEditPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/labor/payroll',
-      element: (
-        <PermissionRouteGuard permission={PAYROLL_PERMISSIONS.view}>
-          <PayrollPeriodsPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/payroll/periods',
-      element: <Navigate to="/labor/payroll" replace />
-    },
+    { path: '/labor/monthly-movements', element: <Navigate to="/labor/workers" replace /> },
+    { path: '/labor/monthly-movements/new', element: <Navigate to="/labor/workers" replace /> },
+    { path: '/labor/monthly-movements/:id/edit', element: <Navigate to="/labor/workers" replace /> },
+    { path: '/labor/payroll', element: <Navigate to="/labor/workers" replace /> },
+    { path: '/payroll/periods', element: <Navigate to="/labor/workers" replace /> },
     {
       path: '/labor/operational-jobs',
       element: (

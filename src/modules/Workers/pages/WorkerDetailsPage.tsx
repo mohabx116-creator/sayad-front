@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
+import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import { IconArrowLeft, IconEdit, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
+import { IconArrowLeft, IconCoins, IconEdit, IconEye, IconPlus, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -16,36 +21,83 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import { activateWorker, deactivateWorker } from '../api/workersApi';
+import WorkerMonthlySalaryDialog from '../components/WorkerMonthlySalaryDialog';
 import WorkerStatusChip from '../components/WorkerStatusChip';
-import { useWorker } from '../hooks/useWorkers';
+import { useWorker, useWorkerMonthlySalaries, useWorkerSalarySettings } from '../hooks/useWorkers';
 import { WORKERS_PERMISSIONS } from '../utils/workers.constants';
 
 export default function WorkerDetailsPage() {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const intl = useIntl();
   const dispatch = useDispatch();
   const [isSaving, setIsSaving] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [viewSalaryId, setViewSalaryId] = useState<string | null>(null);
   const { worker, error, isLoading, mutate: mutateWorker } = useWorker(id);
+  const { settings: salarySettings, mutate: mutateSalarySettings } = useWorkerSalarySettings(id);
+  const { items: monthlySalaries, mutate: mutateMonthlySalaries } = useWorkerMonthlySalaries(id);
+
+  useEffect(() => {
+    if (searchParams.get('salary') === 'create') {
+      setCreateDialogOpen(true);
+    }
+  }, [searchParams]);
+
+  const currentSalarySettings = useMemo(() => {
+    if (!worker) {
+      return salarySettings;
+    }
+
+    if (salarySettings) {
+      return salarySettings;
+    }
+
+    return worker.currentWageProfile
+      ? {
+          workerId: worker.id,
+          workerCode: worker.code,
+          workerName: worker.name,
+          operationalJobId: worker.operationalJobId,
+          operationalJobName: worker.operationalJobName,
+          dailyWage: worker.currentWageProfile.dailyWage,
+          mealAllowance: worker.currentWageProfile.mealAllowanceValue,
+          expectedMonthlySalary: worker.currentWageProfile.dailyWage * 30,
+          effectiveFrom: worker.currentWageProfile.effectiveFrom,
+          updatedAtUtc: worker.currentWageProfile.updatedAtUtc,
+          rowVersion: worker.currentWageProfile.rowVersion
+        }
+      : null;
+  }, [salarySettings, worker]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
-  const refresh = async () => {
-    await mutateWorker();
+  const refreshAll = async () => {
+    await Promise.all([mutateWorker(), mutateSalarySettings(), mutateMonthlySalaries()]);
   };
 
   const runAction = async (action: () => Promise<unknown>) => {
     try {
       setIsSaving(true);
       await action();
-      await refresh();
+      await refreshAll();
       notify(intl.formatMessage({ id: 'workers-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'workers-action-failed' }), 'error');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const closeCreateDialog = () => {
+    setCreateDialogOpen(false);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete('salary');
+      return next;
+    }, { replace: true });
   };
 
   if (isLoading) {
@@ -56,7 +108,7 @@ export default function WorkerDetailsPage() {
     return <Typography color="error"><FormattedMessage id="workers-load-error" /></Typography>;
   }
 
-  const currentProfile = worker.currentWageProfile;
+  const expectedMonthlySalary = currentSalarySettings ? currentSalarySettings.expectedMonthlySalary : 0;
 
   return (
     <>
@@ -73,6 +125,16 @@ export default function WorkerDetailsPage() {
               <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
                 <Button component={Link} to={`/labor/workers/${worker.id}/edit`} variant="outlined" startIcon={<IconEdit size={18} />}>
                   <FormattedMessage id="edit" />
+                </Button>
+              </PermissionGuard>
+              <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
+                <Button
+                  variant="contained"
+                  startIcon={<IconCoins size={18} />}
+                  disabled={!currentSalarySettings}
+                  onClick={() => setCreateDialogOpen(true)}
+                >
+                  <FormattedMessage id="monthly-salary" />
                 </Button>
               </PermissionGuard>
               <PermissionGuard permission={WORKERS_PERMISSIONS.changeStatus}>
@@ -130,19 +192,19 @@ export default function WorkerDetailsPage() {
         </MainCard>
 
         <MainCard title={<FormattedMessage id="worker-current-wage" />}>
-          {currentProfile ? (
+          {currentSalarySettings ? (
             <Grid container spacing={2.5}>
               <Grid item xs={12} md={4}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-wage-effective-from" /></Typography>
-                <Typography variant="h5">{currentProfile.effectiveFrom}</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
                 <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-daily-wage" /></Typography>
-                <Typography variant="h5" dir="ltr">{currentProfile.dailyWage.toFixed(2)}</Typography>
+                <Typography variant="h5" dir="ltr">{currentSalarySettings.dailyWage.toFixed(2)}</Typography>
               </Grid>
               <Grid item xs={12} md={4}>
                 <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-meal-allowance" /></Typography>
-                <Typography variant="h5" dir="ltr">{currentProfile.mealAllowanceValue.toFixed(2)}</Typography>
+                <Typography variant="h5" dir="ltr">{currentSalarySettings.mealAllowance.toFixed(2)}</Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="body2" color="text.secondary"><FormattedMessage id="expected-monthly-salary" /></Typography>
+                <Typography variant="h5" dir="ltr">{expectedMonthlySalary.toFixed(2)}</Typography>
               </Grid>
             </Grid>
           ) : (
@@ -152,14 +214,76 @@ export default function WorkerDetailsPage() {
           )}
         </MainCard>
 
-        <MainCard title={<FormattedMessage id="worker-summary-card" />}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
-            <Chip label={`${intl.formatMessage({ id: 'worker-code' })}: ${worker.code}`} variant="outlined" />
-            <Chip label={`${intl.formatMessage({ id: 'worker-operational-job' })}: ${worker.operationalJobName}`} variant="outlined" />
-            <Chip label={`${intl.formatMessage({ id: 'status' })}: ${intl.formatMessage({ id: worker.isActive ? 'active' : 'inactive' })}`} variant="outlined" />
-          </Stack>
+        <MainCard
+          title={<FormattedMessage id="monthly-salary-history" />}
+          secondary={
+            <Button variant="outlined" startIcon={<IconPlus size={18} />} onClick={() => setCreateDialogOpen(true)}>
+              <FormattedMessage id="monthly-salary" />
+            </Button>
+          }
+        >
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell><FormattedMessage id="month" /></TableCell>
+                <TableCell><FormattedMessage id="payroll-basic-wage" /></TableCell>
+                <TableCell><FormattedMessage id="total-additions" /></TableCell>
+                <TableCell><FormattedMessage id="payroll-total-deductions" /></TableCell>
+                <TableCell><FormattedMessage id="net-salary" /></TableCell>
+                <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {monthlySalaries.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <Typography color="text.secondary">
+                      <FormattedMessage id="worker-wage-empty" />
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : monthlySalaries.map((salary) => (
+                <TableRow key={salary.id}>
+                  <TableCell>{salary.monthLabel}</TableCell>
+                  <TableCell dir="ltr">{salary.baseSalary.toFixed(2)}</TableCell>
+                  <TableCell dir="ltr">{salary.additions.toFixed(2)}</TableCell>
+                  <TableCell dir="ltr">{salary.deductions.toFixed(2)}</TableCell>
+                  <TableCell dir="ltr">{salary.netSalary.toFixed(2)}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => setViewSalaryId(salary.id)} size="small" aria-label={intl.formatMessage({ id: 'view' })}>
+                      <IconEye size={18} />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </MainCard>
+
       </Stack>
+
+      {currentSalarySettings && (
+        <WorkerMonthlySalaryDialog
+          open={createDialogOpen}
+          mode="create"
+          workerId={worker.id}
+          salarySettings={currentSalarySettings}
+          onClose={closeCreateDialog}
+          onSaved={async () => {
+            await mutateMonthlySalaries();
+          }}
+        />
+      )}
+
+      {viewSalaryId && (
+        <WorkerMonthlySalaryDialog
+          open
+          mode="view"
+          workerId={worker.id}
+          monthlySalaryId={viewSalaryId}
+          onClose={() => setViewSalaryId(null)}
+        />
+      )}
     </>
   );
 }

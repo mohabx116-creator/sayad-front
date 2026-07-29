@@ -3,7 +3,16 @@ import useSWR from 'swr';
 
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import type { ListMeta, WorkerDto, WorkerListItemDto, WorkerListParams, WorkerWageProfileDto } from '../types/workers.types';
+import type {
+  ListMeta,
+  WorkerDto,
+  WorkerListItemDto,
+  WorkerListParams,
+  WorkerMonthlySalaryDto,
+  WorkerMonthlySalaryListItemDto,
+  WorkerSalarySettingsDto,
+  WorkerWageProfileDto
+} from '../types/workers.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams();
@@ -36,4 +45,19 @@ export function useWorker(id?: string) {
 export function useWorkerWageProfiles(id?: string) {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<WorkerWageProfileDto[]>>(id ? `/api/labor/workers/${id}/wage-profiles` : null, fetcher);
   return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useWorkerSalarySettings(id?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<WorkerSalarySettingsDto>>(id ? `/api/labor/workers/${id}/salary-settings` : null, fetcher);
+  return useMemo(() => ({ settings: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useWorkerMonthlySalaries(id?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<WorkerMonthlySalaryListItemDto[]>>(id ? `/api/labor/workers/${id}/monthly-salaries` : null, fetcher);
+  return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useWorkerMonthlySalary(workerId?: string, salaryId?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<WorkerMonthlySalaryDto>>(workerId && salaryId ? `/api/labor/workers/${workerId}/monthly-salaries/${salaryId}` : null, fetcher);
+  return useMemo(() => ({ salary: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }

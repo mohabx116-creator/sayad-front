@@ -17,7 +17,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
+import { IconCoins, IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -179,7 +179,7 @@ export default function WorkersListPage() {
                     <TableCell><FormattedMessage id="worker-mobile-number" /></TableCell>
                     <TableCell><FormattedMessage id="worker-operational-job" /></TableCell>
                     <TableCell><FormattedMessage id="worker-daily-wage" /></TableCell>
-                    <TableCell><FormattedMessage id="worker-meal-allowance" /></TableCell>
+                    <TableCell><FormattedMessage id="expected-monthly-salary" /></TableCell>
                     <TableCell><FormattedMessage id="status" /></TableCell>
                     <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
                   </TableRow>
@@ -191,7 +191,7 @@ export default function WorkersListPage() {
                       <TableCell dir="ltr">{worker.mobileNumber ?? '-'}</TableCell>
                       <TableCell>{worker.operationalJobName}</TableCell>
                       <TableCell dir="ltr">{worker.currentWageProfile ? worker.currentWageProfile.dailyWage.toFixed(2) : '-'}</TableCell>
-                      <TableCell dir="ltr">{worker.currentWageProfile ? worker.currentWageProfile.mealAllowanceValue.toFixed(2) : '-'}</TableCell>
+                      <TableCell dir="ltr">{worker.currentWageProfile ? (worker.currentWageProfile.dailyWage * 30).toFixed(2) : '-'}</TableCell>
                       <TableCell><WorkerStatusChip isActive={worker.isActive} /></TableCell>
                       <TableCell align="center">
                         <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap">
@@ -203,6 +203,11 @@ export default function WorkersListPage() {
                           <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
                             <IconButton component={Link} to={`/labor/workers/${worker.id}/edit`} size="small">
                               <IconEdit size={18} />
+                            </IconButton>
+                          </PermissionGuard>
+                          <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
+                            <IconButton component={Link} to={`/labor/workers/${worker.id}?salary=create`} size="small" aria-label={intl.formatMessage({ id: 'monthly-salary' })}>
+                              <IconCoins size={18} />
                             </IconButton>
                           </PermissionGuard>
                           <PermissionGuard permission={WORKERS_PERMISSIONS.changeStatus}>
