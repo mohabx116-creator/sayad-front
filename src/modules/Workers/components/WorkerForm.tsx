@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import type { Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -18,7 +18,6 @@ import { IconDeviceFloppy, IconUser, IconWallet } from '@tabler/icons-react';
 
 import { createWorkerSchema, updateWorkerSchema } from '../schemas/worker.schema';
 import type { CreateWorkerRequest, UpdateWorkerRequest, WorkerDto, WorkerListItemDto } from '../types/workers.types';
-import { WORKER_MEAL_ALLOWANCE_OPTIONS, WORKER_OVERTIME_CALCULATION_OPTIONS } from '../utils/workers.constants';
 import type { OperationalJobOption } from '../types/workers.types';
 
 const numberInputSx = {
@@ -30,23 +29,6 @@ const numberInputSx = {
     margin: 0
   }
 } as const;
-
-function formatMoney(locale: string, value: number) {
-  return new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value);
-}
-
-function getMealAllowanceValueLabelId(type: string) {
-  if (type === '2') return 'meal-allowance-value-per-day';
-  return 'meal-allowance-value-fixed';
-}
-
-function getOvertimeRateLabelId(type: string) {
-  if (type === '2') return 'overtime-rate-multiplier';
-  return 'overtime-rate-hourly';
-}
 
 export type WorkerFormValues = {
   code: string;
@@ -88,7 +70,7 @@ export const emptyWorkerValues: WorkerFormValues = {
   wageEffectiveFrom: new Date().toISOString().slice(0, 10),
   dailyWage: '',
   monthlyDaysBasis: '30',
-  mealAllowanceType: '0',
+  mealAllowanceType: '1',
   mealAllowanceValue: '0',
   overtimeCalculationType: '0',
   overtimeRate: '0',
@@ -107,7 +89,7 @@ export function toWorkerFormValues(worker: WorkerDto): WorkerFormValues {
     wageEffectiveFrom: worker.currentWageProfile?.effectiveFrom ?? new Date().toISOString().slice(0, 10),
     dailyWage: worker.currentWageProfile?.dailyWage == null ? '' : worker.currentWageProfile.dailyWage.toFixed(2),
     monthlyDaysBasis: worker.currentWageProfile?.monthlyDaysBasis?.toString() ?? '30',
-    mealAllowanceType: worker.currentWageProfile?.mealAllowanceType?.toString() ?? '0',
+    mealAllowanceType: worker.currentWageProfile?.mealAllowanceType?.toString() ?? '1',
     mealAllowanceValue: worker.currentWageProfile?.mealAllowanceValue == null ? '0' : worker.currentWageProfile.mealAllowanceValue.toFixed(2),
     overtimeCalculationType: worker.currentWageProfile?.overtimeCalculationType?.toString() ?? '0',
     overtimeRate: worker.currentWageProfile?.overtimeRate == null ? '0' : worker.currentWageProfile.overtimeRate.toFixed(4),
@@ -169,61 +151,20 @@ function workerResolver(mode: 'create' | 'edit'): Resolver<WorkerFormValues> {
 }
 
 export default function WorkerForm({ mode, initialValues, operationalJobs, isSaving = false, onCancel, onSubmit }: WorkerFormProps) {
-  const intl = useIntl();
   const form = useForm<WorkerFormValues>({
     resolver: workerResolver(mode),
     values: initialValues
   });
-  const mealAllowanceType = useWatch({ control: form.control, name: 'mealAllowanceType' });
-  const overtimeCalculationType = useWatch({ control: form.control, name: 'overtimeCalculationType' });
-  const dailyWage = useWatch({ control: form.control, name: 'dailyWage' });
-  const monthlyDaysBasis = useWatch({ control: form.control, name: 'monthlyDaysBasis' });
-
-  const expectedMonthlyWage = (() => {
-    const wage = Number(dailyWage);
-    const days = Number(monthlyDaysBasis);
-    if (!Number.isFinite(wage) || !Number.isFinite(days)) {
-      return 0;
-    }
-    return wage * days;
-  })();
 
   useEffect(() => {
     form.reset(initialValues);
   }, [form, initialValues]);
-
-  useEffect(() => {
-    if (mealAllowanceType === '0' && form.getValues('mealAllowanceValue') !== '0') {
-      form.setValue('mealAllowanceValue', '0', { shouldDirty: false, shouldValidate: true });
-    }
-  }, [form, mealAllowanceType]);
-
-  useEffect(() => {
-    if (overtimeCalculationType === '0' && form.getValues('overtimeRate') !== '0') {
-      form.setValue('overtimeRate', '0', { shouldDirty: false, shouldValidate: true });
-    }
-  }, [form, overtimeCalculationType]);
 
   return (
     <Stack component="form" spacing={4} onSubmit={form.handleSubmit(onSubmit)}>
       <Box>
         <SectionHeader icon={IconUser} titleId="worker-basic-information" />
         <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Controller
-              name="code"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label={<FormattedMessage id="worker-code" />}
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message ?? <FormattedMessage id="worker-code-help" />}
-                />
-              )}
-            />
-          </Grid>
           <Grid item xs={12} md={8}>
             <Controller
               name="name"
@@ -333,24 +274,7 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
       <Box>
         <SectionHeader icon={IconWallet} titleId="worker-wage-settings" />
         <Grid container spacing={2.5}>
-          <Grid item xs={12} md={4}>
-            <Controller
-              name="wageEffectiveFrom"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <TextField
-                  {...field}
-                  type="date"
-                  fullWidth
-                  label={<FormattedMessage id="worker-wage-effective-from" />}
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
-                  InputLabelProps={{ shrink: true }}
-                />
-              )}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={6}>
             <Controller
               name="dailyWage"
               control={form.control}
@@ -369,120 +293,21 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
               )}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={6}>
             <Controller
-              name="monthlyDaysBasis"
+              name="mealAllowanceValue"
               control={form.control}
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}
                   fullWidth
                   type="number"
-                  label={<FormattedMessage id="worker-monthly-days-basis" />}
+                  label={<FormattedMessage id="worker-meal-allowance" />}
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
-                  inputProps={{ min: 1, max: 31, step: 1, dir: 'ltr', inputMode: 'numeric' }}
+                  inputProps={{ min: 0, step: '0.01', dir: 'ltr', inputMode: 'decimal' }}
                   sx={numberInputSx}
                   onChange={(event) => field.onChange(event.target.value)}
-                />
-              )}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label={<FormattedMessage id="worker-expected-monthly-wage" />}
-              value={formatMoney(intl.locale, expectedMonthlyWage)}
-              InputProps={{ readOnly: true }}
-              helperText={<FormattedMessage id="worker-expected-monthly-wage-help" defaultMessage="Calculated from daily wage and monthly days basis." />}
-            />
-          </Grid>
-          <Grid item xs={12} md={mealAllowanceType === '0' ? 12 : 6}>
-            <Controller
-              name="mealAllowanceType"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <TextField {...field} select fullWidth label={<FormattedMessage id="meal-allowance-type" />} error={!!fieldState.error} helperText={fieldState.error?.message}>
-                  {WORKER_MEAL_ALLOWANCE_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      <FormattedMessage id={option.labelId} />
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
-            />
-          </Grid>
-          {mealAllowanceType !== '0' && (
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="mealAllowanceValue"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    type="number"
-                    label={<FormattedMessage id={getMealAllowanceValueLabelId(mealAllowanceType)} />}
-                    error={!!fieldState.error}
-                    helperText={fieldState.error?.message}
-                    inputProps={{ min: 0, step: '0.01', dir: 'ltr', inputMode: 'decimal' }}
-                    sx={numberInputSx}
-                    onChange={(event) => field.onChange(event.target.value)}
-                  />
-                )}
-              />
-            </Grid>
-          )}
-          <Grid item xs={12} md={overtimeCalculationType === '0' ? 12 : 6}>
-            <Controller
-              name="overtimeCalculationType"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <TextField {...field} select fullWidth label={<FormattedMessage id="overtime-calculation-type" />} error={!!fieldState.error} helperText={fieldState.error?.message}>
-                  {WORKER_OVERTIME_CALCULATION_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      <FormattedMessage id={option.labelId} />
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
-            />
-          </Grid>
-          {overtimeCalculationType !== '0' && (
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="overtimeRate"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    type="number"
-                    label={<FormattedMessage id={getOvertimeRateLabelId(overtimeCalculationType)} />}
-                    error={!!fieldState.error}
-                    helperText={fieldState.error?.message}
-                    inputProps={{ min: 0, step: '0.0001', dir: 'ltr', inputMode: 'decimal' }}
-                    sx={numberInputSx}
-                    onChange={(event) => field.onChange(event.target.value)}
-                  />
-                )}
-              />
-            </Grid>
-          )}
-          <Grid item xs={12}>
-            <Controller
-              name="wageNotes"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <TextField
-                  {...field}
-                  value={field.value ?? ''}
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  label={<FormattedMessage id="worker-wage-notes" />}
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
                 />
               )}
             />

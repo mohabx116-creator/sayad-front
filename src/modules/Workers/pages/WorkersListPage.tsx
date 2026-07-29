@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/GridLegacy';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -18,7 +17,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -27,7 +26,7 @@ import { useOperationalJobs } from 'modules/OperationalJobs/hooks/useOperational
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import { activateWorker, deactivateWorker, deleteWorker } from '../api/workersApi';
+import { activateWorker, deactivateWorker } from '../api/workersApi';
 import WorkerStatusChip from '../components/WorkerStatusChip';
 import { useWorkers } from '../hooks/useWorkers';
 import { WORKERS_PAGE_SIZE, WORKERS_PERMISSIONS } from '../utils/workers.constants';
@@ -82,17 +81,6 @@ export default function WorkersListPage() {
     }
   };
 
-  const handleDelete = async (worker: typeof items[number]) => {
-    if (!window.confirm(intl.formatMessage({ id: 'worker-delete-confirm' }, { code: worker.code }))) {
-      return;
-    }
-
-    await runAction(() => deleteWorker(worker.id, worker.rowVersion));
-  };
-
-  const activeCount = items.filter((worker) => worker.isActive).length;
-  const inactiveCount = items.length - activeCount;
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Breadcrumbs custom heading="workers" links={[{ title: 'labor', to: '/labor/workers' }, { title: 'workers' }]} />
@@ -104,33 +92,6 @@ export default function WorkersListPage() {
           <FormattedMessage id="workers-page-description" />
         </Typography>
       </Box>
-
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
-          <MainCard>
-            <Stack spacing={1}>
-              <Typography variant="body2" color="text.secondary"><FormattedMessage id="workers-summary-total" /></Typography>
-              <Typography variant="h3" sx={{ fontWeight: 700 }}>{meta.totalCount}</Typography>
-            </Stack>
-          </MainCard>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <MainCard>
-            <Stack spacing={1}>
-              <Typography variant="body2" color="text.secondary"><FormattedMessage id="workers-summary-active" /></Typography>
-              <Typography variant="h3" sx={{ fontWeight: 700 }}>{activeCount}</Typography>
-            </Stack>
-          </MainCard>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <MainCard>
-            <Stack spacing={1}>
-              <Typography variant="body2" color="text.secondary"><FormattedMessage id="workers-summary-inactive" /></Typography>
-              <Typography variant="h3" sx={{ fontWeight: 700 }}>{inactiveCount}</Typography>
-            </Stack>
-          </MainCard>
-        </Grid>
-      </Grid>
 
       <MainCard content={false}>
         <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr 1fr 1fr' }, gap: 2, alignItems: 'center' }}>
@@ -214,11 +175,11 @@ export default function WorkersListPage() {
               <Table>
                 <TableHead sx={{ bgcolor: 'grey.50' }}>
                   <TableRow>
-                    <TableCell><FormattedMessage id="worker-code" /></TableCell>
                     <TableCell><FormattedMessage id="worker-name" /></TableCell>
-                    <TableCell><FormattedMessage id="worker-operational-job" /></TableCell>
                     <TableCell><FormattedMessage id="worker-mobile-number" /></TableCell>
+                    <TableCell><FormattedMessage id="worker-operational-job" /></TableCell>
                     <TableCell><FormattedMessage id="worker-daily-wage" /></TableCell>
+                    <TableCell><FormattedMessage id="worker-meal-allowance" /></TableCell>
                     <TableCell><FormattedMessage id="status" /></TableCell>
                     <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
                   </TableRow>
@@ -226,11 +187,11 @@ export default function WorkersListPage() {
                 <TableBody>
                   {items.map((worker) => (
                     <TableRow key={worker.id} hover sx={{ opacity: worker.isActive ? 1 : 0.72 }}>
-                      <TableCell sx={{ fontFamily: 'monospace' }} dir="ltr">{worker.code}</TableCell>
                       <TableCell>{worker.name}</TableCell>
-                      <TableCell>{worker.operationalJobName}</TableCell>
                       <TableCell dir="ltr">{worker.mobileNumber ?? '-'}</TableCell>
+                      <TableCell>{worker.operationalJobName}</TableCell>
                       <TableCell dir="ltr">{worker.currentWageProfile ? worker.currentWageProfile.dailyWage.toFixed(2) : '-'}</TableCell>
+                      <TableCell dir="ltr">{worker.currentWageProfile ? worker.currentWageProfile.mealAllowanceValue.toFixed(2) : '-'}</TableCell>
                       <TableCell><WorkerStatusChip isActive={worker.isActive} /></TableCell>
                       <TableCell align="center">
                         <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap">
@@ -250,11 +211,6 @@ export default function WorkersListPage() {
                               onClick={() => runAction(() => (worker.isActive ? deactivateWorker(worker.id, worker.rowVersion) : activateWorker(worker.id, worker.rowVersion)))}
                             >
                               {worker.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
-                            </IconButton>
-                          </PermissionGuard>
-                          <PermissionGuard permission={WORKERS_PERMISSIONS.delete}>
-                            <IconButton size="small" color="error" onClick={() => handleDelete(worker)}>
-                              <IconTrash size={18} />
                             </IconButton>
                           </PermissionGuard>
                         </Stack>

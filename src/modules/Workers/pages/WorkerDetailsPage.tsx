@@ -1,19 +1,13 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import { IconArrowLeft, IconEdit, IconToggleLeft, IconToggleRight, IconTrash } from '@tabler/icons-react';
+import { IconArrowLeft, IconEdit, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -21,26 +15,24 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import { activateWorker, deactivateWorker, deleteWorker } from '../api/workersApi';
+import { activateWorker, deactivateWorker } from '../api/workersApi';
 import WorkerStatusChip from '../components/WorkerStatusChip';
-import { useWorker, useWorkerWageProfiles } from '../hooks/useWorkers';
+import { useWorker } from '../hooks/useWorkers';
 import { WORKERS_PERMISSIONS } from '../utils/workers.constants';
 
 export default function WorkerDetailsPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const intl = useIntl();
   const dispatch = useDispatch();
   const [isSaving, setIsSaving] = useState(false);
   const { worker, error, isLoading, mutate: mutateWorker } = useWorker(id);
-  const { items: wageProfiles, isLoading: wageLoading, mutate: mutateWageProfiles } = useWorkerWageProfiles(id);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
   const refresh = async () => {
-    await Promise.all([mutateWorker(), mutateWageProfiles()]);
+    await mutateWorker();
   };
 
   const runAction = async (action: () => Promise<unknown>) => {
@@ -54,17 +46,6 @@ export default function WorkerDetailsPage() {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleDelete = async () => {
-    if (!worker || !window.confirm(intl.formatMessage({ id: 'worker-delete-confirm' }, { code: worker.code }))) {
-      return;
-    }
-
-    await runAction(async () => {
-      await deleteWorker(worker.id, worker.rowVersion);
-      navigate('/labor/workers', { replace: true });
-    });
   };
 
   if (isLoading) {
@@ -103,11 +84,6 @@ export default function WorkerDetailsPage() {
                   startIcon={worker.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
                 >
                   <FormattedMessage id={worker.isActive ? 'deactivate' : 'activate'} />
-                </Button>
-              </PermissionGuard>
-              <PermissionGuard permission={WORKERS_PERMISSIONS.delete}>
-                <Button color="error" variant="outlined" disabled={isSaving} onClick={handleDelete} startIcon={<IconTrash size={18} />}>
-                  <FormattedMessage id="delete" />
                 </Button>
               </PermissionGuard>
             </Stack>
@@ -165,75 +141,14 @@ export default function WorkerDetailsPage() {
                 <Typography variant="h5" dir="ltr">{currentProfile.dailyWage.toFixed(2)}</Typography>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-monthly-days-basis" /></Typography>
-                <Typography variant="h5" dir="ltr">{currentProfile.monthlyDaysBasis}</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="meal-allowance-type" /></Typography>
-                <Typography variant="h5">
-                  <FormattedMessage id={`meal-allowance-${currentProfile.mealAllowanceType}`} />
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="meal-allowance-value" /></Typography>
+                <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-meal-allowance" /></Typography>
                 <Typography variant="h5" dir="ltr">{currentProfile.mealAllowanceValue.toFixed(2)}</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="overtime-calculation-type" /></Typography>
-                <Typography variant="h5">
-                  <FormattedMessage id={`overtime-calculation-${currentProfile.overtimeCalculationType}`} />
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="overtime-rate" /></Typography>
-                <Typography variant="h5" dir="ltr">{currentProfile.overtimeRate.toFixed(4)}</Typography>
-              </Grid>
-              <Grid item xs={12} md={8}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-wage-notes" /></Typography>
-                <Typography sx={{ whiteSpace: 'pre-wrap' }}>{currentProfile.notes ?? '-'}</Typography>
               </Grid>
             </Grid>
           ) : (
             <Typography color="text.secondary">
               <FormattedMessage id="worker-wage-empty" />
             </Typography>
-          )}
-        </MainCard>
-
-        <MainCard title={<FormattedMessage id="worker-wage-history" />}>
-          {wageLoading ? (
-            <Loader />
-          ) : wageProfiles.length === 0 ? (
-            <Typography color="text.secondary">
-              <FormattedMessage id="worker-wage-empty" />
-            </Typography>
-          ) : (
-            <TableContainer>
-              <Table>
-                <TableHead sx={{ bgcolor: 'grey.50' }}>
-                  <TableRow>
-                    <TableCell><FormattedMessage id="worker-wage-effective-from" /></TableCell>
-                    <TableCell><FormattedMessage id="worker-wage-effective-to" /></TableCell>
-                    <TableCell><FormattedMessage id="worker-daily-wage" /></TableCell>
-                    <TableCell><FormattedMessage id="meal-allowance-type" /></TableCell>
-                    <TableCell><FormattedMessage id="overtime-calculation-type" /></TableCell>
-                    <TableCell><FormattedMessage id="status" /></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {wageProfiles.map((profile) => (
-                    <TableRow key={profile.id} hover>
-                      <TableCell>{profile.effectiveFrom}</TableCell>
-                      <TableCell>{profile.effectiveTo ?? '-'}</TableCell>
-                      <TableCell dir="ltr">{profile.dailyWage.toFixed(2)}</TableCell>
-                      <TableCell><FormattedMessage id={`meal-allowance-${profile.mealAllowanceType}`} /></TableCell>
-                      <TableCell><FormattedMessage id={`overtime-calculation-${profile.overtimeCalculationType}`} /></TableCell>
-                      <TableCell>{profile.isCurrent ? <FormattedMessage id="current-profile" /> : <FormattedMessage id="history" />}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
           )}
         </MainCard>
 
