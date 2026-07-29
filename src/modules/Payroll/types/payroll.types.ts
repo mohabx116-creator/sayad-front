@@ -37,6 +37,9 @@ export type PayrollStatementMovementDto = {
   id: string;
   payrollStatementId: string;
   workerMonthlyMovementId: string;
+  createdByUserId: string | null;
+  createdByDisplayName: string | null;
+  createdBySourceLabel: string;
   movementTypeSnapshot: number;
   movementTypeLabel: string;
   movementDateSnapshot: string;
@@ -45,6 +48,7 @@ export type PayrollStatementMovementDto = {
   effectSnapshot: number;
   effectLabel: string;
   reasonSnapshot: string;
+  noteSnapshot: string | null;
   createdAtUtc: string;
 };
 
@@ -140,6 +144,10 @@ export type PayrollPeriodPaymentRequest = {
   rowVersion: string;
   treasuryAccountId: string;
   paymentDate: string;
+  notes?: string | null;
+};
+
+export type PayrollPeriodUpdateInput = {
   notes?: string | null;
 };
 
