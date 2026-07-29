@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -10,9 +11,12 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -23,7 +27,10 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
+import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { IconDotsVertical, IconSearch, IconFilter, IconDownload, IconUserPlus } from '@tabler/icons-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -33,15 +40,17 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from '../components/PermissionGuard';
+import PermissionSelector from '../components/PermissionSelector';
 import RoleSelector from '../components/RoleSelector';
 import UserLockChip from '../components/UserLockChip';
 import UserStatusChip from '../components/UserStatusChip';
 import UserManagementModal from '../components/UserManagementModal';
-import { createUser, lockUser, resetUserPassword, unlockUser } from '../api/administrationApi';
-import { useRoles, useUsers } from '../hooks/useAdministration';
+import { createRole, createUser, lockUser, resetUserPassword, unlockUser } from '../api/administrationApi';
+import { usePermissions, useRoles, useUsers } from '../hooks/useAdministration';
+import { createRoleSchema } from '../schemas/role.schema';
 import { createUserSchema } from '../schemas/user.schema';
 import { resetPasswordSchema } from '../schemas/reset-password.schema';
-import type { CreateUserRequest, ResetPasswordRequest, UserDto } from '../types/administration.types';
+import type { CreateRoleRequest, CreateUserRequest, PermissionDto, ResetPasswordRequest, RoleDto, UserDto } from '../types/administration.types';
 import { ADMINISTRATION_PERMISSIONS } from '../utils/administration.constants';
 import { getAdministrationRouteBase, getAdministrationScope } from '../utils/administration-scope';
 
@@ -83,6 +92,7 @@ export default function UsersListPage() {
     isLocked
   });
   const { items: roles } = useRoles({ pageSize: 100 });
+  const { permissions, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -371,6 +381,9 @@ export default function UsersListPage() {
         <UserDialog
           dialog={dialog}
           roles={roles}
+          permissions={permissions}
+          permissionsError={permissionsError}
+          permissionsLoading={permissionsLoading}
           onClose={() => setDialog(null)}
           onSaved={() => {
             setDialog(null);
@@ -399,25 +412,68 @@ export default function UsersListPage() {
 function UserDialog({
   dialog,
   roles,
+  permissions,
+  permissionsLoading,
+  permissionsError,
   onClose,
   onSaved
 }: {
   dialog: UserDialogState;
-  roles: any[];
+  roles: RoleDto[];
+  permissions: PermissionDto[];
+  permissionsLoading: boolean;
+  permissionsError: unknown;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const intl = useIntl();
+  const theme = useTheme();
   const dispatch = useDispatch();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isSaving, setIsSaving] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<RoleDto[]>(roles);
+  const [includeCustomRole, setIncludeCustomRole] = useState(false);
+  const [createdCustomRole, setCreatedCustomRole] = useState<RoleDto | null>(null);
+  const [partialSuccessMessage, setPartialSuccessMessage] = useState<string | null>(null);
+
+  const customRoleSchema = useMemo(
+    () =>
+      createRoleSchema.refine((value) => value.permissionIds.length > 0, {
+        path: ['permissionIds'],
+        message: intl.formatMessage({ id: 'select-at-least-one-permission', defaultMessage: 'Select at least one permission.' })
+      }),
+    [intl]
+  );
+
   const createForm = useForm<CreateUserRequest>({
     resolver: zodResolver(createUserSchema),
-    values: { displayName: '', email: '', password: '', confirmPassword: '', roleIds: [] }
+    defaultValues: { displayName: '', email: '', password: '', confirmPassword: '', roleIds: [] }
   });
   const resetForm = useForm<ResetPasswordRequest>({
     resolver: zodResolver(resetPasswordSchema),
-    values: { newPassword: '', confirmPassword: '' }
+    defaultValues: { newPassword: '', confirmPassword: '' }
   });
+  const customRoleForm = useForm<CreateRoleRequest>({
+    resolver: zodResolver(customRoleSchema),
+    defaultValues: { name: '', descriptionArabic: '', descriptionEnglish: '', permissionIds: [] }
+  });
+  const customRolePermissionError = customRoleForm.formState.errors.permissionIds?.message;
+
+  useEffect(() => {
+    setAvailableRoles(roles);
+  }, [roles]);
+
+  useEffect(() => {
+    if (!dialog) return;
+
+    setIncludeCustomRole(false);
+    setCreatedCustomRole(null);
+    setPartialSuccessMessage(null);
+    setAvailableRoles(roles);
+    createForm.reset({ displayName: '', email: '', password: '', confirmPassword: '', roleIds: [] });
+    resetForm.reset({ newPassword: '', confirmPassword: '' });
+    customRoleForm.reset({ name: '', descriptionArabic: '', descriptionEnglish: '', permissionIds: [] });
+  }, [createForm, customRoleForm, dialog, resetForm, roles]);
 
   const notifyError = (error: unknown) => {
     dispatch(
@@ -444,56 +500,240 @@ function UserDialog({
 
   const save = () => {
     if (!dialog) return;
-    if (dialog.mode === 'create') void createForm.handleSubmit((values) => persist(() => createUser(values)))();
-    if (dialog.mode === 'reset' && dialog.user)
+
+    if (dialog.mode === 'create') {
+      void createForm.handleSubmit(async (values) => {
+        let createdRoleForAttempt = createdCustomRole;
+        try {
+          setIsSaving(true);
+          setPartialSuccessMessage(null);
+
+          let roleIds = [...new Set(values.roleIds)];
+
+          if (includeCustomRole) {
+            if (!createdRoleForAttempt) {
+              const isValid = await customRoleForm.trigger();
+              if (!isValid) return;
+
+              createdRoleForAttempt = await createRole(customRoleForm.getValues());
+              setCreatedCustomRole(createdRoleForAttempt);
+            }
+
+            const selectedCustomRole = createdRoleForAttempt;
+            if (!selectedCustomRole) {
+              throw new Error('Custom role creation did not complete.');
+            }
+
+            setAvailableRoles((current) => (current.some((role) => role.id === selectedCustomRole.id) ? current : [...current, selectedCustomRole]));
+
+            roleIds = [...new Set([...roleIds, selectedCustomRole.id])];
+            createForm.setValue('roleIds', roleIds, { shouldDirty: true, shouldTouch: true });
+          }
+
+          await createUser({ ...values, roleIds });
+          setCreatedCustomRole(null);
+          setPartialSuccessMessage(null);
+          onSaved();
+        } catch (error) {
+          if (createdRoleForAttempt) {
+            const roleName = createdRoleForAttempt.name || customRoleForm.getValues('name');
+            const message = intl.formatMessage({ id: 'custom-role-created-user-failed' }, { role: roleName });
+            setPartialSuccessMessage(message);
+            dispatch(openSnackbar({ open: true, message, variant: 'alert', severity: 'warning' }));
+            return;
+          }
+
+          notifyError(error);
+        } finally {
+          setIsSaving(false);
+        }
+      })();
+      return;
+    }
+
+    if (dialog.mode === 'reset' && dialog.user) {
       void resetForm.handleSubmit((values) => persist(() => resetUserPassword(dialog.user!.id, values)))();
+    }
   };
 
   return (
-    <Dialog open={Boolean(dialog)} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={Boolean(dialog)}
+      onClose={onClose}
+      fullWidth
+      fullScreen={isMobile}
+      maxWidth={dialog?.mode === 'create' ? 'md' : 'sm'}
+      PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2 } }}
+    >
       <DialogTitle>
         <FormattedMessage id={dialog?.mode === 'create' ? 'create-user' : 'reset-password'} />
       </DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ mt: 1 }}>
+      <DialogContent dividers>
+        <Stack spacing={3} sx={{ mt: 1 }}>
           {dialog?.mode === 'create' && (
             <>
-              <TextField
-                label={intl.formatMessage({ id: 'name' })}
-                {...createForm.register('displayName')}
-                error={!!createForm.formState.errors.displayName}
-                helperText={createForm.formState.errors.displayName?.message}
-              />
-              <TextField
-                label={intl.formatMessage({ id: 'email' })}
-                {...createForm.register('email')}
-                error={!!createForm.formState.errors.email}
-                helperText={createForm.formState.errors.email?.message}
-              />
-              <TextField
-                type="password"
-                label={intl.formatMessage({ id: 'password' })}
-                {...createForm.register('password')}
-                error={!!createForm.formState.errors.password}
-                helperText={createForm.formState.errors.password?.message}
-              />
-              <TextField
-                type="password"
-                label={intl.formatMessage({ id: 'confirm-password' })}
-                {...createForm.register('confirmPassword')}
-                error={!!createForm.formState.errors.confirmPassword}
-                helperText={createForm.formState.errors.confirmPassword?.message}
-              />
-              <Controller
-                control={createForm.control}
-                name="roleIds"
-                render={({ field }) => <RoleSelector roles={roles} value={field.value} onChange={field.onChange} />}
-              />
+              <Alert severity="info">
+                <FormattedMessage
+                  id="create-user-access-info"
+                  defaultMessage="Assign one or more existing roles, or create a reusable custom role during user creation. User-specific permissions are not supported."
+                />
+              </Alert>
+              {partialSuccessMessage && (
+                <Alert severity="warning">
+                  {partialSuccessMessage}
+                </Alert>
+              )}
+
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Stack spacing={2}>
+                  <Typography variant="h6">
+                    <FormattedMessage id="basic-information" />
+                  </Typography>
+                  <Stack spacing={2}>
+                    <TextField
+                      fullWidth
+                      label={intl.formatMessage({ id: 'name' })}
+                      {...createForm.register('displayName')}
+                      error={!!createForm.formState.errors.displayName}
+                      helperText={createForm.formState.errors.displayName?.message}
+                    />
+                    <TextField
+                      fullWidth
+                      label={intl.formatMessage({ id: 'email' })}
+                      {...createForm.register('email')}
+                      error={!!createForm.formState.errors.email}
+                      helperText={createForm.formState.errors.email?.message}
+                    />
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label={intl.formatMessage({ id: 'password' })}
+                        {...createForm.register('password')}
+                        error={!!createForm.formState.errors.password}
+                        helperText={createForm.formState.errors.password?.message}
+                      />
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label={intl.formatMessage({ id: 'confirm-password' })}
+                        {...createForm.register('confirmPassword')}
+                        error={!!createForm.formState.errors.confirmPassword}
+                        helperText={createForm.formState.errors.confirmPassword?.message}
+                      />
+                    </Stack>
+                  </Stack>
+                </Stack>
+              </Paper>
+
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Stack spacing={2}>
+                  <Typography variant="h6">
+                    <FormattedMessage id="roles-and-permissions" />
+                  </Typography>
+                  <Controller
+                    control={createForm.control}
+                    name="roleIds"
+                    render={({ field }) => (
+                      <RoleSelector
+                        roles={availableRoles}
+                        value={field.value}
+                        onChange={field.onChange}
+                        helperText={<FormattedMessage id="user-roles-info-alert" />}
+                      />
+                    )}
+                  />
+
+                  <Divider />
+
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={includeCustomRole}
+                        onChange={(event) => {
+                          const checked = event.target.checked;
+                          setIncludeCustomRole(checked);
+                          if (checked && createdCustomRole) {
+                            const nextRoleIds = Array.from(new Set([...createForm.getValues('roleIds'), createdCustomRole.id]));
+                            createForm.setValue('roleIds', nextRoleIds, { shouldDirty: true, shouldTouch: true });
+                          }
+                        }}
+                      />
+                    }
+                    label={<FormattedMessage id="create-custom-role" defaultMessage="Create custom role for this user" />}
+                  />
+
+                  {includeCustomRole && (
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
+                      <Stack spacing={2}>
+                        <Typography variant="subtitle1" fontWeight={700}>
+                          <FormattedMessage id="custom-role-details" defaultMessage="Custom role details" />
+                        </Typography>
+                        <Stack spacing={2}>
+                          <TextField
+                            fullWidth
+                            label={intl.formatMessage({ id: 'role-name' })}
+                            {...customRoleForm.register('name')}
+                            error={!!customRoleForm.formState.errors.name}
+                            helperText={customRoleForm.formState.errors.name?.message}
+                          />
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              fullWidth
+                              multiline
+                              minRows={2}
+                              label={intl.formatMessage({ id: 'description-arabic' })}
+                              {...customRoleForm.register('descriptionArabic')}
+                              error={!!customRoleForm.formState.errors.descriptionArabic}
+                              helperText={customRoleForm.formState.errors.descriptionArabic?.message}
+                            />
+                            <TextField
+                              fullWidth
+                              multiline
+                              minRows={2}
+                              label={intl.formatMessage({ id: 'description-english' })}
+                              {...customRoleForm.register('descriptionEnglish')}
+                              error={!!customRoleForm.formState.errors.descriptionEnglish}
+                              helperText={customRoleForm.formState.errors.descriptionEnglish?.message}
+                            />
+                          </Stack>
+                          <Controller
+                            control={customRoleForm.control}
+                            name="permissionIds"
+                            render={({ field }) => (
+                              <PermissionSelector
+                                permissions={permissions}
+                                value={field.value}
+                                onChange={field.onChange}
+                                disabled={permissionsLoading}
+                              />
+                            )}
+                          />
+                          {Boolean(permissionsError) && !permissionsLoading && (
+                            <Alert severity="error">
+                              <FormattedMessage id="administration-load-error" defaultMessage="Unable to load permissions." />
+                            </Alert>
+                          )}
+                          {customRolePermissionError && (
+                            <Typography variant="caption" color="error">
+                              {typeof customRolePermissionError === 'string'
+                                ? customRolePermissionError
+                                : intl.formatMessage({ id: 'select-at-least-one-permission' })}
+                            </Typography>
+                          )}
+                          {permissionsLoading && <Loader />}
+                        </Stack>
+                      </Stack>
+                    </Paper>
+                  )}
+                </Stack>
+              </Paper>
             </>
           )}
           {dialog?.mode === 'reset' && (
-            <>
+            <Stack spacing={2}>
               <TextField
+                fullWidth
                 type="password"
                 label={intl.formatMessage({ id: 'new-password' })}
                 {...resetForm.register('newPassword')}
@@ -501,13 +741,14 @@ function UserDialog({
                 helperText={resetForm.formState.errors.newPassword?.message}
               />
               <TextField
+                fullWidth
                 type="password"
                 label={intl.formatMessage({ id: 'confirm-password' })}
                 {...resetForm.register('confirmPassword')}
                 error={!!resetForm.formState.errors.confirmPassword}
                 helperText={resetForm.formState.errors.confirmPassword?.message}
               />
-            </>
+            </Stack>
           )}
         </Stack>
       </DialogContent>
@@ -516,7 +757,7 @@ function UserDialog({
           <FormattedMessage id="cancel" />
         </Button>
         <Button variant="contained" onClick={save} disabled={isSaving}>
-          <FormattedMessage id={isSaving ? 'loading' : 'save'} />
+          <FormattedMessage id={isSaving ? 'loading' : dialog?.mode === 'create' ? 'create-user' : 'save'} />
         </Button>
       </DialogActions>
     </Dialog>
