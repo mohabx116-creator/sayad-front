@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useMemo } from 'react';
 
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
@@ -20,24 +21,38 @@ type RoleSelectorProps = {
   helperText?: ReactNode;
   error?: boolean;
   disabled?: boolean;
+  allowInactiveSelectedRoles?: boolean;
 };
 
 function getRoleSummary(role: RoleDto, locale: string) {
   return getBilingualRoleLabel(role.descriptionArabic, role.descriptionEnglish, role.name, locale);
 }
 
-export default function RoleSelector({ roles, value, onChange, labelId = 'roles', helperText, error, disabled }: RoleSelectorProps) {
+export default function RoleSelector({
+  roles,
+  value,
+  onChange,
+  labelId = 'roles',
+  helperText,
+  error,
+  disabled,
+  allowInactiveSelectedRoles = false
+}: RoleSelectorProps) {
   const intl = useIntl();
-  const selectedRoles = roles.filter((role) => value.includes(role.id));
+  const selectedRoles = useMemo(() => roles.filter((role) => value.includes(role.id)), [roles, value]);
+  const selectableRoles = useMemo(
+    () => roles.filter((role) => role.isActive || (allowInactiveSelectedRoles && value.includes(role.id))),
+    [allowInactiveSelectedRoles, roles, value]
+  );
 
   return (
     <Autocomplete
       multiple
       disableCloseOnSelect
-      options={roles}
+      options={selectableRoles}
       value={selectedRoles}
       disabled={disabled}
-      onChange={(_, nextValue) => onChange(nextValue.map((role) => role.id))}
+      onChange={(_, nextValue) => onChange(Array.from(new Set(nextValue.map((role) => role.id))))}
       isOptionEqualToValue={(option, selected) => option.id === selected.id}
       getOptionLabel={(role) => getRoleSummary(role, intl.locale)}
       renderTags={(tagValue, getTagProps) => (

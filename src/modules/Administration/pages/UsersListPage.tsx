@@ -48,11 +48,12 @@ import UserManagementModal from '../components/UserManagementModal';
 import { createRole, createUser, lockUser, resetUserPassword, unlockUser } from '../api/administrationApi';
 import { usePermissions, useRoles, useUsers } from '../hooks/useAdministration';
 import { createRoleSchema } from '../schemas/role.schema';
-import { createUserSchema } from '../schemas/user.schema';
+import { buildCreateUserSchema } from '../schemas/user.schema';
 import { resetPasswordSchema } from '../schemas/reset-password.schema';
 import type { CreateRoleRequest, CreateUserRequest, PermissionDto, ResetPasswordRequest, RoleDto, UserDto } from '../types/administration.types';
 import { ADMINISTRATION_PERMISSIONS } from '../utils/administration.constants';
 import { getAdministrationRouteBase, getAdministrationScope } from '../utils/administration-scope';
+import { buildCreateUserValidationMessages, resolveCreateUserValidationState } from '../utils/create-user-validation';
 
 type UserDialogState = { mode: 'create' | 'reset' | 'manage'; user?: UserDto } | null;
 
@@ -435,6 +436,12 @@ function UserDialog({
   const [includeCustomRole, setIncludeCustomRole] = useState(false);
   const [createdCustomRole, setCreatedCustomRole] = useState<RoleDto | null>(null);
   const [partialSuccessMessage, setPartialSuccessMessage] = useState<string | null>(null);
+  const [inactiveRoleWarning, setInactiveRoleWarning] = useState<string | null>(null);
+
+  const createUserSchema = useMemo(
+    () => buildCreateUserSchema(buildCreateUserValidationMessages(intl)),
+    [intl]
+  );
 
   const customRoleSchema = useMemo(
     () =>
@@ -458,9 +465,20 @@ function UserDialog({
     defaultValues: { name: '', descriptionArabic: '', descriptionEnglish: '', permissionIds: [] }
   });
   const customRolePermissionError = customRoleForm.formState.errors.permissionIds?.message;
+  const createRoleIds = createForm.watch('roleIds');
 
   useEffect(() => {
-    setAvailableRoles(roles);
+    setAvailableRoles((current) => {
+      const merged = new Map<string, RoleDto>();
+
+      [...roles, ...current].forEach((role) => {
+        if (role.isActive && !merged.has(role.id)) {
+          merged.set(role.id, role);
+        }
+      });
+
+      return Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name));
+    });
   }, [roles]);
 
   useEffect(() => {
@@ -469,11 +487,37 @@ function UserDialog({
     setIncludeCustomRole(false);
     setCreatedCustomRole(null);
     setPartialSuccessMessage(null);
-    setAvailableRoles(roles);
+    setInactiveRoleWarning(null);
+    setAvailableRoles(() => roles.filter((role) => role.isActive));
     createForm.reset({ displayName: '', email: '', password: '', confirmPassword: '', roleIds: [] });
     resetForm.reset({ newPassword: '', confirmPassword: '' });
     customRoleForm.reset({ name: '', descriptionArabic: '', descriptionEnglish: '', permissionIds: [] });
   }, [createForm, customRoleForm, dialog, resetForm, roles]);
+
+  useEffect(() => {
+    if (dialog?.mode !== 'create') return;
+
+    const activeRoleIds = new Set(availableRoles.filter((role) => role.isActive).map((role) => role.id));
+    const currentRoleIds = createRoleIds ?? [];
+    const filteredRoleIds = currentRoleIds.filter((roleId) => activeRoleIds.has(roleId));
+
+    if (filteredRoleIds.length !== currentRoleIds.length) {
+      createForm.setValue('roleIds', filteredRoleIds, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+      createForm.setError('roleIds', {
+        type: 'manual',
+        message: intl.formatMessage({
+          id: 'create-user-inactive-role',
+          defaultMessage: 'The selected role is inactive. Choose an active role to create the user.'
+        })
+      });
+      setInactiveRoleWarning(
+        intl.formatMessage({
+          id: 'create-user-inactive-role',
+          defaultMessage: 'The selected role is inactive. Choose an active role to create the user.'
+        })
+      );
+    }
+  }, [availableRoles, createForm, createRoleIds, dialog?.mode, intl]);
 
   const notifyError = (error: unknown) => {
     dispatch(
@@ -507,8 +551,52 @@ function UserDialog({
         try {
           setIsSaving(true);
           setPartialSuccessMessage(null);
+          setInactiveRoleWarning(null);
 
-          let roleIds = [...new Set(values.roleIds)];
+          let roleIds = Array.from(new Set(values.roleIds.map((roleId) => roleId.trim()).filter(Boolean)));
+          const activeRoleIds = new Set(availableRoles.filter((role) => role.isActive).map((role) => role.id));
+          const knownRoleIds = new Set(availableRoles.map((role) => role.id));
+
+          if (roleIds.length === 0) {
+            const message = intl.formatMessage({
+              id: 'create-user-no-role-selected',
+              defaultMessage: 'Select at least one active role.'
+            });
+            createForm.setError('roleIds', { type: 'manual', message });
+            setInactiveRoleWarning(message);
+            return;
+          }
+
+          if (roleIds.length !== values.roleIds.length) {
+            createForm.setValue('roleIds', roleIds, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+          }
+
+          const inactiveRoleIds = roleIds.filter((roleId) => !activeRoleIds.has(roleId));
+          if (inactiveRoleIds.length > 0) {
+            const message = intl.formatMessage({
+              id: 'create-user-inactive-role',
+              defaultMessage: 'The selected role is inactive. Choose an active role to create the user.'
+            });
+            createForm.setValue(
+              'roleIds',
+              roleIds.filter((roleId) => activeRoleIds.has(roleId)),
+              { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+            );
+            createForm.setError('roleIds', { type: 'manual', message });
+            setInactiveRoleWarning(message);
+            return;
+          }
+
+          const unknownRoleIds = roleIds.filter((roleId) => !knownRoleIds.has(roleId));
+          if (unknownRoleIds.length > 0) {
+            const message = intl.formatMessage({
+              id: 'create-user-role-not-found',
+              defaultMessage: 'One or more selected roles could not be found.'
+            });
+            createForm.setError('roleIds', { type: 'manual', message });
+            setInactiveRoleWarning(message);
+            return;
+          }
 
           if (includeCustomRole) {
             if (!createdRoleForAttempt) {
@@ -530,6 +618,7 @@ function UserDialog({
             createForm.setValue('roleIds', roleIds, { shouldDirty: true, shouldTouch: true });
           }
 
+          createForm.clearErrors('roleIds');
           await createUser({ ...values, roleIds });
           setCreatedCustomRole(null);
           setPartialSuccessMessage(null);
@@ -543,7 +632,12 @@ function UserDialog({
             return;
           }
 
-          notifyError(error);
+          const validation = resolveCreateUserValidationState(error, intl);
+          Object.entries(validation.fieldErrors).forEach(([fieldName, message]) => {
+            createForm.setError(fieldName as keyof CreateUserRequest, { type: 'server', message });
+          });
+
+          dispatch(openSnackbar({ open: true, message: validation.summary, variant: 'alert', severity: 'error' }));
         } finally {
           setIsSaving(false);
         }
@@ -635,12 +729,25 @@ function UserDialog({
                     control={createForm.control}
                     name="roleIds"
                     render={({ field }) => (
-                      <RoleSelector
-                        roles={availableRoles}
-                        value={field.value}
-                        onChange={field.onChange}
-                        helperText={<FormattedMessage id="user-roles-info-alert" />}
-                      />
+                      <Stack spacing={1.5}>
+                        <RoleSelector
+                          roles={availableRoles}
+                          value={field.value}
+                          onChange={(nextValue) => {
+                            if (inactiveRoleWarning) {
+                              setInactiveRoleWarning(null);
+                            }
+                            field.onChange(nextValue);
+                          }}
+                          helperText={<FormattedMessage id="user-roles-info-alert" />}
+                        />
+                        {inactiveRoleWarning && <Alert severity="warning">{inactiveRoleWarning}</Alert>}
+                        {createForm.formState.errors.roleIds?.message && !inactiveRoleWarning && (
+                          <Typography variant="caption" color="error">
+                            {createForm.formState.errors.roleIds.message}
+                          </Typography>
+                        )}
+                      </Stack>
                     )}
                   />
 

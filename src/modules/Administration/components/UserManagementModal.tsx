@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -62,6 +62,11 @@ export default function UserManagementModal({ user, roles, onClose, onSaved }: U
   const rolesForm = useForm<{ roleIds: string[] }>({
     defaultValues: { roleIds: user?.roles.map((role) => role.id) ?? [] }
   });
+  const watchedRoleIds = rolesForm.watch('roleIds');
+  const inactiveSelectedRoles = useMemo(
+    () => roles.filter((role) => watchedRoleIds.includes(role.id) && !role.isActive),
+    [roles, watchedRoleIds]
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -285,11 +290,22 @@ export default function UserManagementModal({ user, roles, onClose, onSaved }: U
           )}
 
           {tabIndex === 1 && (
-            <Controller
-              control={rolesForm.control}
-              name="roleIds"
-              render={({ field }) => <RoleSelector roles={roles} value={field.value} onChange={field.onChange} />}
-            />
+            <Stack spacing={1.5}>
+              <Controller
+                control={rolesForm.control}
+                name="roleIds"
+                render={({ field }) => (
+                  <RoleSelector
+                    roles={roles}
+                    value={field.value}
+                    onChange={field.onChange}
+                    allowInactiveSelectedRoles
+                    helperText={inactiveSelectedRoles.length > 0 ? <FormattedMessage id="inactive-role-selected-warning" /> : undefined}
+                  />
+                )}
+              />
+              {inactiveSelectedRoles.length > 0 && <Alert severity="warning"><FormattedMessage id="inactive-role-selected-warning" /></Alert>}
+            </Stack>
           )}
         </Box>
       </DialogContent>

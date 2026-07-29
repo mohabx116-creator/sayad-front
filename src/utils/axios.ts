@@ -47,7 +47,13 @@ axiosServices.interceptors.response.use(
       window.location.pathname = '/login';
     }
 
-    return Promise.reject(new Error(getHttpErrorMessage(error, 'Wrong Services')));
+    const message = getHttpErrorMessage(error, 'Wrong Services');
+    if (error && typeof error === 'object') {
+      (error as { message?: string }).message = message;
+      return Promise.reject(error);
+    }
+
+    return Promise.reject(new Error(message));
   }
 );
 
