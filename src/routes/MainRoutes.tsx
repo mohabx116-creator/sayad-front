@@ -95,9 +95,6 @@ const PurchaseReturnDetailsPage = Loadable(lazy(() => import('modules/Purchases/
 const PurchaseReturnFormPage = Loadable(lazy(() => import('modules/Purchases/pages/PurchaseReturnFormPage')));
 
 // Expenses
-const ExpensesHomePage = Loadable(lazy(() => import('modules/Expenses/pages/ExpensesHomePage')));
-const ExpenseCategoriesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoriesListPage')));
-const ExpenseCategoryFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoryFormPage')));
 const ExpensesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpensesListPage')));
 const ExpenseDetailsPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseDetailsPage')));
 const ExpenseFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseFormPage')));
@@ -856,31 +853,19 @@ const MainRoutes = {
     },
     {
       path: '/expenses',
-      element: <ExpensesHomePage />
+      element: <Navigate to="/expenses/list" replace />
     },
     {
       path: '/expenses/categories',
-      element: (
-        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesView}>
-          <ExpenseCategoriesListPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/expenses/list" replace />
     },
     {
       path: '/expenses/categories/new',
-      element: (
-        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
-          <ExpenseCategoryFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/expenses/list" replace />
     },
     {
       path: '/expenses/categories/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
-          <ExpenseCategoryFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/expenses/list" replace />
     },
     {
       path: '/expenses/list',
@@ -908,11 +893,7 @@ const MainRoutes = {
     },
     {
       path: '/expenses/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.edit}>
-          <ExpenseFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/expenses/list" replace />
     },
     {
       path: '/administration/roles',

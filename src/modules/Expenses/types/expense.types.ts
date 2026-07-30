@@ -54,13 +54,15 @@ export interface ExpenseListItemDto {
   treasuryAccountCode: string;
   treasuryAccountNameArabic: string;
   treasuryAccountNameEnglish?: string | null;
-  beneficiaryPartyId: string;
-  beneficiaryPartyCode: string;
-  beneficiaryPartyNameArabic: string;
+  beneficiaryPartyId?: string | null;
+  beneficiaryPartyCode?: string | null;
+  beneficiaryPartyNameArabic?: string | null;
   beneficiaryPartyNameEnglish?: string | null;
   amount: number;
   status: ExpenseStatus;
   referenceNumber?: string | null;
+  paidToName?: string | null;
+  notes?: string | null;
   treasuryPaymentId?: string | null;
   isAccountingPosted: boolean;
   accountingPostingStatus: string;
@@ -79,15 +81,16 @@ export interface ExpenseDto {
   treasuryAccountCode: string;
   treasuryAccountNameArabic: string;
   treasuryAccountNameEnglish?: string | null;
-  beneficiaryPartyId: string;
-  beneficiaryPartyCode: string;
-  beneficiaryPartyNameArabic: string;
+  beneficiaryPartyId?: string | null;
+  beneficiaryPartyCode?: string | null;
+  beneficiaryPartyNameArabic?: string | null;
   beneficiaryPartyNameEnglish?: string | null;
   expenseDate: string;
   amount: number;
   status: ExpenseStatus;
   referenceNumber?: string | null;
-  description?: string | null;
+  paidToName?: string | null;
+  notes?: string | null;
   treasuryPaymentId?: string | null;
   treasuryPayment?: ExpensePaymentSummaryDto | null;
   expenseCategoryAccountingAccountId?: string | null;
@@ -116,11 +119,12 @@ export interface ExpenseDto {
 export interface ExpenseInput {
   expenseCategoryId: string;
   treasuryAccountId: string;
-  beneficiaryPartyId: string;
+  beneficiaryPartyId?: string | null;
+  paidToName?: string | null;
   expenseDate: string;
   amount: number;
   referenceNumber?: string | null;
-  description?: string | null;
+  notes?: string | null;
 }
 
 export interface ExpensesListParams {

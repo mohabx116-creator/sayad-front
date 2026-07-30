@@ -1,10 +1,10 @@
-import { IconReceipt2, IconCategory } from '@tabler/icons-react';
+import { IconReceipt2, IconPlus } from '@tabler/icons-react';
 import { NavItemType } from 'types';
 import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
 
 const icons = {
   IconReceipt2,
-  IconCategory
+  IconPlus
 };
 
 const expenses: NavItemType = {
@@ -13,23 +13,6 @@ const expenses: NavItemType = {
   type: 'group',
   children: [
     {
-      id: 'expenses-dashboard',
-      title: 'expenses.dashboard',
-      type: 'item',
-      url: '/expenses',
-      icon: icons.IconReceipt2,
-      breadcrumbs: false
-    },
-    {
-      id: 'expenses-categories',
-      title: 'expenses.categories',
-      type: 'item',
-      url: '/expenses/categories',
-      icon: icons.IconCategory,
-      breadcrumbs: false,
-      permission: EXPENSES_PERMISSIONS.categoriesView
-    },
-    {
       id: 'expenses-list',
       title: 'expenses.list',
       type: 'item',
@@ -37,6 +20,15 @@ const expenses: NavItemType = {
       icon: icons.IconReceipt2,
       breadcrumbs: false,
       permission: EXPENSES_PERMISSIONS.view
+    },
+    {
+      id: 'expenses-create',
+      title: 'expenses.create-expense',
+      type: 'item',
+      url: '/expenses/new',
+      icon: icons.IconPlus,
+      breadcrumbs: false,
+      permission: EXPENSES_PERMISSIONS.create
     }
   ]
 };
