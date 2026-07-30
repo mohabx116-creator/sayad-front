@@ -25,6 +25,7 @@ import WorkerMonthlySalaryDialog from '../components/WorkerMonthlySalaryDialog';
 import WorkerStatusChip from '../components/WorkerStatusChip';
 import { useWorker, useWorkerMonthlySalaries, useWorkerSalarySettings } from '../hooks/useWorkers';
 import { WORKERS_PERMISSIONS } from '../utils/workers.constants';
+import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 
 export default function WorkerDetailsPage() {
   const { id } = useParams();
@@ -34,6 +35,7 @@ export default function WorkerDetailsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [viewSalaryId, setViewSalaryId] = useState<string | null>(null);
+  const [paySalaryId, setPaySalaryId] = useState<string | null>(null);
   const { worker, error, isLoading, mutate: mutateWorker } = useWorker(id);
   const { settings: salarySettings, mutate: mutateSalarySettings } = useWorkerSalarySettings(id);
   const { items: monthlySalaries, mutate: mutateMonthlySalaries } = useWorkerMonthlySalaries(id);
@@ -100,6 +102,10 @@ export default function WorkerDetailsPage() {
     }, { replace: true });
   };
 
+  const closePayDialog = () => {
+    setPaySalaryId(null);
+  };
+
   if (isLoading) {
     return <Loader />;
   }
@@ -127,11 +133,11 @@ export default function WorkerDetailsPage() {
                   <FormattedMessage id="edit" />
                 </Button>
               </PermissionGuard>
-              <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
-                <Button
-                  variant="contained"
-                  startIcon={<IconCoins size={18} />}
-                  disabled={!currentSalarySettings}
+            <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
+              <Button
+                variant="contained"
+                startIcon={<IconCoins size={18} />}
+                disabled={!currentSalarySettings}
                   onClick={() => setCreateDialogOpen(true)}
                 >
                   <FormattedMessage id="monthly-salary" />
@@ -226,17 +232,21 @@ export default function WorkerDetailsPage() {
             <TableHead>
               <TableRow>
                 <TableCell><FormattedMessage id="month" /></TableCell>
+                <TableCell><FormattedMessage id="salary-status" /></TableCell>
                 <TableCell><FormattedMessage id="payroll-basic-wage" /></TableCell>
                 <TableCell><FormattedMessage id="total-additions" /></TableCell>
                 <TableCell><FormattedMessage id="payroll-total-deductions" /></TableCell>
                 <TableCell><FormattedMessage id="net-salary" /></TableCell>
+                <TableCell><FormattedMessage id="payment-date" /></TableCell>
+                <TableCell><FormattedMessage id="cashbox" /></TableCell>
+                <TableCell><FormattedMessage id="paid-amount" /></TableCell>
                 <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {monthlySalaries.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={10}>
                     <Typography color="text.secondary">
                       <FormattedMessage id="worker-wage-empty" />
                     </Typography>
@@ -245,14 +255,25 @@ export default function WorkerDetailsPage() {
               ) : monthlySalaries.map((salary) => (
                 <TableRow key={salary.id}>
                   <TableCell>{salary.monthLabel}</TableCell>
+                  <TableCell><FormattedMessage id={salary.isPaid ? 'paid' : 'unpaid'} /></TableCell>
                   <TableCell dir="ltr">{salary.baseSalary.toFixed(2)}</TableCell>
                   <TableCell dir="ltr">{salary.additions.toFixed(2)}</TableCell>
                   <TableCell dir="ltr">{salary.deductions.toFixed(2)}</TableCell>
                   <TableCell dir="ltr">{salary.netSalary.toFixed(2)}</TableCell>
+                  <TableCell dir="ltr">{salary.paymentDate ?? '-'}</TableCell>
+                  <TableCell>{salary.treasuryAccountNameArabic ?? '-'}</TableCell>
+                  <TableCell dir="ltr">{salary.paidAmount?.toFixed(2) ?? '-'}</TableCell>
                   <TableCell align="center">
                     <IconButton onClick={() => setViewSalaryId(salary.id)} size="small" aria-label={intl.formatMessage({ id: 'view' })}>
                       <IconEye size={18} />
                     </IconButton>
+                    {!salary.isPaid && (
+                      <PermissionGuard permission={TREASURY_PERMISSIONS.paymentsCreate}>
+                        <IconButton onClick={() => setPaySalaryId(salary.id)} size="small" aria-label={intl.formatMessage({ id: 'pay-salary' })}>
+                          <IconCoins size={18} />
+                        </IconButton>
+                      </PermissionGuard>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -282,6 +303,19 @@ export default function WorkerDetailsPage() {
           workerId={worker.id}
           monthlySalaryId={viewSalaryId}
           onClose={() => setViewSalaryId(null)}
+        />
+      )}
+
+      {paySalaryId && (
+        <WorkerMonthlySalaryDialog
+          open
+          mode="pay"
+          workerId={worker.id}
+          monthlySalaryId={paySalaryId}
+          onClose={closePayDialog}
+          onSaved={async () => {
+            await refreshAll();
+          }}
         />
       )}
     </>

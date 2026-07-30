@@ -87,6 +87,11 @@ export type WorkerMonthlySalaryListItemDto = {
   additions: number;
   deductions: number;
   netSalary: number;
+  isPaid: boolean;
+  paymentDate: string | null;
+  treasuryAccountCode: string | null;
+  treasuryAccountNameArabic: string | null;
+  paidAmount: number | null;
   createdAtUtc: string;
   updatedAtUtc: string | null;
   rowVersion: string;
@@ -113,6 +118,18 @@ export type WorkerMonthlySalaryDto = {
   totalAdditions: number;
   totalDeductions: number;
   netSalary: number;
+  isPaid: boolean;
+  paymentDate: string | null;
+  paidAtUtc: string | null;
+  paidByUserId: string | null;
+  paidByDisplayName: string | null;
+  treasuryAccountId: string | null;
+  treasuryAccountCode: string | null;
+  treasuryAccountNameArabic: string | null;
+  paidAmount: number | null;
+  paymentNotes: string | null;
+  treasuryTransactionId: string | null;
+  treasuryTransactionReferenceNumber: string | null;
   notes: string | null;
   createdAtUtc: string;
   updatedAtUtc: string | null;
@@ -173,6 +190,12 @@ export type WorkerMonthlySalaryRequest = {
   nightOvertimeAmount?: number;
   bonusAmount?: number;
   deductions?: WorkerMonthlySalaryDeductionInput[];
+  notes?: string | null;
+};
+
+export type WorkerMonthlySalaryPaymentRequest = {
+  treasuryAccountId: string;
+  paymentDate: string;
   notes?: string | null;
 };
 

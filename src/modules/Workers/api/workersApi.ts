@@ -9,6 +9,7 @@ import type {
   WorkerMonthlySalaryDto,
   WorkerMonthlySalaryListItemDto,
   WorkerMonthlySalaryRequest,
+  WorkerMonthlySalaryPaymentRequest,
   WorkerDto,
   WorkerListItemDto,
   WorkerListParams,
@@ -94,4 +95,8 @@ export function upsertWorkerWageProfile(id: string, request: WorkerWageProfileIn
 
 export function createWorkerMonthlySalary(id: string, request: WorkerMonthlySalaryRequest) {
   return unwrap(axiosServices.post<ApiResponse<WorkerMonthlySalaryDto>>(`/api/labor/workers/${id}/monthly-salaries`, request));
+}
+
+export function payWorkerMonthlySalary(id: string, monthlySalaryId: string, request: WorkerMonthlySalaryPaymentRequest) {
+  return unwrap(axiosServices.post<ApiResponse<WorkerMonthlySalaryDto>>(`/api/labor/workers/${id}/monthly-salaries/${monthlySalaryId}/pay`, request));
 }

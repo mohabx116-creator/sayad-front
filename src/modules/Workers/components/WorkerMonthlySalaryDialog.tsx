@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -25,7 +25,7 @@ import { IconPlus, IconTrash, IconX } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
-import { createWorkerMonthlySalary } from '../api/workersApi';
+import { createWorkerMonthlySalary, payWorkerMonthlySalary } from '../api/workersApi';
 import { useWorkerMonthlySalary } from '../hooks/useWorkers';
 import { monthlySalarySchema } from '../schemas/monthlySalary.schema';
 import type {
@@ -33,6 +33,9 @@ import type {
   WorkerMonthlySalaryRequest,
   WorkerSalarySettingsDto
 } from '../types/workers.types';
+import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
+import type { TreasuryAccountListItem } from 'modules/Treasury/types/treasury.types';
+import { TREASURY_ACCOUNT_TYPES } from 'modules/Treasury/utils/treasury.constants';
 
 const numberInputSx = {
   '& input[type=number]': {
@@ -62,13 +65,19 @@ type MonthlySalaryFormValues = {
 
 type WorkerMonthlySalaryDialogProps = {
   open: boolean;
-  mode: 'create' | 'view';
+  mode: 'create' | 'view' | 'pay';
   workerId: string;
   salarySettings?: WorkerSalarySettingsDto | null;
   monthlySalaryId?: string;
   saving?: boolean;
   onClose: () => void;
   onSaved?: (salary: WorkerMonthlySalaryDto) => Promise<void> | void;
+};
+
+type WorkerMonthlySalaryPayFormValues = {
+  treasuryAccountId: string;
+  paymentDate: string;
+  notes: string;
 };
 
 const currentMonthYear = () => {
@@ -94,8 +103,21 @@ const emptyValues = (salarySettings?: WorkerSalarySettingsDto | null): MonthlySa
   };
 };
 
+const paymentFormDefaults = (): WorkerMonthlySalaryPayFormValues => {
+  const now = new Date();
+  return {
+    treasuryAccountId: '',
+    paymentDate: now.toISOString().slice(0, 10),
+    notes: ''
+  };
+};
+
 function parseMoney(value: string) {
   return Number(value || 0);
+}
+
+function isCashboxAccount(account: TreasuryAccountListItem) {
+  return account.isActive && (account.accountType === TREASURY_ACCOUNT_TYPES.CASH || account.accountType === TREASURY_ACCOUNT_TYPES.PETTY_CASH);
 }
 
 function toRequest(values: MonthlySalaryFormValues): WorkerMonthlySalaryRequest {
@@ -485,6 +507,165 @@ function SalaryFormContent({
   );
 }
 
+function PaySalaryFormContent({
+  workerId,
+  salary,
+  onClose,
+  onSaved
+}: {
+  workerId: string;
+  salary: WorkerMonthlySalaryDto;
+  onClose: () => void;
+  onSaved?: (salary: WorkerMonthlySalaryDto) => void;
+}) {
+  const form = useForm<WorkerMonthlySalaryPayFormValues>({
+    defaultValues: paymentFormDefaults()
+  });
+  const dispatch = useDispatch();
+  const intl = useIntl();
+  const [isSaving, setIsSaving] = useState(false);
+  const { items: treasuryAccounts } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
+
+  const cashboxAccounts = useMemo(() => treasuryAccounts.filter((account: TreasuryAccountListItem) => isCashboxAccount(account)), [treasuryAccounts]);
+  const paymentAmount = salary.netSalary;
+
+  useEffect(() => {
+    form.reset(paymentFormDefaults());
+  }, [form, salary.id]);
+
+  const submit: SubmitHandler<WorkerMonthlySalaryPayFormValues> = async (submitted) => {
+    try {
+      setIsSaving(true);
+      const updated = await payWorkerMonthlySalary(workerId, salary.id, {
+        treasuryAccountId: submitted.treasuryAccountId,
+        paymentDate: submitted.paymentDate,
+        notes: submitted.notes.trim() || null
+      });
+      await onSaved?.(updated);
+      onClose();
+      dispatch(openSnackbar({ open: true, message: intl.formatMessage({ id: 'monthly-salary-payment-success' }), variant: 'alert', severity: 'success' }));
+    } catch (error) {
+      dispatch(openSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : intl.formatMessage({ id: 'monthly-salary-payment-failed' }),
+        variant: 'alert',
+        severity: 'error'
+      }));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (salary.isPaid) {
+    return (
+      <Stack spacing={2.5}>
+        <Typography color="text.secondary">
+          <FormattedMessage id="monthly-salary-already-paid" />
+        </Typography>
+        <DialogActions sx={{ px: 0 }}>
+          <Button onClick={onClose}>
+            <FormattedMessage id="close" />
+          </Button>
+        </DialogActions>
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack component="form" spacing={2.5} onSubmit={form.handleSubmit(submit)}>
+      <Grid container spacing={2.5}>
+        <Grid item xs={12} md={4}>
+          <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-name" /></Typography>
+          <Typography variant="h6">{salary.workerName}</Typography>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Typography variant="body2" color="text.secondary"><FormattedMessage id="month" /></Typography>
+          <Typography variant="h6" dir="ltr">{salary.monthLabel}</Typography>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Typography variant="body2" color="text.secondary"><FormattedMessage id="net-salary" /></Typography>
+          <Typography variant="h6" dir="ltr">{salary.netSalary.toFixed(2)}</Typography>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          {readOnlyField(intl.formatMessage({ id: 'payment-amount' }), paymentAmount.toFixed(2))}
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Controller
+            name="treasuryAccountId"
+            control={form.control}
+            rules={{ required: true }}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                select
+                fullWidth
+                label={<FormattedMessage id="cashbox" />}
+                error={!!fieldState.error}
+                helperText={fieldState.error ? intl.formatMessage({ id: 'cashbox-required' }) : ' '}
+              >
+                {cashboxAccounts.length === 0 ? (
+                  <MenuItem disabled value="">
+                    <FormattedMessage id="no-cashbox-accounts" />
+                  </MenuItem>
+                ) : cashboxAccounts.map((account) => (
+                  <MenuItem key={account.id} value={account.id}>
+                    {account.code} - {account.nameArabic}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Controller
+            name="paymentDate"
+            control={form.control}
+            rules={{ required: true }}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                fullWidth
+                type="date"
+                label={<FormattedMessage id="payment-date" />}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+                inputProps={{ dir: 'ltr' }}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Controller
+            name="notes"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                value={field.value ?? ''}
+                fullWidth
+                multiline
+                minRows={2}
+                label={<FormattedMessage id="notes" />}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+        </Grid>
+      </Grid>
+
+      <DialogActions sx={{ px: 0 }}>
+        <Button onClick={onClose}>
+          <FormattedMessage id="cancel" />
+        </Button>
+        <Button variant="contained" type="submit" disabled={isSaving || cashboxAccounts.length === 0}>
+          <FormattedMessage id="pay-salary" />
+        </Button>
+      </DialogActions>
+    </Stack>
+  );
+}
+
 function MonthlySalaryViewContent({
   salary,
   error,
@@ -572,6 +753,40 @@ function MonthlySalaryViewContent({
 
       <Box>
         <Typography variant="h6" sx={{ mb: 1 }}>
+          <FormattedMessage id="salary-details" />
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" color="text.secondary"><FormattedMessage id="salary-status" /></Typography>
+            <Typography variant="h6">
+              <FormattedMessage id={salary.isPaid ? 'paid' : 'unpaid'} />
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" color="text.secondary"><FormattedMessage id="payment-date" /></Typography>
+            <Typography variant="h6" dir="ltr">{salary.paymentDate ?? '-'}</Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" color="text.secondary"><FormattedMessage id="cashbox" /></Typography>
+            <Typography variant="h6">{salary.treasuryAccountNameArabic ?? '-'}</Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" color="text.secondary"><FormattedMessage id="paid-amount" /></Typography>
+            <Typography variant="h6" dir="ltr">{salary.paidAmount?.toFixed(2) ?? '-'}</Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" color="text.secondary"><FormattedMessage id="paid-at" /></Typography>
+            <Typography variant="h6">{salary.paidAtUtc ? new Date(salary.paidAtUtc).toLocaleString() : '-'}</Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" color="text.secondary"><FormattedMessage id="treasury-transaction" /></Typography>
+            <Typography variant="h6" dir="ltr">{salary.treasuryTransactionReferenceNumber ?? '-'}</Typography>
+          </Grid>
+        </Grid>
+      </Box>
+
+      <Box>
+        <Typography variant="h6" sx={{ mb: 1 }}>
           <FormattedMessage id="deductions" />
         </Typography>
         <Table size="small">
@@ -620,9 +835,9 @@ export default function WorkerMonthlySalaryDialog({
   onClose,
   onSaved
 }: WorkerMonthlySalaryDialogProps) {
-  const { salary, error, isLoading } = useWorkerMonthlySalary(workerId, mode === 'view' ? monthlySalaryId : undefined);
+  const { salary, error, isLoading } = useWorkerMonthlySalary(workerId, monthlySalaryId);
 
-  const title = mode === 'create' ? 'monthly-salary-create' : 'monthly-salary-view';
+  const title = mode === 'create' ? 'monthly-salary-create' : mode === 'pay' ? 'pay-salary' : 'monthly-salary-view';
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
@@ -639,6 +854,18 @@ export default function WorkerMonthlySalaryDialog({
           ) : (
             <Typography color="text.secondary">
               <FormattedMessage id="worker-wage-empty" />
+            </Typography>
+          )
+        ) : mode === 'pay' ? (
+          isLoading ? (
+            <Typography color="text.secondary">
+              <FormattedMessage id="loading" />
+            </Typography>
+          ) : salary ? (
+            <PaySalaryFormContent workerId={workerId} salary={salary} onClose={onClose} onSaved={onSaved} />
+          ) : (
+            <Typography color="error">
+              <FormattedMessage id="monthly-salary-not-found" />
             </Typography>
           )
         ) : isLoading ? (
