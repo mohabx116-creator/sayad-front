@@ -10,6 +10,8 @@ import type {
   WorkerListParams,
   WorkerMonthlySalaryDto,
   WorkerMonthlySalaryListItemDto,
+  WorkerMonthlySalaryReportDto,
+  WorkerMonthlySalaryReportParams,
   WorkerSalarySettingsDto,
   WorkerWageProfileDto
 } from '../types/workers.types';
@@ -60,4 +62,11 @@ export function useWorkerMonthlySalaries(id?: string) {
 export function useWorkerMonthlySalary(workerId?: string, salaryId?: string) {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<WorkerMonthlySalaryDto>>(workerId && salaryId ? `/api/labor/workers/${workerId}/monthly-salaries/${salaryId}` : null, fetcher);
   return useMemo(() => ({ salary: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function useWorkerMonthlySalaryReport(params: WorkerMonthlySalaryReportParams) {
+  const key = `/api/labor/workers/monthly-salaries/report?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<WorkerMonthlySalaryReportDto>>(key, fetcher, { revalidateOnFocus: false });
+
+  return useMemo(() => ({ report: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }

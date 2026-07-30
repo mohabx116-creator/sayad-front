@@ -44,6 +44,11 @@ export default function WorkerDetailsPage() {
     if (searchParams.get('salary') === 'create') {
       setCreateDialogOpen(true);
     }
+
+    const salaryId = searchParams.get('salaryId');
+    if (salaryId) {
+      setViewSalaryId(salaryId);
+    }
   }, [searchParams]);
 
   const currentSalarySettings = useMemo(() => {
@@ -104,6 +109,15 @@ export default function WorkerDetailsPage() {
 
   const closePayDialog = () => {
     setPaySalaryId(null);
+  };
+
+  const closeViewDialog = () => {
+    setViewSalaryId(null);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete('salaryId');
+      return next;
+    }, { replace: true });
   };
 
   if (isLoading) {
@@ -302,7 +316,7 @@ export default function WorkerDetailsPage() {
           mode="view"
           workerId={worker.id}
           monthlySalaryId={viewSalaryId}
-          onClose={() => setViewSalaryId(null)}
+          onClose={closeViewDialog}
         />
       )}
 

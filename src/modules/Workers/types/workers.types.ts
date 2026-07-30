@@ -137,6 +137,51 @@ export type WorkerMonthlySalaryDto = {
   deductions: WorkerMonthlySalaryDeductionDto[];
 };
 
+export type WorkerMonthlySalaryReportRowDto = {
+  id: string;
+  workerId: string;
+  workerCode: string;
+  workerName: string;
+  operationalJobName: string;
+  monthLabel: string;
+  baseSalary: number;
+  mealAllowance: number;
+  overtime: number;
+  bonuses: number;
+  absenceDeduction: number;
+  otherDeductions: number;
+  totalAdditions: number;
+  totalDeductions: number;
+  netSalary: number;
+  isPaid: boolean;
+  paymentDate: string | null;
+  treasuryAccountCode: string | null;
+  treasuryAccountNameArabic: string | null;
+  paidAmount: number | null;
+  createdAtUtc: string;
+  updatedAtUtc: string | null;
+  rowVersion: string;
+};
+
+export type WorkerMonthlySalaryReportDto = {
+  month: number;
+  year: number;
+  paymentStatus: 'all' | 'paid' | 'unpaid';
+  search: string | null;
+  rows: WorkerMonthlySalaryReportRowDto[];
+  workersCount: number;
+  totalBaseSalaries: number;
+  totalAdditions: number;
+  totalDeductions: number;
+  totalNetSalaries: number;
+  totalPaid: number;
+  totalUnpaid: number;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
 export type WorkerListParams = {
   page?: number;
   pageSize?: number;
@@ -197,6 +242,15 @@ export type WorkerMonthlySalaryPaymentRequest = {
   treasuryAccountId: string;
   paymentDate: string;
   notes?: string | null;
+};
+
+export type WorkerMonthlySalaryReportParams = {
+  month?: number;
+  year?: number;
+  paymentStatus?: 'all' | 'paid' | 'unpaid';
+  search?: string;
+  page?: number;
+  pageSize?: number;
 };
 
 export type OperationalJobOption = OperationalJobListItemDto;

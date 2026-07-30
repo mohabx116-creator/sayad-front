@@ -17,7 +17,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import { IconCoins, IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
+import { IconClipboardList, IconCoins, IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -139,6 +139,9 @@ export default function WorkersListPage() {
             <MenuItem value="desc"><FormattedMessage id="sort-descending" /></MenuItem>
           </Select>
           <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <Button component={Link} to="/labor/workers/salary-report" variant="outlined" startIcon={<IconClipboardList size={18} />}>
+              <FormattedMessage id="salary-report" />
+            </Button>
             <PermissionGuard permission={WORKERS_PERMISSIONS.create}>
               <Button component={Link} to="/labor/workers/new" variant="contained" startIcon={<IconPlus size={18} />}>
                 <FormattedMessage id="create-worker" />

@@ -8,6 +8,8 @@ import type {
   UpdateWorkerRequest,
   WorkerMonthlySalaryDto,
   WorkerMonthlySalaryListItemDto,
+  WorkerMonthlySalaryReportDto,
+  WorkerMonthlySalaryReportParams,
   WorkerMonthlySalaryRequest,
   WorkerMonthlySalaryPaymentRequest,
   WorkerDto,
@@ -67,6 +69,10 @@ export function getWorkerMonthlySalaries(id: string) {
 
 export function getWorkerMonthlySalary(id: string, salaryId: string) {
   return unwrap(axiosServices.get<ApiResponse<WorkerMonthlySalaryDto>>(`/api/labor/workers/${id}/monthly-salaries/${salaryId}`));
+}
+
+export function getWorkerMonthlySalaryReport(params: WorkerMonthlySalaryReportParams) {
+  return unwrap(axiosServices.get<ApiResponse<WorkerMonthlySalaryReportDto>>(`/api/labor/workers/monthly-salaries/report?${buildQuery(params)}`));
 }
 
 export function createWorker(request: CreateWorkerRequest) {

@@ -31,6 +31,7 @@ const PartyEditPage = Loadable(lazy(() => import('modules/Parties/pages/PartyEdi
 const PartyStatementPage = Loadable(lazy(() => import('modules/Parties/pages/PartyStatementPage')));
 const WorkersListPage = Loadable(lazy(() => import('modules/Workers/pages/WorkersListPage')));
 const WorkerCreatePage = Loadable(lazy(() => import('modules/Workers/pages/WorkerCreatePage')));
+const WorkerMonthlySalaryReportPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerMonthlySalaryReportPage')));
 const WorkerDetailsPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerDetailsPage')));
 const WorkerEditPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerEditPage')));
 const OperationalJobsListPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobsListPage')));
@@ -141,6 +142,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={WORKERS_PERMISSIONS.create}>
           <WorkerCreatePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/workers/salary-report',
+      element: (
+        <PermissionRouteGuard permission={WORKERS_PERMISSIONS.view}>
+          <WorkerMonthlySalaryReportPage />
         </PermissionRouteGuard>
       )
     },
