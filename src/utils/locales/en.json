@@ -829,6 +829,7 @@
   "expenses.list-desc": "Review and manage all expenses and their financial impact.",
   "expenses.home-subtitle": "Manage expenses and their categories",
   "expenses.recent": "Recent Expenses",
+  "expenses-load-error": "Unable to load expenses.",
   "expenses.empty": "No expenses recorded.",
   "expenses.status.draft": "Draft",
   "expenses.status.posted": "Posted",

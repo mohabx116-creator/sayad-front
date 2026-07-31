@@ -42,7 +42,7 @@ export default function ExpensesListPage() {
   });
   const [filters, setFilters] = useState(params);
 
-  const { items, meta, isLoading } = useExpenses(params);
+  const { items, meta, isLoading, error, mutate } = useExpenses(params);
   const { items: categories } = useExpenseCategories({ page: 1, pageSize: 100, isActive: true });
   const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 100, status: 'Active' });
 
@@ -133,42 +133,44 @@ export default function ExpensesListPage() {
       </Card>
 
       <Card sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, overflow: 'hidden' }}>
-        <TableContainer sx={{ overflowX: 'auto' }}>
-          <Table sx={{ minWidth: 1000 }}>
-            <TableHead sx={{ bgcolor: 'grey.50' }}>
-              <TableRow>
-                <TableCell><FormattedMessage id="date" defaultMessage="Date" /></TableCell>
-                <TableCell><FormattedMessage id="expenses.expense-type" defaultMessage="Expense Type" /></TableCell>
-                <TableCell align="right"><FormattedMessage id="expenses.amount" defaultMessage="Amount" /></TableCell>
-                <TableCell><FormattedMessage id="expenses.cashbox" defaultMessage="Cashbox" /></TableCell>
-                <TableCell><FormattedMessage id="expenses.paid-to" defaultMessage="Paid To" /></TableCell>
-                <TableCell><FormattedMessage id="expenses.notes" defaultMessage="Notes" /></TableCell>
-                <TableCell align="center"><FormattedMessage id="view" defaultMessage="View" /></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell><Skeleton width={110} /></TableCell>
-                    <TableCell><Skeleton width={150} /></TableCell>
-                    <TableCell align="right"><Skeleton width={90} sx={{ ml: 'auto' }} /></TableCell>
-                    <TableCell><Skeleton width={150} /></TableCell>
-                    <TableCell><Skeleton width={140} /></TableCell>
-                    <TableCell><Skeleton width={180} /></TableCell>
-                    <TableCell align="center"><Skeleton width={40} sx={{ mx: 'auto' }} /></TableCell>
-                  </TableRow>
-                ))
-              ) : items.length === 0 ? (
+        {isLoading && (
+          <Box sx={{ py: 6 }}>
+            <Skeleton variant="rectangular" height={240} />
+          </Box>
+        )}
+        {error && !isLoading && (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography color="error" sx={{ mb: 2 }}>
+              <FormattedMessage id="expenses-load-error" defaultMessage="Unable to load expenses." />
+            </Typography>
+            <Button variant="outlined" onClick={() => mutate()}>
+              <FormattedMessage id="retry" defaultMessage="Retry" />
+            </Button>
+          </Box>
+        )}
+        {!isLoading && !error && items.length === 0 && (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary">
+              <FormattedMessage id="expenses.empty" defaultMessage="No expenses recorded." />
+            </Typography>
+          </Box>
+        )}
+        {!isLoading && !error && items.length > 0 && (
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table sx={{ minWidth: 1000 }}>
+              <TableHead sx={{ bgcolor: 'grey.50' }}>
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body1" color="text.secondary">
-                      <FormattedMessage id="expenses.empty" defaultMessage="No expenses found." />
-                    </Typography>
-                  </TableCell>
+                  <TableCell><FormattedMessage id="date" defaultMessage="Date" /></TableCell>
+                  <TableCell><FormattedMessage id="expenses.expense-type" defaultMessage="Expense Type" /></TableCell>
+                  <TableCell align="right"><FormattedMessage id="expenses.amount" defaultMessage="Amount" /></TableCell>
+                  <TableCell><FormattedMessage id="expenses.cashbox" defaultMessage="Cashbox" /></TableCell>
+                  <TableCell><FormattedMessage id="expenses.paid-to" defaultMessage="Paid To" /></TableCell>
+                  <TableCell><FormattedMessage id="expenses.notes" defaultMessage="Notes" /></TableCell>
+                  <TableCell align="center"><FormattedMessage id="view" defaultMessage="View" /></TableCell>
                 </TableRow>
-              ) : (
-                items.map((row) => (
+              </TableHead>
+              <TableBody>
+                {items.map((row) => (
                   <TableRow key={row.id} hover>
                     <TableCell>{row.expenseDate}</TableCell>
                     <TableCell>
@@ -195,20 +197,22 @@ export default function ExpensesListPage() {
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component="div"
-          count={meta.totalCount}
-          page={meta.page - 1}
-          onPageChange={(_, newPage) => setParams({ ...params, page: newPage + 1 })}
-          rowsPerPage={meta.pageSize}
-          onRowsPerPageChange={(e) => setParams({ ...params, pageSize: parseInt(e.target.value, 10), page: 1 })}
-          rowsPerPageOptions={[10, 20, 50]}
-        />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        {!isLoading && !error && (
+          <TablePagination
+            component="div"
+            count={meta.totalCount}
+            page={meta.page - 1}
+            onPageChange={(_, newPage) => setParams({ ...params, page: newPage + 1 })}
+            rowsPerPage={meta.pageSize}
+            onRowsPerPageChange={(e) => setParams({ ...params, pageSize: parseInt(e.target.value, 10), page: 1 })}
+            rowsPerPageOptions={[10, 20, 50]}
+          />
+        )}
       </Card>
     </Box>
   );

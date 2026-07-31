@@ -822,6 +822,7 @@
   "expenses.list-desc": "مراجعة وإدارة جميع المصروفات وتأثيراتها المالية.",
   "expenses.home-subtitle": "إدارة المصروفات وتصنيفاتها",
   "expenses.recent": "أحدث المصروفات",
+  "expenses-load-error": "تعذر تحميل المصروفات.",
   "expenses.empty": "لا توجد مصروفات مسجلة.",
   "expenses.status.draft": "مسودة",
   "expenses.status.posted": "مُرحّل",
