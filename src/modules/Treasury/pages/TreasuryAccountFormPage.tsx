@@ -1,22 +1,17 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/GridLegacy';
-import InputAdornment from '@mui/material/InputAdornment';
-import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 
-import { IconDeviceFloppy, IconInfoCircle } from '@tabler/icons-react';
+import { IconDeviceFloppy } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -24,10 +19,30 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 
-import { createTreasuryAccount, updateTreasuryAccount } from '../api/treasuryApi';
-import { useTreasuryAccount, useTreasuryAccountingAccountLookups, useTreasuryLookups } from '../hooks/useTreasury';
+import { activateTreasuryAccount, createTreasuryAccount, deactivateTreasuryAccount, updateTreasuryAccount } from '../api/treasuryApi';
+import { useTreasuryAccount } from '../hooks/useTreasury';
 import type { TreasuryAccountInput } from '../types/treasury.types';
-import { TREASURY_ACCOUNT_TYPES } from '../utils/treasury.constants';
+
+type TreasuryCashboxFormState = TreasuryAccountInput & {
+  isActive: boolean;
+};
+
+function buildRequest(form: TreasuryCashboxFormState): TreasuryAccountInput {
+  const openingBalanceAmount = Number(form.openingBalanceAmount) || 0;
+
+  return {
+    code: '',
+    nameArabic: form.nameArabic.trim(),
+    nameEnglish: null,
+    accountType: 'Cash',
+    currencyCode: 'EGP',
+    notes: form.notes?.trim() ? form.notes.trim() : null,
+    openingBalanceAmount,
+    openingBalanceNature: openingBalanceAmount > 0 ? 'Debit' : null,
+    allowNegativeBalance: false,
+    accountingAccountId: null
+  };
+}
 
 export default function TreasuryAccountFormPage() {
   const { id } = useParams();
@@ -38,25 +53,20 @@ export default function TreasuryAccountFormPage() {
   const isEdit = Boolean(id);
 
   const { account, isLoading } = useTreasuryAccount(id);
-  const { lookups } = useTreasuryLookups();
-  const [mappingSearch, setMappingSearch] = useState('');
-  const { items: accountingLookups, isLoading: isAccountingLookupLoading } = useTreasuryAccountingAccountLookups(isEdit ? id : undefined, mappingSearch);
-
-  const [form, setForm] = useState<TreasuryAccountInput>({
+  const [form, setForm] = useState<TreasuryCashboxFormState>({
     code: '',
     nameArabic: '',
-    nameEnglish: '',
-    accountType: TREASURY_ACCOUNT_TYPES.CASH,
+    nameEnglish: null,
+    accountType: 'Cash',
     currencyCode: 'EGP',
-    notes: '',
+    notes: null,
     openingBalanceAmount: 0,
-    openingBalanceNature: 'Debit',
+    openingBalanceNature: null,
     allowNegativeBalance: false,
-    accountingAccountId: null
+    accountingAccountId: null,
+    isActive: true
   });
   const [isSaving, setIsSaving] = useState(false);
-
-  const hasNonOpeningMovements = isEdit && account ? account.hasNonOpeningMovements : false;
 
   useEffect(() => {
     if (!account) {
@@ -66,236 +76,134 @@ export default function TreasuryAccountFormPage() {
     setForm({
       code: account.code,
       nameArabic: account.nameArabic,
-      nameEnglish: account.nameEnglish || '',
-      accountType: account.accountType,
-      currencyCode: account.currencyCode,
-      notes: account.notes || '',
+      nameEnglish: account.nameEnglish,
+      accountType: 'Cash',
+      currencyCode: 'EGP',
+      notes: account.notes,
       openingBalanceAmount: account.openingBalance,
-      openingBalanceNature: account.openingBalanceNature || 'Debit',
-      allowNegativeBalance: account.allowNegativeBalance,
-      accountingAccountId: account.accountingAccountId
+      openingBalanceNature: account.openingBalanceNature,
+      allowNegativeBalance: false,
+      accountingAccountId: null,
+      isActive: account.isActive
     });
   }, [account]);
-
-  const selectedAccountingAccount = useMemo(() => {
-    if (!form.accountingAccountId) {
-      return null;
-    }
-
-    const mapped = accountingLookups.find((item) => item.id === form.accountingAccountId);
-    if (mapped) {
-      return mapped;
-    }
-
-    if (isEdit && account && account.accountingAccountId === form.accountingAccountId && account.accountingAccountCode && account.accountingAccountArabicName) {
-      return {
-        id: account.accountingAccountId,
-        code: account.accountingAccountCode,
-        displayName: `${account.accountingAccountCode} - ${account.accountingAccountArabicName}`
-      };
-    }
-
-    return null;
-  }, [account, accountingLookups, form.accountingAccountId, isEdit]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
     try {
       setIsSaving(true);
-      const request = {
-        ...form,
-        nameEnglish: form.nameEnglish || null,
-        notes: form.notes || null,
-        openingBalanceAmount: Number(form.openingBalanceAmount) || 0,
-        openingBalanceNature: form.openingBalanceAmount === 0 ? null : form.openingBalanceNature,
-        accountingAccountId: form.accountingAccountId
-      };
+      const request = buildRequest(form);
 
       if (isEdit && account) {
-        await updateTreasuryAccount(account.id, { ...request, rowVersion: account.rowVersion });
-        notify('تم تحديث الحساب بنجاح.');
+        const updated = await updateTreasuryAccount(account.id, { ...request, rowVersion: account.rowVersion });
+        if (updated.isActive !== form.isActive) {
+          if (form.isActive) {
+            await activateTreasuryAccount(updated.id, updated.rowVersion);
+          } else {
+            await deactivateTreasuryAccount(updated.id, updated.rowVersion);
+          }
+        }
+
+        notify(intl.formatMessage({ id: 'cashbox-updated', defaultMessage: 'Cashbox updated successfully.' }));
         await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
         navigate(`/treasury/accounts/${account.id}`);
-      } else {
-        const created = await createTreasuryAccount(request);
-        notify('تم إنشاء الحساب بنجاح.');
-        await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
-        navigate(`/treasury/accounts/${created.id}`);
+        return;
       }
+
+      const created = await createTreasuryAccount(request);
+      if (!form.isActive) {
+        await deactivateTreasuryAccount(created.id, created.rowVersion);
+      }
+
+      notify(intl.formatMessage({ id: 'cashbox-created', defaultMessage: 'Cashbox created successfully.' }));
+      await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
+      navigate(`/treasury/accounts/${created.id}`);
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'فشلت العملية.', 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'action-failed', defaultMessage: 'The operation failed.' }), 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isEdit && isLoading) return <Loader />;
+  if (isEdit && isLoading) {
+    return <Loader />;
+  }
+
+  const openingBalanceLocked = isEdit && Boolean(account?.hasNonOpeningMovements);
 
   return (
     <Box component="form" onSubmit={submit}>
       <Box sx={{ mb: 3 }}>
         <Breadcrumbs
           custom
-          heading={isEdit ? 'edit-account' : 'create-account'}
-          links={[
-            { title: 'treasury', to: '/treasury' },
-            { title: 'treasury-accounts', to: '/treasury/accounts' },
-            { title: isEdit ? 'edit-account' : 'create-account' }
-          ]}
+          heading={isEdit ? 'edit-account' : 'add-cashbox'}
+          links={[{ title: 'cashboxes', to: '/treasury/accounts' }, { title: isEdit ? 'edit-account' : 'add-cashbox' }]}
         />
       </Box>
 
-      <MainCard title={<FormattedMessage id={isEdit ? 'edit-account' : 'create-account'} defaultMessage={isEdit ? 'تعديل حساب' : 'إنشاء حساب'} />}>
-        <Box sx={{ pt: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1, mb: 2 }}>
-            <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
-            <Typography variant="h4" fontWeight={600}>
-              <FormattedMessage id="basic-information" defaultMessage="المعلومات الأساسية" />
-            </Typography>
-          </Box>
-          <Divider sx={{ mb: 3 }} />
-
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                required
-                fullWidth
-                label={<FormattedMessage id="code" defaultMessage="الكود" />}
-                value={form.code}
-                onChange={(e) => setForm({ ...form, code: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                required
-                fullWidth
-                label={<FormattedMessage id="name-arabic" defaultMessage="الاسم بالعربية" />}
-                value={form.nameArabic}
-                onChange={(e) => setForm({ ...form, nameArabic: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={<FormattedMessage id="name-english" defaultMessage="الاسم بالإنجليزية" />}
-                value={form.nameEnglish}
-                onChange={(e) => setForm({ ...form, nameEnglish: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                required
-                select
-                fullWidth
-                label={<FormattedMessage id="account-type" defaultMessage="نوع الحساب" />}
-                value={form.accountType}
-                onChange={(e) => setForm({ ...form, accountType: e.target.value })}
-              >
-                {lookups?.accountTypes.map((type) => (
-                  <MenuItem key={type.id} value={type.value}>
-                    {type.displayName}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Autocomplete
-                fullWidth
-                options={accountingLookups}
-                loading={isAccountingLookupLoading}
-                value={selectedAccountingAccount}
-                onChange={(_, value) => setForm({ ...form, accountingAccountId: value?.id ?? null })}
-                onInputChange={(_, nextValue) => setMappingSearch(nextValue)}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                getOptionLabel={(option) => option.displayName}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label={<FormattedMessage id="mapping" defaultMessage="الربط المحاسبي" />}
-                    placeholder={intl.formatMessage({ id: 'select-account', defaultMessage: 'اختر حسابًا' })}
-                    helperText={form.accountingAccountId ? undefined : intl.formatMessage({ id: 'not-configured', defaultMessage: 'غير مضبوط' })}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={<Checkbox checked={form.allowNegativeBalance} onChange={(e) => setForm({ ...form, allowNegativeBalance: e.target.checked })} />}
-                label={<FormattedMessage id="allow-overdraft" defaultMessage="السماح بالسحب على المكشوف" />}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-                <FormattedMessage id="opening-balance" defaultMessage="الرصيد الافتتاحي" />
-              </Typography>
-              {hasNonOpeningMovements && (
-                <Alert severity="warning" sx={{ mb: 3 }}>
-                  <FormattedMessage
-                    id="opening-balance-locked"
-                    defaultMessage="لا يمكن تعديل الرصيد الافتتاحي بعد وجود حركات مالية غير افتتاحية على هذا الحساب."
-                  />
-                </Alert>
-              )}
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    required
-                    fullWidth
-                    type="number"
-                    label={<FormattedMessage id="amount" defaultMessage="المبلغ" />}
-                    value={form.openingBalanceAmount}
-                    onChange={(e) => setForm({ ...form, openingBalanceAmount: Number(e.target.value) })}
-                    disabled={hasNonOpeningMovements}
-                    inputProps={{ min: 0, step: 0.01 }}
-                    InputProps={{ endAdornment: <InputAdornment position="end">{form.currencyCode}</InputAdornment> }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    required
-                    select
-                    fullWidth
-                    label={<FormattedMessage id="balance-nature" defaultMessage="اتجاه الرصيد" />}
-                    value={form.openingBalanceNature}
-                    onChange={(e) => setForm({ ...form, openingBalanceNature: e.target.value })}
-                    disabled={hasNonOpeningMovements || !form.openingBalanceAmount}
-                  >
-                    <MenuItem value="Debit">
-                      <FormattedMessage id="debit" defaultMessage="مدين - رصيد موجب" />
-                    </MenuItem>
-                    <MenuItem value="Credit">
-                      <FormattedMessage id="credit" defaultMessage="دائن - رصيد سالب" />
-                    </MenuItem>
-                  </TextField>
-                </Grid>
-              </Grid>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                label={<FormattedMessage id="notes" defaultMessage="ملاحظات" />}
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              />
-            </Grid>
+      <MainCard title={<FormattedMessage id={isEdit ? 'edit-account' : 'add-cashbox'} defaultMessage={isEdit ? 'Edit Cashbox' : 'Add Cashbox'} />}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              required
+              fullWidth
+              label={<FormattedMessage id="cashbox-name" defaultMessage="Cashbox Name" />}
+              value={form.nameArabic}
+              onChange={(event) => setForm({ ...form, nameArabic: event.target.value })}
+            />
           </Grid>
-        </Box>
+          <Grid item xs={12} md={6}>
+            <TextField
+              required
+              fullWidth
+              type="number"
+              label={<FormattedMessage id="opening-balance" defaultMessage="Opening Balance" />}
+              value={form.openingBalanceAmount}
+              onChange={(event) => setForm({ ...form, openingBalanceAmount: Number(event.target.value) })}
+              inputProps={{ min: 0, step: 0.01 }}
+              disabled={openingBalanceLocked}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            {openingBalanceLocked && (
+              <Alert severity="warning">
+                <FormattedMessage
+                  id="opening-balance-locked"
+                  defaultMessage="Opening balance can no longer be changed after non-opening movements exist."
+                />
+              </Alert>
+            )}
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label={<FormattedMessage id="notes" defaultMessage="Notes" />}
+              value={form.notes ?? ''}
+              onChange={(event) => setForm({ ...form, notes: event.target.value })}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={<Checkbox checked={form.isActive} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} />}
+              label={<FormattedMessage id="active" defaultMessage="Active" />}
+            />
+          </Grid>
+        </Grid>
       </MainCard>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
         <Button component={Link} to="/treasury/accounts" variant="outlined" color="inherit" disabled={isSaving} sx={{ borderRadius: 2, px: 4 }}>
-          <FormattedMessage id="cancel" defaultMessage="إلغاء" />
+          <FormattedMessage id="cancel" defaultMessage="Cancel" />
         </Button>
         <Button type="submit" variant="contained" color="primary" disabled={isSaving} sx={{ borderRadius: 2, px: 4, boxShadow: 2 }} startIcon={<IconDeviceFloppy size={18} />}>
-          <FormattedMessage id="save" defaultMessage="حفظ" />
+          <FormattedMessage id="save" defaultMessage="Save" />
         </Button>
       </Box>
     </Box>

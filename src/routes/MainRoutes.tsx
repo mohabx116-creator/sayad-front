@@ -120,11 +120,7 @@ const MainRoutes = {
     },
     {
       path: '/treasury',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.view}>
-          <TreasuryHomePage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/labor/workers',
@@ -237,107 +233,55 @@ const MainRoutes = {
     },
     {
       path: '/treasury/receipts',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsView}>
-          <TreasuryReceiptsListPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/receipts/new',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsCreate}>
-          <TreasuryReceiptFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/receipts/:id',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsView}>
-          <TreasuryReceiptDetailsPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/receipts/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsUpdate}>
-          <TreasuryReceiptFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/payments',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsView}>
-          <TreasuryPaymentsListPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/payments/new',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsCreate}>
-          <TreasuryPaymentFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/payments/:id',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsView}>
-          <TreasuryPaymentDetailsPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/payments/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsUpdate}>
-          <TreasuryPaymentFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/transfers',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.transfersView}>
-          <TreasuryTransfersListPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/transfers/new',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.transfersCreate}>
-          <TreasuryTransferFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/transfers/:id',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.transfersView}>
-          <TreasuryTransferDetailsPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/transfers/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.transfersUpdate}>
-          <TreasuryTransferFormPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/treasury/statements',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.statementsView}>
-          <TreasuryStatementsPage />
-        </PermissionRouteGuard>
-      )
+      element: <Navigate to="/treasury/accounts" replace />
     },
     {
       path: '/accounting',

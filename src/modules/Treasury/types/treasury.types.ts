@@ -55,6 +55,7 @@ export interface TreasuryAccount {
   creditTotal: number;
   balance: number;
   balanceNature: string;
+  lastMovementDate: string | null;
   notes: string | null;
   createdAtUtc: string;
   updatedAtUtc: string | null;
@@ -80,6 +81,7 @@ export interface TreasuryAccountListItem {
   creditTotal: number;
   balance: number;
   balanceNature: string;
+  lastMovementDate: string | null;
   rowVersion: string;
 }
 
@@ -124,6 +126,13 @@ export interface TreasuryAccountInput {
   openingBalanceNature: string | null;
   allowNegativeBalance: boolean;
   accountingAccountId: string | null;
+}
+
+export interface TreasuryCashMovementInput {
+  transactionDate: string;
+  amount: number;
+  reason: string;
+  notes: string | null;
 }
 
 export interface TreasuryAllocation {

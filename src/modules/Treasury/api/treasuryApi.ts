@@ -13,6 +13,7 @@ import type {
   TreasuryDashboardSummary,
   TreasuryEligibleInvoice,
   TreasuryLookups,
+  TreasuryCashMovementInput,
   TreasuryPagedMeta,
   TreasuryPayment,
   TreasuryPaymentInput,
@@ -117,6 +118,14 @@ export function finalDeleteTreasuryAccount(
   }
 ) {
   return unwrap(axiosServices.post<ApiResponse<unknown>>(`/api/treasury/accounts/${id}/final-delete`, request));
+}
+
+export function createTreasuryCashIn(id: string, request: TreasuryCashMovementInput) {
+  return unwrap(axiosServices.post<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}/cash-in`, request));
+}
+
+export function createTreasuryCashOut(id: string, request: TreasuryCashMovementInput) {
+  return unwrap(axiosServices.post<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}/cash-out`, request));
 }
 
 // Receipts

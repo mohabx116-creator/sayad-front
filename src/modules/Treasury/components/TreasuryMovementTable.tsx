@@ -28,46 +28,63 @@ import { formatTreasuryMoney } from '../utils/treasury.format';
 function getMovementPresentation(movementType: string) {
   switch (movementType.toLowerCase()) {
     case 'openingbalance':
-      return { label: 'رصيد افتتاحي', icon: <IconWallet size={14} />, color: 'primary' as const };
+      return { label: 'Opening Balance', icon: <IconWallet size={14} />, color: 'primary' as const };
     case 'receipt':
-      return { label: 'قبض', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
+      return { label: 'Receipt', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
+    case 'manualcashin':
+      return { label: 'Cash In', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
     case 'receiptreversal':
-      return { label: 'إلغاء قبض', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: 'Receipt Reversal', icon: <IconRefresh size={14} />, color: 'error' as const };
     case 'payment':
-      return { label: 'صرف', icon: <IconArrowUpRight size={14} />, color: 'error' as const };
+      return { label: 'Payment', icon: <IconArrowUpRight size={14} />, color: 'error' as const };
+    case 'manualcashout':
+      return { label: 'Cash Out', icon: <IconArrowUpRight size={14} />, color: 'error' as const };
     case 'paymentreversal':
-      return { label: 'إلغاء صرف', icon: <IconRefresh size={14} />, color: 'success' as const };
+      return { label: 'Payment Reversal', icon: <IconRefresh size={14} />, color: 'success' as const };
     case 'transferin':
-      return { label: 'تحويل وارد', icon: <IconArrowsLeftRight size={14} />, color: 'info' as const };
+      return { label: 'Transfer In', icon: <IconArrowsLeftRight size={14} />, color: 'info' as const };
     case 'transferout':
-      return { label: 'تحويل صادر', icon: <IconArrowsLeftRight size={14} />, color: 'warning' as const };
+      return { label: 'Transfer Out', icon: <IconArrowsLeftRight size={14} />, color: 'warning' as const };
     case 'transferreversalin':
-      return { label: 'إلغاء تحويل وارد', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: 'Transfer In Reversal', icon: <IconRefresh size={14} />, color: 'error' as const };
     case 'transferreversalout':
-      return { label: 'إلغاء تحويل صادر', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: 'Transfer Out Reversal', icon: <IconRefresh size={14} />, color: 'error' as const };
     default:
       return { label: movementType, icon: <IconArrowsLeftRight size={14} />, color: 'default' as const };
   }
 }
 
-function getReferenceLabel(referenceType: string) {
-  switch (referenceType.toLowerCase()) {
+function getReferenceLabel(referenceType: string, movementType: string) {
+  const normalizedReferenceType = referenceType.toLowerCase();
+  const normalizedMovementType = movementType.toLowerCase();
+
+  if (normalizedMovementType === 'manualcashin') {
+    return 'Cash In';
+  }
+
+  if (normalizedMovementType === 'manualcashout') {
+    return 'Cash Out';
+  }
+
+  switch (normalizedReferenceType) {
     case 'openingbalance':
-      return 'رصيد افتتاحي';
+      return 'Opening Balance';
     case 'openingbalancecorrection':
-      return 'تصحيح رصيد افتتاحي';
+      return 'Opening Balance Correction';
+    case 'manualmovement':
+      return 'Manual Movement';
     case 'receiptvoucher':
-      return 'سند قبض';
+      return 'Receipt Voucher';
     case 'receiptvouchercancellation':
-      return 'إلغاء سند قبض';
+      return 'Receipt Voucher Cancellation';
     case 'paymentvoucher':
-      return 'سند صرف';
+      return 'Payment Voucher';
     case 'paymentvouchercancellation':
-      return 'إلغاء سند صرف';
+      return 'Payment Voucher Cancellation';
     case 'transfervoucher':
-      return 'تحويل بين حسابات الخزينة';
+      return 'Transfer Voucher';
     case 'transfervouchercancellation':
-      return 'إلغاء تحويل';
+      return 'Transfer Voucher Cancellation';
     default:
       return referenceType;
   }
@@ -76,34 +93,44 @@ function getReferenceLabel(referenceType: string) {
 function getReferencePresentation(movement: TreasuryMovement) {
   const sourceType = movement.sourceDocumentType?.toLowerCase();
 
+  if (movement.movementType.toLowerCase() === 'manualcashin') {
+    return { label: 'Cash In', route: null };
+  }
+
+  if (movement.movementType.toLowerCase() === 'manualcashout') {
+    return { label: 'Cash Out', route: null };
+  }
+
   if (sourceType === 'expense' && movement.sourceDocumentId) {
-    return { label: 'مصروف', route: `/expenses/${movement.sourceDocumentId}` };
+    return { label: 'Expense', route: `/expenses/${movement.sourceDocumentId}` };
   }
 
   if (sourceType === 'salesinvoice' && movement.sourceDocumentId) {
-    return { label: 'فاتورة بيع', route: `/sales/invoices/${movement.sourceDocumentId}` };
+    return { label: 'Sales Invoice', route: `/sales/invoices/${movement.sourceDocumentId}` };
   }
 
   if (sourceType === 'purchaseinvoice' && movement.sourceDocumentId) {
-    return { label: 'فاتورة شراء', route: `/purchases/invoices/${movement.sourceDocumentId}` };
+    return { label: 'Purchase Invoice', route: `/purchases/invoices/${movement.sourceDocumentId}` };
   }
 
   switch (movement.referenceType.toLowerCase()) {
     case 'receiptvoucher':
     case 'receiptvouchercancellation':
-      return { label: 'سند قبض', route: movement.referenceId ? `/treasury/receipts/${movement.referenceId}` : null };
+      return { label: 'Receipt Voucher', route: movement.referenceId ? `/treasury/receipts/${movement.referenceId}` : null };
     case 'paymentvoucher':
     case 'paymentvouchercancellation':
-      return { label: 'سند صرف', route: movement.referenceId ? `/treasury/payments/${movement.referenceId}` : null };
+      return { label: 'Payment Voucher', route: movement.referenceId ? `/treasury/payments/${movement.referenceId}` : null };
     case 'transfervoucher':
     case 'transfervouchercancellation':
-      return { label: 'تحويل بين حسابات الخزينة', route: movement.referenceId ? `/treasury/transfers/${movement.referenceId}` : null };
+      return { label: 'Transfer Voucher', route: movement.referenceId ? `/treasury/transfers/${movement.referenceId}` : null };
     case 'openingbalance':
-      return { label: 'رصيد افتتاحي', route: null };
+      return { label: 'Opening Balance', route: null };
     case 'openingbalancecorrection':
-      return { label: 'تصحيح رصيد افتتاحي', route: null };
+      return { label: 'Opening Balance Correction', route: null };
+    case 'manualmovement':
+      return { label: 'Manual Movement', route: null };
     default:
-      return { label: getReferenceLabel(movement.referenceType), route: null };
+      return { label: getReferenceLabel(movement.referenceType, movement.movementType), route: null };
   }
 }
 
@@ -140,7 +167,7 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
       <Box sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
         <IconArrowsLeftRight size={48} color="var(--mui-palette-text-disabled)" />
         <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
-          <FormattedMessage id="no-movements-found" defaultMessage="لا توجد حركات" />
+          <FormattedMessage id="no-movements-found" defaultMessage="No movements found." />
         </Typography>
       </Box>
     );
@@ -152,14 +179,14 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
         <Table size="small">
           <TableHead sx={{ bgcolor: 'grey.50' }}>
             <TableRow>
-              <TableCell><FormattedMessage id="date" defaultMessage="التاريخ" /></TableCell>
-              <TableCell><FormattedMessage id="movement-number" defaultMessage="رقم الحركة" /></TableCell>
-              <TableCell><FormattedMessage id="movement-type" defaultMessage="نوع الحركة" /></TableCell>
-              <TableCell><FormattedMessage id="related-document" defaultMessage="المستند المرتبط" /></TableCell>
-              <TableCell><FormattedMessage id="description" defaultMessage="الوصف" /></TableCell>
-              <TableCell align="right"><FormattedMessage id="inbound" defaultMessage="داخل" /></TableCell>
-              <TableCell align="right"><FormattedMessage id="outbound" defaultMessage="خارج" /></TableCell>
-              <TableCell align="right"><FormattedMessage id="running-balance" defaultMessage="الرصيد بعد الحركة" /></TableCell>
+              <TableCell><FormattedMessage id="date" defaultMessage="Date" /></TableCell>
+              <TableCell><FormattedMessage id="movement-number" defaultMessage="Movement Number" /></TableCell>
+              <TableCell><FormattedMessage id="movement-type" defaultMessage="Movement Type" /></TableCell>
+              <TableCell><FormattedMessage id="related-document" defaultMessage="Related Document" /></TableCell>
+              <TableCell><FormattedMessage id="description" defaultMessage="Description" /></TableCell>
+              <TableCell align="right"><FormattedMessage id="inbound" defaultMessage="Inbound" /></TableCell>
+              <TableCell align="right"><FormattedMessage id="outbound" defaultMessage="Outbound" /></TableCell>
+              <TableCell align="right"><FormattedMessage id="running-balance" defaultMessage="Running Balance" /></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -192,7 +219,7 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                     </Typography>
                     {row.isReversal && (
                       <Typography variant="caption" color="error.main" display="block">
-                        <FormattedMessage id="reversed" defaultMessage="حركة عكسية / إلغاء" />
+                        <FormattedMessage id="reversed" defaultMessage="Reversed" />
                       </Typography>
                     )}
                   </TableCell>
@@ -208,7 +235,7 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                         {formatTreasuryMoney(row.balanceAfter, currencyCode)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {row.balanceNature === 'Debit' ? 'مدين' : row.balanceNature === 'Credit' ? 'دائن' : 'مستقر'}
+                        {row.balanceNature === 'Debit' ? 'Debit' : row.balanceNature === 'Credit' ? 'Credit' : 'Settled'}
                       </Typography>
                     </Stack>
                   </TableCell>
