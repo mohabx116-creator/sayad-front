@@ -1,5 +1,4 @@
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import { FormattedMessage } from 'react-intl';
 
 type PartyClassificationChipsProps = {
@@ -7,7 +6,7 @@ type PartyClassificationChipsProps = {
   isSupplier: boolean;
 };
 
-const customerSx = {
+const chipBaseSx = {
   display: 'inline-flex',
   alignItems: 'center',
   px: 1.5,
@@ -22,32 +21,19 @@ const customerSx = {
 };
 
 const supplierSx = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  px: 1.5,
-  py: 0.5,
-  borderRadius: 1,
-  fontSize: '0.75rem',
-  fontWeight: 600,
+  ...chipBaseSx,
   backgroundColor: '#ffdcc2',
   color: '#6d3900',
-  border: '1px solid #ffb77b',
-  whiteSpace: 'nowrap'
+  border: '1px solid #ffb77b'
 };
 
 export default function PartyClassificationChips({ isCustomer, isSupplier }: PartyClassificationChipsProps) {
+  const labelId = isCustomer && isSupplier ? 'party-type-both' : isCustomer ? 'party-customer' : 'party-supplier';
+  const chipSx = isCustomer && isSupplier ? chipBaseSx : isCustomer ? chipBaseSx : supplierSx;
+
   return (
-    <Stack direction="row" spacing={1}>
-      {isCustomer && (
-        <Box sx={customerSx}>
-          <FormattedMessage id="party-customer" />
-        </Box>
-      )}
-      {isSupplier && (
-        <Box sx={supplierSx}>
-          <FormattedMessage id="party-supplier" />
-        </Box>
-      )}
-    </Stack>
+    <Box sx={chipSx}>
+      <FormattedMessage id={labelId} />
+    </Box>
   );
 }

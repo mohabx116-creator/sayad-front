@@ -9,4 +9,4 @@ export const PARTIES_PERMISSIONS = {
   statementView: 'parties.statement.view'
 } as const;
 
-export const PARTIES_VIEW_PERMISSIONS = [PARTIES_PERMISSIONS.view, PARTIES_PERMISSIONS.statementView] as const;
+export const PARTIES_VIEW_PERMISSIONS = [PARTIES_PERMISSIONS.view] as const;

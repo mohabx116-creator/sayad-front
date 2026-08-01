@@ -9,39 +9,22 @@ export const openingBalanceSchema = z.object({
 
 export const createPartySchema = z
   .object({
-    nameArabic: z.string().min(1).max(200),
-    nameEnglish: z.string().max(200).optional().nullable(),
+    name: z.string().min(1).max(200),
     partyType: z.enum(['customer', 'supplier', 'both']),
-    partyCode: z.string().max(50).optional().nullable(),
-    isCustomer: z.boolean().optional(),
-    isSupplier: z.boolean().optional(),
-    primaryPhone: z.string().max(50).optional().nullable(),
-    secondaryPhone: z.string().max(50).optional().nullable(),
-    email: z.string().email().max(320).optional().or(z.literal('')).nullable(),
+    mobileNumber: z.string().max(50).optional().nullable(),
     address: z.string().max(500).optional().nullable(),
     notes: z.string().max(1000).optional().nullable(),
-    openingBalance: openingBalanceSchema.extend({ amount: z.number().min(0), balanceNature: z.enum(['Debit', 'Credit', '']) })
-      .optional()
-      .nullable()
-  })
-  .refine((value) => !value.openingBalance?.amount || Boolean(value.openingBalance.balanceNature), {
-    path: ['openingBalance', 'balanceNature'],
-    message: 'Opening balance direction is required.'
+    isActive: z.boolean()
   });
 
 export const updatePartySchema = z
   .object({
-    nameArabic: z.string().min(1).max(200),
-    nameEnglish: z.string().max(200).optional().nullable(),
+    name: z.string().min(1).max(200),
     partyType: z.enum(['customer', 'supplier', 'both']),
-    partyCode: z.string().max(50).optional().nullable(),
-    isCustomer: z.boolean().optional(),
-    isSupplier: z.boolean().optional(),
-    primaryPhone: z.string().max(50).optional().nullable(),
-    secondaryPhone: z.string().max(50).optional().nullable(),
-    email: z.string().email().max(320).optional().or(z.literal('')).nullable(),
+    mobileNumber: z.string().max(50).optional().nullable(),
     address: z.string().max(500).optional().nullable(),
     notes: z.string().max(1000).optional().nullable(),
+    isActive: z.boolean(),
     rowVersion: z.string().min(1)
   });
 

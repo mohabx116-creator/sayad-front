@@ -9,8 +9,8 @@ import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import { updateParty } from '../api/partiesApi';
-import PartyForm, { cleanUpdate, type PartyFormValues } from '../components/PartyForm';
+import { activateParty, deactivateParty, updateParty } from '../api/partiesApi';
+import PartyForm, { cleanUpdate, toPartyFormValues, type PartyFormValues } from '../components/PartyForm';
 import { useParty } from '../hooks/useParties';
 
 export default function PartyEditPage() {
@@ -29,7 +29,11 @@ export default function PartyEditPage() {
     if(!id) return;
     try {
       setIsSaving(true);
+      const previousState = party?.isActive ?? true;
       await updateParty(id, cleanUpdate(values));
+      if (previousState !== values.isActive) {
+        await (values.isActive ? activateParty(id) : deactivateParty(id));
+      }
       notify(intl.formatMessage({ id: 'parties-action-success' }));
       navigate(`/parties/${id}`);
     } catch (saveError) {
@@ -48,21 +52,7 @@ export default function PartyEditPage() {
         {party && (
           <PartyForm
             mode="edit"
-            initialValues={{
-              nameArabic: party.nameArabic,
-              nameEnglish: party.nameEnglish ?? '',
-              partyType: party.isCustomer && party.isSupplier ? 'both' : party.isSupplier ? 'supplier' : 'customer',
-              partyCode: '',
-              isCustomer: party.isCustomer,
-              isSupplier: party.isSupplier,
-              primaryPhone: party.primaryPhone ?? '',
-              secondaryPhone: party.secondaryPhone ?? '',
-              email: party.email ?? '',
-              address: party.address ?? '',
-              notes: party.notes ?? '',
-              openingBalance: null,
-              rowVersion: party.rowVersion
-            }}
+            initialValues={toPartyFormValues(party)}
             isSaving={isSaving}
             onSubmit={save}
             onCancel={() => navigate(id ? `/parties/${id}` : '/parties')}
