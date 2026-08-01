@@ -53,6 +53,11 @@ export default function PartyDetailsPage() {
               <Button component={Link} to="/parties" color="inherit">
                 <FormattedMessage id="parties" />
               </Button>
+              <PermissionGuard permission={PARTIES_PERMISSIONS.statementView}>
+                <Button component={Link} to={`/parties/${party.id}/statement`} variant="outlined">
+                  <FormattedMessage id="party-account-statement" />
+                </Button>
+              </PermissionGuard>
               <PermissionGuard permission={PARTIES_PERMISSIONS.update}>
                 <Button component={Link} to={`/parties/${party.id}/edit`} variant="outlined">
                   <FormattedMessage id="edit" />

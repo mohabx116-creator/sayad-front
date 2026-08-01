@@ -581,7 +581,11 @@ const MainRoutes = {
     },
     {
       path: '/parties/:id/statement',
-      element: <PartyStatementPage />
+      element: (
+        <PermissionRouteGuard permission={PARTIES_PERMISSIONS.statementView}>
+          <PartyStatementPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/inventory/items',
