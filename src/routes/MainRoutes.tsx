@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 // project imports
 import MainLayout from 'layout/MainLayout';
@@ -12,6 +13,7 @@ import { PARTIES_PERMISSIONS } from 'modules/Parties/utils/parties.constants';
 import { PURCHASES_PERMISSIONS } from 'modules/Purchases/utils/purchases.constants';
 import { WORKERS_PERMISSIONS } from 'modules/Workers/utils/workers.constants';
 import { OPERATIONAL_JOBS_PERMISSIONS } from 'modules/OperationalJobs/utils/operationalJobs.constants';
+import { OPERATIONS_PERMISSIONS } from 'modules/Operations/utils/operations.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
@@ -41,6 +43,9 @@ const OperationalJobsListPage = Loadable(lazy(() => import('modules/OperationalJ
 const OperationalJobCreatePage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobCreatePage')));
 const OperationalJobDetailsPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobDetailsPage')));
 const OperationalJobEditPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobEditPage')));
+const OperationsListPage = Loadable(lazy(() => import('modules/Operations/pages/OperationsListPage')));
+const OperationCreatePage = Loadable(lazy(() => import('modules/Operations/pages/OperationCreatePage')));
+const OperationDetailsPage = Loadable(lazy(() => import('modules/Operations/pages/OperationDetailsPage')));
 const TreasuryHomePage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryHomePage')));
 const TreasuryAccountsListPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountsListPage')));
 const TreasuryAccountDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountDetailsPage')));
@@ -107,6 +112,11 @@ const SystemPermissionsPage = Loadable(lazy(() => import('modules/System/pages/S
 const SystemAuditPage = Loadable(lazy(() => import('modules/System/pages/SystemAuditPage')));
 const SystemMaintenancePage = Loadable(lazy(() => import('modules/System/pages/SystemMaintenancePage')));
 const SystemDangerZonePage = Loadable(lazy(() => import('modules/System/pages/SystemDangerZonePage')));
+
+function OperationEditRedirect() {
+  const { id } = useParams();
+  return <Navigate to={id ? `/labor/operations/${id}` : '/labor/operations'} replace />;
+}
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -219,6 +229,31 @@ const MainRoutes = {
         </PermissionRouteGuard>
       )
     },
+    {
+      path: '/labor/operations',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONS_PERMISSIONS.view}>
+          <OperationsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/operations/new',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONS_PERMISSIONS.create}>
+          <OperationCreatePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/operations/:id',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONS_PERMISSIONS.view}>
+          <OperationDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    { path: '/labor/operations/:id/edit', element: <OperationEditRedirect /> },
     {
       path: '/treasury/accounts',
       element: (
