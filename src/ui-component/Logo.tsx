@@ -31,5 +31,5 @@ const LogoImage = styled('img')(({ theme }) => ({
 }));
 
 export default function Logo({ dark = false, height = 40 }: { dark?: boolean; height?: number | string }) {
-  return <LogoImage src={logo} alt="Elsyaad .Tape. ERP" sx={{ height }} className={dark ? 'logo-dark-mode' : ''} />;
+  return <LogoImage src={logo} alt="SAYAD ERP" sx={{ height }} className={dark ? 'logo-dark-mode' : ''} />;
 }

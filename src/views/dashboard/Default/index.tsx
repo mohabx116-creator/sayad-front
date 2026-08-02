@@ -15,7 +15,7 @@ export default function Dashboard() {
   return (
     <Grid container spacing={gridSpacing}>
       <Grid size={12}>
-        <MainCard title="Elsyaad .Tape. ERP">
+        <MainCard title="SAYAD ERP">
           <Box
             sx={{
               display: 'inline-block',
