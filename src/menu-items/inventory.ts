@@ -1,4 +1,4 @@
-import { IconAlertTriangle, IconCalculator, IconCategory, IconLink, IconPackage, IconRulerMeasure, IconTransfer } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCalculator, IconCategory, IconLink, IconPackage, IconReportAnalytics, IconRulerMeasure, IconTransfer } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 import { INVENTORY_PERMISSIONS, INVENTORY_VIEW_PERMISSIONS } from 'modules/Inventory/utils/inventory.constants';
@@ -10,7 +10,8 @@ const icons = {
   IconRulerMeasure,
   IconTransfer,
   IconAlertTriangle,
-  IconCalculator
+  IconCalculator,
+  IconReportAnalytics
 };
 
 const inventory: NavItemType = {
@@ -64,6 +65,15 @@ const inventory: NavItemType = {
       icon: icons.IconAlertTriangle,
       breadcrumbs: true,
       permission: INVENTORY_PERMISSIONS.alertsView
+    },
+    {
+      id: 'inventory-stock-report',
+      title: 'inventory-stock-report',
+      type: 'item',
+      url: '/inventory/reports/stock',
+      icon: icons.IconReportAnalytics,
+      breadcrumbs: true,
+      permission: INVENTORY_PERMISSIONS.view
     },
     {
       id: 'inventory-valuation',

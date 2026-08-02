@@ -5,6 +5,15 @@ export type ListMeta = {
   totalPages: number;
 };
 
+export type WarehouseDto = {
+  id: string;
+  code: string;
+  nameArabic: string;
+  nameEnglish?: string | null;
+  isDefault: boolean;
+  isActive: boolean;
+};
+
 export type UnitOfMeasureDto = {
   id: string;
   code: string;
@@ -147,6 +156,61 @@ export type InventoryValuationSummaryDto = {
   valuationStatus: string;
   stockStatus: string;
   rowVersion: string;
+};
+
+export type InventoryStockReportRowDto = {
+  itemId: string;
+  itemCode: string;
+  itemNameArabic: string;
+  itemNameEnglish?: string | null;
+  categoryId?: string | null;
+  categoryNameArabic?: string | null;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseNameArabic: string;
+  baseUnitId: string;
+  baseUnitCode: string;
+  baseUnitNameArabic: string;
+  availableQuantity: number;
+  minimumQuantity: number;
+  reorderQuantity: number;
+  stockStatus: 'InStock' | 'LowStock' | 'OutOfStock';
+  averageUnitCost?: number | null;
+  stockValue?: number | null;
+  lastMovementDate?: string | null;
+};
+
+export type InventoryStockReportSummaryDto = {
+  totalItems: number;
+  inStock: number;
+  lowStock: number;
+  outOfStock: number;
+  totalStockValue?: number | null;
+};
+
+export type InventoryStockReportFiltersDto = {
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseNameArabic: string;
+  categoryId?: string | null;
+  categoryNameArabic?: string | null;
+  itemId?: string | null;
+  itemCode?: string | null;
+  itemNameArabic?: string | null;
+  stockStatus?: string | null;
+  search?: string | null;
+  page: number;
+  pageSize: number;
+};
+
+export type InventoryStockReportDto = {
+  rows: InventoryStockReportRowDto[];
+  summary: InventoryStockReportSummaryDto;
+  appliedFilters: InventoryStockReportFiltersDto;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
 };
 
 export type ItemUnitInput = {

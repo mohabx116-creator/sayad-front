@@ -5,6 +5,7 @@ import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type {
   InventoryMovementDto,
+  InventoryStockReportDto,
   ItemCategoryDto,
   ItemDto,
   ItemUnitDto,
@@ -12,6 +13,7 @@ import type {
   LowStockItemDto,
   InventoryValuationSummaryDto,
   PartyItemRelationDto,
+  WarehouseDto,
   UnitOfMeasureDto
 } from '../types/inventory.types';
 
@@ -69,6 +71,11 @@ export function useInventoryCategories(params: Record<string, string | number | 
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
+export function useInventoryWarehouses() {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<WarehouseDto[]>>('/api/inventory/warehouses', fetcher);
+  return useMemo(() => ({ warehouses: data?.data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
 export function useItemMovements(id?: string, params: Record<string, string | number | boolean | undefined | null> = { page: 1, pageSize: 20 }) {
   const query = buildQuery(params);
   const key = id ? `/api/inventory/items/${id}/movements${query ? `?${query}` : ''}` : null;
@@ -86,6 +93,12 @@ export function useInventoryValuations(params: Record<string, string | number | 
   const key = `/api/inventory/valuation?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<InventoryValuationSummaryDto[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
+}
+
+export function useInventoryStockReport(params: Record<string, string | number | boolean | undefined | null> = { page: 1, pageSize: 20 }) {
+  const key = `/api/inventory/reports/stock?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<InventoryStockReportDto>>(key, fetcher);
+  return useMemo(() => ({ report: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }
 
 export function useInventoryValuation(itemId?: string, warehouseId?: string) {

@@ -12,6 +12,7 @@ import type {
   InventoryAdjustmentRequest,
   InventoryMovementRequest,
   InitializeInventoryValuationRequest,
+  InventoryStockReportDto,
   ItemCategoryDto,
   ItemDto,
   ItemUnitInput,
@@ -22,6 +23,7 @@ import type {
   UpdateCategoryRequest,
   UpdatePartyItemRelationRequest,
   UpdateUnitRequest,
+  WarehouseDto,
   UnitOfMeasureDto,
   UpdateItemRequest,
   OpeningStockRequest,
@@ -165,6 +167,10 @@ export function getInventoryValuations(params: string) {
   return unwrap(axiosServices.get<ApiResponse<InventoryValuationSummaryDto[]>>(`/api/inventory/valuation${params ? `?${params}` : ''}`));
 }
 
+export function getInventoryStockReport(params: string) {
+  return unwrap(axiosServices.get<ApiResponse<InventoryStockReportDto>>(`/api/inventory/reports/stock${params ? `?${params}` : ''}`));
+}
+
 export function getInventoryValuation(itemId: string, warehouseId?: string | null) {
   return unwrap(
     axiosServices.get<ApiResponse<InventoryValuationSummaryDto>>(
@@ -175,4 +181,8 @@ export function getInventoryValuation(itemId: string, warehouseId?: string | nul
 
 export function initializeInventoryValuation(itemId: string, request: InitializeInventoryValuationRequest) {
   return unwrap(axiosServices.post<ApiResponse<InventoryValuationSummaryDto>>(`/api/inventory/valuation/${itemId}/initialize`, request));
+}
+
+export function getWarehouses() {
+  return unwrap(axiosServices.get<ApiResponse<WarehouseDto[]>>('/api/inventory/warehouses'));
 }
