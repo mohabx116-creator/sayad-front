@@ -9,7 +9,17 @@ import Loader from 'ui-component/Loader';
 
 // types
 import { InitialLoginContextProps, JWTContextType } from 'types/auth';
-import { clearAccessToken, getAccessToken, loadCurrentUser, refreshSession, setAccessToken, signIn, signOut } from 'utils/auth-session';
+import {
+  changePassword as changePasswordRequest,
+  clearAccessToken,
+  getAccessToken,
+  loadCurrentUser,
+  refreshSession,
+  setAccessToken,
+  signIn,
+  signOut,
+  updateCurrentUser as updateCurrentUserRequest
+} from 'utils/auth-session';
 
 const initialState: InitialLoginContextProps = {
   isLoggedIn: false,
@@ -87,11 +97,33 @@ export function JWTProvider({ children }: { children: ReactElement }) {
     });
   };
 
+  const updateProfile = async (displayName: string) => {
+    const user = await updateCurrentUserRequest(displayName);
+    dispatch({
+      type: LOGIN,
+      payload: {
+        isLoggedIn: true,
+        user
+      }
+    });
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string, confirmPassword: string) => {
+    const session = await changePasswordRequest(currentPassword, newPassword, confirmPassword);
+    dispatch({
+      type: LOGIN,
+      payload: {
+        isLoggedIn: true,
+        user: session.user
+      }
+    });
+  };
+
   if (state.isInitialized !== undefined && !state.isInitialized) {
     return <Loader />;
   }
 
-  return <JWTContext value={{ ...state, login, logout, refreshSession: refreshAuthSession }}>{children}</JWTContext>;
+  return <JWTContext value={{ ...state, login, logout, refreshSession: refreshAuthSession, updateProfile, changePassword }}>{children}</JWTContext>;
 }
 
 export default JWTContext;

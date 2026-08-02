@@ -1,138 +1,99 @@
 import { useEffect, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// material-ui
+import { useIntl } from 'react-intl';
+
 import { useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
+import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Divider from '@mui/material/Divider';
-import InputAdornment from '@mui/material/InputAdornment';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
 import Stack from '@mui/material/Stack';
-import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
 
-// third party
-import { FormattedMessage, useIntl } from 'react-intl';
+import { IconAdjustments, IconChevronDown, IconLock, IconLogout, IconUser } from '@tabler/icons-react';
 
-// project imports
-import UpgradePlanCard from './UpgradePlanCard';
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import useAuth from 'hooks/useAuth';
 
-// assets
-import User1 from 'assets/images/users/user-round.svg';
-import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
-import useConfig from 'hooks/useConfig';
-
-// ==============================|| PROFILE MENU ||============================== //
-
 export default function ProfileSection() {
   const theme = useTheme();
   const intl = useIntl();
-  const {
-    state: { borderRadius }
-  } = useConfig();
   const navigate = useNavigate();
-
-  const [sdm, setSdm] = useState(true);
-  const [value, setValue] = useState('');
-  const [notification, setNotification] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const { logout, user } = useAuth();
   const [open, setOpen] = useState(false);
-
-  /**
-   * anchorRef is used on different components and specifying one type leads to other components throwing an error
-   * */
   const anchorRef = useRef<any>(null);
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login', { replace: true });
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
-  const handleListItemClick = (event: React.MouseEvent<HTMLDivElement>, index: number, route: string = '') => {
-    setSelectedIndex(index);
-    handleClose(event);
-
-    if (route && route !== '') {
-      navigate(route);
-    }
-  };
+  const initials = (user?.name ?? 'S')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
-  const handleClose = (event: React.MouseEvent<HTMLDivElement> | MouseEvent | TouchEvent) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
+  const handleClose = (event: ReactMouseEvent<HTMLDivElement> | MouseEvent | TouchEvent) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target as Node)) {
       return;
     }
-
     setOpen(false);
+  };
+
+  const handleLogout = async () => {
+    setOpen(false);
+    await logout();
+    navigate('/login', { replace: true });
   };
 
   const prevOpen = useRef(open);
   useEffect(() => {
     if (prevOpen.current === true && open === false) {
-      anchorRef.current.focus();
+      anchorRef.current?.focus();
     }
-
     prevOpen.current = open;
   }, [open]);
 
   return (
     <>
       <Chip
-        slotProps={{ label: { sx: { lineHeight: 0 } } }}
-        sx={{ ml: 2, height: '48px', alignItems: 'center', borderRadius: '27px' }}
-        icon={
-          <Avatar
-            src={User1}
-            alt="user-images"
-            sx={{ typography: 'mediumAvatar', margin: '8px 0 8px 8px !important', cursor: 'pointer' }}
-            ref={anchorRef}
-            aria-controls={open ? 'menu-list-grow' : undefined}
-            aria-haspopup="true"
-            color="inherit"
-          />
-        }
-        label={<IconSettings stroke={1.5} size="24px" />}
         ref={anchorRef}
-        aria-controls={open ? 'menu-list-grow' : undefined}
-        aria-haspopup="true"
         onClick={handleToggle}
+        clickable
+        avatar={<Avatar sx={{ bgcolor: 'secondary.main', color: 'secondary.contrastText' }}>{initials}</Avatar>}
+        label={
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="subtitle2" sx={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {user?.name ?? 'SAYAD User'}
+            </Typography>
+            <IconChevronDown size={16} />
+          </Stack>
+        }
+        sx={{ ml: 2, height: 44, px: 0.5 }}
         color="primary"
-        aria-label="user-account"
       />
+
       <Popper
-        placement="bottom"
+        placement="bottom-end"
         open={open}
         anchorEl={anchorRef.current}
-        role={undefined}
         transition
         disablePortal
         modifiers={[
           {
             name: 'offset',
-            options: {
-              offset: [0, 14]
-            }
+            options: { offset: [0, 14] }
           }
         ]}
       >
@@ -141,139 +102,49 @@ export default function ProfileSection() {
             <Transitions in={open} {...TransitionProps}>
               <Paper>
                 {open && (
-                  <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
-                    <Box sx={{ p: 2, pb: 0 }}>
-                      <Stack>
-                        <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                          <Typography variant="h4">
-                            <FormattedMessage id="profile-greeting" />
-                          </Typography>
-                          <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                            {user?.name}
-                          </Typography>
-                        </Stack>
-                        <Typography variant="subtitle2">
-                          <FormattedMessage id="profile-project-admin" />
+                  <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]} sx={{ minWidth: 280 }}>
+                    <Box sx={{ p: 2 }}>
+                      <Stack spacing={0.25}>
+                        <Typography variant="subtitle1">{user?.name}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {user?.email}
                         </Typography>
                       </Stack>
-                      <OutlinedInput
-                        sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
-                        id="input-search-profile"
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        placeholder={intl.formatMessage({ id: 'profile-search-placeholder' })}
-                        startAdornment={
-                          <InputAdornment position="start">
-                            <IconSearch stroke={1.5} size="16px" />
-                          </InputAdornment>
-                        }
-                        aria-describedby="search-helper-text"
-                        slotProps={{ input: { 'aria-label': 'weight' } }}
-                      />
-                      <Divider />
                     </Box>
-                    <Box
+                    <Divider />
+                    <List
+                      component="nav"
                       sx={{
-                        p: 2,
-                        py: 0,
-                        height: '100%',
-                        maxHeight: 'calc(100vh - 250px)',
-                        overflowX: 'hidden',
-                        '&::-webkit-scrollbar': { width: 5 }
+                        width: '100%',
+                        '& .MuiListItemButton-root': { mt: 0.5 }
                       }}
                     >
-                      <UpgradePlanCard />
-                      <Divider />
-                      <Card sx={{ bgcolor: 'primary.light', ...theme.applyStyles('dark', { bgcolor: 'dark.800' }), my: 2 }}>
-                        <CardContent>
-                          <Stack sx={{ gap: 3 }}>
-                            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                              <Typography variant="subtitle1">
-                                <FormattedMessage id="profile-dnd-mode" />
-                              </Typography>
-                              <Switch color="primary" checked={sdm} onChange={(e) => setSdm(e.target.checked)} name="sdm" size="small" />
-                            </Stack>
-                            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                              <Typography variant="subtitle1">
-                                <FormattedMessage id="profile-allow-notifications" />
-                              </Typography>
-                              <Switch checked={notification} onChange={(e) => setNotification(e.target.checked)} name="sdm" size="small" />
-                            </Stack>
-                          </Stack>
-                        </CardContent>
-                      </Card>
-                      <Divider />
-                      <List
-                        component="nav"
-                        sx={{
-                          width: '100%',
-                          maxWidth: 350,
-                          minWidth: 300,
-                          borderRadius: `${borderRadius}px`,
-                          '& .MuiListItemButton-root': { mt: 0.5 }
-                        }}
-                      >
-                        <ListItemButton
-                          sx={{ borderRadius: `${borderRadius}px` }}
-                          selected={selectedIndex === 0}
-                          onClick={(event: React.MouseEvent<HTMLDivElement>) =>
-                            handleListItemClick(event, 0, '/apps/user/account-profile/profile1')
-                          }
-                        >
-                          <ListItemIcon>
-                            <IconSettings stroke={1.5} size="20px" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Typography variant="body2">
-                                <FormattedMessage id="account-settings" />
-                              </Typography>
-                            }
-                          />
-                        </ListItemButton>
-                        <ListItemButton
-                          sx={{ borderRadius: `${borderRadius}px` }}
-                          selected={selectedIndex === 1}
-                          onClick={(event: React.MouseEvent<HTMLDivElement>) =>
-                            handleListItemClick(event, 1, '/apps/user/social-profile/posts')
-                          }
-                        >
-                          <ListItemIcon>
-                            <IconUser stroke={1.5} size="20px" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">
-                                  <FormattedMessage id="social-profile" />
-                                </Typography>
-                                <Chip
-                                  slotProps={{
-                                    label: { sx: { mt: 0.25, ...theme.applyStyles('dark', { color: 'background.default' }) } }
-                                  }}
-                                  label="02"
-                                  variant="filled"
-                                  size="small"
-                                  color="warning"
-                                />
-                              </Stack>
-                            }
-                          />
-                        </ListItemButton>
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} selected={selectedIndex === 4} onClick={handleLogout}>
-                          <ListItemIcon>
-                            <IconLogout stroke={1.5} size="20px" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Typography variant="body2">
-                                <FormattedMessage id="logout" />
-                              </Typography>
-                            }
-                          />
-                        </ListItemButton>
-                      </List>
-                    </Box>
+                      <ListItemButton sx={{ mx: 1, borderRadius: 2 }} onClick={() => navigate('/account/profile')}>
+                        <ListItemIcon>
+                          <IconUser stroke={1.5} size="20px" />
+                        </ListItemIcon>
+                        <ListItemText primary={intl.formatMessage({ id: 'my-profile' })} />
+                      </ListItemButton>
+                      <ListItemButton sx={{ mx: 1, borderRadius: 2 }} onClick={() => navigate('/account/change-password')}>
+                        <ListItemIcon>
+                          <IconLock stroke={1.5} size="20px" />
+                        </ListItemIcon>
+                        <ListItemText primary={intl.formatMessage({ id: 'change-password' })} />
+                      </ListItemButton>
+                      <ListItemButton sx={{ mx: 1, borderRadius: 2 }} onClick={() => navigate('/account/preferences')}>
+                        <ListItemIcon>
+                          <IconAdjustments stroke={1.5} size="20px" />
+                        </ListItemIcon>
+                        <ListItemText primary={intl.formatMessage({ id: 'appearance-language' })} />
+                      </ListItemButton>
+                      <Divider sx={{ mx: 1, my: 1 }} />
+                      <ListItemButton sx={{ mx: 1, borderRadius: 2 }} onClick={handleLogout}>
+                        <ListItemIcon>
+                          <IconLogout stroke={1.5} size="20px" />
+                        </ListItemIcon>
+                        <ListItemText primary={intl.formatMessage({ id: 'logout' })} />
+                      </ListItemButton>
+                    </List>
                   </MainCard>
                 )}
               </Paper>

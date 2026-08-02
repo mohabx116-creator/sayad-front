@@ -20,6 +20,9 @@ import { ACCOUNTING_PERMISSIONS } from 'modules/Accounting/utils/accounting.cons
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
+const AccountProfilePage = Loadable(lazy(() => import('views/pages/account/Profile')));
+const AccountChangePasswordPage = Loadable(lazy(() => import('views/pages/account/ChangePassword')));
+const AccountPreferencesPage = Loadable(lazy(() => import('views/pages/account/Preferences')));
 const UsersListPage = Loadable(lazy(() => import('modules/Administration/pages/UsersListPage')));
 const UserDetailsPage = Loadable(lazy(() => import('modules/Administration/pages/UserDetailsPage')));
 const RolesListPage = Loadable(lazy(() => import('modules/Administration/pages/RolesListPage')));
@@ -118,6 +121,22 @@ const MainRoutes = {
     {
       path: '/dashboard',
       element: <DashboardDefault />
+    },
+    {
+      path: '/account',
+      element: <Navigate to="/account/profile" replace />
+    },
+    {
+      path: '/account/profile',
+      element: <AccountProfilePage />
+    },
+    {
+      path: '/account/change-password',
+      element: <AccountChangePasswordPage />
+    },
+    {
+      path: '/account/preferences',
+      element: <AccountPreferencesPage />
     },
     {
       path: '/treasury',

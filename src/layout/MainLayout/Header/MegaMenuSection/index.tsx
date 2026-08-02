@@ -1,7 +1,7 @@
-import React, { Activity, ReactNode, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-// material-ui
 import { useTheme } from '@mui/material/styles';
 import Avatar, { AvatarProps } from '@mui/material/Avatar';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
@@ -9,23 +9,17 @@ import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import ListSubheader from '@mui/material/ListSubheader';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-// project imports
-import { ThemeDirection } from 'config';
+import { IconAccessPoint, IconBuildingStore, IconDashboard, IconFileDescription, IconLock, IconPackage, IconSettings, IconUsers } from '@tabler/icons-react';
+
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import { drawerWidth, gridSpacing } from 'store/constant';
-import useConfig from 'hooks/useConfig';
-
-// assets
-import Banner from './Banner';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import { IconAccessPoint } from '@tabler/icons-react';
 
 interface HeaderAvatarProps extends AvatarProps {
   children: ReactNode;
@@ -66,94 +60,28 @@ function HeaderAvatar({ children, sx, ref, ...others }: HeaderAvatarProps) {
 
 const linkList = [
   {
-    id: 'user-quick',
-    label: 'User Quick',
+    id: 'workspace',
+    label: 'Workspace',
     children: [
-      {
-        link: '/apps/user/social-profile/posts',
-        label: 'Social Profile'
-      },
-      {
-        link: '/apps/user/account-profile/profile1',
-        label: 'Account Profile'
-      },
-      {
-        link: '/apps/user/card/card1',
-        label: 'User Cards'
-      },
-      {
-        link: '/apps/user/list/list2',
-        label: 'User List'
-      },
-      {
-        link: '/apps/contact/c-card',
-        label: 'Contact'
-      }
+      { link: '/dashboard', label: 'Dashboard', icon: IconDashboard },
+      { link: '/inventory/items', label: 'Inventory Items', icon: IconPackage },
+      { link: '/inventory/reports/stock', label: 'Stock Report', icon: IconFileDescription },
+      { link: '/treasury/accounts', label: 'Treasury', icon: IconBuildingStore }
     ]
   },
   {
-    id: 'application',
-    label: 'Applications',
+    id: 'account',
+    label: 'Account',
     children: [
-      {
-        link: '/apps/chat',
-        label: 'Chat'
-      },
-      {
-        link: '/apps/kanban/board',
-        label: 'Kanban'
-      },
-      {
-        link: '/apps/mail',
-        label: 'Mail'
-      },
-      {
-        link: '/apps/calendar',
-        label: 'Calendar'
-      },
-      {
-        link: '/apps/e-commerce/products',
-        label: 'E-commerce'
-      }
-    ]
-  },
-  {
-    id: 'primitives',
-    label: 'Primitives',
-    children: [
-      {
-        link: '/utils/util-color',
-        label: 'Colors'
-      },
-      {
-        link: '/utils/util-typography',
-        label: 'Typography'
-      },
-      {
-        link: '/utils/util-shadow',
-        label: 'Shadows'
-      },
-      {
-        link: 'https://tabler-icons.io/',
-        label: 'Icons',
-        target: '_blank'
-      },
-      {
-        link: '/basic/accordion',
-        label: 'Elements'
-      }
+      { link: '/account/profile', label: 'My Profile', icon: IconUsers },
+      { link: '/account/change-password', label: 'Change Password', icon: IconLock },
+      { link: '/account/preferences', label: 'Preferences', icon: IconSettings }
     ]
   }
 ];
 
-// ==============================|| SEARCH INPUT - MEGA MENu||============================== //
-
 export default function MegaMenuSection() {
   const theme = useTheme();
-  const {
-    state: { themeDirection }
-  } = useConfig();
-
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<any>(null);
 
@@ -161,22 +89,24 @@ export default function MegaMenuSection() {
     setOpen((prevOpen) => !prevOpen);
   };
 
-  const handleClose = (event: React.MouseEvent<HTMLDivElement> | MouseEvent | TouchEvent) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
+  const handleClose = (event: ReactMouseEvent<HTMLDivElement> | MouseEvent | TouchEvent) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target as Node)) {
       return;
     }
     setOpen(false);
   };
 
+  const prevOpen = useRef(open);
+  useEffect(() => {
+    if (prevOpen.current === true && open === false) {
+      anchorRef.current?.focus();
+    }
+    prevOpen.current = open;
+  }, [open]);
+
   return (
     <>
-      <HeaderAvatar
-        variant="rounded"
-        ref={anchorRef}
-        aria-controls={open ? 'menu-list-grow' : undefined}
-        aria-haspopup="true"
-        onClick={handleToggle}
-      >
+      <HeaderAvatar variant="rounded" ref={anchorRef} aria-controls={open ? 'menu-list-grow' : undefined} aria-haspopup="true" onClick={handleToggle}>
         <IconAccessPoint stroke={1.5} size="20px" />
       </HeaderAvatar>
       <Popper
@@ -185,7 +115,6 @@ export default function MegaMenuSection() {
         anchorEl={anchorRef.current}
         role={undefined}
         transition
-        sx={{ ...(themeDirection === ThemeDirection.RTL && { right: { md: '-170px !important', lg: '-300px !important' } }) }}
         disablePortal
         modifiers={[
           {
@@ -206,71 +135,46 @@ export default function MegaMenuSection() {
                     lg: `calc(100vw - ${drawerWidth + 100}px)`,
                     xl: `calc(100vw - ${drawerWidth + 140}px)`
                   },
-                  maxWidth: { xl: 900, md: 764 }
+                  maxWidth: { xl: 760, md: 700 }
                 }}
               >
-                <Activity mode={open ? 'visible' : 'hidden'}>
-                  <MainCard
-                    border={false}
-                    elevation={16}
-                    content={false}
-                    boxShadow
-                    shadow={theme.shadows[16]}
-                    sx={{ overflow: { p: 1, xs: 'visible', md: 'hidden' } }}
-                  >
-                    <Grid container spacing={gridSpacing}>
-                      <Grid size={{ md: 4 }}>
-                        <Banner />
-                      </Grid>
-                      <Grid size={{ md: 8 }}>
-                        <Grid
-                          container
-                          spacing={gridSpacing}
-                          sx={{
-                            pt: 3,
-                            '& .MuiListItemButton-root:hover': {
-                              bgcolor: 'transparent',
-                              '& .MuiTypography-root': {
-                                color: 'secondary.main'
-                              }
-                            },
-                            '& .MuiListItemIcon-root': {
-                              minWidth: 16
-                            }
-                          }}
-                        >
-                          {linkList.map((links, index) => (
-                            <Grid key={index} size={4}>
-                              <List
-                                component="nav"
-                                aria-labelledby={`list-${links.id}`}
-                                subheader={
-                                  <ListSubheader id={`list-${links.id}`}>
-                                    <Typography variant="subtitle1">{links.label}</Typography>
-                                  </ListSubheader>
+                <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]} sx={{ overflow: 'hidden' }}>
+                  <Grid container spacing={gridSpacing} sx={{ p: 2 }}>
+                    {linkList.map((section) => (
+                      <Grid key={section.id} size={{ xs: 12, md: 6 }}>
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle1">{section.label}</Typography>
+                          <List
+                            component="nav"
+                            sx={{
+                              '& .MuiListItemButton-root:hover': {
+                                bgcolor: 'transparent',
+                                '& .MuiTypography-root': {
+                                  color: 'secondary.main'
                                 }
-                              >
-                                {links.children.map((items, index) => (
-                                  <ListItemButton
-                                    component={Link}
-                                    to={items.link}
-                                    key={index}
-                                    {...(items.target && { target: items.target })}
-                                  >
-                                    <ListItemIcon>
-                                      <FiberManualRecordIcon sx={{ fontSize: '0.5rem' }} />
-                                    </ListItemIcon>
-                                    <ListItemText primary={items.label} />
-                                  </ListItemButton>
-                                ))}
-                              </List>
-                            </Grid>
-                          ))}
-                        </Grid>
+                              },
+                              '& .MuiListItemIcon-root': {
+                                minWidth: 16
+                              }
+                            }}
+                          >
+                            {section.children.map((item) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <ListItemButton component={Link} to={item.link} key={item.link} sx={{ borderRadius: 2 }}>
+                                  <ListItemIcon>
+                                    <ItemIcon stroke={1.5} size="18px" />
+                                  </ListItemIcon>
+                                  <ListItemText primary={item.label} />
+                                </ListItemButton>
+                              );
+                            })}
+                          </List>
+                        </Stack>
                       </Grid>
-                    </Grid>
-                  </MainCard>
-                </Activity>
+                    ))}
+                  </Grid>
+                </MainCard>
               </Paper>
             </Transitions>
           </ClickAwayListener>

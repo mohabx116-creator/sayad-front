@@ -24,7 +24,7 @@ import { ThemeMode } from 'config';
 import Logo from 'ui-component/Logo';
 
 // assets
-import { IconBook, IconCreditCard, IconDashboard, IconHome2 } from '@tabler/icons-react';
+import { IconDashboard, IconHome2, IconLogin } from '@tabler/icons-react';
 import MenuIcon from '@mui/icons-material/Menu';
 
 // elevation scroll
@@ -73,17 +73,14 @@ export default function AppBar({ ...others }) {
               <Logo />
             </Typography>
             <Stack direction="row" sx={{ gap: { xs: 1.5, md: 2.5 }, display: { xs: 'none', sm: 'flex' } }}>
-              <Button color="inherit" component={Link} href="#">
+              <Button color="inherit" component={RouterLink} to="/">
                 Home
               </Button>
-              <Button color="inherit" component={RouterLink} to="/login" target="_blank">
+              <Button color="inherit" component={RouterLink} to="/login">
+                Sign in
+              </Button>
+              <Button color="inherit" component={RouterLink} to="/dashboard">
                 Dashboard
-              </Button>
-              <Button color="inherit" component={Link} href="https://codedthemes.gitbook.io/berry" target="_blank">
-                Documentation
-              </Button>
-              <Button component={Link} href="https://links.codedthemes.com/hsqll" disableElevation variant="contained" color="secondary">
-                Purchase Now
               </Button>
             </Stack>
             <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
@@ -94,36 +91,28 @@ export default function AppBar({ ...others }) {
                 {drawerToggle && (
                   <Box sx={{ width: 'auto' }} role="presentation" onClick={drawerToggler(false)} onKeyDown={drawerToggler(false)}>
                     <List>
-                      <Link sx={{ textDecoration: 'none' }} href="#" target="_blank">
-                        <ListItemButton component="a">
+                      <Link sx={{ textDecoration: 'none' }} component={RouterLink} to="/">
+                        <ListItemButton component="div">
                           <ListItemIcon>
                             <IconHome2 />
                           </ListItemIcon>
                           <ListItemText primary="Home" />
                         </ListItemButton>
                       </Link>
-                      <Link sx={{ textDecoration: 'none' }} href="/login" target="_blank">
-                        <ListItemButton component="a">
+                      <Link sx={{ textDecoration: 'none' }} component={RouterLink} to="/login">
+                        <ListItemButton component="div">
+                          <ListItemIcon>
+                            <IconLogin />
+                          </ListItemIcon>
+                          <ListItemText primary="Sign in" />
+                        </ListItemButton>
+                      </Link>
+                      <Link sx={{ textDecoration: 'none' }} component={RouterLink} to="/dashboard">
+                        <ListItemButton component="div">
                           <ListItemIcon>
                             <IconDashboard />
                           </ListItemIcon>
                           <ListItemText primary="Dashboard" />
-                        </ListItemButton>
-                      </Link>
-                      <Link sx={{ textDecoration: 'none' }} href="https://codedthemes.gitbook.io/berry" target="_blank">
-                        <ListItemButton component="a">
-                          <ListItemIcon>
-                            <IconBook />
-                          </ListItemIcon>
-                          <ListItemText primary="Documentation" />
-                        </ListItemButton>
-                      </Link>
-                      <Link sx={{ textDecoration: 'none' }} href="https://links.codedthemes.com/hsqll" target="_blank">
-                        <ListItemButton component="a">
-                          <ListItemIcon>
-                            <IconCreditCard />
-                          </ListItemIcon>
-                          <ListItemText primary="Purchase Now" />
                         </ListItemButton>
                       </Link>
                     </List>

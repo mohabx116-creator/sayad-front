@@ -15,6 +15,11 @@ export type UserProfile = {
   roles?: string[];
   permissions?: string[];
   isSystemOwner?: boolean;
+  isActive?: boolean;
+  isLocked?: boolean;
+  createdAtUtc?: string;
+  lastLoginAtUtc?: string | null;
+  updatedAtUtc?: string | null;
   about?: string;
   email?: string;
   work_email?: string;

@@ -11,6 +11,8 @@ export type JWTContextType = {
   logout: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   refreshSession: () => Promise<void>;
+  updateProfile: (displayName: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) => Promise<void>;
 };
 
 export interface InitialLoginContextProps {

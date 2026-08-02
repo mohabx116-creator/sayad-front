@@ -1,6 +1,14 @@
 import type { UserProfile } from 'types/user-profile';
 import { authTokenStore } from './auth-token';
-import { login as loginRequest, logout as logoutRequest, me as meRequest, refresh as refreshRequest, type AuthSessionDto } from './auth-client';
+import {
+  changePassword as changePasswordRequest,
+  login as loginRequest,
+  logout as logoutRequest,
+  me as meRequest,
+  refresh as refreshRequest,
+  updateCurrentUser as updateCurrentUserRequest,
+  type AuthSessionDto
+} from './auth-client';
 
 let refreshPromise: Promise<AuthSessionDto> | null = null;
 
@@ -43,6 +51,16 @@ export async function refreshSession(): Promise<AuthSessionDto> {
 
 export async function loadCurrentUser(): Promise<UserProfile> {
   return meRequest();
+}
+
+export async function updateCurrentUser(displayName: string): Promise<UserProfile> {
+  return updateCurrentUserRequest(displayName);
+}
+
+export async function changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Promise<AuthSessionDto> {
+  const session = await changePasswordRequest(currentPassword, newPassword, confirmPassword);
+  authTokenStore.setToken(session.accessToken);
+  return session;
 }
 
 export async function signOut(): Promise<void> {

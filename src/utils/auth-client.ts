@@ -16,6 +16,16 @@ type LoginRequest = {
   password: string;
 };
 
+type UpdateCurrentUserRequest = {
+  displayName: string;
+};
+
+type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 const authClient = axios.create({
   baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:5000/',
   withCredentials: true
@@ -69,4 +79,18 @@ export function logout(): Promise<void> {
 
 export function me(): Promise<UserProfile> {
   return unwrap<UserProfile>(authClient.get<ApiResponse<UserProfile>>('/api/auth/me'));
+}
+
+export function updateCurrentUser(displayName: string): Promise<UserProfile> {
+  return unwrap<UserProfile>(authClient.put<ApiResponse<UserProfile>>('/api/auth/me', { displayName } satisfies UpdateCurrentUserRequest));
+}
+
+export function changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Promise<AuthSessionDto> {
+  return unwrap<AuthSessionDto>(
+    authClient.post<ApiResponse<AuthSessionDto>>('/api/auth/change-password', {
+      currentPassword,
+      newPassword,
+      confirmPassword
+    } satisfies ChangePasswordRequest)
+  );
 }
