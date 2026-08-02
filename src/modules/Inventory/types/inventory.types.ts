@@ -182,10 +182,10 @@ export type InventoryStockReportRowDto = {
 
 export type InventoryStockReportSummaryDto = {
   totalItems: number;
-  inStock: number;
-  lowStock: number;
-  outOfStock: number;
-  totalStockValue?: number | null;
+  availableItems: number;
+  lowStockItems: number;
+  outOfStockItems: number;
+  totalInventoryValue?: number | null;
 };
 
 export type InventoryStockReportFiltersDto = {

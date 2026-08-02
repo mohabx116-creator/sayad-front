@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
 
-import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import ButtonBase from '@mui/material/ButtonBase';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -24,14 +24,9 @@ import { IconPackage, IconRefresh, IconReportAnalytics, IconSearch } from '@tabl
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import { useInventoryCategories, useInventoryItems, useInventoryStockReport, useInventoryWarehouses } from '../hooks/useInventory';
+import { useInventoryCategories, useInventoryStockReport, useInventoryWarehouses } from '../hooks/useInventory';
 
-const stockStatusOptions = [
-  { value: 'All', labelId: 'all' },
-  { value: 'InStock', labelId: 'stock-status.in-stock' },
-  { value: 'LowStock', labelId: 'stock-status.low-stock' },
-  { value: 'OutOfStock', labelId: 'stock-status.out-of-stock' }
-] as const;
+type StockFilter = 'All' | 'Available' | 'LowStock' | 'OutOfStock';
 
 function formatQuantity(intl: ReturnType<typeof useIntl>, value?: number | null) {
   return value == null ? '-' : intl.formatNumber(value, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
@@ -80,26 +75,60 @@ export default function InventoryStockReportPage() {
   const [pageSize, setPageSize] = useState(10);
   const [warehouseId, setWarehouseId] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [itemId, setItemId] = useState('');
-  const [stockStatus, setStockStatus] = useState<'All' | 'InStock' | 'LowStock' | 'OutOfStock'>('All');
+  const [stockFilter, setStockFilter] = useState<StockFilter>('All');
   const [search, setSearch] = useState('');
 
   const { warehouses, isLoading: warehousesLoading } = useInventoryWarehouses();
   const { items: categories } = useInventoryCategories({ page: 1, pageSize: 100 });
-  const { items: inventoryItems } = useInventoryItems({ page: 1, pageSize: 100 });
 
   const { report, isLoading, error, mutate } = useInventoryStockReport({
     page: page + 1,
     pageSize,
     warehouseId: warehouseId || undefined,
     categoryId: categoryId || undefined,
-    itemId: itemId || undefined,
-    stockStatus: stockStatus === 'All' ? undefined : stockStatus,
+    stockStatus: stockFilter === 'All' ? undefined : stockFilter,
     search: search || undefined
   });
 
   const rows = report?.rows ?? [];
   const summary = report?.summary;
+  const summaryCards = [
+    {
+      value: 'All' as const,
+      labelId: 'stock-summary.total-items',
+      defaultMessage: 'Total Items',
+      count: summary?.totalItems ?? 0,
+      selectable: true
+    },
+    {
+      value: 'Available' as const,
+      labelId: 'stock-summary.available-items',
+      defaultMessage: 'Available',
+      count: summary?.availableItems ?? 0,
+      selectable: true
+    },
+    {
+      value: 'LowStock' as const,
+      labelId: 'stock-summary.low-stock-items',
+      defaultMessage: 'Low Stock',
+      count: summary?.lowStockItems ?? 0,
+      selectable: true
+    },
+    {
+      value: 'OutOfStock' as const,
+      labelId: 'stock-summary.out-of-stock-items',
+      defaultMessage: 'Out of Stock',
+      count: summary?.outOfStockItems ?? 0,
+      selectable: true
+    },
+    {
+      value: 'inventory-value' as const,
+      labelId: 'total-stock-value',
+      defaultMessage: 'Total Inventory Value',
+      count: formatMoney(intl, summary?.totalInventoryValue),
+      selectable: false
+    }
+  ] as const;
 
   return (
     <>
@@ -117,7 +146,6 @@ export default function InventoryStockReportPage() {
         </Box>
 
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-          <Chip icon={<IconPackage size={16} />} label={`${summary?.totalItems ?? 0} ${intl.formatMessage({ id: 'total-items', defaultMessage: 'Total Items' })}`} variant="outlined" />
           <Button variant="outlined" color="inherit" startIcon={<IconRefresh size={18} />} onClick={() => void mutate()}>
             <FormattedMessage id="refresh" />
           </Button>
@@ -125,52 +153,65 @@ export default function InventoryStockReportPage() {
       </Box>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <MainCard sx={{ height: '100%' }}>
-            <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="total-items" defaultMessage="Total Items" />
-            </Typography>
-            <Typography variant="h3" sx={{ mt: 1 }}>
-              {summary?.totalItems ?? 0}
-            </Typography>
-          </MainCard>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <MainCard sx={{ height: '100%' }}>
-            <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="stock-status.in-stock" defaultMessage="In Stock" />
-            </Typography>
-            <Typography variant="h3" sx={{ mt: 1 }}>
-              {summary?.inStock ?? 0}
-            </Typography>
-          </MainCard>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <MainCard sx={{ height: '100%' }}>
-            <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="stock-status.low-stock" defaultMessage="Low Stock" />
-            </Typography>
-            <Typography variant="h3" sx={{ mt: 1 }}>
-              {summary?.lowStock ?? 0}
-            </Typography>
-          </MainCard>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <MainCard sx={{ height: '100%' }}>
-            <Typography variant="body2" color="text.secondary">
-              <FormattedMessage id="total-stock-value" defaultMessage="Total Stock Value" />
-            </Typography>
-            <Typography variant="h3" sx={{ mt: 1 }}>
-              {formatMoney(intl, summary?.totalStockValue)}
-            </Typography>
-          </MainCard>
-        </Grid>
+        {summaryCards.map((card) => {
+          const isSelected = stockFilter === card.value;
+
+          return (
+            <Grid key={card.value} size={{ xs: 12, sm: 6, md: 3 }}>
+              {card.selectable ? (
+                <ButtonBase
+                  onClick={() => {
+                    setStockFilter(card.value);
+                    setPage(0);
+                  }}
+                  aria-pressed={isSelected}
+                  sx={{ width: '100%', height: '100%', textAlign: 'left', borderRadius: 3 }}
+                >
+                  <Box
+                    sx={(theme) => ({
+                      width: '100%',
+                      minHeight: 112,
+                      p: 2.5,
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: isSelected ? 'primary.main' : 'divider',
+                      bgcolor: isSelected ? 'primary.main' : 'background.paper',
+                      color: isSelected ? 'primary.contrastText' : 'text.primary',
+                      boxShadow: isSelected ? theme.shadows[4] : theme.shadows[0],
+                      transition: 'all .18s ease',
+                      transform: isSelected ? 'translateY(-1px)' : 'translateY(0)',
+                      '&:hover': {
+                        boxShadow: isSelected ? theme.shadows[6] : theme.shadows[2]
+                      }
+                    })}
+                  >
+                    <Typography variant="body2" sx={{ opacity: isSelected ? 0.9 : 0.75 }}>
+                      <FormattedMessage id={card.labelId} defaultMessage={card.defaultMessage} />
+                    </Typography>
+                    <Typography variant="h3" sx={{ mt: 1 }}>
+                      {card.count}
+                    </Typography>
+                  </Box>
+                </ButtonBase>
+              ) : (
+                <MainCard sx={{ height: '100%' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    <FormattedMessage id={card.labelId} defaultMessage={card.defaultMessage} />
+                  </Typography>
+                  <Typography variant="h3" sx={{ mt: 1 }}>
+                    {card.count}
+                  </Typography>
+                </MainCard>
+              )}
+            </Grid>
+          );
+        })}
       </Grid>
 
       <MainCard content={false}>
         <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 3 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -194,7 +235,7 @@ export default function InventoryStockReportPage() {
               </TextField>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -217,41 +258,7 @@ export default function InventoryStockReportPage() {
               </TextField>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Autocomplete
-                options={inventoryItems}
-                value={inventoryItems.find((item) => item.id === itemId) ?? null}
-                onChange={(_, value) => {
-                  setItemId(value?.id ?? '');
-                  setPage(0);
-                }}
-                getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                renderInput={(params) => <TextField {...params} size="small" label={<FormattedMessage id="item" defaultMessage="Item" />} />}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 2 }}>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                label={<FormattedMessage id="stock-status" defaultMessage="Stock Status" />}
-                value={stockStatus}
-                onChange={(event) => {
-                  setStockStatus(event.target.value as typeof stockStatus);
-                  setPage(0);
-                }}
-              >
-                {stockStatusOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    <FormattedMessage id={option.labelId} defaultMessage={option.value} />
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 1 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 fullWidth
                 size="small"
