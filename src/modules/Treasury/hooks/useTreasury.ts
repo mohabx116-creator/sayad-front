@@ -3,7 +3,7 @@ import useSWR from 'swr';
 
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import { TREASURY_MAX_PAGE_SIZE } from '../utils/treasury.constants';
+import { TREASURY_ACCOUNT_TYPES, TREASURY_MAX_PAGE_SIZE } from '../utils/treasury.constants';
 import type {
   TreasuryAccount,
   TreasuryAccountDeletionPreview,
@@ -82,6 +82,42 @@ export function useTreasuryAccounts(params: TreasuryListParams) {
   const key = `/api/treasury/accounts?${buildQuery(normalizedParams)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryAccountListItem[]>>(key, fetcher);
   return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
+}
+
+export function useCashboxAccounts() {
+  const cashAccounts = useTreasuryAccounts({ page: 1, pageSize: TREASURY_MAX_PAGE_SIZE, isActive: true, accountType: TREASURY_ACCOUNT_TYPES.CASH });
+  const pettyCashAccounts = useTreasuryAccounts({
+    page: 1,
+    pageSize: TREASURY_MAX_PAGE_SIZE,
+    isActive: true,
+    accountType: TREASURY_ACCOUNT_TYPES.PETTY_CASH
+  });
+
+  const items = useMemo(() => {
+    const seen = new Set<string>();
+    return [...cashAccounts.items, ...pettyCashAccounts.items]
+      .filter((account) => {
+        if (seen.has(account.id)) {
+          return false;
+        }
+
+        seen.add(account.id);
+        return true;
+      })
+      .sort((left, right) => left.code.localeCompare(right.code));
+  }, [cashAccounts.items, pettyCashAccounts.items]);
+
+  return useMemo(
+    () => ({
+      items,
+      error: cashAccounts.error ?? pettyCashAccounts.error,
+      isLoading: cashAccounts.isLoading || pettyCashAccounts.isLoading,
+      mutate: async () => {
+        await Promise.all([cashAccounts.mutate(), pettyCashAccounts.mutate()]);
+      }
+    }),
+    [cashAccounts.error, cashAccounts.isLoading, cashAccounts.mutate, items, pettyCashAccounts.error, pettyCashAccounts.isLoading, pettyCashAccounts.mutate]
+  );
 }
 
 export function useTreasuryAccount(id?: string) {

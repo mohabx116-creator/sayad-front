@@ -138,6 +138,13 @@ export type OpeningBalanceRequest = {
   notes?: string | null;
 };
 
+export type PartyCashTransactionRequest = {
+  treasuryAccountId: string;
+  transactionDate: string;
+  amount: number;
+  notes?: string | null;
+};
+
 export type CorrectOpeningBalanceRequest = {
   entryDate: string;
   amount: number;

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -8,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { activateParty, deactivateParty } from '../api/partiesApi';
+import PartyCashTransactionDialog from '../components/PartyCashTransactionDialog';
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyStatusChip from '../components/PartyStatusChip';
 import { useParty } from '../hooks/useParties';
@@ -19,6 +21,7 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { PARTIES_PERMISSIONS } from '../utils/parties.constants';
+import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
 
 export default function PartyDetailsPage() {
@@ -26,6 +29,7 @@ export default function PartyDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { party, error, isLoading, mutate } = useParty(id);
+  const [cashTransactionMode, setCashTransactionMode] = useState<'receipt' | 'payment' | null>(null);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -42,6 +46,8 @@ export default function PartyDetailsPage() {
     }
   };
 
+  const closeCashTransactionDialog = () => setCashTransactionMode(null);
+
   return (
     <>
       <Breadcrumbs custom heading="party-details" links={[{ title: 'parties', to: '/parties' }, { title: 'party-details' }]} />
@@ -57,6 +63,26 @@ export default function PartyDetailsPage() {
                 <Button component={Link} to={`/parties/${party.id}/statement`} variant="outlined">
                   <FormattedMessage id="party-account-statement" />
                 </Button>
+              </PermissionGuard>
+              <PermissionGuard
+                allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]}
+                fallback={null}
+              >
+                {party.isCustomer && (
+                  <Button variant="contained" color="success" onClick={() => setCashTransactionMode('receipt')}>
+                    <FormattedMessage id="party-customer-receipt-submit" />
+                  </Button>
+                )}
+              </PermissionGuard>
+              <PermissionGuard
+                allPermissions={[TREASURY_PERMISSIONS.paymentsCreate, TREASURY_PERMISSIONS.paymentsPost]}
+                fallback={null}
+              >
+                {party.isSupplier && (
+                  <Button variant="contained" color="warning" onClick={() => setCashTransactionMode('payment')}>
+                    <FormattedMessage id="party-supplier-payment-submit" />
+                  </Button>
+                )}
               </PermissionGuard>
               <PermissionGuard permission={PARTIES_PERMISSIONS.update}>
                 <Button component={Link} to={`/parties/${party.id}/edit`} variant="outlined">
@@ -109,6 +135,18 @@ export default function PartyDetailsPage() {
           </Grid>
         )}
       </MainCard>
+      {party && id && (
+        <PartyCashTransactionDialog
+          open={cashTransactionMode !== null}
+          mode={cashTransactionMode ?? 'receipt'}
+          partyId={id}
+          partyName={resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
+          onClose={closeCashTransactionDialog}
+          onSaved={async () => {
+            await mutate();
+          }}
+        />
+      )}
     </>
   );
 }

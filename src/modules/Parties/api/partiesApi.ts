@@ -11,6 +11,7 @@ import type {
   PartyDeletionPreview,
   PartyDto,
   PartyFinalDeleteRequest,
+  PartyCashTransactionRequest,
   PartyStatementDto,
   PartyStatementParams,
   UpdatePartyRequest
@@ -72,4 +73,12 @@ export function correctPartyOpeningBalance(id: string, request: CorrectOpeningBa
 
 export function getPartyStatement(id: string, params?: PartyStatementParams) {
   return unwrap(axiosServices.get<ApiResponse<PartyStatementDto>>(`/api/parties/${id}/statement`, { params }));
+}
+
+export function createCustomerReceipt(id: string, request: PartyCashTransactionRequest) {
+  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/customer-receipts`, request));
+}
+
+export function createSupplierPayment(id: string, request: PartyCashTransactionRequest) {
+  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/supplier-payments`, request));
 }
