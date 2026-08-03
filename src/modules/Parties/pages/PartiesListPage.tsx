@@ -49,7 +49,9 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import { useParties } from '../hooks/useParties';
 import { PARTIES_PERMISSIONS } from '../utils/parties.constants';
+import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
+import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
 
 type PartyTypeFilter = '' | 'customer' | 'supplier' | 'both';
 type StatusFilter = '' | 'true' | 'false';
@@ -336,7 +338,9 @@ export default function PartiesListPage() {
                           <PartyClassificationChips isCustomer={party.isCustomer} isSupplier={party.isSupplier} />
                         </TableCell>
                       )}
-                      <TableCell sx={{ color: 'text.secondary' }}>{party.balance.toLocaleString(intl.locale)}</TableCell>
+                      <TableCell sx={{ color: 'text.secondary' }}>
+                        {formatTreasuryMoney(party.balance, 'ج.م')}
+                      </TableCell>
                       <TableCell dir="ltr" sx={{ color: 'text.secondary' }}>
                         {party.primaryPhone ?? '-'}
                       </TableCell>
@@ -359,7 +363,7 @@ export default function PartiesListPage() {
                             </Tooltip>
                           </PermissionGuard>
                           {party.isCustomer && (
-                            <PermissionGuard permission={PARTIES_PERMISSIONS.update}>
+                            <PermissionGuard permission={TREASURY_PERMISSIONS.receiptsCreate}>
                               <Tooltip title={<FormattedMessage id="record-receipt" />}>
                                 <IconButton
                                   size="small"
