@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -43,6 +44,7 @@ import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatus
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { usePurchaseInvoices } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
+import { useParties } from 'modules/Parties/hooks/useParties';
 import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
 
 // Helper to get initials from supplier name
@@ -79,6 +81,9 @@ export default function PurchaseInvoicesListPage() {
   const { meta: postedMeta, isLoading: postedLoading, error: postedError } = usePurchaseInvoices({ page: 1, pageSize: 1, status: 'Posted' });
   const { meta: draftMeta, isLoading: draftLoading, error: draftError } = usePurchaseInvoices({ page: 1, pageSize: 1, status: 'Draft' });
   const { meta: cancelledMeta, isLoading: cancelledLoading, error: cancelledError } = usePurchaseInvoices({ page: 1, pageSize: 1, status: 'Cancelled' });
+
+  const { items: suppliers } = useParties({ page: 1, pageSize: 100, isSupplier: true, sortBy: 'nameArabic' });
+  const supplierLookup = useMemo(() => new Map(suppliers.map((s) => [s.id, s])), [suppliers]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
@@ -193,6 +198,16 @@ export default function PurchaseInvoicesListPage() {
                    </InputAdornment>
                  )
                }}
+             />
+           </Box>
+           <Box sx={{ minWidth: 200, flexGrow: 1 }}>
+             <Autocomplete
+               size="small"
+               options={suppliers}
+               getOptionLabel={(option) => option.nameArabic || option.nameEnglish || ''}
+               value={supplierLookup.get(supplierId) || null}
+               onChange={(_, newValue) => { setSupplierId(newValue?.id || ''); setPage(0); }}
+               renderInput={(params) => <TextField {...params} placeholder={intl.formatMessage({ id: 'supplier' })} />}
              />
            </Box>
            <Box sx={{ width: 200 }}>
