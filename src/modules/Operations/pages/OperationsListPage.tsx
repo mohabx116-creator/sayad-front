@@ -26,6 +26,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import { useOperations } from '../hooks/useOperations';
+import { formatOperationDate } from '../utils/operations.format';
 import { OPERATIONS_PAGE_SIZE, OPERATIONS_PERMISSIONS } from '../utils/operations.constants';
 
 export default function OperationsListPage() {
@@ -233,7 +234,7 @@ export default function OperationsListPage() {
                 <TableBody>
                   {items.map((operation) => (
                     <TableRow key={operation.id} hover>
-                      <TableCell dir="ltr">{operation.operationDate}</TableCell>
+                      <TableCell>{formatOperationDate(intl.locale, operation.operationDate)}</TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                           <Typography variant="body2" fontWeight={600}>

@@ -1,4 +1,4 @@
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
@@ -12,6 +12,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import { useOperation } from '../hooks/useOperations';
+import { formatOperationDate, formatOperationDateTime } from '../utils/operations.format';
 
 function DetailItem({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
   return (
@@ -28,6 +29,7 @@ function DetailItem({ label, value }: { label: React.ReactNode; value: React.Rea
 
 export default function OperationDetailsPage() {
   const { id } = useParams();
+  const intl = useIntl();
   const { operation, isLoading, error } = useOperation(id);
 
   if (isLoading) {
@@ -66,7 +68,7 @@ export default function OperationDetailsPage() {
         >
           <Grid container spacing={2.5}>
             <Grid item xs={12} md={4}>
-              <DetailItem label={<FormattedMessage id="operation-date" />} value={operation.operationDate} />
+              <DetailItem label={<FormattedMessage id="operation-date" />} value={formatOperationDate(intl.locale, operation.operationDate)} />
             </Grid>
             <Grid item xs={12} md={4}>
               <DetailItem label={<FormattedMessage id="worker" />} value={`${operation.workerCode} - ${operation.workerName}`} />
@@ -78,10 +80,10 @@ export default function OperationDetailsPage() {
               <DetailItem label={<FormattedMessage id="completed-quantity" />} value={operation.completedQuantity.toFixed(3)} />
             </Grid>
             <Grid item xs={12} md={4}>
-              <DetailItem label={<FormattedMessage id="created-at" />} value={new Date(operation.createdAtUtc).toLocaleString()} />
+              <DetailItem label={<FormattedMessage id="created-at" />} value={formatOperationDateTime(intl.locale, operation.createdAtUtc)} />
             </Grid>
             <Grid item xs={12} md={4}>
-              <DetailItem label={<FormattedMessage id="updated-at" />} value={operation.updatedAtUtc ? new Date(operation.updatedAtUtc).toLocaleString() : '-'} />
+              <DetailItem label={<FormattedMessage id="updated-at" />} value={formatOperationDateTime(intl.locale, operation.updatedAtUtc)} />
             </Grid>
             <Grid item xs={12}>
               <DetailItem label={<FormattedMessage id="notes" />} value={operation.notes} />
