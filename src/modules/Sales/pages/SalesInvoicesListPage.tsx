@@ -23,6 +23,12 @@ import { IconPlus, IconRefresh, IconSearch, IconFilter, IconDotsVertical } from 
 
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import Grid from '@mui/material/GridLegacy';
+import Skeleton from '@mui/material/Skeleton';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import DraftsIcon from '@mui/icons-material/Drafts';
+import HoverDataCard from 'ui-component/cards/HoverDataCard';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
@@ -61,6 +67,24 @@ export default function SalesInvoicesListPage() {
      sortDirection: 'desc' 
   });
 
+  const {
+    meta: totalMeta,
+    isLoading: totalLoading,
+    error: totalError
+  } = useSalesInvoices({ page: 1, pageSize: 1 });
+
+  const {
+    meta: postedMeta,
+    isLoading: postedLoading,
+    error: postedError
+  } = useSalesInvoices({ page: 1, pageSize: 1, status: 'Posted' });
+
+  const {
+    meta: draftMeta,
+    isLoading: draftLoading,
+    error: draftError
+  } = useSalesInvoices({ page: 1, pageSize: 1, status: 'Draft' });
+
   const resetFilters = () => {
     setSearch('');
     setStatus('');
@@ -72,19 +96,64 @@ export default function SalesInvoicesListPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-         <Box>
-           <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-invoices" links={[{ title: 'sales', to: '/sales/invoices' }, { title: 'sales-invoices' }]} sx={{ mb: 0 }} />
-           <PageTitle><FormattedMessage id="sales-invoices" /></PageTitle>
-         </Box>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-           <PermissionGuard permission={SALES_PERMISSIONS.invoicesCreate}>
-             <Button component={Link} to="/sales/invoices/new" variant="contained" color="primary" sx={{ borderRadius: 2, boxShadow: 'none' }} startIcon={<IconPlus size={18} />}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+        <Breadcrumbs
+          custom
+          heading="sales-invoices"
+          links={[{ title: 'sales' }, { title: 'sales-invoices' }]}
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
+          <Box>
+            <Typography variant="h2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              <FormattedMessage id="sales-invoices" />
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              <FormattedMessage id="sales-invoices-page-description" />
+            </Typography>
+          </Box>
+          <PermissionGuard permission={SALES_PERMISSIONS.invoicesCreate}>
+             <Button component={Link} to="/sales/invoices/new" variant="contained" startIcon={<IconPlus size={18} />}>
                <FormattedMessage id="create-sales-invoice" />
              </Button>
-           </PermissionGuard>
-        </Stack>
+          </PermissionGuard>
+        </Box>
       </Box>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          {totalLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: 'total-invoices' })}
+              primary={totalError ? '-' : totalMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'all-statuses' })}
+              iconPrimary={ReceiptIcon}
+              color="primary.main"
+            />
+          )}
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          {postedLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: 'posted-invoices' })}
+              primary={postedError ? '-' : postedMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'sales.status.posted' })}
+              iconPrimary={VerifiedIcon}
+              color="success.main"
+            />
+          )}
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          {draftLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: 'draft-invoices' })}
+              primary={draftError ? '-' : draftMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'sales.status.draft' })}
+              iconPrimary={DraftsIcon}
+              color="warning.main"
+            />
+          )}
+        </Grid>
+      </Grid>
 
       <MainCard 
          content={false} 

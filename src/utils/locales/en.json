@@ -1598,5 +1598,9 @@
   "total-customers": "Total Customers",
   "active-customers": "Active Customers",
   "account-statement": "Account Statement",
-  "record-receipt": "Record Receipt"
+  "record-receipt": "Record Receipt",
+  "total-invoices": "Total Invoices",
+  "posted-invoices": "Posted Invoices",
+  "draft-invoices": "Draft Invoices",
+  "sales-invoices-page-description": "Track sales invoices and their posting statuses"
 }

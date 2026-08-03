@@ -1598,5 +1598,9 @@
   "total-customers": "إجمالي العملاء",
   "active-customers": "العملاء النشطين",
   "account-statement": "كشف حساب",
-  "record-receipt": "تسجيل إيصال"
+  "record-receipt": "تسجيل إيصال",
+  "total-invoices": "إجمالي الفواتير",
+  "posted-invoices": "الفواتير المُرحلة",
+  "draft-invoices": "فواتير مسودة",
+  "sales-invoices-page-description": "متابعة فواتير المبيعات وحالات الاعتماد"
 }
