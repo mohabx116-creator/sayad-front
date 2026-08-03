@@ -19,7 +19,25 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
+import {
+  IconEdit,
+  IconEye,
+  IconPlus,
+  IconSearch,
+  IconToggleLeft,
+  IconToggleRight,
+  IconReportMoney,
+  IconReceipt,
+  IconUsers,
+  IconUserCheck
+} from '@tabler/icons-react';
+import Grid from '@mui/material/GridLegacy';
+import Skeleton from '@mui/material/Skeleton';
+import GroupIcon from '@mui/icons-material/Group';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+
+import HoverDataCard from 'ui-component/cards/HoverDataCard';
+import PartyCashTransactionDialog from '../components/PartyCashTransactionDialog';
 
 import { activateParty, deactivateParty } from '../api/partiesApi';
 import PartyClassificationChips from '../components/PartyClassificationChips';
@@ -56,10 +74,17 @@ export default function PartiesListPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
-  const [partyType, setPartyType] = useState<PartyTypeFilter>('');
+  const [partyType, setPartyType] = useState<PartyTypeFilter>('customer');
   const [status, setStatus] = useState<StatusFilter>('');
+  const [cashDialogParty, setCashDialogParty] = useState<{ id: string; name: string; isCustomer: boolean } | null>(null);
 
-  const { items: parties, meta, isLoading, error, mutate } = useParties({
+  const {
+    items: parties,
+    meta,
+    isLoading,
+    error,
+    mutate
+  } = useParties({
     page: page + 1,
     pageSize,
     search: search || undefined,
@@ -82,28 +107,75 @@ export default function PartiesListPage() {
     }
   };
 
+  const isCustomerList = partyType === 'customer';
+  const isSupplierList = partyType === 'supplier';
+
+  const {
+    meta: totalMeta,
+    isLoading: totalLoading,
+    error: totalError
+  } = useParties({ page: 1, pageSize: 1, isCustomer: true, isSupplier: false });
+  const {
+    meta: activeMeta,
+    isLoading: activeLoading,
+    error: activeError
+  } = useParties({ page: 1, pageSize: 1, isCustomer: true, isSupplier: false, isActive: true });
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {cashDialogParty && (
+        <PartyCashTransactionDialog
+          open={!!cashDialogParty}
+          mode={cashDialogParty.isCustomer ? 'receipt' : 'payment'}
+          partyId={cashDialogParty.id}
+          partyName={cashDialogParty.name}
+          onClose={() => setCashDialogParty(null)}
+          onSaved={() => {
+            mutate();
+          }}
+        />
+      )}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Breadcrumbs custom heading="parties" links={[{ title: 'parties' }]} />
+        <Breadcrumbs
+          custom
+          heading={isCustomerList ? 'customers' : 'parties'}
+          links={[{ title: isCustomerList ? 'customers' : 'parties' }]}
+        />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Typography variant="h2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-              <FormattedMessage id="parties" />
+              <FormattedMessage id={isCustomerList ? 'customers' : isSupplierList ? 'suppliers' : 'parties'} />
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              <FormattedMessage id="parties-page-description" />
+              <FormattedMessage
+                id={
+                  isCustomerList ? 'customers-page-description' : isSupplierList ? 'suppliers-page-description' : 'parties-page-description'
+                }
+              />
             </Typography>
           </Box>
           <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
             <Button component={Link} to="/parties/new" variant="contained" startIcon={<IconPlus size={18} />}>
-              <FormattedMessage id="create-party" />
+              <FormattedMessage id={isCustomerList ? 'create-customer' : 'create-party'} />
             </Button>
           </PermissionGuard>
         </Box>
       </Box>
 
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', boxShadow: 1 }}>
+      <Box
+        sx={{
+          bgcolor: 'background.paper',
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: 'divider',
+          p: 2,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          alignItems: 'center',
+          boxShadow: 1
+        }}
+      >
         <Box sx={{ flex: 1, minWidth: 220, position: 'relative' }}>
           <OutlinedInput
             fullWidth
@@ -128,10 +200,18 @@ export default function PartiesListPage() {
             }}
             sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
           >
-            <MenuItem value=""><FormattedMessage id="all" /></MenuItem>
-            <MenuItem value="customer"><FormattedMessage id="party-customer" /></MenuItem>
-            <MenuItem value="supplier"><FormattedMessage id="party-supplier" /></MenuItem>
-            <MenuItem value="both"><FormattedMessage id="party-type-both" /></MenuItem>
+            <MenuItem value="">
+              <FormattedMessage id="all" />
+            </MenuItem>
+            <MenuItem value="customer">
+              <FormattedMessage id="party-customer" />
+            </MenuItem>
+            <MenuItem value="supplier">
+              <FormattedMessage id="party-supplier" />
+            </MenuItem>
+            <MenuItem value="both">
+              <FormattedMessage id="party-type-both" />
+            </MenuItem>
           </Select>
         </Box>
         <Box sx={{ width: 200 }}>
@@ -145,23 +225,66 @@ export default function PartiesListPage() {
             }}
             sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
           >
-            <MenuItem value=""><FormattedMessage id="all-status" /></MenuItem>
-            <MenuItem value="true"><FormattedMessage id="active" /></MenuItem>
-            <MenuItem value="false"><FormattedMessage id="inactive" /></MenuItem>
+            <MenuItem value="">
+              <FormattedMessage id="all-status" />
+            </MenuItem>
+            <MenuItem value="true">
+              <FormattedMessage id="active" />
+            </MenuItem>
+            <MenuItem value="false">
+              <FormattedMessage id="inactive" />
+            </MenuItem>
           </Select>
         </Box>
       </Box>
 
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 1, overflow: 'hidden' }}>
-        {isLoading && <Box p={3}><Loader /></Box>}
+      {isCustomerList && (
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={3}>
+            {totalLoading ? <Skeleton variant="rounded" height={100} /> : (
+              <HoverDataCard
+                title={intl.formatMessage({ id: 'total-customers' })}
+                primary={totalError ? '-' : totalMeta?.totalCount ?? 0}
+                secondary={intl.formatMessage({ id: 'all-statuses' })}
+                iconPrimary={GroupIcon}
+                color="primary.main"
+              />
+            )}
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            {activeLoading ? <Skeleton variant="rounded" height={100} /> : (
+              <HoverDataCard
+                title={intl.formatMessage({ id: 'active-customers' })}
+                primary={activeError ? '-' : activeMeta?.totalCount ?? 0}
+                secondary={intl.formatMessage({ id: 'active' })}
+                iconPrimary={VerifiedUserIcon}
+                color="success.main"
+              />
+            )}
+          </Grid>
+        </Grid>
+      )}
+
+      <Box
+        sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 1, overflow: 'hidden' }}
+      >
+        {isLoading && (
+          <Box p={3}>
+            <Loader />
+          </Box>
+        )}
         {error && (
           <Box p={3}>
-            <Typography color="error"><FormattedMessage id="parties-load-error" /></Typography>
+            <Typography color="error">
+              <FormattedMessage id="parties-load-error" />
+            </Typography>
           </Box>
         )}
         {!isLoading && parties.length === 0 && (
           <Box p={3}>
-            <Typography><FormattedMessage id="parties-empty" /></Typography>
+            <Typography>
+              <FormattedMessage id="parties-empty" />
+            </Typography>
           </Box>
         )}
         {parties.length > 0 && (
@@ -170,12 +293,29 @@ export default function PartiesListPage() {
               <Table>
                 <TableHead sx={{ bgcolor: 'grey.50' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, py: 2 }}><FormattedMessage id="party-name" /></TableCell>
-                    <TableCell sx={{ fontWeight: 600, py: 2 }}><FormattedMessage id="party-classification" /></TableCell>
-                    <TableCell sx={{ fontWeight: 600, py: 2 }}><FormattedMessage id="party-mobile-number" /></TableCell>
-                    <TableCell sx={{ fontWeight: 600, py: 2 }}><FormattedMessage id="party-address" /></TableCell>
-                    <TableCell sx={{ fontWeight: 600, py: 2 }}><FormattedMessage id="status" /></TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 600, py: 2 }}><FormattedMessage id="actions" /></TableCell>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <FormattedMessage id="party-name" />
+                    </TableCell>
+                    {!isCustomerList && (
+                      <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                        <FormattedMessage id="party-classification" />
+                      </TableCell>
+                    )}
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <FormattedMessage id="balance" />
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <FormattedMessage id="party-mobile-number" />
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <FormattedMessage id="party-address" />
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                      <FormattedMessage id="status" />
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600, py: 2 }}>
+                      <FormattedMessage id="actions" />
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -191,15 +331,16 @@ export default function PartiesListPage() {
                       <TableCell sx={{ fontWeight: 600 }}>
                         {resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
                       </TableCell>
-                      <TableCell>
-                        <PartyClassificationChips isCustomer={party.isCustomer} isSupplier={party.isSupplier} />
-                      </TableCell>
+                      {!isCustomerList && (
+                        <TableCell>
+                          <PartyClassificationChips isCustomer={party.isCustomer} isSupplier={party.isSupplier} />
+                        </TableCell>
+                      )}
+                      <TableCell sx={{ color: 'text.secondary' }}>{party.balance.toLocaleString(intl.locale)}</TableCell>
                       <TableCell dir="ltr" sx={{ color: 'text.secondary' }}>
                         {party.primaryPhone ?? '-'}
                       </TableCell>
-                      <TableCell sx={{ color: 'text.secondary' }}>
-                        {party.address ?? '-'}
-                      </TableCell>
+                      <TableCell sx={{ color: 'text.secondary' }}>{party.address ?? '-'}</TableCell>
                       <TableCell>
                         <PartyStatusChip isActive={party.isActive} />
                       </TableCell>
@@ -210,6 +351,31 @@ export default function PartiesListPage() {
                               <IconEye size={18} />
                             </IconButton>
                           </Tooltip>
+                          <PermissionGuard permission={PARTIES_PERMISSIONS.statementView}>
+                            <Tooltip title={<FormattedMessage id="account-statement" />}>
+                              <IconButton component={Link} to={`/parties/${party.id}/statement`} size="small">
+                                <IconReportMoney size={18} />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
+                          {party.isCustomer && (
+                            <PermissionGuard permission={PARTIES_PERMISSIONS.update}>
+                              <Tooltip title={<FormattedMessage id="record-receipt" />}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() =>
+                                    setCashDialogParty({
+                                      id: party.id,
+                                      name: resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic),
+                                      isCustomer: true
+                                    })
+                                  }
+                                >
+                                  <IconReceipt size={18} />
+                                </IconButton>
+                              </Tooltip>
+                            </PermissionGuard>
+                          )}
                           <PermissionGuard permission={PARTIES_PERMISSIONS.update}>
                             <Tooltip title={<FormattedMessage id="edit" />}>
                               <IconButton component={Link} to={`/parties/${party.id}/edit`} size="small">
@@ -219,10 +385,7 @@ export default function PartiesListPage() {
                           </PermissionGuard>
                           <PermissionGuard permission={party.isActive ? PARTIES_PERMISSIONS.deactivate : PARTIES_PERMISSIONS.activate}>
                             <Tooltip title={<FormattedMessage id={party.isActive ? 'deactivate' : 'activate'} />}>
-                              <IconButton
-                                size="small"
-                                onClick={() => toggleStatus(party.id, !party.isActive)}
-                              >
+                              <IconButton size="small" onClick={() => toggleStatus(party.id, !party.isActive)}>
                                 {party.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
                               </IconButton>
                             </Tooltip>
