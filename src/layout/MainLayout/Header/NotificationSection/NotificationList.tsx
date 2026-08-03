@@ -1,187 +1,202 @@
-import { ReactNode } from 'react';
-
-// material-ui
 import { useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemText from '@mui/material/ListItemText';
+import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
 
-// project imports
+import { IconBell, IconExternalLink, IconLock } from '@tabler/icons-react';
+
+import type { NotificationDto } from 'modules/Notifications/types/notifications.types';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { withAlpha } from 'utils/colorUtils';
 
-// assets
-import { IconBrandTelegram, IconBuildingStore, IconMailbox, IconPhoto } from '@tabler/icons-react';
-import User1 from 'assets/images/users/user-round.svg';
+type NotificationListProps = {
+  notifications: NotificationDto[];
+  unreadCount: number;
+  locale: string;
+  loading?: boolean;
+  emptyTitle: string;
+  emptyDescription: string;
+  titleLabel: string;
+  markAllReadLabel: string;
+  viewAllLabel: string;
+  unreadLabel: string;
+  readLabel: string;
+  loadingLabel: string;
+  onOpenNotification: (notification: NotificationDto) => void | Promise<void>;
+  onMarkAllRead: () => void | Promise<void>;
+  onViewAll: () => void;
+};
 
-function ListItemWrapper({ children }: { children: ReactNode }) {
+function NotificationAvatar({ type }: { type: string }) {
   const theme = useTheme();
 
+  const baseSx = {
+    color: 'primary.dark',
+    bgcolor: 'primary.light',
+    ...theme.applyStyles('dark', { bgcolor: 'dark.main' })
+  } as const;
+
+  if (type === 'account.password.changed') {
+    return (
+      <Avatar sx={{ color: 'warning.dark', bgcolor: 'warning.light', ...theme.applyStyles('dark', { bgcolor: 'dark.main' }) }}>
+        <IconLock stroke={1.5} size="18px" />
+      </Avatar>
+    );
+  }
+
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        cursor: 'pointer',
-        '&:hover': {
-          bgcolor: withAlpha(theme.palette.grey[200], 0.3),
-          ...theme.applyStyles('dark', { bgcolor: 'dark.900' })
-        }
-      }}
-    >
-      {children}
-    </Box>
+    <Avatar sx={baseSx}>
+      <IconBell stroke={1.5} size="18px" />
+    </Avatar>
   );
 }
 
-// ==============================|| NOTIFICATION LIST ITEM ||============================== //
+function EmptyState({ title, description }: { title: string; description: string }) {
+  return (
+    <Stack spacing={1.25} sx={{ py: 1.5, px: 0.5 }}>
+      <Typography variant="subtitle1">{title}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        {description}
+      </Typography>
+    </Stack>
+  );
+}
 
-export default function NotificationList() {
+export default function NotificationList({
+  notifications,
+  unreadCount,
+  locale,
+  loading,
+  emptyTitle,
+  emptyDescription,
+  titleLabel,
+  markAllReadLabel,
+  viewAllLabel,
+  unreadLabel,
+  readLabel,
+  loadingLabel,
+  onOpenNotification,
+  onMarkAllRead,
+  onViewAll
+}: NotificationListProps) {
   const theme = useTheme();
-  const containerSX = { gap: 2, pl: 7 };
+  const isArabic = locale.toLowerCase().startsWith('ar');
+
+  const formatTime = (value: string) =>
+    new Intl.DateTimeFormat(isArabic ? 'ar' : 'en', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(new Date(value));
 
   return (
-    <List sx={{ width: '100%', maxWidth: { xs: 300, md: 330 }, py: 0 }}>
-      <ListItemWrapper>
-        <ListItem
-          alignItems="center"
-          disablePadding
-          secondaryAction={
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
-              <Typography variant="caption">2 min ago</Typography>
-            </Stack>
-          }
-        >
-          <ListItemAvatar>
-            <Avatar alt="John Doe" src={User1} />
-          </ListItemAvatar>
-          <ListItemText primary="John Doe" />
-        </ListItem>
-        <Stack sx={containerSX}>
-          <Typography variant="subtitle2">It is a long established fact that a reader will be distracted</Typography>
-          <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
-            <Chip label="Unread" color="error" size="small" sx={{ width: 'min-content' }} />
-            <Chip label="New" color="warning" size="small" sx={{ width: 'min-content' }} />
-          </Stack>
+    <Stack spacing={1.5} sx={{ width: '100%', minWidth: { xs: 300, md: 360 } }}>
+      <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ px: 0.25 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Typography variant="h5">{titleLabel}</Typography>
+          <Chip label={unreadCount} size="small" color={unreadCount > 0 ? 'error' : 'default'} sx={{ fontWeight: 700 }} />
         </Stack>
-      </ListItemWrapper>
-      <ListItemWrapper>
-        <ListItem
-          alignItems="center"
-          disablePadding
-          secondaryAction={
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
-              <Typography variant="caption">2 min ago</Typography>
-            </Stack>
-          }
-        >
-          <ListItemAvatar>
-            <Avatar
-              sx={{
-                color: 'success.dark',
-                bgcolor: 'success.light',
+        <Button size="small" variant="text" onClick={onMarkAllRead} disabled={loading || unreadCount === 0}>
+          {markAllReadLabel}
+        </Button>
+      </Stack>
 
-                ...theme.applyStyles('dark', { bgcolor: 'dark.main' })
-              }}
-            >
-              <IconBuildingStore stroke={1.5} size="20px" />
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText primary={<Typography variant="subtitle1">Store Verification Done</Typography>} />
-        </ListItem>
-        <Stack sx={containerSX}>
-          <Typography variant="subtitle2">We have successfully received your request.</Typography>
-          <Chip label="Unread" color="error" size="small" sx={{ width: 'min-content' }} />
-        </Stack>
-      </ListItemWrapper>
-      <ListItemWrapper>
-        <ListItem
-          alignItems="center"
-          disablePadding
-          secondaryAction={
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
-              <Typography variant="caption">2 min ago</Typography>
-            </Stack>
-          }
-        >
-          <ListItemAvatar>
-            <Avatar
-              sx={{
-                color: 'primary.dark',
-                bgcolor: 'primary.light',
-                ...theme.applyStyles('dark', { bgcolor: 'dark.main' })
-              }}
-            >
-              <IconMailbox stroke={1.5} size="20px" />
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText primary={<Typography variant="subtitle1">Check Your Mail.</Typography>} />
-        </ListItem>
-        <Stack sx={containerSX}>
-          <Typography variant="subtitle2">All done! Now check your inbox as you&apos;re in for a sweet treat!</Typography>
-          <Button variant="contained" endIcon={<IconBrandTelegram stroke={1.5} size={20} />} sx={{ width: 'min-content' }}>
-            Mail
-          </Button>
-        </Stack>
-      </ListItemWrapper>
-      <ListItemWrapper>
-        <ListItem
-          alignItems="center"
-          disablePadding
-          secondaryAction={
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
-              <Typography variant="caption">2 min ago</Typography>
-            </Stack>
-          }
-        >
-          <ListItemAvatar>
-            <Avatar alt="John Doe" src={User1} />
-          </ListItemAvatar>
-          <ListItemText primary={<Typography variant="subtitle1">John Doe</Typography>} />
-        </ListItem>
-        <Stack sx={containerSX}>
-          <Typography component="span" variant="subtitle2">
-            Uploaded two file on &nbsp;
-            <Typography component="span" variant="h6">
-              21 Jan 2020
-            </Typography>
+      <Divider />
+
+      {loading ? (
+        <Stack spacing={1} alignItems="center" sx={{ py: 3 }}>
+          <CircularProgress size={24} />
+          <Typography variant="body2" color="text.secondary">
+            {loadingLabel}
           </Typography>
-          <Card sx={{ bgcolor: 'secondary.light', ...theme.applyStyles('dark', { bgcolor: 'dark.main' }) }}>
-            <Stack direction="row" sx={{ p: 2.5, gap: 2 }}>
-              <IconPhoto stroke={1.5} size="20px" />
-              <Typography variant="subtitle1">demo.jpg</Typography>
-            </Stack>
-          </Card>
         </Stack>
-      </ListItemWrapper>
-      <ListItemWrapper>
-        <ListItem
-          alignItems="center"
-          disablePadding
-          secondaryAction={
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
-              <Typography variant="caption">2 min ago</Typography>
-            </Stack>
-          }
-        >
-          <ListItemAvatar>
-            <Avatar alt="John Doe" src={User1} />
-          </ListItemAvatar>
-          <ListItemText primary={<Typography variant="subtitle1">John Doe</Typography>} />
-        </ListItem>
-        <Stack sx={containerSX}>
-          <Typography variant="subtitle2">It is a long established fact that a reader will be distracted</Typography>
-          <Chip label="Confirmation of Account." color="success" size="small" sx={{ width: 'min-content' }} />
-        </Stack>
-      </ListItemWrapper>
-    </List>
+      ) : notifications.length === 0 ? (
+        <EmptyState title={emptyTitle} description={emptyDescription} />
+      ) : (
+        <List sx={{ width: '100%', p: 0 }}>
+          {notifications.map((notification) => {
+            const title = resolveLocalizedText(locale, notification.titleArabic, notification.titleEnglish, notification.type);
+            const message = resolveLocalizedText(locale, notification.messageArabic, notification.messageEnglish, '');
+            const timeLabel = formatTime(notification.createdAtUtc);
+            const isUnread = !notification.isRead;
+
+            return (
+              <ListItemButton
+                key={notification.id}
+                onClick={() => onOpenNotification(notification)}
+                sx={{
+                  px: 0,
+                  py: 1.5,
+                  borderRadius: 2,
+                  alignItems: 'flex-start',
+                  bgcolor: isUnread ? withAlpha(theme.palette.primary.light, 0.16) : 'transparent',
+                  '&:hover': {
+                    bgcolor: isUnread ? withAlpha(theme.palette.primary.light, 0.24) : withAlpha(theme.palette.grey[200], 0.35)
+                  },
+                  ...theme.applyStyles('dark', {
+                    bgcolor: isUnread ? withAlpha(theme.palette.primary.dark, 0.18) : 'transparent',
+                    '&:hover': {
+                      bgcolor: isUnread ? withAlpha(theme.palette.primary.dark, 0.3) : 'dark.main'
+                    }
+                  })
+                }}
+              >
+                <ListItemAvatar sx={{ minWidth: 48 }}>
+                  <NotificationAvatar type={notification.type} />
+                </ListItemAvatar>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                    <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
+                      {title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', pl: 1 }}>
+                      {timeLabel}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, whiteSpace: 'normal' }}>
+                    {message}
+                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1, flexWrap: 'wrap' }}>
+                    <Chip
+                      label={isUnread ? unreadLabel : readLabel}
+                      color={isUnread ? 'error' : 'default'}
+                      size="small"
+                      sx={{ fontWeight: 700 }}
+                    />
+                    {notification.navigationPath && (
+                      <Chip
+                        icon={<IconExternalLink size={14} />}
+                        label={notification.navigationPath}
+                        size="small"
+                        variant="outlined"
+                        sx={{ maxWidth: '100%' }}
+                      />
+                    )}
+                  </Stack>
+                </Box>
+              </ListItemButton>
+            );
+          })}
+        </List>
+      )}
+
+      <Divider />
+
+      <Stack direction="row" spacing={1} justifyContent="space-between">
+        <Button variant="outlined" color="inherit" size="small" onClick={onViewAll}>
+          {viewAllLabel}
+        </Button>
+        <Button variant="contained" size="small" onClick={onMarkAllRead} disabled={loading || unreadCount === 0}>
+          {markAllReadLabel}
+        </Button>
+      </Stack>
+    </Stack>
   );
 }

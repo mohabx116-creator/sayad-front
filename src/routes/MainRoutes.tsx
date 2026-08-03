@@ -25,6 +25,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 const AccountProfilePage = Loadable(lazy(() => import('views/pages/account/Profile')));
 const AccountChangePasswordPage = Loadable(lazy(() => import('views/pages/account/ChangePassword')));
 const AccountPreferencesPage = Loadable(lazy(() => import('views/pages/account/Preferences')));
+const NotificationsPage = Loadable(lazy(() => import('modules/Notifications/pages/NotificationsPage')));
 const UsersListPage = Loadable(lazy(() => import('modules/Administration/pages/UsersListPage')));
 const UserDetailsPage = Loadable(lazy(() => import('modules/Administration/pages/UserDetailsPage')));
 const RolesListPage = Loadable(lazy(() => import('modules/Administration/pages/RolesListPage')));
@@ -147,6 +148,10 @@ const MainRoutes = {
     {
       path: '/account/preferences',
       element: <AccountPreferencesPage />
+    },
+    {
+      path: '/notifications',
+      element: <NotificationsPage />
     },
     {
       path: '/treasury',
