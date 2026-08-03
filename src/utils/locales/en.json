@@ -1602,5 +1602,12 @@
   "total-invoices": "Total Invoices",
   "posted-invoices": "Posted Invoices",
   "draft-invoices": "Draft Invoices",
-  "sales-invoices-page-description": "Track sales invoices and their posting statuses"
+  "sales-invoices-page-description": "Track sales invoices and their posting statuses",
+  "total-purchase-invoices": "Total Purchase Invoices",
+  "posted-purchase-invoices": "Posted Invoices",
+  "draft-purchase-invoices": "Draft Invoices",
+  "cancelled-purchase-invoices": "Cancelled Invoices",
+  "purchase-invoices-page-description": "Track supplier invoices, posting statuses, and returns",
+  "record-supplier-payment": "Record Supplier Payment",
+  "supplier-account-statement": "Supplier Account Statement"
 }

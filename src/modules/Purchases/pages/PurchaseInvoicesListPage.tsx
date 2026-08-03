@@ -19,10 +19,23 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import InputAdornment from '@mui/material/InputAdornment';
 import Avatar from '@mui/material/Avatar';
+import Grid from '@mui/material/GridLegacy';
+import Skeleton from '@mui/material/Skeleton';
+import Menu from '@mui/material/Menu';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import DraftsIcon from '@mui/icons-material/Drafts';
+import CancelIcon from '@mui/icons-material/Cancel';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
+import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
 import { IconPlus, IconRefresh, IconSearch, IconFilter, IconDotsVertical } from '@tabler/icons-react';
 
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
+import HoverDataCard from 'ui-component/cards/HoverDataCard';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
@@ -30,6 +43,7 @@ import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatus
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { usePurchaseInvoices } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
+import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
 
 // Helper to get initials from supplier name
 const getInitials = (name: string) => {
@@ -61,6 +75,24 @@ export default function PurchaseInvoicesListPage() {
      sortDirection: 'desc' 
   });
 
+  const { meta: totalMeta, isLoading: totalLoading, error: totalError } = usePurchaseInvoices({ page: 1, pageSize: 1 });
+  const { meta: postedMeta, isLoading: postedLoading, error: postedError } = usePurchaseInvoices({ page: 1, pageSize: 1, status: 'Posted' });
+  const { meta: draftMeta, isLoading: draftLoading, error: draftError } = usePurchaseInvoices({ page: 1, pageSize: 1, status: 'Draft' });
+  const { meta: cancelledMeta, isLoading: cancelledLoading, error: cancelledError } = usePurchaseInvoices({ page: 1, pageSize: 1, status: 'Cancelled' });
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, invoice: any) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedInvoice(invoice);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedInvoice(null);
+  };
+
   const resetFilters = () => {
     setSearch('');
     setStatus('');
@@ -72,19 +104,75 @@ export default function PurchaseInvoicesListPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-         <Box>
-           <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-invoices" links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices' }]} sx={{ mb: 0 }} />
-           <PageTitle><FormattedMessage id="purchase-invoices" /></PageTitle>
-         </Box>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-           <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesCreate}>
-             <Button component={Link} to="/purchases/invoices/new" variant="contained" color="primary" sx={{ borderRadius: 2, boxShadow: 'none' }} startIcon={<IconPlus size={18} />}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+        <Breadcrumbs
+          custom
+          heading="purchase-invoices"
+          links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices' }]}
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
+          <Box>
+            <Typography variant="h2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              <FormattedMessage id="purchase-invoices" />
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              <FormattedMessage id="purchase-invoices-page-description" defaultMessage="إدارة قائمة فواتير المشتريات" />
+            </Typography>
+          </Box>
+          <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesCreate}>
+             <Button component={Link} to="/purchases/invoices/new" variant="contained" startIcon={<IconPlus size={18} />}>
                <FormattedMessage id="create-purchase-invoice" />
              </Button>
-           </PermissionGuard>
-        </Stack>
+          </PermissionGuard>
+        </Box>
       </Box>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          {totalLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: 'total-purchase-invoices' })}
+              primary={totalError ? '-' : totalMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'all-statuses' })}
+              iconPrimary={ReceiptIcon}
+              color="primary.main"
+            />
+          )}
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          {postedLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: 'posted-purchase-invoices' })}
+              primary={postedError ? '-' : postedMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'purchases.status.posted' })}
+              iconPrimary={VerifiedIcon}
+              color="success.main"
+            />
+          )}
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          {draftLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: 'draft-purchase-invoices' })}
+              primary={draftError ? '-' : draftMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'purchases.status.draft' })}
+              iconPrimary={DraftsIcon}
+              color="warning.main"
+            />
+          )}
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          {cancelledLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: 'cancelled-purchase-invoices' })}
+              primary={cancelledError ? '-' : cancelledMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'purchases.status.cancelled' })}
+              iconPrimary={CancelIcon}
+              color="error.main"
+            />
+          )}
+        </Grid>
+      </Grid>
 
       <MainCard 
          content={false} 
@@ -121,7 +209,6 @@ export default function PurchaseInvoicesListPage() {
            <Button variant="outlined" color="inherit" startIcon={<IconFilter size={18} />} sx={{ borderRadius: 2 }}>
              <FormattedMessage id="more-filters" defaultMessage="مزيد من الفلاتر" />
            </Button>
-           {/* Add a subtle reset button if any filter is active */}
            {(search || status || supplierId || dateFrom || dateTo) && (
              <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="إعادة ضبط" />}>
                <IconButton onClick={resetFilters} color="primary" size="small">
@@ -169,7 +256,7 @@ export default function PurchaseInvoicesListPage() {
                              <Typography variant="body2">{invoice.supplierNameArabic}</Typography>
                            </Stack>
                          </TableCell>
-                         <TableCell><Typography fontWeight={600}>{invoice.grandTotal.toFixed(2)}</Typography></TableCell>
+                         <TableCell><Typography fontWeight={600}>{formatTreasuryMoney(invoice.grandTotal, invoice.currencyCode)}</Typography></TableCell>
                          <TableCell>
                            <Stack spacing={0.75} alignItems="flex-start">
                              <PurchaseStatusChip status={invoice.status} />
@@ -180,8 +267,8 @@ export default function PurchaseInvoicesListPage() {
                            </Stack>
                          </TableCell>
                          <TableCell align="center">
-                           <Tooltip title={<FormattedMessage id="details" />}>
-                             <IconButton component={Link} to={`/purchases/invoices/${invoice.id}`} size="small">
+                           <Tooltip title={<FormattedMessage id="actions" />}>
+                             <IconButton onClick={(e) => handleMenuOpen(e, invoice)} size="small">
                                <IconDotsVertical size={18} />
                              </IconButton>
                            </Tooltip>
@@ -205,6 +292,33 @@ export default function PurchaseInvoicesListPage() {
            )}
         </Box>
       </MainCard>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuItem component={Link} to={`/purchases/invoices/${selectedInvoice?.id}`} onClick={handleMenuClose}>
+          <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
+          <ListItemText><FormattedMessage id="view-invoice" defaultMessage="عرض الفاتورة" /></ListItemText>
+        </MenuItem>
+        {selectedInvoice?.status === 'Draft' && (
+          <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesUpdate}>
+            <MenuItem component={Link} to={`/purchases/invoices/${selectedInvoice?.id}/edit`} onClick={handleMenuClose}>
+              <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
+              <ListItemText><FormattedMessage id="edit-invoice" defaultMessage="تعديل الفاتورة" /></ListItemText>
+            </MenuItem>
+          </PermissionGuard>
+        )}
+        <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsCreate}>
+          <MenuItem component={Link} to={`/purchases/returns/new?purchaseInvoiceId=${selectedInvoice?.id}`} onClick={handleMenuClose}>
+            <ListItemIcon><AssignmentReturnIcon fontSize="small" /></ListItemIcon>
+            <ListItemText><FormattedMessage id="create-purchase-return" defaultMessage="إنشاء مرتجع مشتريات" /></ListItemText>
+          </MenuItem>
+        </PermissionGuard>
+      </Menu>
     </Box>
   );
 }
