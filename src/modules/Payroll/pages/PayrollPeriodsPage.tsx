@@ -149,7 +149,7 @@ function SummaryCard({ label, value }: { label: string; value: string | number }
 }
 
 function additionsTotal(statement: PayrollStatementDto) {
-  return statement.mealAllowance + statement.overtimeAmount + statement.nightWorkAmount + statement.bonusAmount;
+  return statement.overtimeAmount + statement.nightWorkAmount + statement.bonusAmount;
 }
 
 function deductionsTotal(statement: PayrollStatementDto) {
@@ -689,9 +689,7 @@ export default function PayrollPeriodsPage() {
                           </Stack>
 
                           <Grid container spacing={1.5}>
-                            <Grid item xs={12} sm={6} md={3}>
-                              <SummaryCard label={t(intl.locale, 'بدل الوجبة', 'Meal allowance')} value={formatCurrency(intl.locale, selectedStatement.mealAllowance)} />
-                            </Grid>
+
                             <Grid item xs={12} sm={6} md={3}>
                               <SummaryCard label={t(intl.locale, 'الإضافي', 'Overtime')} value={formatCurrency(intl.locale, selectedStatement.overtimeAmount)} />
                             </Grid>

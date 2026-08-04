@@ -69,8 +69,8 @@ export const emptyWorkerValues: WorkerFormValues = {
   isActive: true,
   wageEffectiveFrom: new Date().toISOString().slice(0, 10),
   dailyWage: '',
-  monthlyDaysBasis: '30',
-  mealAllowanceType: '1',
+  monthlyDaysBasis: '26',
+  mealAllowanceType: '0',
   mealAllowanceValue: '0',
   overtimeCalculationType: '0',
   overtimeRate: '0',
@@ -88,9 +88,9 @@ export function toWorkerFormValues(worker: WorkerDto): WorkerFormValues {
     isActive: worker.isActive,
     wageEffectiveFrom: worker.currentWageProfile?.effectiveFrom ?? new Date().toISOString().slice(0, 10),
     dailyWage: worker.currentWageProfile?.dailyWage == null ? '' : worker.currentWageProfile.dailyWage.toFixed(2),
-    monthlyDaysBasis: worker.currentWageProfile?.monthlyDaysBasis?.toString() ?? '30',
-    mealAllowanceType: worker.currentWageProfile?.mealAllowanceType?.toString() ?? '1',
-    mealAllowanceValue: worker.currentWageProfile?.mealAllowanceValue == null ? '0' : worker.currentWageProfile.mealAllowanceValue.toFixed(2),
+    monthlyDaysBasis: '26',
+    mealAllowanceType: '0',
+    mealAllowanceValue: '0',
     overtimeCalculationType: worker.currentWageProfile?.overtimeCalculationType?.toString() ?? '0',
     overtimeRate: worker.currentWageProfile?.overtimeRate == null ? '0' : worker.currentWageProfile.overtimeRate.toFixed(4),
     wageNotes: worker.currentWageProfile?.notes ?? '',
@@ -111,9 +111,9 @@ function toRequestPayload(values: WorkerFormValues): CreateWorkerRequest {
     wageProfile: {
       effectiveFrom: values.wageEffectiveFrom,
       dailyWage: Number(values.dailyWage || 0),
-      monthlyDaysBasis: Number(values.monthlyDaysBasis || 30),
-      mealAllowanceType: Number(values.mealAllowanceType),
-      mealAllowanceValue: Number(values.mealAllowanceValue || 0),
+      monthlyDaysBasis: 26,
+      mealAllowanceType: 0,
+      mealAllowanceValue: 0,
       overtimeCalculationType: Number(values.overtimeCalculationType),
       overtimeRate: Number(values.overtimeRate || 0),
       notes: values.wageNotes.trim() || null,
@@ -155,7 +155,7 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
     resolver: workerResolver(mode),
     values: initialValues
   });
-  const expectedMonthlySalary = Number(form.watch('dailyWage') || 0) * 30;
+  const expectedMonthlySalary = Number(form.watch('dailyWage') || 0) * 26;
 
   useEffect(() => {
     form.reset(initialValues);
@@ -191,7 +191,6 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
                   {...field}
                   select
                   fullWidth
-                  required
                   label={<FormattedMessage id="worker-operational-job" />}
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
@@ -303,25 +302,7 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
               sx={numberInputSx}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Controller
-              name="mealAllowanceValue"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  type="number"
-                  label={<FormattedMessage id="worker-meal-allowance" />}
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
-                  inputProps={{ min: 0, step: '0.01', dir: 'ltr', inputMode: 'decimal' }}
-                  sx={numberInputSx}
-                  onChange={(event) => field.onChange(event.target.value)}
-                />
-              )}
-            />
-          </Grid>
+
         </Grid>
       </Box>
 

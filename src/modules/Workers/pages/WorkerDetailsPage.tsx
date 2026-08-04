@@ -69,7 +69,7 @@ export default function WorkerDetailsPage() {
           operationalJobName: worker.operationalJobName,
           dailyWage: worker.currentWageProfile.dailyWage,
           mealAllowance: worker.currentWageProfile.mealAllowanceValue,
-          expectedMonthlySalary: worker.currentWageProfile.dailyWage * 30,
+          expectedMonthlySalary: worker.currentWageProfile.dailyWage * 26,
           effectiveFrom: worker.currentWageProfile.effectiveFrom,
           updatedAtUtc: worker.currentWageProfile.updatedAtUtc,
           rowVersion: worker.currentWageProfile.rowVersion
@@ -182,7 +182,7 @@ export default function WorkerDetailsPage() {
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-operational-job" /></Typography>
-              <Typography variant="h5">{worker.operationalJobName}</Typography>
+              <Typography variant="h5">{worker.operationalJobName || <FormattedMessage id="not-assigned" />}</Typography>
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-mobile-number" /></Typography>
@@ -218,10 +218,7 @@ export default function WorkerDetailsPage() {
                 <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-daily-wage" /></Typography>
                 <Typography variant="h5" dir="ltr">{currentSalarySettings.dailyWage.toFixed(2)}</Typography>
               </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-meal-allowance" /></Typography>
-                <Typography variant="h5" dir="ltr">{currentSalarySettings.mealAllowance.toFixed(2)}</Typography>
-              </Grid>
+
               <Grid item xs={12} md={4}>
                 <Typography variant="body2" color="text.secondary"><FormattedMessage id="expected-monthly-salary" /></Typography>
                 <Typography variant="h5" dir="ltr">{expectedMonthlySalary.toFixed(2)}</Typography>

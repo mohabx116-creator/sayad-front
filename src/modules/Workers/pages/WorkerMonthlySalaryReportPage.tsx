@@ -243,7 +243,7 @@ export default function WorkerMonthlySalaryReportPage() {
                     <TableCell><FormattedMessage id="worker-operational-job" /></TableCell>
                     <TableCell><FormattedMessage id="month" /></TableCell>
                     <TableCell><FormattedMessage id="salary-report-base-salary" /></TableCell>
-                    <TableCell><FormattedMessage id="worker-meal-allowance" /></TableCell>
+
                     <TableCell><FormattedMessage id="salary-report-overtime" /></TableCell>
                     <TableCell><FormattedMessage id="bonuses" /></TableCell>
                     <TableCell><FormattedMessage id="salary-report-absence-deduction" /></TableCell>
@@ -271,7 +271,7 @@ export default function WorkerMonthlySalaryReportPage() {
                       <TableCell>{row.operationalJobName}</TableCell>
                       <TableCell dir="ltr">{row.monthLabel}</TableCell>
                       <TableCell dir="ltr">{formatMoney(intl.locale, row.baseSalary)}</TableCell>
-                      <TableCell dir="ltr">{formatMoney(intl.locale, row.mealAllowance)}</TableCell>
+
                       <TableCell dir="ltr">{formatMoney(intl.locale, row.overtime)}</TableCell>
                       <TableCell dir="ltr">{formatMoney(intl.locale, row.bonuses)}</TableCell>
                       <TableCell dir="ltr">{formatMoney(intl.locale, row.absenceDeduction)}</TableCell>

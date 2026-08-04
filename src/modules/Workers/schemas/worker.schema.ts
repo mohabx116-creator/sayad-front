@@ -4,8 +4,6 @@ const phonePattern = /^[0-9+\-\s()]+$/;
 const decimalPattern = /^(?:\d+|\d+\.\d{1,4})$/;
 
 type WageValidationValues = {
-  mealAllowanceType: string;
-  mealAllowanceValue: string;
   overtimeCalculationType: string;
   overtimeRate: string;
 };
@@ -17,7 +15,7 @@ const baseSchema = {
     message: 'Mobile number format is not supported.'
   }),
   address: z.string().max(300),
-  operationalJobId: z.string().min(1, 'Operational job is required'),
+  operationalJobId: z.string().optional().or(z.literal('')),
   notes: z.string().max(1000),
   isActive: z.boolean(),
   wageEffectiveFrom: z.string().min(1, 'Effective date is required'),
@@ -27,12 +25,8 @@ const baseSchema = {
   monthlyDaysBasis: z.string().refine((value) => /^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 31, {
     message: 'Monthly days basis must be between 1 and 31.'
   }),
-  mealAllowanceType: z.string().refine((value) => ['0', '1', '2'].includes(value), {
-    message: 'Meal allowance type is required.'
-  }),
-  mealAllowanceValue: z.string().refine((value) => value === '' || decimalPattern.test(value), {
-    message: 'Meal allowance must be zero or greater.'
-  }),
+  mealAllowanceType: z.string().optional(),
+  mealAllowanceValue: z.string().optional(),
   overtimeCalculationType: z.string().refine((value) => ['0', '1', '2'].includes(value), {
     message: 'Overtime calculation type is required.'
   }),
@@ -45,14 +39,6 @@ const baseSchema = {
 function withConditionalWageValidation<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
   return schema.superRefine((values, ctx) => {
     const wageValues = values as typeof values & WageValidationValues;
-
-    if (wageValues.mealAllowanceType !== '0' && wageValues.mealAllowanceValue.trim() === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['mealAllowanceValue'],
-        message: 'Meal allowance value is required.'
-      });
-    }
 
     if (wageValues.overtimeCalculationType !== '0' && wageValues.overtimeRate.trim() === '') {
       ctx.addIssue({

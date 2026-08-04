@@ -164,8 +164,7 @@ function MonthlySalarySummary({
   values: MonthlySalaryFormValues;
 }) {
   const dailyWage = salarySettings.dailyWage;
-  const mealAllowance = salarySettings.mealAllowance;
-  const calculatedDays = Number(values.calculatedDays || 30);
+  const calculatedDays = Number(values.calculatedDays || 26);
   const absenceDays = Number(values.absenceDays || 0);
   const normalOvertime = parseMoney(values.normalOvertimeAmount);
   const nightOvertime = parseMoney(values.nightOvertimeAmount);
@@ -173,7 +172,7 @@ function MonthlySalarySummary({
   const deductionRows = values.deductions.reduce((sum, row) => sum + parseMoney(row.amount), 0);
   const baseSalary = dailyWage * calculatedDays;
   const absenceDeduction = dailyWage * absenceDays;
-  const additions = mealAllowance + normalOvertime + nightOvertime + bonus;
+  const additions = normalOvertime + nightOvertime + bonus;
   const deductions = absenceDeduction + deductionRows;
   const netSalary = baseSalary + additions - deductions;
 
@@ -308,9 +307,7 @@ function SalaryFormContent({
         <Grid item xs={12} md={6}>
           {readOnlyField(intl.formatMessage({ id: 'daily-wage-snapshot' }), salarySettings.dailyWage.toFixed(2))}
         </Grid>
-        <Grid item xs={12} md={6}>
-          {readOnlyField(intl.formatMessage({ id: 'meal-allowance-snapshot' }), salarySettings.mealAllowance.toFixed(2))}
-        </Grid>
+
         <Grid item xs={12} md={4}>
           <Controller
             name="absenceDays"
@@ -702,10 +699,7 @@ function MonthlySalaryViewContent({
           <Typography variant="body2" color="text.secondary"><FormattedMessage id="daily-wage-snapshot" /></Typography>
           <Typography variant="h6" dir="ltr">{salary.dailyWageSnapshot.toFixed(2)}</Typography>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography variant="body2" color="text.secondary"><FormattedMessage id="meal-allowance-snapshot" /></Typography>
-          <Typography variant="h6" dir="ltr">{salary.mealAllowanceSnapshot.toFixed(2)}</Typography>
-        </Grid>
+
         <Grid item xs={12} md={4}>
           <Typography variant="body2" color="text.secondary"><FormattedMessage id="calculated-days" /></Typography>
           <Typography variant="h6" dir="ltr">{salary.calculatedDays}</Typography>
