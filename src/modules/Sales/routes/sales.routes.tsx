@@ -9,7 +9,10 @@ const SalesReturnsListPage = Loadable(lazy(() => import('../pages/SalesReturnsLi
 const SalesReturnDetailsPage = Loadable(lazy(() => import('../pages/SalesReturnDetailsPage')));
 const SalesReturnFormPage = Loadable(lazy(() => import('../pages/SalesReturnFormPage')));
 
+const SalesInvoicesReportPage = Loadable(lazy(() => import('../pages/SalesInvoicesReportPage')));
+
 export const salesRoutes = [
+  { path: 'sales/reports/invoices', element: <SalesInvoicesReportPage /> },
   { path: 'sales/invoices', element: <SalesInvoicesListPage /> },
   { path: 'sales/invoices/new', element: <SalesInvoiceFormPage /> },
   { path: 'sales/invoices/:id', element: <SalesInvoiceDetailsPage /> },

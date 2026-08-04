@@ -85,3 +85,7 @@ export function postReturn(id: string, rowVersion: string) {
 export function cancelReturn(id: string, request: { reason: string; rowVersion: string }) {
   return unwrap(axiosServices.post<ApiResponse<SalesReturn>>(`/api/sales/returns/${id}/cancel`, request));
 }
+
+export function getSalesInvoicesReport(params: import('../types/sales.types').SalesInvoicesReportQuery) {
+  return unwrap(axiosServices.get<ApiResponse<import('../types/sales.types').SalesInvoicesReportResponse>>('/api/reports/sales/invoices', { params }));
+}

@@ -32,6 +32,23 @@ const sales: NavItemType = {
       icon: icons.IconReceiptRefund,
       breadcrumbs: true,
       permission: SALES_PERMISSIONS.returnsView
+    },
+    {
+      id: 'sales-reports',
+      title: 'reports',
+      type: 'collapse',
+      icon: icons.IconReceipt2,
+      permission: SALES_PERMISSIONS.invoicesView,
+      children: [
+        {
+          id: 'sales-invoices-report',
+          title: 'sales-invoices-report',
+          type: 'item',
+          url: '/sales/reports/invoices',
+          breadcrumbs: true,
+          permission: SALES_PERMISSIONS.invoicesView
+        }
+      ]
     }
   ]
 };

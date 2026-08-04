@@ -217,3 +217,51 @@ export type SalesListParams = {
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
 };
+
+export type SalesInvoicesReportQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  customerId?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortDirection?: string;
+};
+
+export type SalesInvoicesReportRow = {
+  invoiceId: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  customerId: string;
+  customerNameArabic: string;
+  customerNameEnglish?: string | null;
+  itemCount: number;
+  grandTotal: number;
+  currencyCode: string;
+  status: SalesDocumentStatus;
+};
+
+export type CurrencyTotal = {
+  currencyCode: string;
+  totalValue: number;
+};
+
+export type SalesInvoicesReportSummary = {
+  totalInvoices: number;
+  postedInvoices: number;
+  draftInvoices: number;
+  cancelledInvoices: number;
+  postedSales: CurrencyTotal[];
+  uniqueCustomers: number;
+};
+
+export type SalesInvoicesReportResponse = {
+  rows: SalesInvoicesReportRow[];
+  summary: SalesInvoicesReportSummary;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};

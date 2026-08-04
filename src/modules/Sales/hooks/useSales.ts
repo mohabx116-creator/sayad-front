@@ -58,3 +58,10 @@ export function useSalesReturnableLines(salesInvoiceId?: string) {
   return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }
 
+
+export function useSalesInvoicesReport(params: import('../types/sales.types').SalesInvoicesReportQuery) {
+  const query = buildQuery(params as any);
+  const key = `/api/reports/sales/invoices?${query}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<import('../types/sales.types').SalesInvoicesReportResponse>>(key, fetcher);
+  return useMemo(() => ({ report: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
+}
