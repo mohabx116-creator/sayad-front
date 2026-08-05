@@ -194,7 +194,7 @@ export default function WorkersListPage() {
                       <TableCell dir="ltr">{worker.mobileNumber ?? '-'}</TableCell>
                       <TableCell>{worker.operationalJobName}</TableCell>
                       <TableCell dir="ltr">{worker.currentWageProfile ? worker.currentWageProfile.dailyWage.toFixed(2) : '-'}</TableCell>
-                      <TableCell dir="ltr">{worker.currentWageProfile ? (worker.currentWageProfile.dailyWage * 30).toFixed(2) : '-'}</TableCell>
+                      <TableCell dir="ltr">{worker.currentWageProfile ? (worker.currentWageProfile.dailyWage * 26).toFixed(2) : '-'}</TableCell>
                       <TableCell><WorkerStatusChip isActive={worker.isActive} /></TableCell>
                       <TableCell align="center">
                         <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap">
