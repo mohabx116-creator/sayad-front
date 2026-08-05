@@ -29,8 +29,8 @@ export type WorkerSalarySettingsDto = {
   workerId: string;
   workerCode: string;
   workerName: string;
-  operationalJobId: string;
-  operationalJobName: string;
+  operationalJobId: string | null;
+  operationalJobName: string | null;
   dailyWage: number;
   mealAllowance: number;
   expectedMonthlySalary: number;
@@ -45,9 +45,9 @@ export type WorkerDto = {
   name: string;
   mobileNumber: string | null;
   address: string | null;
-  operationalJobId: string;
-  operationalJobCode: string;
-  operationalJobName: string;
+  operationalJobId: string | null;
+  operationalJobCode: string | null;
+  operationalJobName: string | null;
   notes: string | null;
   isActive: boolean;
   createdAtUtc: string;
@@ -61,9 +61,9 @@ export type WorkerListItemDto = {
   code: string;
   name: string;
   mobileNumber: string | null;
-  operationalJobId: string;
-  operationalJobCode: string;
-  operationalJobName: string;
+  operationalJobId: string | null;
+  operationalJobCode: string | null;
+  operationalJobName: string | null;
   isActive: boolean;
   createdAtUtc: string;
   updatedAtUtc: string | null;
@@ -102,8 +102,8 @@ export type WorkerMonthlySalaryDto = {
   workerId: string;
   workerCode: string;
   workerName: string;
-  operationalJobId: string;
-  operationalJobName: string;
+  operationalJobId: string | null;
+  operationalJobName: string | null;
   year: number;
   month: number;
   monthLabel: string;
@@ -142,7 +142,7 @@ export type WorkerMonthlySalaryReportRowDto = {
   workerId: string;
   workerCode: string;
   workerName: string;
-  operationalJobName: string;
+  operationalJobName: string | null;
   monthLabel: string;
   baseSalary: number;
   mealAllowance: number;
@@ -209,7 +209,7 @@ export type CreateWorkerRequest = {
   name: string;
   mobileNumber?: string | null;
   address?: string | null;
-  operationalJobId: string;
+  operationalJobId: string | null;
   notes?: string | null;
   isActive: boolean;
   wageProfile?: WorkerWageProfileInput | null;

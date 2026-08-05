@@ -83,7 +83,7 @@ export function toWorkerFormValues(worker: WorkerDto): WorkerFormValues {
     name: worker.name,
     mobileNumber: worker.mobileNumber ?? '',
     address: worker.address ?? '',
-    operationalJobId: worker.operationalJobId,
+    operationalJobId: worker.operationalJobId ?? '',
     notes: worker.notes ?? '',
     isActive: worker.isActive,
     wageEffectiveFrom: worker.currentWageProfile?.effectiveFrom ?? new Date().toISOString().slice(0, 10),
