@@ -1637,5 +1637,11 @@
   "action-edit-worker": "Edit Worker",
   "action-salary-details": "Salary Details",
   "action-activate-worker": "Activate Worker",
-  "action-deactivate-worker": "Deactivate Worker"
+  "action-deactivate-worker": "Deactivate Worker",
+  "total-parties": "Total Parties",
+  "active-parties": "Active Parties",
+  "total-suppliers": "Total Suppliers",
+  "active-suppliers": "Active Suppliers",
+  "total-dual-parties": "Total Dual Parties",
+  "active-dual-parties": "Active Dual Parties"
 }

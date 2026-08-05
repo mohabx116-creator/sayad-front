@@ -112,16 +112,31 @@ export default function PartiesListPage() {
   const isCustomerList = partyType === 'customer';
   const isSupplierList = partyType === 'supplier';
 
+  const filterParams = getTypeFilterParams(partyType);
+
   const {
     meta: totalMeta,
     isLoading: totalLoading,
     error: totalError
-  } = useParties({ page: 1, pageSize: 1, isCustomer: true, isSupplier: false });
+  } = useParties({ page: 1, pageSize: 1, ...filterParams });
   const {
     meta: activeMeta,
     isLoading: activeLoading,
     error: activeError
-  } = useParties({ page: 1, pageSize: 1, isCustomer: true, isSupplier: false, isActive: true });
+  } = useParties({ page: 1, pageSize: 1, ...filterParams, isActive: true });
+
+  let totalTitleId = 'total-parties';
+  let activeTitleId = 'active-parties';
+  if (partyType === 'customer') {
+    totalTitleId = 'total-customers';
+    activeTitleId = 'active-customers';
+  } else if (partyType === 'supplier') {
+    totalTitleId = 'total-suppliers';
+    activeTitleId = 'active-suppliers';
+  } else if (partyType === 'both') {
+    totalTitleId = 'total-dual-parties';
+    activeTitleId = 'active-dual-parties';
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -240,32 +255,30 @@ export default function PartiesListPage() {
         </Box>
       </Box>
 
-      {isCustomerList && (
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
-            {totalLoading ? <Skeleton variant="rounded" height={100} /> : (
-              <HoverDataCard
-                title={intl.formatMessage({ id: 'total-customers' })}
-                primary={totalError ? '-' : totalMeta?.totalCount ?? 0}
-                secondary={intl.formatMessage({ id: 'all-statuses' })}
-                iconPrimary={GroupIcon}
-                color="primary.main"
-              />
-            )}
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            {activeLoading ? <Skeleton variant="rounded" height={100} /> : (
-              <HoverDataCard
-                title={intl.formatMessage({ id: 'active-customers' })}
-                primary={activeError ? '-' : activeMeta?.totalCount ?? 0}
-                secondary={intl.formatMessage({ id: 'active' })}
-                iconPrimary={VerifiedUserIcon}
-                color="success.main"
-              />
-            )}
-          </Grid>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} md={3}>
+          {totalLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: totalTitleId })}
+              primary={totalError ? '-' : totalMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'all-statuses' })}
+              iconPrimary={GroupIcon}
+              color="primary.main"
+            />
+          )}
         </Grid>
-      )}
+        <Grid item xs={12} sm={6} md={3}>
+          {activeLoading ? <Skeleton variant="rounded" height={100} /> : (
+            <HoverDataCard
+              title={intl.formatMessage({ id: activeTitleId })}
+              primary={activeError ? '-' : activeMeta?.totalCount ?? 0}
+              secondary={intl.formatMessage({ id: 'active' })}
+              iconPrimary={VerifiedUserIcon}
+              color="success.main"
+            />
+          )}
+        </Grid>
+      </Grid>
 
       <Box
         sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', boxShadow: 1, overflow: 'hidden' }}

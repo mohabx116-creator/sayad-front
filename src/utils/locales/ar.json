@@ -1637,5 +1637,11 @@
   "action-edit-worker": "تعديل العامل",
   "action-salary-details": "إعدادات أو تفاصيل الراتب",
   "action-activate-worker": "تفعيل العامل",
-  "action-deactivate-worker": "إيقاف العامل"
+  "action-deactivate-worker": "إيقاف العامل",
+  "total-parties": "إجمالي الأطراف",
+  "active-parties": "الأطراف النشطة",
+  "total-suppliers": "إجمالي الموردين",
+  "active-suppliers": "الموردون النشطون",
+  "total-dual-parties": "إجمالي الأطراف المزدوجة",
+  "active-dual-parties": "الأطراف المزدوجة النشطة"
 }
