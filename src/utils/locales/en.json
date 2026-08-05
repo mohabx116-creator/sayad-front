@@ -1632,5 +1632,10 @@
   "sales.reports.noData": "No sales invoices found.",
   "sales.reports.loadError": "Failed to load sales report.",
   "app.retry": "Retry",
-  "app.refresh": "Refresh"
+  "app.refresh": "Refresh",
+  "action-view-worker": "View Worker",
+  "action-edit-worker": "Edit Worker",
+  "action-salary-details": "Salary Details",
+  "action-activate-worker": "Activate Worker",
+  "action-deactivate-worker": "Deactivate Worker"
 }

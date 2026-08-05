@@ -16,6 +16,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { IconClipboardList, IconCoins, IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
@@ -197,29 +198,61 @@ export default function WorkersListPage() {
                       <TableCell dir="ltr">{worker.currentWageProfile ? (Math.round((worker.currentWageProfile.dailyWage * 26) / 100) * 100).toFixed(2) : '-'}</TableCell>
                       <TableCell><WorkerStatusChip isActive={worker.isActive} /></TableCell>
                       <TableCell align="center">
-                        <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap">
+                        <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap">
                           <PermissionGuard permission={WORKERS_PERMISSIONS.view}>
-                            <IconButton component={Link} to={`/labor/workers/${worker.id}`} size="small">
-                              <IconEye size={18} />
-                            </IconButton>
+                            <Tooltip title={intl.formatMessage({ id: 'action-view-worker' })}>
+                              <IconButton
+                                component={Link}
+                                to={`/labor/workers/${worker.id}`}
+                                size="small"
+                                color="info"
+                                sx={{ border: '1px solid', borderColor: 'divider' }}
+                                aria-label={intl.formatMessage({ id: 'action-view-worker' })}
+                              >
+                                <IconEye size={18} />
+                              </IconButton>
+                            </Tooltip>
                           </PermissionGuard>
                           <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
-                            <IconButton component={Link} to={`/labor/workers/${worker.id}/edit`} size="small">
-                              <IconEdit size={18} />
-                            </IconButton>
+                            <Tooltip title={intl.formatMessage({ id: 'action-edit-worker' })}>
+                              <IconButton
+                                component={Link}
+                                to={`/labor/workers/${worker.id}/edit`}
+                                size="small"
+                                color="primary"
+                                sx={{ border: '1px solid', borderColor: 'divider' }}
+                                aria-label={intl.formatMessage({ id: 'action-edit-worker' })}
+                              >
+                                <IconEdit size={18} />
+                              </IconButton>
+                            </Tooltip>
                           </PermissionGuard>
                           <PermissionGuard permission={WORKERS_PERMISSIONS.edit}>
-                            <IconButton component={Link} to={`/labor/workers/${worker.id}?salary=create`} size="small" aria-label={intl.formatMessage({ id: 'monthly-salary' })}>
-                              <IconCoins size={18} />
-                            </IconButton>
+                            <Tooltip title={intl.formatMessage({ id: 'action-salary-details' })}>
+                              <IconButton
+                                component={Link}
+                                to={`/labor/workers/${worker.id}?salary=create`}
+                                size="small"
+                                color="warning"
+                                sx={{ border: '1px solid', borderColor: 'divider' }}
+                                aria-label={intl.formatMessage({ id: 'action-salary-details' })}
+                              >
+                                <IconCoins size={18} />
+                              </IconButton>
+                            </Tooltip>
                           </PermissionGuard>
                           <PermissionGuard permission={WORKERS_PERMISSIONS.changeStatus}>
-                            <IconButton
-                              size="small"
-                              onClick={() => runAction(() => (worker.isActive ? deactivateWorker(worker.id, worker.rowVersion) : activateWorker(worker.id, worker.rowVersion)))}
-                            >
-                              {worker.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
-                            </IconButton>
+                            <Tooltip title={intl.formatMessage({ id: worker.isActive ? 'action-deactivate-worker' : 'action-activate-worker' })}>
+                              <IconButton
+                                size="small"
+                                color={worker.isActive ? 'error' : 'success'}
+                                sx={{ border: '1px solid', borderColor: 'divider' }}
+                                onClick={() => runAction(() => (worker.isActive ? deactivateWorker(worker.id, worker.rowVersion) : activateWorker(worker.id, worker.rowVersion)))}
+                                aria-label={intl.formatMessage({ id: worker.isActive ? 'action-deactivate-worker' : 'action-activate-worker' })}
+                              >
+                                {worker.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
+                              </IconButton>
+                            </Tooltip>
                           </PermissionGuard>
                         </Stack>
                       </TableCell>

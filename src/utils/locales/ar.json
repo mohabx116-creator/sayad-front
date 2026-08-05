@@ -1632,5 +1632,10 @@
   "sales.reports.noData": "لا توجد فواتير مبيعات.",
   "sales.reports.loadError": "فشل تحميل التقرير.",
   "app.retry": "إعادة المحاولة",
-  "app.refresh": "تحديث"
+  "app.refresh": "تحديث",
+  "action-view-worker": "عرض العامل",
+  "action-edit-worker": "تعديل العامل",
+  "action-salary-details": "إعدادات أو تفاصيل الراتب",
+  "action-activate-worker": "تفعيل العامل",
+  "action-deactivate-worker": "إيقاف العامل"
 }
