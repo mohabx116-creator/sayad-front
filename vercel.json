@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "corepack enable && corepack prepare yarn@4.10.3 --activate && corepack yarn build",
-  "installCommand": "corepack enable && corepack prepare yarn@4.10.3 --activate && corepack yarn install --immutable",
+  "buildCommand": "corepack yarn exec vite build",
+  "installCommand": "corepack yarn install --immutable",
   "rewrites": [
     {
       "source": "/(.*)",
