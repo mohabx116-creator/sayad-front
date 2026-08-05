@@ -1644,5 +1644,6 @@
   "active-suppliers": "Active Suppliers",
   "total-dual-parties": "Total Dual Parties",
   "active-dual-parties": "Active Dual Parties",
-  "manage-operational-jobs": "Manage Operational Jobs"
+  "manage-operational-jobs": "Manage Operational Jobs",
+  "operational-job-delete-conflict": "This operational job cannot be deleted because it is linked to existing data. You can deactivate it instead."
 }

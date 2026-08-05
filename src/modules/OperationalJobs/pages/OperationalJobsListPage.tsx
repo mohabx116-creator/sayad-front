@@ -79,7 +79,17 @@ export default function OperationalJobsListPage() {
     if (!window.confirm(intl.formatMessage({ id: 'operational-job-delete-confirm' }, { code: job.code }))) {
       return;
     }
-    await runAction(() => deleteOperationalJob(job.id, job.rowVersion));
+    try {
+      await deleteOperationalJob(job.id, job.rowVersion);
+      await mutate();
+      notify(intl.formatMessage({ id: 'operational-jobs-action-success' }));
+    } catch (actionError: any) {
+      if (actionError?.response?.status === 409 || actionError?.message === 'Conflict' || actionError?.status === 409) {
+        notify(intl.formatMessage({ id: 'operational-job-delete-conflict' }), 'error');
+      } else {
+        notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'operational-jobs-action-failed' }), 'error');
+      }
+    }
   };
 
   return (
