@@ -33,7 +33,7 @@ export const monthlySalarySchema = z.object({
     source: z.enum(['Manager', 'Accountant'])
   }))
 }).superRefine((values, ctx) => {
-  if (Number(values.absenceDays || 0) > Number(values.calculatedDays || 30)) {
+  if (Number(values.absenceDays || 0) > Number(values.calculatedDays || 26)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['absenceDays'],

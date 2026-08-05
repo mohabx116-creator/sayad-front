@@ -93,7 +93,7 @@ const emptyValues = (salarySettings?: WorkerSalarySettingsDto | null): MonthlySa
   return {
     year: monthYear.year,
     month: monthYear.month,
-    calculatedDays: '30',
+    calculatedDays: '26',
     absenceDays: '0',
     normalOvertimeAmount: '0',
     nightOvertimeAmount: '0',
@@ -124,7 +124,7 @@ function toRequest(values: MonthlySalaryFormValues): WorkerMonthlySalaryRequest 
   return {
     year: Number(values.year),
     month: Number(values.month),
-    calculatedDays: Number(values.calculatedDays || 30),
+    calculatedDays: Number(values.calculatedDays || 26),
     absenceDays: Number(values.absenceDays || 0),
     normalOvertimeAmount: Number(values.normalOvertimeAmount || 0),
     nightOvertimeAmount: Number(values.nightOvertimeAmount || 0),
