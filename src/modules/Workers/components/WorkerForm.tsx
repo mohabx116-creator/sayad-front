@@ -105,7 +105,7 @@ function toRequestPayload(values: WorkerFormValues): CreateWorkerRequest {
     name: values.name.trim(),
     mobileNumber: values.mobileNumber.trim() || null,
     address: values.address.trim() || null,
-    operationalJobId: values.operationalJobId,
+    operationalJobId: values.operationalJobId || null,
     notes: values.notes.trim() || null,
     isActive: values.isActive,
     wageProfile: {
