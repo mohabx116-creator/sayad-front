@@ -76,7 +76,7 @@ export default function PartiesListPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
-  const [partyType, setPartyType] = useState<PartyTypeFilter>('customer');
+  const [partyType, setPartyType] = useState<PartyTypeFilter>('');
   const [status, setStatus] = useState<StatusFilter>('');
   const [cashDialogParty, setCashDialogParty] = useState<{ id: string; name: string; isCustomer: boolean } | null>(null);
 
