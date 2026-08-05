@@ -26,24 +26,6 @@ const labor: NavItemType = {
       icon: icons.IconUsersGroup,
       breadcrumbs: true,
       permission: WORKERS_PERMISSIONS.view
-    },
-    {
-      id: 'operational-jobs',
-      title: 'operational-jobs',
-      type: 'item',
-      url: '/labor/operational-jobs',
-      icon: icons.IconClipboardList,
-      breadcrumbs: true,
-      permission: OPERATIONAL_JOBS_PERMISSIONS.view
-    },
-    {
-      id: 'operations',
-      title: 'operations',
-      type: 'item',
-      url: '/labor/operations',
-      icon: icons.IconClipboardList,
-      breadcrumbs: true,
-      permission: OPERATIONS_PERMISSIONS.view
     }
   ]
 };

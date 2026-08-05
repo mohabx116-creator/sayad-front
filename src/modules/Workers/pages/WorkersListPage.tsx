@@ -24,6 +24,7 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { useOperationalJobs } from 'modules/OperationalJobs/hooks/useOperationalJobs';
+import { OPERATIONAL_JOBS_PERMISSIONS } from 'modules/OperationalJobs/utils/operationalJobs.constants';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
@@ -140,6 +141,11 @@ export default function WorkersListPage() {
             <MenuItem value="desc"><FormattedMessage id="sort-descending" /></MenuItem>
           </Select>
           <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
+              <Button component={Link} to="/labor/operational-jobs" variant="outlined" startIcon={<IconClipboardList size={18} />}>
+                <FormattedMessage id="manage-operational-jobs" />
+              </Button>
+            </PermissionGuard>
             <Button component={Link} to="/labor/workers/salary-report" variant="outlined" startIcon={<IconClipboardList size={18} />}>
               <FormattedMessage id="salary-report" />
             </Button>

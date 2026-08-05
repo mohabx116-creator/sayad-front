@@ -1643,5 +1643,6 @@
   "total-suppliers": "إجمالي الموردين",
   "active-suppliers": "الموردون النشطون",
   "total-dual-parties": "إجمالي الأطراف المزدوجة",
-  "active-dual-parties": "الأطراف المزدوجة النشطة"
+  "active-dual-parties": "الأطراف المزدوجة النشطة",
+  "manage-operational-jobs": "إدارة الوظائف التشغيلية"
 }
