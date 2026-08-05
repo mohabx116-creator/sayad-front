@@ -8,6 +8,7 @@ import type {
   OperationalJobListItemDto,
   OperationalJobListParams,
   OperationalJobRequest,
+  OperationalJobUsageResponseDto,
   UpdateOperationalJobRequest
 } from '../types/operationalJobs.types';
 
@@ -62,6 +63,10 @@ export function deactivateOperationalJob(id: string, rowVersion: string) {
   return unwrap(axiosServices.post<ApiResponse<OperationalJobDto>>(`/api/labor/operational-jobs/${id}/deactivate`, { rowVersion }));
 }
 
-export function deleteOperationalJob(id: string, rowVersion: string) {
-  return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/labor/operational-jobs/${id}`, { data: { rowVersion } }));
+export function deleteOperationalJob(id: string, rowVersion: string, force?: boolean) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/labor/operational-jobs/${id}${force ? '?force=true' : ''}`, { data: { rowVersion } }));
+}
+
+export function getOperationalJobUsage(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<OperationalJobUsageResponseDto>>(`/api/labor/operational-jobs/${id}/usage`));
 }

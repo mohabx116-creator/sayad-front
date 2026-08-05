@@ -2,10 +2,21 @@ import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
 
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
 import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListSubheader from '@mui/material/ListSubheader';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Select from '@mui/material/Select';
@@ -26,8 +37,9 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import { activateOperationalJob, deactivateOperationalJob, deleteOperationalJob } from '../api/operationalJobsApi';
+import { activateOperationalJob, deactivateOperationalJob, deleteOperationalJob, getOperationalJobUsage } from '../api/operationalJobsApi';
 import { useOperationalJobs } from '../hooks/useOperationalJobs';
+import type { OperationalJobUsageResponseDto } from '../types/operationalJobs.types';
 import { OPERATIONAL_JOBS_PAGE_SIZE, OPERATIONAL_JOBS_PERMISSIONS } from '../utils/operationalJobs.constants';
 
 const sortOptions = [
@@ -56,6 +68,12 @@ export default function OperationalJobsListPage() {
     sortDirection
   });
 
+  const [jobToDelete, setJobToDelete] = useState<(typeof items)[number] | null>(null);
+  const [isUsageLoading, setIsUsageLoading] = useState(false);
+  const [usageData, setUsageData] = useState<OperationalJobUsageResponseDto | null>(null);
+  const [usageError, setUsageError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     const handle = window.setTimeout(() => setSearch(searchInput.trim()), 350);
     return () => window.clearTimeout(handle);
@@ -75,20 +93,37 @@ export default function OperationalJobsListPage() {
     }
   };
 
-  const handleDelete = async (job: typeof items[number]) => {
-    if (!window.confirm(intl.formatMessage({ id: 'operational-job-delete-confirm' }, { code: job.code }))) {
-      return;
-    }
+  const openDeleteDialog = async (job: (typeof items)[number]) => {
+    setJobToDelete(job);
+    setIsUsageLoading(true);
+    setUsageData(null);
+    setUsageError(null);
     try {
-      await deleteOperationalJob(job.id, job.rowVersion);
+      const data = await getOperationalJobUsage(job.id);
+      setUsageData(data);
+    } catch (err: any) {
+      setUsageError(err instanceof Error ? err.message : intl.formatMessage({ id: 'operational-jobs-action-failed' }));
+    } finally {
+      setIsUsageLoading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!jobToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteOperationalJob(jobToDelete.id, jobToDelete.rowVersion, true);
       await mutate();
       notify(intl.formatMessage({ id: 'operational-jobs-action-success' }));
+      setJobToDelete(null);
     } catch (actionError: any) {
       if (actionError?.response?.status === 409 || actionError?.message === 'Conflict' || actionError?.status === 409) {
         notify(intl.formatMessage({ id: 'operational-job-delete-conflict' }), 'error');
       } else {
         notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'operational-jobs-action-failed' }), 'error');
       }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -123,18 +158,30 @@ export default function OperationalJobsListPage() {
             }}
             displayEmpty
           >
-            <MenuItem value=""><FormattedMessage id="all" /></MenuItem>
-            <MenuItem value="true"><FormattedMessage id="active" /></MenuItem>
-            <MenuItem value="false"><FormattedMessage id="inactive" /></MenuItem>
+            <MenuItem value="">
+              <FormattedMessage id="all" />
+            </MenuItem>
+            <MenuItem value="true">
+              <FormattedMessage id="active" />
+            </MenuItem>
+            <MenuItem value="false">
+              <FormattedMessage id="inactive" />
+            </MenuItem>
           </Select>
           <Select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
             {sortOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}><FormattedMessage id={option.labelId} /></MenuItem>
+              <MenuItem key={option.value} value={option.value}>
+                <FormattedMessage id={option.labelId} />
+              </MenuItem>
             ))}
           </Select>
           <Select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as 'asc' | 'desc')}>
-            <MenuItem value="asc"><FormattedMessage id="sort-ascending" /></MenuItem>
-            <MenuItem value="desc"><FormattedMessage id="sort-descending" /></MenuItem>
+            <MenuItem value="asc">
+              <FormattedMessage id="sort-ascending" />
+            </MenuItem>
+            <MenuItem value="desc">
+              <FormattedMessage id="sort-descending" />
+            </MenuItem>
           </Select>
           <Stack direction="row" justifyContent="flex-end">
             <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.create}>
@@ -145,16 +192,26 @@ export default function OperationalJobsListPage() {
           </Stack>
         </Box>
 
-        {isLoading && <Box sx={{ py: 6 }}><Loader /></Box>}
+        {isLoading && (
+          <Box sx={{ py: 6 }}>
+            <Loader />
+          </Box>
+        )}
         {error && !isLoading && (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color="error" sx={{ mb: 2 }}><FormattedMessage id="operational-jobs-load-error" /></Typography>
-            <Button variant="outlined" onClick={() => mutate()}><FormattedMessage id="retry" /></Button>
+            <Typography color="error" sx={{ mb: 2 }}>
+              <FormattedMessage id="operational-jobs-load-error" />
+            </Typography>
+            <Button variant="outlined" onClick={() => mutate()}>
+              <FormattedMessage id="retry" />
+            </Button>
           </Box>
         )}
         {!isLoading && !error && items.length === 0 && (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="text.secondary"><FormattedMessage id="operational-jobs-empty" /></Typography>
+            <Typography color="text.secondary">
+              <FormattedMessage id="operational-jobs-empty" />
+            </Typography>
           </Box>
         )}
         {!isLoading && !error && items.length > 0 && (
@@ -163,38 +220,60 @@ export default function OperationalJobsListPage() {
               <Table>
                 <TableHead sx={{ bgcolor: 'grey.50' }}>
                   <TableRow>
-                    <TableCell><FormattedMessage id="operational-job-code" /></TableCell>
-                    <TableCell><FormattedMessage id="operational-job-name" /></TableCell>
-                    <TableCell><FormattedMessage id="operational-job-description" /></TableCell>
-                    <TableCell><FormattedMessage id="status" /></TableCell>
-                    <TableCell align="center"><FormattedMessage id="actions" /></TableCell>
+                    <TableCell>
+                      <FormattedMessage id="operational-job-code" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="operational-job-name" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="operational-job-description" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="status" />
+                    </TableCell>
+                    <TableCell align="center">
+                      <FormattedMessage id="actions" />
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {items.map((job) => (
                     <TableRow key={job.id} hover sx={{ opacity: job.isActive ? 1 : 0.72 }}>
-                      <TableCell dir="ltr" sx={{ fontFamily: 'monospace' }}>{job.code}</TableCell>
+                      <TableCell dir="ltr" sx={{ fontFamily: 'monospace' }}>
+                        {job.code}
+                      </TableCell>
                       <TableCell>{job.name}</TableCell>
                       <TableCell>{job.description ?? '-'}</TableCell>
                       <TableCell>{job.isActive ? <FormattedMessage id="active" /> : <FormattedMessage id="inactive" />}</TableCell>
                       <TableCell align="center">
                         <Stack direction="row" spacing={0.5} justifyContent="center" flexWrap="wrap">
                           <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
-                            <IconButton component={Link} to={`/labor/operational-jobs/${job.id}`} size="small"><IconEye size={18} /></IconButton>
+                            <IconButton component={Link} to={`/labor/operational-jobs/${job.id}`} size="small">
+                              <IconEye size={18} />
+                            </IconButton>
                           </PermissionGuard>
                           <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.edit}>
-                            <IconButton component={Link} to={`/labor/operational-jobs/${job.id}/edit`} size="small"><IconEdit size={18} /></IconButton>
+                            <IconButton component={Link} to={`/labor/operational-jobs/${job.id}/edit`} size="small">
+                              <IconEdit size={18} />
+                            </IconButton>
                           </PermissionGuard>
                           <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.changeStatus}>
                             <IconButton
                               size="small"
-                              onClick={() => runAction(() => (job.isActive ? deactivateOperationalJob(job.id, job.rowVersion) : activateOperationalJob(job.id, job.rowVersion)))}
+                              onClick={() =>
+                                runAction(() =>
+                                  job.isActive
+                                    ? deactivateOperationalJob(job.id, job.rowVersion)
+                                    : activateOperationalJob(job.id, job.rowVersion)
+                                )
+                              }
                             >
                               {job.isActive ? <IconToggleLeft size={18} /> : <IconToggleRight size={18} />}
                             </IconButton>
                           </PermissionGuard>
                           <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.delete}>
-                            <IconButton size="small" color="error" onClick={() => handleDelete(job)}>
+                            <IconButton size="small" color="error" onClick={() => openDeleteDialog(job)}>
                               <IconTrash size={18} />
                             </IconButton>
                           </PermissionGuard>
@@ -222,6 +301,79 @@ export default function OperationalJobsListPage() {
           </>
         )}
       </MainCard>
+
+      <Dialog open={!!jobToDelete} onClose={() => !isDeleting && setJobToDelete(null)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <FormattedMessage id="operational-job-delete-title" />
+        </DialogTitle>
+        <DialogContent dividers>
+          {isUsageLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : usageError ? (
+            <Alert severity="error">{usageError}</Alert>
+          ) : usageData ? (
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                {usageData.code} - {usageData.name}
+              </Typography>
+
+              {usageData.totalReferenceCount === 0 ? (
+                <Typography>
+                  <FormattedMessage id="operational-job-delete-unused" />
+                </Typography>
+              ) : (
+                <>
+                  <Typography>
+                    <FormattedMessage id="operational-job-delete-used" />
+                  </Typography>
+                  <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, maxHeight: 300, overflow: 'auto' }}>
+                    <List disablePadding>
+                      {usageData.references.map((group, gIdx) => (
+                        <Box key={group.entityType}>
+                          {gIdx > 0 && <Divider />}
+                          <ListSubheader sx={{ bgcolor: 'grey.50', lineHeight: '36px' }}>
+                            {group.entityType} ({group.count})
+                          </ListSubheader>
+                          {group.items.map((item) => (
+                            <ListItem key={item.id} dense>
+                              <ListItemText
+                                primary={item.name}
+                                secondary={item.code}
+                                primaryTypographyProps={{ variant: 'body2' }}
+                                secondaryTypographyProps={{ variant: 'caption', dir: 'ltr' }}
+                              />
+                            </ListItem>
+                          ))}
+                        </Box>
+                      ))}
+                    </List>
+                  </Box>
+                  {!usageData.canForceDelete && (
+                    <Alert severity="warning">
+                      <FormattedMessage id="operational-job-delete-conflict" />
+                    </Alert>
+                  )}
+                </>
+              )}
+            </Stack>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setJobToDelete(null)} disabled={isDeleting} color="inherit">
+            <FormattedMessage id="cancel" />
+          </Button>
+          <Button
+            onClick={confirmDelete}
+            disabled={isUsageLoading || isDeleting || (usageData ? !usageData.canForceDelete : false) || !!usageError}
+            color="error"
+            variant="contained"
+          >
+            <FormattedMessage id="delete-job" />
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

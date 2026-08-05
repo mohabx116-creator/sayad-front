@@ -38,3 +38,24 @@ export type UpdateOperationalJobRequest = OperationalJobRequest & {
   code: string;
   rowVersion: string;
 };
+
+export type OperationalJobUsageReferenceItemDto = {
+  id: string;
+  name: string;
+  code: string | null;
+};
+
+export type OperationalJobUsageReferenceGroupDto = {
+  entityType: string;
+  count: number;
+  items: OperationalJobUsageReferenceItemDto[];
+};
+
+export type OperationalJobUsageResponseDto = {
+  operationalJobId: string;
+  code: string;
+  name: string;
+  totalReferenceCount: number;
+  canForceDelete: boolean;
+  references: OperationalJobUsageReferenceGroupDto[];
+};
