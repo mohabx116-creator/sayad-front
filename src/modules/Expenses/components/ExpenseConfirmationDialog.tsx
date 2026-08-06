@@ -15,13 +15,14 @@ interface Props {
   content: React.ReactNode;
   confirmColor?: 'primary' | 'error' | 'warning' | 'info' | 'success';
   confirmLabel?: React.ReactNode;
+  cancelLabel?: React.ReactNode;
   requireReason?: boolean;
   onConfirm: (reason?: string) => void;
   onCancel: () => void;
   isProcessing?: boolean;
 }
 
-export default function ExpenseConfirmationDialog({ open, title, content, confirmColor = 'primary', confirmLabel, requireReason, onConfirm, onCancel, isProcessing }: Props) {
+export default function ExpenseConfirmationDialog({ open, title, content, confirmColor = 'primary', confirmLabel, cancelLabel, requireReason, onConfirm, onCancel, isProcessing }: Props) {
   const [reason, setReason] = useState('');
 
   const handleConfirm = () => {
@@ -59,7 +60,7 @@ export default function ExpenseConfirmationDialog({ open, title, content, confir
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={handleClose} color="inherit" disabled={isProcessing}>
-          <FormattedMessage id="cancel" />
+          {cancelLabel || <FormattedMessage id="cancel" />}
         </Button>
         <Button onClick={handleConfirm} color={confirmColor} variant="contained" disabled={isProcessing || (requireReason && !reason.trim())}>
           {confirmLabel || <FormattedMessage id="confirm" />}

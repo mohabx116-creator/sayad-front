@@ -145,11 +145,12 @@ export default function ExpenseLifecycleActions({ expense, onSuccess }: Props) {
         title={<FormattedMessage id="expenses.cancel-expense" defaultMessage="إلغاء المصروف" />}
         content={
           <Box>
-            <FormattedMessage id="expenses.cancel-confirmation-desc" defaultMessage="هل أنت متأكد من إلغاء هذا المصروف؟ سيتم عكس التأثير المالي على الخزينة." />
+            <FormattedMessage id="expenses.cancel-confirmation-desc" defaultMessage="إلغاء المصروف سيعيد المبلغ إلى الخزنة ويعكس أثره المحاسبي. سيظل المصروف ظاهرًا في السجل بحالة ملغي." />
           </Box>
         }
         requireReason
-        confirmLabel={<FormattedMessage id="expenses.cancel-expense" defaultMessage="إلغاء المصروف" />}
+        confirmLabel={<FormattedMessage id="expenses.confirm-cancellation" defaultMessage="تأكيد الإلغاء" />}
+        cancelLabel={<FormattedMessage id="expenses.back" defaultMessage="رجوع" />}
         confirmColor="error"
         isProcessing={isProcessing}
         onConfirm={handleCancel}
