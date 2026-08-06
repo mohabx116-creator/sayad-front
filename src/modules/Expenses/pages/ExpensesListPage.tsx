@@ -56,13 +56,13 @@ export default function ExpensesListPage() {
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <Breadcrumbs custom card={false} title={false} divider={false} heading="expenses.list" links={[{ title: 'expenses.list' }]} sx={{ mb: 0 }} />
+        <Breadcrumbs custom card={false} title={false} divider={false} heading="expenses" links={[{ title: 'expenses' }]} sx={{ mb: 0 }} />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: 1, gap: 2, flexWrap: 'wrap' }}>
           <PageTitle>
-            <FormattedMessage id="expenses.list" defaultMessage="Expenses" />
+            <FormattedMessage id="expenses" defaultMessage="Expenses" />
           </PageTitle>
           <Button component={Link} to="/expenses/new" variant="contained" startIcon={<IconPlus />}>
-            <FormattedMessage id="expenses.create-expense" defaultMessage="Create Expense" />
+            <FormattedMessage id="expenses.add-expense" defaultMessage="Add Expense" />
           </Button>
         </Box>
       </Box>
@@ -89,15 +89,19 @@ export default function ExpensesListPage() {
               renderInput={(params) => <TextField {...params} label={<FormattedMessage id="expenses.expense-type" defaultMessage="Expense Type" />} />}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
-            <Autocomplete
+          <Grid item xs={12} md={2}>
+            <TextField
+              select
               size="small"
-              options={accounts}
-              getOptionLabel={(opt) => `${opt.code} - ${opt.nameArabic}`}
-              value={accounts.find((a) => a.id === filters.treasuryAccountId) || null}
-              onChange={(_, value) => setFilters({ ...filters, treasuryAccountId: value?.id || '' })}
-              renderInput={(params) => <TextField {...params} label={<FormattedMessage id="expenses.cashbox" defaultMessage="Cashbox" />} />}
-            />
+              fullWidth
+              label={<FormattedMessage id="status" defaultMessage="Status" />}
+              value={filters.status || ''}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            >
+              <MenuItem value=""><FormattedMessage id="all" defaultMessage="All" /></MenuItem>
+              <MenuItem value="Posted"><FormattedMessage id="expenses.status.recorded" defaultMessage="Recorded" /></MenuItem>
+              <MenuItem value="Cancelled"><FormattedMessage id="expenses.status.cancelled" defaultMessage="Cancelled" /></MenuItem>
+            </TextField>
           </Grid>
           <Grid item xs={12} md={1.5}>
             <TextField
@@ -121,10 +125,7 @@ export default function ExpensesListPage() {
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
-          <Grid item xs={12} md={1.5} sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, justifyContent: 'flex-end' }}>
-            <Button variant="outlined" color="inherit" onClick={clearFilters}>
-              <FormattedMessage id="clear" defaultMessage="Clear" />
-            </Button>
+          <Grid item xs={12} md={1} sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, justifyContent: 'flex-end' }}>
             <Button variant="outlined" onClick={applyFilters}>
               <FormattedMessage id="search" defaultMessage="Search" />
             </Button>
@@ -151,7 +152,7 @@ export default function ExpensesListPage() {
         {!isLoading && !error && items.length === 0 && (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <Typography color="text.secondary">
-              <FormattedMessage id="expenses.empty" defaultMessage="No expenses recorded." />
+              <FormattedMessage id="expenses.empty-recorded" defaultMessage="No expenses recorded." />
             </Typography>
           </Box>
         )}
@@ -162,11 +163,11 @@ export default function ExpensesListPage() {
                 <TableRow>
                   <TableCell><FormattedMessage id="date" defaultMessage="Date" /></TableCell>
                   <TableCell><FormattedMessage id="expenses.expense-type" defaultMessage="Expense Type" /></TableCell>
-                  <TableCell align="right"><FormattedMessage id="expenses.amount" defaultMessage="Amount" /></TableCell>
                   <TableCell><FormattedMessage id="expenses.cashbox" defaultMessage="Cashbox" /></TableCell>
+                  <TableCell align="right"><FormattedMessage id="expenses.amount" defaultMessage="Amount" /></TableCell>
                   <TableCell><FormattedMessage id="expenses.paid-to" defaultMessage="Paid To" /></TableCell>
-                  <TableCell><FormattedMessage id="expenses.notes" defaultMessage="Notes" /></TableCell>
-                  <TableCell align="center"><FormattedMessage id="view" defaultMessage="View" /></TableCell>
+                  <TableCell align="center"><FormattedMessage id="status" defaultMessage="Status" /></TableCell>
+                  <TableCell align="center"><FormattedMessage id="actions" defaultMessage="Actions" /></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -176,18 +177,32 @@ export default function ExpensesListPage() {
                     <TableCell>
                       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="body2" fontWeight={600}>{row.expenseCategoryNameArabic}</Typography>
-                        <Typography variant="caption" color="text.secondary">{row.expenseCategoryCode}</Typography>
                       </Box>
                     </TableCell>
+                    <TableCell>{row.treasuryAccountNameArabic}</TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" fontWeight={700}>{formatTreasuryMoney(row.amount)}</Typography>
                     </TableCell>
-                    <TableCell>{row.treasuryAccountNameArabic}</TableCell>
-                    <TableCell>{row.paidToName || row.beneficiaryPartyNameArabic || '-'}</TableCell>
-                    <TableCell sx={{ maxWidth: 240 }}>
-                      <Typography variant="body2" noWrap title={row.notes || ''}>
-                        {row.notes || '-'}
-                      </Typography>
+                    <TableCell>{row.paidToName || '-'}</TableCell>
+                    <TableCell align="center">
+                      <Box
+                        sx={{
+                          display: 'inline-block',
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: 1,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          bgcolor: row.status === 'Cancelled' ? 'error.light' : 'success.light',
+                          color: row.status === 'Cancelled' ? 'error.dark' : 'success.dark'
+                        }}
+                      >
+                        {row.status === 'Cancelled' ? (
+                          <FormattedMessage id="expenses.status.cancelled" defaultMessage="Cancelled" />
+                        ) : (
+                          <FormattedMessage id="expenses.status.recorded" defaultMessage="Recorded" />
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title={<FormattedMessage id="view" defaultMessage="View" />}>
