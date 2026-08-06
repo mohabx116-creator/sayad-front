@@ -110,6 +110,8 @@ const ExpenseDetailsPage = Loadable(lazy(() => import('modules/Expenses/pages/Ex
 const ExpenseFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseFormPage')));
 const ExpenseCategoriesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoriesListPage')));
 const ExpenseCategoryFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoryFormPage')));
+const ExpenseAccountsListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseAccountsListPage')));
+const ExpenseAccountFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseAccountFormPage')));
 const SystemDashboardPage = Loadable(lazy(() => import('modules/System/pages/SystemDashboardPage')));
 const SystemPermissionsPage = Loadable(lazy(() => import('modules/System/pages/SystemPermissionsPage')));
 const SystemAuditPage = Loadable(lazy(() => import('modules/System/pages/SystemAuditPage')));
@@ -874,6 +876,30 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesView}>
           <ExpenseCategoriesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/accounts',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsView}>
+          <ExpenseAccountsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/accounts/new',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsCreate}>
+          <ExpenseAccountFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/expenses/accounts/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.accountsUpdate}>
+          <ExpenseAccountFormPage />
         </PermissionRouteGuard>
       )
     },

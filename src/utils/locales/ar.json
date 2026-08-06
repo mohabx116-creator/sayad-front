@@ -1679,5 +1679,9 @@
   "money-position-report": "الوضع المالي",
   "money-movement-report": "الحركة المالية",
   "customer-money-report": "فلوس عند العملاء",
-  "supplier-money-report": "فلوس للموردين"
+  "supplier-money-report": "فلوس للموردين",
+  "expenses.expense-accounts": "حسابات المصروفات",
+  "expenses.manage-expense-accounts": "إدارة حسابات المصروفات",
+  "expenses.add-expense-account": "إضافة حساب مصروف",
+  "expenses.edit-expense-account": "تعديل حساب مصروف"
 }

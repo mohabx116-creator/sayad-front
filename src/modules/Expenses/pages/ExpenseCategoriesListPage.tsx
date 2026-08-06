@@ -32,6 +32,7 @@ import CodeNameLabel from 'shared/components/CodeNameLabel';
 import { useExpenseCategories } from '../hooks/useExpenses';
 import { activateExpenseCategory, deactivateExpenseCategory } from '../api/expensesApi';
 import { EXPENSES_PERMISSIONS } from '../utils/expense.constants';
+import { ACCOUNTING_PERMISSIONS } from 'modules/Accounting/utils/accounting.constants';
 import type { ExpenseCategoriesListParams } from '../types/expense.types';
 import ExpenseCategoryStatusChip from '../components/ExpenseCategoryStatusChip';
 import ExpenseConfirmationDialog from '../components/ExpenseConfirmationDialog';
@@ -88,21 +89,34 @@ export default function ExpenseCategoriesListPage() {
     <Box>
       <Box sx={{ mb: 3 }}>
         <Breadcrumbs custom card={false} title={false} divider={false} heading="expenses.categories" links={[{ title: 'expenses', to: '/expenses' }, { title: 'expenses.categories' }]} sx={{ mb: 0 }} />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: 1, gap: 2, flexWrap: 'wrap' }}>
           <PageTitle>
             <FormattedMessage id="expenses.categories" defaultMessage="تصنيفات المصروفات" />
           </PageTitle>
-          <PermissionGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
-            <Button
-              component={Link}
-              to="/expenses/categories/new"
-              variant="contained"
-              startIcon={<IconPlus />}
-              sx={{ borderRadius: 2 }}
-            >
-              <FormattedMessage id="expenses.create-category" defaultMessage="إنشاء تصنيف" />
-            </Button>
-          </PermissionGuard>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <PermissionGuard permission={ACCOUNTING_PERMISSIONS.accountsView}>
+              <Button
+                component={Link}
+                to="/expenses/accounts"
+                variant="outlined"
+                color="secondary"
+                sx={{ borderRadius: 2 }}
+              >
+                <FormattedMessage id="expenses.manage-expense-accounts" defaultMessage="إدارة حسابات المصروفات" />
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
+              <Button
+                component={Link}
+                to="/expenses/categories/new"
+                variant="contained"
+                startIcon={<IconPlus />}
+                sx={{ borderRadius: 2 }}
+              >
+                <FormattedMessage id="expenses.create-category" defaultMessage="إنشاء تصنيف" />
+              </Button>
+            </PermissionGuard>
+          </Box>
         </Box>
       </Box>
 
