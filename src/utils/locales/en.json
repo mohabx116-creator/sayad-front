@@ -1650,5 +1650,22 @@
   "operational-job-delete-title": "Delete Operational Job",
   "operational-job-delete-used": "This operational job is used by the following records. Deleting it will detach the job without deleting the linked records.",
   "operational-job-delete-unused": "This operational job is not linked to any data and can be deleted.",
-  "delete-job": "Delete Job"
+  "delete-job": "Delete Job",
+  "money-description": "See how much you have, what came in, what went out, and what is owed.",
+  "how-much-do-we-have": "How much do we have?",
+  "how-much-came-in": "How much came in?",
+  "how-much-went-out": "How much went out?",
+  "this-month": "This month",
+  "customers-owe-us": "Customers owe us",
+  "we-owe-suppliers": "We owe suppliers",
+  "profit-or-loss": "Profit or loss",
+  "latest-money-movements": "Latest Money Movements",
+  "error-loading-data": "Error loading data.",
+  "no-movements": "No movements found.",
+  "view-all-movements": "View All Movements",
+  "profit-and-loss-report": "Profit and Loss",
+  "money-position-report": "Money Position",
+  "money-movement-report": "Money Movement",
+  "customer-money-report": "Customer Money",
+  "supplier-money-report": "Supplier Money"
 }

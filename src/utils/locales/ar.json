@@ -1650,5 +1650,22 @@
   "operational-job-delete-title": "حذف الوظيفة التشغيلية",
   "operational-job-delete-used": "هذه الوظيفة التشغيلية مستخدمة في البيانات التالية. حذفها سيفصلها عن هذه السجلات دون حذف السجلات نفسها.",
   "operational-job-delete-unused": "هذه الوظيفة غير مرتبطة بأي بيانات ويمكن حذفها.",
-  "delete-job": "حذف الوظيفة"
+  "delete-job": "حذف الوظيفة",
+  "money-description": "اعرف معاك كام، دخل كام، خرج كام، وليك وعليك كام.",
+  "how-much-do-we-have": "معانا كام؟",
+  "how-much-came-in": "دخل كام؟",
+  "how-much-went-out": "خرج كام؟",
+  "this-month": "هذا الشهر",
+  "customers-owe-us": "لينا كام عند العملاء؟",
+  "we-owe-suppliers": "علينا كام للموردين؟",
+  "profit-or-loss": "كسبنا ولا خسرنا؟",
+  "latest-money-movements": "آخر حركات الفلوس",
+  "error-loading-data": "حدث خطأ أثناء تحميل البيانات.",
+  "no-movements": "لا توجد حركات.",
+  "view-all-movements": "عرض كل الحركات",
+  "profit-and-loss-report": "الأرباح والخسائر",
+  "money-position-report": "وضع الفلوس",
+  "money-movement-report": "حركة الفلوس",
+  "customer-money-report": "فلوس عند العملاء",
+  "supplier-money-report": "فلوس للموردين"
 }
