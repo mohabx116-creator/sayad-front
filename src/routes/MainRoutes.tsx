@@ -904,10 +904,6 @@ const MainRoutes = {
       )
     },
     {
-      path: '/expenses/:id/edit',
-      element: <Navigate to="/expenses/list" replace />
-    },
-    {
       path: '/administration/roles',
       element: (
         <PermissionRouteGuard permission={ADMINISTRATION_PERMISSIONS.rolesView}>

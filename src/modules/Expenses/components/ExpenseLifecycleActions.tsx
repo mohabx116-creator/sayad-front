@@ -69,14 +69,6 @@ export default function ExpenseLifecycleActions({ expense, onSuccess }: Props) {
 
   return (
     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-      {expense.canEdit && (
-        <PermissionGuard permission={EXPENSES_PERMISSIONS.edit}>
-          <Button variant="outlined" onClick={() => navigate(`/expenses/${expense.id}/edit`)}>
-            <FormattedMessage id="edit" />
-          </Button>
-        </PermissionGuard>
-      )}
-
       {expense.canPost && (
         <PermissionGuard permission={EXPENSES_PERMISSIONS.post}>
           <Button variant="contained" color="primary" onClick={() => setIsPostOpen(true)}>
