@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -69,12 +70,26 @@ export default function AccountingHomePage() {
     toDate: today
   });
 
-  const currencySummary = treasurySummary?.currencySummaries?.[0];
+  const currencySummaries = treasurySummary?.currencySummaries || [];
   const recentMovements = treasurySummary?.recentMovements ?? [];
 
-  const howMuchDoWeHave = currencySummary?.totalCurrentBalance ?? null;
-  const howMuchCameIn = currencySummary?.periodReceipts ?? null;
-  const howMuchWentOut = currencySummary?.periodPayments ?? null;
+  const renderCurrencies = (getValue: (summary: any) => number | null) => {
+    if (currencySummaries.length === 0) return '—';
+    return (
+      <React.Fragment>
+        {currencySummaries.map((summary, index) => {
+          const val = getValue(summary);
+          if (val === null) return null;
+          return (
+            <React.Fragment key={summary.currencyCode}>
+              {index > 0 && <br />}
+              {formatAmount(locale, val)} {summary.currencyCode}
+            </React.Fragment>
+          );
+        })}
+      </React.Fragment>
+    ) as any;
+  };
 
   const customersOweUs = customerReport?.netReceivable ?? null;
   const weOweSuppliers = supplierReport?.netSupplierPayable ?? null;
@@ -124,7 +139,7 @@ export default function AccountingHomePage() {
               />
             ) : (
               <ReportCard
-                primary={howMuchDoWeHave !== null ? formatAmount(locale, howMuchDoWeHave) : '—'}
+                primary={renderCurrencies(s => s.totalCurrentBalance)}
                 secondary={intl.formatMessage({ id: 'how-much-do-we-have', defaultMessage: 'How much do we have?' })}
                 iconPrimary={IconWallet}
                 color="primary.main"
@@ -144,7 +159,7 @@ export default function AccountingHomePage() {
               />
             ) : (
               <ReportCard
-                primary={howMuchCameIn !== null ? formatAmount(locale, howMuchCameIn) : '—'}
+                primary={renderCurrencies(s => s.periodReceipts)}
                 secondary={`${intl.formatMessage({ id: 'how-much-came-in', defaultMessage: 'How much came in?' })} (${intl.formatMessage({ id: 'this-month', defaultMessage: 'This month' })})`}
                 iconPrimary={IconArrowDownLeft}
                 color="success.main"
@@ -164,7 +179,7 @@ export default function AccountingHomePage() {
               />
             ) : (
               <ReportCard
-                primary={howMuchWentOut !== null ? formatAmount(locale, howMuchWentOut) : '—'}
+                primary={renderCurrencies(s => s.periodPayments)}
                 secondary={`${intl.formatMessage({ id: 'how-much-went-out', defaultMessage: 'How much went out?' })} (${intl.formatMessage({ id: 'this-month', defaultMessage: 'This month' })})`}
                 iconPrimary={IconArrowUpRight}
                 color="error.main"
