@@ -39,7 +39,7 @@ function toFormValues(account?: ReturnType<typeof useAccountingAccount>['account
     isPosting: true,
     isActive: account?.isActive ?? true,
     isSystem: false,
-    cashFlowActivityType: CASH_FLOW_ACTIVITY_TYPES.UNCLASSIFIED,
+    cashFlowActivityType: null as any,
     description: account?.description ?? '',
     rowVersion: account?.rowVersion
   };
@@ -55,7 +55,7 @@ function toRequest(values: AccountingAccountFormValues): AccountingAccountInput 
     isPosting: true,
     isActive: values.isActive,
     isSystem: false,
-    cashFlowActivityType: CASH_FLOW_ACTIVITY_TYPES.UNCLASSIFIED,
+    cashFlowActivityType: null as any,
     description: values.description || null
   };
 }
