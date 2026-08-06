@@ -69,11 +69,11 @@ function getPartyTypeLabel(intl: ReturnType<typeof useIntl>, isCustomer: boolean
 function getBalanceNatureLabel(intl: ReturnType<typeof useIntl>, nature: string) {
   switch (nature) {
     case 'Debit':
-      return intl.formatMessage({ id: 'statement-receivable' });
+      return intl.formatMessage({ id: 'parties.statement.debit-against-party', defaultMessage: 'عليه' });
     case 'Credit':
-      return intl.formatMessage({ id: 'statement-payable' });
+      return intl.formatMessage({ id: 'parties.statement.credit-for-party', defaultMessage: 'له' });
     default:
-      return intl.formatMessage({ id: 'statement-settled' });
+      return '';
   }
 }
 
@@ -235,50 +235,60 @@ export default function PartyStatementPage() {
                     <Typography variant="caption" color="text.secondary">
                       <FormattedMessage id="opening-balance" />
                     </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {formatAmount(intl.locale, statement.openingBalance.amount)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {intl.formatMessage({ id: statement.openingBalance.balanceNature === 'Credit' ? 'statement-payable' : statement.openingBalance.balanceNature === 'Debit' ? 'statement-receivable' : 'statement-settled' })}
-                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {formatAmount(intl.locale, statement.openingBalance.amount)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                        {getBalanceNatureLabel(intl, statement.openingBalance.balanceNature)}
+                      </Typography>
+                    </Stack>
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="total-debit" />
+                      <FormattedMessage id="parties.statement.total-debit" defaultMessage="إجمالي عليه" />
                     </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {formatAmount(intl.locale, statement.debitTotal)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      <FormattedMessage id="debit" />
-                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {formatAmount(intl.locale, statement.debitTotal)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                        <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="عليه" />
+                      </Typography>
+                    </Stack>
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="total-credit" />
+                      <FormattedMessage id="parties.statement.total-credit" defaultMessage="إجمالي له" />
                     </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {formatAmount(intl.locale, statement.creditTotal)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      <FormattedMessage id="credit" />
-                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {formatAmount(intl.locale, statement.creditTotal)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                        <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="له" />
+                      </Typography>
+                    </Stack>
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="current-balance" />
+                      <FormattedMessage id="parties.statement.closing-balance" defaultMessage="الرصيد النهائي" />
                     </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {formatAmount(intl.locale, statement.closingBalance)}
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                      <Chip size="small" variant="outlined" label={currentBalanceLabel} />
+                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {formatAmount(intl.locale, statement.closingBalance)}
+                      </Typography>
+                      {currentBalanceLabel && (
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                          {currentBalanceLabel}
+                        </Typography>
+                      )}
                     </Stack>
                   </Box>
                 </Grid>
@@ -338,44 +348,62 @@ export default function PartyStatementPage() {
                     <Table size="small" sx={{ minWidth: 900 }}>
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 700 }}>
+                          <TableCell sx={{ fontWeight: 700, width: '120px' }}>
                             <FormattedMessage id="date" />
                           </TableCell>
                           <TableCell sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="movement-type" />
+                            <FormattedMessage id="parties.statement.details" defaultMessage="التفاصيل" />
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="reference" />
+                          <TableCell align="right" sx={{ fontWeight: 700, width: '150px' }}>
+                            <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="عليه" />
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="description" />
+                          <TableCell align="right" sx={{ fontWeight: 700, width: '150px' }}>
+                            <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="له" />
                           </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="debit" />
-                          </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="credit" />
-                          </TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="running-balance" />
+                          <TableCell align="right" sx={{ fontWeight: 700, width: '180px' }}>
+                            <FormattedMessage id="parties.statement.balance" defaultMessage="الرصيد" />
                           </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {statement.entries.map((entry) => (
                           <TableRow key={entry.id} hover>
-                            <TableCell dir="ltr">{formatDate(intl.locale, entry.entryDate)}</TableCell>
-                            <TableCell>{getMovementTypeSummary(intl, entry.entryType)}</TableCell>
-                            <TableCell dir="ltr">{entry.referenceNumber ?? '-'}</TableCell>
-                            <TableCell>{resolveLocalizedText(intl.locale, entry.descriptionArabic, entry.descriptionEnglish, '-')}</TableCell>
-                            <TableCell align="right">{entry.debitAmount > 0 ? formatAmount(intl.locale, entry.debitAmount) : '-'}</TableCell>
-                            <TableCell align="right">{entry.creditAmount > 0 ? formatAmount(intl.locale, entry.creditAmount) : '-'}</TableCell>
+                            <TableCell dir="ltr">
+                              <Typography variant="body2">{formatDate(intl.locale, entry.entryDate)}</Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {resolveLocalizedText(intl.locale, entry.descriptionArabic, entry.descriptionEnglish, '-')}
+                              </Typography>
+                              {entry.referenceNumber && (
+                                <Typography variant="caption" color="text.secondary" display="block" dir="ltr">
+                                  Ref: {entry.referenceNumber}
+                                </Typography>
+                              )}
+                              <Typography variant="caption" color="text.secondary" display="block">
+                                {getMovementTypeSummary(intl, entry.entryType)}
+                              </Typography>
+                            </TableCell>
                             <TableCell align="right">
-                              <Stack spacing={0.25} alignItems="flex-end">
+                              <Typography variant="body2" sx={{ color: entry.debitAmount > 0 ? 'inherit' : 'text.disabled' }}>
+                                {entry.debitAmount > 0 ? formatAmount(intl.locale, entry.debitAmount) : '—'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" sx={{ color: entry.creditAmount > 0 ? 'inherit' : 'text.disabled' }}>
+                                {entry.creditAmount > 0 ? formatAmount(intl.locale, entry.creditAmount) : '—'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="baseline">
                                 <Typography variant="body2" fontWeight={700}>
                                   {formatAmount(intl.locale, entry.runningBalance)}
                                 </Typography>
-                                <Chip size="small" variant="outlined" label={getBalanceNatureLabel(intl, entry.runningBalanceNature)} />
+                                {getBalanceNatureLabel(intl, entry.runningBalanceNature) && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    {getBalanceNatureLabel(intl, entry.runningBalanceNature)}
+                                  </Typography>
+                                )}
                               </Stack>
                             </TableCell>
                           </TableRow>

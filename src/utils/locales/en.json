@@ -1683,5 +1683,13 @@
   "money-position-report": "Financial Position",
   "money-movement-report": "Financial Movement",
   "customer-money-report": "Customer Money",
-  "supplier-money-report": "Supplier Money"
+  "supplier-money-report": "Supplier Money",
+  "parties.statement.debit-against-party": "Debit",
+  "parties.statement.credit-for-party": "Credit",
+  "parties.statement.balance": "Balance",
+  "parties.statement.details": "Details",
+  "parties.statement.closing-balance": "Closing Balance",
+  "parties.statement.total-debit": "Total Debit",
+  "parties.statement.total-credit": "Total Credit",
+  "parties.statement.empty": "No account movements found."
 }

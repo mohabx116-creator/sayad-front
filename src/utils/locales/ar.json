@@ -1683,5 +1683,13 @@
   "expenses.expense-accounts": "حسابات المصروفات",
   "expenses.manage-expense-accounts": "إدارة حسابات المصروفات",
   "expenses.add-expense-account": "إضافة حساب مصروف",
-  "expenses.edit-expense-account": "تعديل حساب مصروف"
+  "expenses.edit-expense-account": "تعديل حساب مصروف",
+  "parties.statement.debit-against-party": "عليه",
+  "parties.statement.credit-for-party": "له",
+  "parties.statement.balance": "الرصيد",
+  "parties.statement.details": "التفاصيل",
+  "parties.statement.closing-balance": "الرصيد النهائي",
+  "parties.statement.total-debit": "إجمالي عليه",
+  "parties.statement.total-credit": "إجمالي له",
+  "parties.statement.empty": "لا توجد حركات في كشف الحساب."
 }
