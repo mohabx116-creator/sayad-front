@@ -43,8 +43,11 @@ export default function ExpenseForm({ isLoading, isSaving, form, setForm, catego
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
-            <Typography variant="h4" fontWeight={700} sx={{ mb: 3 }}>
+            <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
               <FormattedMessage id="expenses.create-expense" defaultMessage="Create Expense" />
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <FormattedMessage id="expenses.record-explanation" defaultMessage="Record the expense after payment. It will be deducted from the treasury automatically." />
             </Typography>
 
             <Grid container spacing={3}>
@@ -53,7 +56,7 @@ export default function ExpenseForm({ isLoading, isSaving, form, setForm, catego
                   select
                   fullWidth
                   required
-                  label={<FormattedMessage id="expenses.expense-type" defaultMessage="Expense Type" />}
+                  label={<FormattedMessage id="expenses.what-for" defaultMessage="What was the expense for?" />}
                   value={form.expenseCategoryId}
                   onChange={(e) => setForm((curr) => ({ ...curr, expenseCategoryId: e.target.value }))}
                 >
@@ -67,10 +70,22 @@ export default function ExpenseForm({ isLoading, isSaving, form, setForm, catego
 
               <Grid item xs={12} md={6}>
                 <TextField
+                  type="number"
+                  fullWidth
+                  required
+                  label={<FormattedMessage id="expenses.how-much" defaultMessage="How much?" />}
+                  value={form.amount || ''}
+                  onChange={(e) => setForm((curr) => ({ ...curr, amount: Number(e.target.value) }))}
+                  inputProps={{ min: 0, step: 0.01 }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
                   select
                   fullWidth
                   required
-                  label={<FormattedMessage id="expenses.cashbox" defaultMessage="Cashbox" />}
+                  label={<FormattedMessage id="expenses.paid-from" defaultMessage="Paid from where?" />}
                   value={form.treasuryAccountId}
                   onChange={(e) => setForm((curr) => ({ ...curr, treasuryAccountId: e.target.value }))}
                 >
@@ -105,31 +120,8 @@ export default function ExpenseForm({ isLoading, isSaving, form, setForm, catego
 
               <Grid item xs={12} md={6}>
                 <TextField
-                  type="number"
                   fullWidth
-                  required
-                  label={<FormattedMessage id="expenses.amount" defaultMessage="Amount" />}
-                  value={form.amount || ''}
-                  onChange={(e) => setForm((curr) => ({ ...curr, amount: Number(e.target.value) }))}
-                  inputProps={{ min: 0, step: 0.01 }}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={<FormattedMessage id="reference-number" defaultMessage="Reference Number" />}
-                  value={form.referenceNumber ?? ''}
-                  onChange={(e) => setForm((curr) => ({ ...curr, referenceNumber: e.target.value }))}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  label={<FormattedMessage id="expenses.notes" defaultMessage="Notes" />}
+                  label={<FormattedMessage id="expenses.note" defaultMessage="Note" />}
                   value={form.notes ?? ''}
                   onChange={(e) => setForm((curr) => ({ ...curr, notes: e.target.value }))}
                 />
@@ -178,7 +170,7 @@ export default function ExpenseForm({ isLoading, isSaving, form, setForm, catego
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Button type="submit" variant="contained" disabled={isSaving || !form.expenseCategoryId || !form.treasuryAccountId || !form.amount}>
-                <FormattedMessage id="save" defaultMessage="Save" />
+                <FormattedMessage id="expenses.record-expense" defaultMessage="Record Expense" />
               </Button>
               <Button component={Link} to={backUrl} variant="text" color="inherit" disabled={isSaving}>
                 <FormattedMessage id="cancel" />
