@@ -117,10 +117,17 @@ export default function OperationalJobsListPage() {
       notify(intl.formatMessage({ id: 'operational-jobs-action-success' }));
       setJobToDelete(null);
     } catch (actionError: any) {
-      if (actionError?.response?.status === 409 || actionError?.message === 'Conflict' || actionError?.status === 409) {
+      const isConflict = actionError?.response?.status === 409 || actionError?.status === 409 || actionError?.message === 'Conflict';
+      const payload = actionError?.response?.data?.data || actionError?.data;
+
+      if (isConflict && payload && typeof payload === 'object' && 'totalReferenceCount' in payload) {
+        setUsageData(payload);
+      } else if (isConflict) {
         notify(intl.formatMessage({ id: 'operational-job-delete-conflict' }), 'error');
+        setJobToDelete(null);
       } else {
         notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'operational-jobs-action-failed' }), 'error');
+        setJobToDelete(null);
       }
     } finally {
       setIsDeleting(false);
