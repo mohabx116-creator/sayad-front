@@ -108,6 +108,8 @@ const PurchaseReturnFormPage = Loadable(lazy(() => import('modules/Purchases/pag
 const ExpensesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpensesListPage')));
 const ExpenseDetailsPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseDetailsPage')));
 const ExpenseFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseFormPage')));
+const ExpenseCategoriesListPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoriesListPage')));
+const ExpenseCategoryFormPage = Loadable(lazy(() => import('modules/Expenses/pages/ExpenseCategoryFormPage')));
 const SystemDashboardPage = Loadable(lazy(() => import('modules/System/pages/SystemDashboardPage')));
 const SystemPermissionsPage = Loadable(lazy(() => import('modules/System/pages/SystemPermissionsPage')));
 const SystemAuditPage = Loadable(lazy(() => import('modules/System/pages/SystemAuditPage')));
@@ -869,15 +871,27 @@ const MainRoutes = {
     },
     {
       path: '/expenses/categories',
-      element: <Navigate to="/expenses/list" replace />
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesView}>
+          <ExpenseCategoriesListPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/expenses/categories/new',
-      element: <Navigate to="/expenses/list" replace />
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
+          <ExpenseCategoryFormPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/expenses/categories/:id/edit',
-      element: <Navigate to="/expenses/list" replace />
+      element: (
+        <PermissionRouteGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
+          <ExpenseCategoryFormPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/expenses/list',

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router-dom';
 
+import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { EXPENSES_PERMISSIONS } from '../utils/expense.constants';
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -20,7 +23,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
-import { IconEye, IconPlus } from '@tabler/icons-react';
+import { IconEye, IconPlus, IconSettings } from '@tabler/icons-react';
 
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
@@ -61,9 +64,16 @@ export default function ExpensesListPage() {
           <PageTitle>
             <FormattedMessage id="expenses" defaultMessage="Expenses" />
           </PageTitle>
-          <Button component={Link} to="/expenses/new" variant="contained" startIcon={<IconPlus />}>
-            <FormattedMessage id="expenses.add-expense" defaultMessage="Add Expense" />
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <PermissionGuard permission={EXPENSES_PERMISSIONS.categoriesManage}>
+              <Button component={Link} to="/expenses/categories" variant="outlined" color="secondary" startIcon={<IconSettings />}>
+                <FormattedMessage id="expenses.manage-categories" defaultMessage="Manage Expense Types" />
+              </Button>
+            </PermissionGuard>
+            <Button component={Link} to="/expenses/new" variant="contained" startIcon={<IconPlus />}>
+              <FormattedMessage id="expenses.add-expense" defaultMessage="Add Expense" />
+            </Button>
+          </Box>
         </Box>
       </Box>
 

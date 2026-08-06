@@ -983,6 +983,7 @@
   "expenses": "Expenses",
   "expenses.dashboard": "Expenses Dashboard",
   "expenses.categories": "Expense Categories",
+  "expenses.manage-categories": "Manage Expense Types",
   "expenses.list": "Expenses List",
   "expenses.create-category": "Create Category",
   "expenses.edit-category": "Edit Category",
