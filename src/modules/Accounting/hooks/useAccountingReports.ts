@@ -19,6 +19,8 @@ import type {
   TreasuryGlReconciliationReportDto,
   SupplierPayablesAgingParams,
   SupplierPayablesAgingReportDto,
+  PurchaseInvoicesReportQuery,
+  PurchaseInvoicesReportResponse,
   TrialBalanceParams,
   TrialBalanceReportDto
 } from '../types/report.types';
@@ -157,6 +159,21 @@ export function useSupplierPayablesAgingReport(params?: SupplierPayablesAgingPar
 export function useIncomeStatementReport(params: IncomeStatementParams) {
   const key = `/api/accounting/reports/income-statement?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<IncomeStatementReportDto>>(key, fetcher, {
+    revalidateOnFocus: false
+  });
+
+  return {
+    report: data?.data ?? null,
+    error,
+    isLoading,
+    mutate,
+    key
+  };
+}
+
+export function usePurchaseInvoicesReport(params: PurchaseInvoicesReportQuery) {
+  const key = `/api/reports/purchases/invoices?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PurchaseInvoicesReportResponse>>(key, fetcher, {
     revalidateOnFocus: false
   });
 

@@ -78,6 +78,7 @@ const TreasuryGlReconciliationPage = Loadable(lazy(() => import('modules/Account
 const InventoryGlReconciliationPage = Loadable(lazy(() => import('modules/Accounting/pages/InventoryGlReconciliationPage')));
 const CustomerReceivablesAgingPage = Loadable(lazy(() => import('modules/Accounting/pages/CustomerReceivablesAgingPage')));
 const SupplierPayablesAgingPage = Loadable(lazy(() => import('modules/Accounting/pages/SupplierPayablesAgingPage')));
+const PurchaseInvoicesReportPage = Loadable(lazy(() => import('modules/Accounting/pages/PurchaseInvoicesReportPage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
 const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
 const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
@@ -488,6 +489,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
           <SupplierPayablesAgingPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/purchase-invoices',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <PurchaseInvoicesReportPage />
         </PermissionRouteGuard>
       )
     },

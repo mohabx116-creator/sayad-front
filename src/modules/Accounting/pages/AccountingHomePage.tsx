@@ -317,6 +317,10 @@ export default function AccountingHomePage() {
                   <IconFileDescription size={20} style={{ marginRight: 8, marginLeft: 8 }} />
                   <ListItemText primary={<FormattedMessage id="supplier-money-report" defaultMessage="Supplier Money" />} />
                 </ListItemButton>
+                <ListItemButton component={Link} to="/accounting/reports/purchase-invoices" sx={{ px: 0 }}>
+                  <IconFileDescription size={20} style={{ marginRight: 8, marginLeft: 8 }} />
+                  <ListItemText primary={<FormattedMessage id="purchase-invoices-report" defaultMessage="Purchase Invoices Report" />} />
+                </ListItemButton>
               </List>
             </MainCard>
           </Grid>

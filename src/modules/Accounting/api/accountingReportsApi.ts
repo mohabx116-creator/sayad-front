@@ -19,6 +19,8 @@ import type {
   TreasuryGlReconciliationReportDto,
   SupplierPayablesAgingParams,
   SupplierPayablesAgingReportDto,
+  PurchaseInvoicesReportQuery,
+  PurchaseInvoicesReportResponse,
   TrialBalanceParams,
   TrialBalanceReportDto
 } from '../types/report.types';
@@ -78,4 +80,8 @@ export function getSupplierPayablesAgingReport(params: SupplierPayablesAgingPara
 
 export function getIncomeStatementReport(params: IncomeStatementParams) {
   return unwrap(axiosServices.get<ApiResponse<IncomeStatementReportDto>>(`/api/accounting/reports/income-statement?${buildQuery(params)}`));
+}
+
+export function getPurchaseInvoicesReport(params: PurchaseInvoicesReportQuery) {
+  return unwrap(axiosServices.get<ApiResponse<PurchaseInvoicesReportResponse>>(`/api/reports/purchases/invoices?${buildQuery(params)}`));
 }

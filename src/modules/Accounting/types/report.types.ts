@@ -678,3 +678,55 @@ export type SupplierPayablesAgingParams = {
   page?: number;
   pageSize?: number;
 };
+
+export type PurchaseInvoicesReportCurrencyTotalDto = {
+  currencyCode: string;
+  totalValue: number;
+};
+
+export type PurchaseInvoicesReportRowDto = {
+  purchaseInvoiceId: string;
+  invoiceId?: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  supplierId: string;
+  supplierCode: string;
+  supplierNameArabic: string;
+  supplierNameEnglish: string | null;
+  lineCount: number;
+  grandTotal: number;
+  paidAmount: number | null;
+  remainingAmount: number | null;
+  currencyCode: string;
+  status: 'Draft' | 'Posted' | 'Cancelled';
+};
+
+export type PurchaseInvoicesReportSummaryDto = {
+  totalInvoices: number;
+  postedInvoices: number;
+  draftInvoices: number;
+  cancelledInvoices: number;
+  postedPurchases: PurchaseInvoicesReportCurrencyTotalDto[];
+  uniqueSuppliers: number;
+};
+
+export type PurchaseInvoicesReportResponse = {
+  rows: PurchaseInvoicesReportRowDto[];
+  summary: PurchaseInvoicesReportSummaryDto;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
+export type PurchaseInvoicesReportQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  supplierId?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortDirection?: string;
+};
