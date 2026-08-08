@@ -36,6 +36,48 @@ export type PartyLedgerEntryDto = {
   runningBalanceNature: string;
 };
 
+export type PartyAdjustmentType =
+  | 'CustomerDiscount'
+  | 'CustomerDebitAdjustment'
+  | 'SupplierDiscount'
+  | 'SupplierCreditAdjustment';
+
+export type PartyAdjustmentStatus = 'Posted' | 'Reversed';
+
+export type PartyAdjustmentDto = {
+  adjustmentId: string;
+  number: string;
+  partyId: string;
+  adjustmentType: PartyAdjustmentType;
+  direction: 'Debit' | 'Credit';
+  entryDate: string;
+  amount: number;
+  descriptionArabic: string;
+  descriptionEnglish: string | null;
+  referenceNumber: string | null;
+  status: PartyAdjustmentStatus;
+  partyLedgerEntryId: string | null;
+  journalEntryId: string | null;
+  reversedAtUtc: string | null;
+  reversalAdjustmentId: string | null;
+  rowVersion: string;
+};
+
+export type CreatePartyAdjustmentRequest = {
+  partyId: string;
+  adjustmentType: PartyAdjustmentType;
+  entryDate: string;
+  amount: number;
+  descriptionArabic: string;
+  descriptionEnglish?: string | null;
+  referenceNumber?: string | null;
+};
+
+export type ReversePartyAdjustmentRequest = {
+  reversalReason: string;
+  rowVersion: string;
+};
+
 export type OpeningBalanceDto = {
   entryId: string | null;
   entryDate: string | null;

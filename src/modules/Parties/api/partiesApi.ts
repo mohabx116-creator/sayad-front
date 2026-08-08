@@ -4,14 +4,17 @@ import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type {
   CorrectOpeningBalanceRequest,
+  CreatePartyAdjustmentRequest,
   CreatePartyRequest,
   ListMeta,
   OpeningBalanceDto,
   OpeningBalanceRequest,
   PartyDeletionPreview,
+  PartyAdjustmentDto,
   PartyDto,
   PartyFinalDeleteRequest,
   PartyCashTransactionRequest,
+  ReversePartyAdjustmentRequest,
   PartyStatementDto,
   PartyStatementParams,
   UpdatePartyRequest
@@ -81,4 +84,12 @@ export function createCustomerReceipt(id: string, request: PartyCashTransactionR
 
 export function createSupplierPayment(id: string, request: PartyCashTransactionRequest) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/supplier-payments`, request));
+}
+
+export function createPartyAdjustment(id: string, request: CreatePartyAdjustmentRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PartyAdjustmentDto>>(`/api/parties/${id}/adjustments`, request));
+}
+
+export function reversePartyAdjustment(id: string, adjustmentId: string, request: ReversePartyAdjustmentRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PartyAdjustmentDto>>(`/api/parties/${id}/adjustments/${adjustmentId}/reverse`, request));
 }

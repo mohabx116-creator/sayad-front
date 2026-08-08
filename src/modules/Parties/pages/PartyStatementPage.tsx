@@ -24,8 +24,10 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import PartyClassificationChips from '../components/PartyClassificationChips';
+import PartyAdjustmentsPanel from '../components/PartyAdjustmentsPanel';
 import { useParty, usePartyStatement } from '../hooks/useParties';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
+import { getPartyAdjustmentEntryLabelId, isPartyAdjustmentEntryType } from '../utils/party-adjustments';
 
 type MovementTypeOption = {
   value: string;
@@ -38,7 +40,11 @@ const MOVEMENT_TYPE_OPTIONS: MovementTypeOption[] = [
   { value: 'TreasuryReceiptCredit', labelId: 'customer-receipt' },
   { value: 'PurchaseInvoiceCredit', labelId: 'purchase-invoice' },
   { value: 'TreasuryPaymentDebit', labelId: 'supplier-payment' },
-  { value: 'OpeningBalance', labelId: 'opening-balance' }
+  { value: 'OpeningBalance', labelId: 'opening-balance' },
+  { value: 'PartyAdjustmentDebit', labelId: 'party-adjustment.debit' },
+  { value: 'PartyAdjustmentCredit', labelId: 'party-adjustment.credit' },
+  { value: 'PartyAdjustmentDebitReversal', labelId: 'party-adjustment.debit-reversal' },
+  { value: 'PartyAdjustmentCreditReversal', labelId: 'party-adjustment.credit-reversal' }
 ];
 
 function formatAmount(locale: string, value: number) {
@@ -100,6 +106,14 @@ function getMovementLabel(intl: ReturnType<typeof useIntl>, entryType: string) {
     case 'TreasuryPaymentDebit':
     case 'TreasuryPaymentDebitReversal':
       return intl.formatMessage({ id: 'supplier-payment' });
+    case 'PartyAdjustmentDebit':
+      return intl.formatMessage({ id: 'party-adjustment.debit' });
+    case 'PartyAdjustmentCredit':
+      return intl.formatMessage({ id: 'party-adjustment.credit' });
+    case 'PartyAdjustmentDebitReversal':
+      return intl.formatMessage({ id: 'party-adjustment.debit-reversal' });
+    case 'PartyAdjustmentCreditReversal':
+      return intl.formatMessage({ id: 'party-adjustment.credit-reversal' });
     default:
       return intl.formatMessage({ id: 'none' });
   }
@@ -125,8 +139,8 @@ export default function PartyStatementPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { party, error: partyError, isLoading: isPartyLoading } = useParty(id);
-  const { statement, error: statementError, isLoading: isStatementLoading } = usePartyStatement(id, {
+  const { party, error: partyError, isLoading: isPartyLoading, mutate: mutateParty } = useParty(id);
+  const { statement, error: statementError, isLoading: isStatementLoading, mutate: mutateStatement } = usePartyStatement(id, {
     fromDate: dateFrom,
     toDate: dateTo,
     page,
@@ -146,6 +160,10 @@ export default function PartyStatementPage() {
   const errorMessage = partyError || statementError;
   const partyTypeLabel = party ? getPartyTypeLabel(intl, party.isCustomer, party.isSupplier) : '';
   const currentBalanceLabel = statement ? getBalanceNatureLabel(intl, statement.closingBalanceNature) : '';
+
+  const handlePartyAdjustmentsSaved = async () => {
+    await Promise.all([mutateParty(), mutateStatement()]);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -335,6 +353,17 @@ export default function PartyStatementPage() {
               </Grid>
             </Card>
 
+            {party && (
+              <PartyAdjustmentsPanel
+                partyId={party.id}
+                partyName={resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
+                isCustomer={party.isCustomer}
+                isSupplier={party.isSupplier}
+                isActive={party.isActive}
+                onSaved={handlePartyAdjustmentsSaved}
+              />
+            )}
+
             <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
               {statement.entries.length === 0 ? (
                 <Box sx={{ p: 3 }}>
@@ -367,7 +396,7 @@ export default function PartyStatementPage() {
                       </TableHead>
                       <TableBody>
                         {statement.entries.map((entry) => (
-                          <TableRow key={entry.id} hover>
+                          <TableRow key={entry.id} hover sx={isPartyAdjustmentEntryType(entry.entryType) ? { bgcolor: 'action.hover' } : undefined}>
                             <TableCell dir="ltr">
                               <Typography variant="body2">{formatDate(intl.locale, entry.entryDate)}</Typography>
                             </TableCell>
@@ -379,6 +408,11 @@ export default function PartyStatementPage() {
                                 <Typography variant="caption" color="text.secondary" display="block" dir="ltr">
                                   Ref: {entry.referenceNumber}
                                 </Typography>
+                              )}
+                              {isPartyAdjustmentEntryType(entry.entryType) && (
+                                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
+                                  <Chip size="small" variant="outlined" label={<FormattedMessage id={getPartyAdjustmentEntryLabelId(entry.entryType)} />} />
+                                </Stack>
                               )}
                               <Typography variant="caption" color="text.secondary" display="block">
                                 {getMovementTypeSummary(intl, entry.entryType)}
