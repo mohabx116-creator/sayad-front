@@ -81,6 +81,7 @@ const SupplierPayablesAgingPage = Loadable(lazy(() => import('modules/Accounting
 const PurchaseInvoicesReportPage = Loadable(lazy(() => import('modules/Accounting/pages/PurchaseInvoicesReportPage')));
 const ReceiptsPaymentsReportPage = Loadable(lazy(() => import('modules/Accounting/pages/ReceiptsPaymentsReportPage')));
 const SalesCustomerItemAnalysisReportPage = Loadable(lazy(() => import('modules/Accounting/pages/SalesCustomerItemAnalysisReportPage')));
+const SalesProfitabilityReportPage = Loadable(lazy(() => import('modules/Accounting/pages/SalesProfitabilityReportPage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
 const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
 const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
@@ -515,6 +516,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
           <SalesCustomerItemAnalysisReportPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/sales-profitability',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <SalesProfitabilityReportPage />
         </PermissionRouteGuard>
       )
     },

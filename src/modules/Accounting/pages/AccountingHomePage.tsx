@@ -331,6 +331,12 @@ export default function AccountingHomePage() {
                     primary={<FormattedMessage id="sales-customer-item-analysis-report" defaultMessage="Sales by Customer & Item Report" />}
                   />
                 </ListItemButton>
+                <ListItemButton component={Link} to="/accounting/reports/sales-profitability" sx={{ px: 0 }}>
+                  <IconFileDescription size={20} style={{ marginRight: 8, marginLeft: 8 }} />
+                  <ListItemText
+                    primary={<FormattedMessage id="sales-profitability-report" defaultMessage="Sales Profitability Report" />}
+                  />
+                </ListItemButton>
               </List>
             </MainCard>
           </Grid>

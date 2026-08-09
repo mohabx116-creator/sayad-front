@@ -835,3 +835,65 @@ export type SalesCustomerItemAnalysisQuery = {
   search?: string;
   currencyCode?: string;
 };
+
+export type SalesProfitabilityCurrencyTotalDto = {
+  currencyCode: string;
+  totalValue: number;
+};
+
+export type SalesProfitabilityRowDto = {
+  invoiceId: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  customerId: string;
+  customerCode: string;
+  customerNameArabic: string;
+  customerNameEnglish: string | null;
+  itemId: string;
+  itemCode: string;
+  itemNameArabic: string;
+  itemNameEnglish: string | null;
+  quantitySold: number;
+  salesAmount: number;
+  historicalUnitCost: number | null;
+  costAmount: number | null;
+  grossProfit: number | null;
+  grossMarginPercent: number | null;
+  currencyCode: string;
+  costAvailable: boolean;
+};
+
+export type SalesProfitabilitySummaryDto = {
+  totalSalesPerCurrency: SalesProfitabilityCurrencyTotalDto[];
+  knownCostPerCurrency: SalesProfitabilityCurrencyTotalDto[];
+  knownGrossProfitPerCurrency: SalesProfitabilityCurrencyTotalDto[];
+  totalInvoices: number;
+  uniqueCustomers: number;
+  uniqueItems: number;
+  totalLines: number;
+  costedLines: number;
+  uncostedLines: number;
+  costCoveragePercent: number;
+};
+
+export type SalesProfitabilityReportResponse = {
+  rows: SalesProfitabilityRowDto[];
+  summary: SalesProfitabilitySummaryDto;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
+export type SalesProfitabilityQuery = {
+  page?: number;
+  pageSize?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  customerId?: string;
+  itemId?: string;
+  search?: string;
+  currencyCode?: string;
+  sortBy?: string;
+  sortDirection?: string;
+};

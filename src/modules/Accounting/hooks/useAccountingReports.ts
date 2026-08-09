@@ -25,6 +25,8 @@ import type {
   ReceiptsPaymentsReportResponse,
   SalesCustomerItemAnalysisQuery,
   SalesCustomerItemAnalysisReportResponse,
+  SalesProfitabilityQuery,
+  SalesProfitabilityReportResponse,
   TrialBalanceParams,
   TrialBalanceReportDto
 } from '../types/report.types';
@@ -208,6 +210,21 @@ export function useReceiptsPaymentsReport(params: ReceiptsPaymentsReportQuery) {
 export function useSalesCustomerItemAnalysisReport(params: SalesCustomerItemAnalysisQuery) {
   const key = `/api/reports/sales/customer-item-analysis?${buildQuery(params)}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<SalesCustomerItemAnalysisReportResponse>>(key, fetcher, {
+    revalidateOnFocus: false
+  });
+
+  return {
+    report: data?.data ?? null,
+    error,
+    isLoading,
+    mutate,
+    key
+  };
+}
+
+export function useSalesProfitabilityReport(params: SalesProfitabilityQuery) {
+  const key = `/api/reports/sales/profitability?${buildQuery(params)}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<SalesProfitabilityReportResponse>>(key, fetcher, {
     revalidateOnFocus: false
   });
 
