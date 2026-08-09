@@ -785,3 +785,53 @@ export type ReceiptsPaymentsReportQuery = {
   sortBy?: string;
   sortDirection?: string;
 };
+
+export type SalesCustomerItemAnalysisCurrencyTotalDto = {
+  currencyCode: string;
+  totalValue: number;
+};
+
+export type SalesCustomerItemAnalysisCustomerRowDto = {
+  customerId: string;
+  customerCode: string;
+  customerNameArabic: string;
+  customerNameEnglish: string | null;
+  invoiceCount: number;
+  quantitySold: number;
+  salesAmount: number;
+  currencyCode: string;
+};
+
+export type SalesCustomerItemAnalysisItemRowDto = {
+  itemId: string;
+  itemCode: string;
+  itemNameArabic: string;
+  itemNameEnglish: string | null;
+  invoiceCount: number;
+  quantitySold: number;
+  salesAmount: number;
+  currencyCode: string;
+};
+
+export type SalesCustomerItemAnalysisSummaryDto = {
+  totalSalesPerCurrency: SalesCustomerItemAnalysisCurrencyTotalDto[];
+  totalInvoices: number;
+  uniqueCustomers: number;
+  uniqueItems: number;
+  totalQuantitySold: number;
+};
+
+export type SalesCustomerItemAnalysisReportResponse = {
+  customerAnalysis: SalesCustomerItemAnalysisCustomerRowDto[];
+  itemAnalysis: SalesCustomerItemAnalysisItemRowDto[];
+  summary: SalesCustomerItemAnalysisSummaryDto;
+};
+
+export type SalesCustomerItemAnalysisQuery = {
+  dateFrom?: string;
+  dateTo?: string;
+  customerId?: string;
+  itemId?: string;
+  search?: string;
+  currencyCode?: string;
+};

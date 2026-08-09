@@ -80,6 +80,7 @@ const CustomerReceivablesAgingPage = Loadable(lazy(() => import('modules/Account
 const SupplierPayablesAgingPage = Loadable(lazy(() => import('modules/Accounting/pages/SupplierPayablesAgingPage')));
 const PurchaseInvoicesReportPage = Loadable(lazy(() => import('modules/Accounting/pages/PurchaseInvoicesReportPage')));
 const ReceiptsPaymentsReportPage = Loadable(lazy(() => import('modules/Accounting/pages/ReceiptsPaymentsReportPage')));
+const SalesCustomerItemAnalysisReportPage = Loadable(lazy(() => import('modules/Accounting/pages/SalesCustomerItemAnalysisReportPage')));
 const AccountingChartOfAccountsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingChartOfAccountsPage')));
 const AccountingAccountDetailsPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountDetailsPage')));
 const AccountingAccountFormPage = Loadable(lazy(() => import('modules/Accounting/pages/AccountingAccountFormPage')));
@@ -506,6 +507,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
           <ReceiptsPaymentsReportPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/accounting/reports/sales-customer-item-analysis',
+      element: (
+        <PermissionRouteGuard permission={ACCOUNTING_PERMISSIONS.reportsView}>
+          <SalesCustomerItemAnalysisReportPage />
         </PermissionRouteGuard>
       )
     },

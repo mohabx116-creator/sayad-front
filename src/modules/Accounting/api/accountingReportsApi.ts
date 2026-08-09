@@ -23,6 +23,8 @@ import type {
   PurchaseInvoicesReportResponse,
   ReceiptsPaymentsReportQuery,
   ReceiptsPaymentsReportResponse,
+  SalesCustomerItemAnalysisQuery,
+  SalesCustomerItemAnalysisReportResponse,
   TrialBalanceParams,
   TrialBalanceReportDto
 } from '../types/report.types';
@@ -90,4 +92,10 @@ export function getPurchaseInvoicesReport(params: PurchaseInvoicesReportQuery) {
 
 export function getReceiptsPaymentsReport(params: ReceiptsPaymentsReportQuery) {
   return unwrap(axiosServices.get<ApiResponse<ReceiptsPaymentsReportResponse>>(`/api/reports/treasury/receipts-payments?${buildQuery(params)}`));
+}
+
+export function getSalesCustomerItemAnalysisReport(params: SalesCustomerItemAnalysisQuery) {
+  return unwrap(
+    axiosServices.get<ApiResponse<SalesCustomerItemAnalysisReportResponse>>(`/api/reports/sales/customer-item-analysis?${buildQuery(params)}`)
+  );
 }
