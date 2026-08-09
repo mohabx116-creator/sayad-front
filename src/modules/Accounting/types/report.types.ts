@@ -730,3 +730,58 @@ export type PurchaseInvoicesReportQuery = {
   sortBy?: string;
   sortDirection?: string;
 };
+
+export type ReceiptsPaymentsReportCurrencyTotalDto = {
+  currencyCode: string;
+  totalValue: number;
+};
+
+export type ReceiptsPaymentsReportRowDto = {
+  transactionId: string;
+  transactionNumber: string;
+  transactionDate: string;
+  transactionType: 'Receipt' | 'Payment' | string;
+  partyId: string;
+  partyCode: string;
+  partyNameArabic: string;
+  partyNameEnglish: string | null;
+  relatedDocumentNumber: string | null;
+  sourceDocumentNumber: string | null;
+  reason: string | null;
+  notes: string | null;
+  amount: number;
+  currencyCode: string;
+  status: 'Draft' | 'Posted' | 'Cancelled' | string;
+};
+
+export type ReceiptsPaymentsReportSummaryDto = {
+  totalTransactions: number;
+  receiptCount: number;
+  paymentCount: number;
+  totalReceiptsPerCurrency: ReceiptsPaymentsReportCurrencyTotalDto[];
+  totalPaymentsPerCurrency: ReceiptsPaymentsReportCurrencyTotalDto[];
+  uniqueParties: number;
+};
+
+export type ReceiptsPaymentsReportResponse = {
+  rows: ReceiptsPaymentsReportRowDto[];
+  summary: ReceiptsPaymentsReportSummaryDto;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
+export type ReceiptsPaymentsReportQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  partyId?: string;
+  transactionType?: string;
+  status?: string;
+  currencyCode?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortDirection?: string;
+};
