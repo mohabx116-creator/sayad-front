@@ -96,6 +96,7 @@ const InventoryLowStockPage = Loadable(lazy(() => import('modules/Inventory/page
 const InventoryStockReportPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryStockReportPage')));
 const InventoryValuationPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryValuationPage')));
 const SalesInvoicesListPage = Loadable(lazy(() => import('modules/Sales/pages/SalesInvoicesListPage')));
+const SalesInvoicesReportPage = Loadable(lazy(() => import('modules/Sales/pages/SalesInvoicesReportPage')));
 const SalesInvoiceDetailsPage = Loadable(lazy(() => import('modules/Sales/pages/SalesInvoiceDetailsPage')));
 const SalesInvoiceFormPage = Loadable(lazy(() => import('modules/Sales/pages/SalesInvoiceFormPage')));
 const SalesReturnsListPage = Loadable(lazy(() => import('modules/Sales/pages/SalesReturnsListPage')));
@@ -780,6 +781,14 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={SALES_PERMISSIONS.invoicesView}>
           <SalesInvoicesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/sales/reports/invoices',
+      element: (
+        <PermissionRouteGuard permission={SALES_PERMISSIONS.invoicesView}>
+          <SalesInvoicesReportPage />
         </PermissionRouteGuard>
       )
     },
