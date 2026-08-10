@@ -1,10 +1,11 @@
 // assets
-import { IconDashboard } from '@tabler/icons-react';
+import { IconBellRinging, IconDashboard } from '@tabler/icons-react';
 
 // types
 import { NavItemType } from 'types';
 
 const icons = {
+  IconBellRinging,
   IconDashboard
 };
 
@@ -21,6 +22,15 @@ const dashboard: NavItemType = {
       url: '/dashboard',
       icon: icons.IconDashboard,
       breadcrumbs: false
+    },
+    {
+      id: 'notifications',
+      title: 'notifications-title',
+      type: 'item',
+      url: '/notifications',
+      icon: icons.IconBellRinging,
+      breadcrumbs: true,
+      permission: 'notifications.view'
     }
   ]
 };
