@@ -344,15 +344,27 @@ const MainRoutes = {
     },
     {
       path: '/treasury/receipts/new',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsCreate}>
+          <TreasuryReceiptFormPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/receipts/:id',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsView}>
+          <TreasuryReceiptDetailsPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/receipts/:id/edit',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsUpdate}>
+          <TreasuryReceiptFormPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/payments',
