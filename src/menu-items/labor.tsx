@@ -55,6 +55,15 @@ const labor: NavItemType = {
       permission: OPERATIONAL_JOBS_PERMISSIONS.view
     },
     {
+      id: 'operations',
+      title: 'operations',
+      type: 'item',
+      url: '/labor/operations',
+      icon: icons.IconClipboardList,
+      breadcrumbs: true,
+      permission: OPERATIONS_PERMISSIONS.view
+    },
+    {
       id: 'payroll',
       title: 'payroll',
       type: 'item',
