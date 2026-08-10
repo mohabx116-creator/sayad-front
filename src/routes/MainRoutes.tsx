@@ -20,6 +20,7 @@ import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
 import SystemOwnerRouteGuard from 'modules/System/components/SystemOwnerRouteGuard';
 import { ACCOUNTING_PERMISSIONS } from 'modules/Accounting/utils/accounting.constants';
 import { PAYROLL_PERMISSIONS } from 'modules/Payroll/utils/payroll.constants';
+import { MONTHLY_MOVEMENTS_PERMISSIONS } from 'modules/LaborMonthlyMovements/utils/monthlyMovements.constants';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -41,6 +42,9 @@ const WorkerCreatePage = Loadable(lazy(() => import('modules/Workers/pages/Worke
 const WorkerMonthlySalaryReportPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerMonthlySalaryReportPage')));
 const WorkerDetailsPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerDetailsPage')));
 const WorkerEditPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerEditPage')));
+const MonthlyMovementsListPage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementsListPage')));
+const MonthlyMovementCreatePage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementCreatePage')));
+const MonthlyMovementEditPage = Loadable(lazy(() => import('modules/LaborMonthlyMovements/pages/MonthlyMovementEditPage')));
 const PayrollPeriodsPage = Loadable(lazy(() => import('modules/Payroll/pages/PayrollPeriodsPage')));
 const OperationalJobsListPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobsListPage')));
 const OperationalJobCreatePage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobCreatePage')));
@@ -208,9 +212,30 @@ const MainRoutes = {
         </PermissionRouteGuard>
       )
     },
-    { path: '/labor/monthly-movements', element: <Navigate to="/labor/workers" replace /> },
-    { path: '/labor/monthly-movements/new', element: <Navigate to="/labor/workers" replace /> },
-    { path: '/labor/monthly-movements/:id/edit', element: <Navigate to="/labor/workers" replace /> },
+    {
+      path: '/labor/monthly-movements',
+      element: (
+        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.view}>
+          <MonthlyMovementsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/monthly-movements/new',
+      element: (
+        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.create}>
+          <MonthlyMovementCreatePage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/labor/monthly-movements/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={MONTHLY_MOVEMENTS_PERMISSIONS.edit}>
+          <MonthlyMovementEditPage />
+        </PermissionRouteGuard>
+      )
+    },
     { path: '/labor/payroll', element: <Navigate to="/labor/workers" replace /> },
     {
       path: '/payroll/periods',
