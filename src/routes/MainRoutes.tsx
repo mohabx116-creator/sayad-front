@@ -19,6 +19,7 @@ import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
 import SystemOwnerRouteGuard from 'modules/System/components/SystemOwnerRouteGuard';
 import { ACCOUNTING_PERMISSIONS } from 'modules/Accounting/utils/accounting.constants';
+import { PAYROLL_PERMISSIONS } from 'modules/Payroll/utils/payroll.constants';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -40,6 +41,7 @@ const WorkerCreatePage = Loadable(lazy(() => import('modules/Workers/pages/Worke
 const WorkerMonthlySalaryReportPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerMonthlySalaryReportPage')));
 const WorkerDetailsPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerDetailsPage')));
 const WorkerEditPage = Loadable(lazy(() => import('modules/Workers/pages/WorkerEditPage')));
+const PayrollPeriodsPage = Loadable(lazy(() => import('modules/Payroll/pages/PayrollPeriodsPage')));
 const OperationalJobsListPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobsListPage')));
 const OperationalJobCreatePage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobCreatePage')));
 const OperationalJobDetailsPage = Loadable(lazy(() => import('modules/OperationalJobs/pages/OperationalJobDetailsPage')));
@@ -210,7 +212,14 @@ const MainRoutes = {
     { path: '/labor/monthly-movements/new', element: <Navigate to="/labor/workers" replace /> },
     { path: '/labor/monthly-movements/:id/edit', element: <Navigate to="/labor/workers" replace /> },
     { path: '/labor/payroll', element: <Navigate to="/labor/workers" replace /> },
-    { path: '/payroll/periods', element: <Navigate to="/labor/workers" replace /> },
+    {
+      path: '/payroll/periods',
+      element: (
+        <PermissionRouteGuard permission={PAYROLL_PERMISSIONS.view}>
+          <PayrollPeriodsPage />
+        </PermissionRouteGuard>
+      )
+    },
     {
       path: '/labor/operational-jobs',
       element: (
