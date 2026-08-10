@@ -376,15 +376,27 @@ const MainRoutes = {
     },
     {
       path: '/treasury/payments/new',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsCreate}>
+          <TreasuryPaymentFormPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/payments/:id',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsView}>
+          <TreasuryPaymentDetailsPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/payments/:id/edit',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsUpdate}>
+          <TreasuryPaymentFormPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/transfers',
