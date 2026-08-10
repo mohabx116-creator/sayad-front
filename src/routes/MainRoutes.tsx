@@ -302,7 +302,11 @@ const MainRoutes = {
     },
     {
       path: '/treasury/receipts',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsView}>
+          <TreasuryReceiptsListPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/receipts/new',
@@ -318,7 +322,11 @@ const MainRoutes = {
     },
     {
       path: '/treasury/payments',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsView}>
+          <TreasuryPaymentsListPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/payments/new',
@@ -334,7 +342,11 @@ const MainRoutes = {
     },
     {
       path: '/treasury/transfers',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.transfersView}>
+          <TreasuryTransfersListPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/treasury/transfers/new',
@@ -350,7 +362,11 @@ const MainRoutes = {
     },
     {
       path: '/treasury/statements',
-      element: <Navigate to="/treasury/accounts" replace />
+      element: (
+        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.statementsView}>
+          <TreasuryStatementsPage />
+        </PermissionRouteGuard>
+      )
     },
     {
       path: '/accounting',
