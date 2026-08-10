@@ -99,6 +99,12 @@ const InventoryCategoriesPage = Loadable(lazy(() => import('modules/Inventory/pa
 const InventoryUnitsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryUnitsPage')));
 const InventoryPartyItemsPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryPartyItemsPage')));
 const InventoryLowStockPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryLowStockPage')));
+const CustomerMaterialIntakesListPage = Loadable(lazy(() => import('modules/Inventory/pages/CustomerMaterialIntakesListPage')));
+const CustomerMaterialIntakeFormPage = Loadable(lazy(() => import('modules/Inventory/pages/CustomerMaterialIntakeFormPage')));
+const CustomerMaterialIntakeDetailsPage = Loadable(lazy(() => import('modules/Inventory/pages/CustomerMaterialIntakeDetailsPage')));
+const CustomerMaterialConversionsListPage = Loadable(lazy(() => import('modules/Inventory/pages/CustomerMaterialConversionsListPage')));
+const CustomerMaterialConversionFormPage = Loadable(lazy(() => import('modules/Inventory/pages/CustomerMaterialConversionFormPage')));
+const CustomerMaterialConversionDetailsPage = Loadable(lazy(() => import('modules/Inventory/pages/CustomerMaterialConversionDetailsPage')));
 const InventoryStockReportPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryStockReportPage')));
 const InventoryValuationPage = Loadable(lazy(() => import('modules/Inventory/pages/InventoryValuationPage')));
 const SalesInvoicesListPage = Loadable(lazy(() => import('modules/Sales/pages/SalesInvoicesListPage')));
@@ -835,6 +841,78 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.partyItemsView}>
           <InventoryPartyItemsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialIntakesView}>
+          <Navigate to="/inventory/customer-materials/intakes" replace />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/intakes',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialIntakesView}>
+          <CustomerMaterialIntakesListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/intakes/new',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialIntakesCreate}>
+          <CustomerMaterialIntakeFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/intakes/:id',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialIntakesView}>
+          <CustomerMaterialIntakeDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/intakes/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialIntakesUpdate}>
+          <CustomerMaterialIntakeFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/conversions',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialConversionsView}>
+          <CustomerMaterialConversionsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/conversions/new',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialConversionsCreate}>
+          <CustomerMaterialConversionFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/conversions/:id',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialConversionsView}>
+          <CustomerMaterialConversionDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/inventory/customer-materials/conversions/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={INVENTORY_PERMISSIONS.customerMaterialConversionsUpdate}>
+          <CustomerMaterialConversionFormPage />
         </PermissionRouteGuard>
       )
     },

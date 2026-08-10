@@ -58,6 +58,15 @@ const inventory: NavItemType = {
       permission: INVENTORY_PERMISSIONS.partyItemsView
     },
     {
+      id: 'inventory-customer-materials',
+      title: 'customer-materials',
+      type: 'item',
+      url: '/inventory/customer-materials',
+      icon: icons.IconTransfer,
+      breadcrumbs: true,
+      permission: INVENTORY_PERMISSIONS.customerMaterialIntakesView
+    },
+    {
       id: 'inventory-low-stock',
       title: 'inventory-low-stock',
       type: 'item',
