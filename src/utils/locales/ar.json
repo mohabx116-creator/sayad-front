@@ -696,6 +696,7 @@
   "inventory-analytics": "تحليلات المخزون",
   "inventory-stock-report": "تقرير المخزون",
   "inventory-stock-report-help": "عرض قراءة فقط لحالة المخزون حسب المخزن والتصنيف والصنف.",
+  "inventory-stock-movements": "المخزون والحركات",
   "all-categories": "جميع الفئات",
   "stock-status-filter": "حالة المخزون",
   "stock-status.all": "الكل",

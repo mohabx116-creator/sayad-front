@@ -696,6 +696,7 @@
   "inventory-low-stock": "Low stock",
   "inventory-stock-report": "Stock Report",
   "inventory-stock-report-help": "Read-only inventory stock visibility by warehouse, category, and item.",
+  "inventory-stock-movements": "Stock & Movements",
   "inventory-analytics": "Inventory Analytics",
   "all-categories": "All Categories",
   "stock-status-filter": "Stock Status",
