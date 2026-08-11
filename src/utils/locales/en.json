@@ -386,6 +386,8 @@
   "system-users": "System Users",
   "system-roles-permissions": "System Roles & Permissions",
   "system-permissions": "System Permissions",
+  "audit": "Audit",
+  "settings": "Settings",
   "system-audit-log": "Audit Log",
   "system-maintenance": "System Maintenance",
   "system-danger-zone": "Danger Zone",

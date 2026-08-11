@@ -386,6 +386,8 @@
   "system-users": "مستخدمو النظام",
   "system-roles-permissions": "الأدوار والصلاحيات للنظام",
   "system-permissions": "صلاحيات النظام",
+  "audit": "التدقيق",
+  "settings": "الإعدادات",
   "system-audit-log": "سجل التدقيق",
   "system-maintenance": "صيانة النظام",
   "system-danger-zone": "المنطقة الخطرة",

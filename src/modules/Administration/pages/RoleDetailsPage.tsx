@@ -12,6 +12,7 @@ import Loader from 'ui-component/Loader';
 import RoleStatusChip from '../components/RoleStatusChip';
 import { useRole } from '../hooks/useAdministration';
 import { getAdministrationRouteBase, getAdministrationScope } from '../utils/administration-scope';
+import { getLocalizedLabel } from '../utils/access-labels';
 
 export default function RoleDetailsPage() {
   const { id } = useParams();
@@ -55,7 +56,7 @@ export default function RoleDetailsPage() {
               <Stack spacing={2}>
                 {modules.map((module) => (
                   <Stack key={module} spacing={1}>
-                    <Typography variant="h5">{module}</Typography>
+                    <Typography variant="h5">{getLocalizedLabel(module, intl.locale)}</Typography>
                     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                       {role.permissions
                         .filter((permission) => permission.module === module)
