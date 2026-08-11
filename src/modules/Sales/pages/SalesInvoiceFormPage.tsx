@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
@@ -70,6 +70,7 @@ function emptyLine(): EditableLine {
 
 export default function SalesInvoiceFormPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const intl = useIntl();
   const dispatch = useDispatch();
@@ -77,16 +78,16 @@ export default function SalesInvoiceFormPage() {
   const { invoice, isLoading } = useSalesInvoice(id);
   const { items: customers } = useParties({ page: 1, pageSize: 100, isCustomer: true, sortBy: 'nameArabic' });
   const { items: inventoryItems } = useInventoryItems({ page: 1, pageSize: 100, search: '' });
-  const [form, setForm] = useState<SalesInvoiceInput>({
-    customerId: '',
+  const [form, setForm] = useState<SalesInvoiceInput>(() => ({
+    customerId: searchParams.get('customerId') ?? '',
     invoiceDate: today,
     dueDate: '',
-    customerReferenceNumber: '',
+    customerReferenceNumber: searchParams.get('customerReferenceNumber') ?? '',
     headerDiscount: 0,
     otherCharges: 0,
-    notes: '',
+    notes: searchParams.get('notes') ?? '',
     lines: []
-  });
+  }));
   const [rows, setRows] = useState<EditableLine[]>([emptyLine()]);
   const [isSaving, setIsSaving] = useState(false);
 

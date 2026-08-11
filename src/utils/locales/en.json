@@ -896,6 +896,7 @@
   "sales-invoices": "Sales Invoices",
   "sales-returns": "Sales Returns",
   "create-sales-invoice": "Create Sales Invoice",
+  "create-service-invoice": "Create Service Invoice",
   "edit-sales-invoice": "Edit Sales Invoice",
   "sales-invoice-details": "Sales Invoice Details",
   "create-sales-return": "Create Sales Return",

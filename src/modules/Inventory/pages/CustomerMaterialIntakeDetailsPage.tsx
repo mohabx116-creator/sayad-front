@@ -22,11 +22,13 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { cancelCustomerMaterialIntake, postCustomerMaterialIntake } from '../api/customerMaterialsApi';
 import { useCustomerMaterialIntake } from '../hooks/useCustomerMaterials';
 import CustomerMaterialsTabs from '../components/customer-materials/CustomerMaterialsTabs';
 import CustomerMaterialStatusChip from '../components/customer-materials/CustomerMaterialStatusChip';
 import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
+import { IconFileInvoice } from '@tabler/icons-react';
 
 export default function CustomerMaterialIntakeDetailsPage() {
   const { id } = useParams();
@@ -75,6 +77,11 @@ export default function CustomerMaterialIntakeDetailsPage() {
   }
 
   const canEdit = intake.status === 'Draft';
+  const serviceInvoiceUrl = `/sales/invoices/new?${new URLSearchParams({
+    customerId: intake.ownerPartyId,
+    customerReferenceNumber: intake.number,
+    notes: `Customer material intake ${intake.number}`
+  }).toString()}`;
 
   return (
     <Box>
@@ -95,6 +102,11 @@ export default function CustomerMaterialIntakeDetailsPage() {
           <Button component={Link} to="/inventory/customer-materials/intakes" variant="outlined" color="inherit" startIcon={<IconArrowLeft size={18} />}>
             <FormattedMessage id="back" />
           </Button>
+          <PermissionGuard permission={SALES_PERMISSIONS.invoicesCreate}>
+            <Button component={Link} to={serviceInvoiceUrl} variant="outlined" startIcon={<IconFileInvoice size={18} />}>
+              <FormattedMessage id="create-service-invoice" defaultMessage="Create Service Invoice" />
+            </Button>
+          </PermissionGuard>
           {canEdit && (
             <PermissionGuard permission={INVENTORY_PERMISSIONS.customerMaterialIntakesUpdate}>
               <Button component={Link} to={`/inventory/customer-materials/intakes/${intake.id}/edit`} variant="outlined" startIcon={<IconEdit size={18} />}>
