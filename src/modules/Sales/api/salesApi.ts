@@ -13,6 +13,7 @@ import type {
   SalesReturnListItem,
   SalesReturnableLine
 } from '../types/sales.types';
+import type { InvoicePaymentMethod } from 'shared/utils/invoiceSettlement';
 
 function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
   return request.then((response) => {
@@ -50,6 +51,17 @@ export function updateInvoice(id: string, request: SalesInvoiceInput & { rowVers
 
 export function postInvoice(id: string, rowVersion: string) {
   return unwrap(axiosServices.post<ApiResponse<SalesInvoice>>(`/api/sales/invoices/${id}/post`, { rowVersion }));
+}
+
+export function collectInvoice(
+  id: string,
+  request: {
+    rowVersion: string;
+    paymentMethod: InvoicePaymentMethod;
+    treasuryAccountId: string;
+  }
+) {
+  return unwrap(axiosServices.post<ApiResponse<SalesInvoice>>(`/api/sales/invoices/${id}/collect`, request));
 }
 
 export function cancelInvoice(id: string, request: { reason: string; rowVersion: string }) {

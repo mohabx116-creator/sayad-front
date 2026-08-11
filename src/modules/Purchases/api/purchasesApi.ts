@@ -12,6 +12,7 @@ import type {
   PurchaseReturnInput,
   PurchaseReturnListItem
 } from '../types/purchases.types';
+import type { InvoicePaymentMethod } from 'shared/utils/invoiceSettlement';
 
 function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
   return request.then((response) => {
@@ -49,6 +50,17 @@ export function updateInvoice(id: string, request: PurchaseInvoiceInput & { rowV
 
 export function postInvoice(id: string, rowVersion: string) {
   return unwrap(axiosServices.post<ApiResponse<PurchaseInvoice>>(`/api/purchases/invoices/${id}/post`, { rowVersion }));
+}
+
+export function payInvoice(
+  id: string,
+  request: {
+    rowVersion: string;
+    paymentMethod: InvoicePaymentMethod;
+    treasuryAccountId: string;
+  }
+) {
+  return unwrap(axiosServices.post<ApiResponse<PurchaseInvoice>>(`/api/purchases/invoices/${id}/pay`, request));
 }
 
 export function cancelInvoice(id: string, request: { reason: string; rowVersion: string }) {

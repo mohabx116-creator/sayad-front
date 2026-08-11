@@ -1,3 +1,5 @@
+import type { InvoicePaymentMethod, InvoiceSettlementStatus } from 'shared/utils/invoiceSettlement';
+
 export type ListMeta = {
   page: number;
   pageSize: number;
@@ -26,6 +28,8 @@ export type SalesInvoiceInput = {
   otherCharges: number;
   notes?: string | null;
   lines: SalesLineInput[];
+  paymentMethod: InvoicePaymentMethod;
+  treasuryAccountId?: string | null;
 };
 
 export type SalesReturnLineInput = {
@@ -114,6 +118,13 @@ export type SalesInvoice = {
   accountingEntryNumber?: string | null;
   isAccountingPosted?: boolean;
   accountingPostingStatus?: string;
+  paymentMethod?: InvoicePaymentMethod;
+  paymentMethodLabel?: string;
+  settlementStatus?: InvoiceSettlementStatus;
+  settlementStatusLabel?: string;
+  treasuryAccountId?: string | null;
+  treasuryAccountCode?: string | null;
+  treasuryAccountNameArabic?: string | null;
   customerControlAccountId?: string | null;
   customerControlAccountCode?: string | null;
   customerControlAccountNameArabic?: string | null;
@@ -145,6 +156,13 @@ export type SalesInvoiceListItem = {
   rowVersion: string;
   isAccountingPosted?: boolean;
   accountingPostingStatus?: string;
+  paymentMethod?: InvoicePaymentMethod;
+  paymentMethodLabel?: string;
+  settlementStatus?: InvoiceSettlementStatus;
+  settlementStatusLabel?: string;
+  treasuryAccountId?: string | null;
+  treasuryAccountCode?: string | null;
+  treasuryAccountNameArabic?: string | null;
 };
 
 export type SalesReturn = {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -28,9 +28,28 @@ import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
-import { cancelInvoice, postInvoice } from '../api/purchasesApi';
+import { cancelInvoice, payInvoice, postInvoice } from '../api/purchasesApi';
 import { usePurchaseInvoice } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
+import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
+import InvoiceSettlementDialog from 'shared/components/InvoiceSettlementDialog';
+import {
+  getInvoicePaymentMethodLabel,
+  getInvoiceSettlementStatusLabel
+} from 'shared/utils/invoiceSettlement';
+
+function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
+        {label}
+      </Typography>
+      <Typography variant="body2" fontWeight={500}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
 
 function formatDate(value: string | null | undefined, locale: string) {
   if (!value) {
@@ -46,7 +65,9 @@ export default function PurchaseInvoiceDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { invoice, isLoading, error, mutate } = usePurchaseInvoice(id);
+  const { items: treasuryAccounts } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
   const [reason, setReason] = useState('');
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -66,8 +87,27 @@ export default function PurchaseInvoiceDetailsPage() {
     }
   };
 
+  const handlePay = async (request: { paymentMethod: 'Cash' | 'Wallet' | 'InstaPay'; treasuryAccountId: string }) => {
+    if (!invoice) {
+      return;
+    }
+
+    try {
+      await payInvoice(invoice.id, { rowVersion: invoice.rowVersion, ...request });
+      notify(intl.formatMessage({ id: 'purchase-invoice-paid', defaultMessage: 'Purchase invoice paid successfully.' }));
+      await mutate();
+      setPayDialogOpen(false);
+    } catch (actionError) {
+      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'purchase-action-failed' }), 'error');
+    }
+  };
+
   if (isLoading) return <Loader />;
   if (error || !invoice) return <Typography color="error"><FormattedMessage id="purchase-load-error" /></Typography>;
+
+  const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, invoice.paymentMethod ?? 'Credit');
+  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, invoice.settlementStatus ?? 'Outstanding');
+  const isCreditOutstanding = invoice.status === 'Posted' && invoice.paymentMethod === 'Credit' && invoice.settlementStatus === 'Outstanding';
 
   const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3 };
   const headerSx = { display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' };
@@ -102,6 +142,14 @@ export default function PurchaseInvoiceDetailsPage() {
                 <Button variant="contained" color="primary" onClick={() => runAction(() => postInvoice(invoice.id, invoice.rowVersion))} sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
                    <FormattedMessage id="post" />
                 </Button>
+             )}
+           </PermissionGuard>
+
+           <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesPost}>
+             {isCreditOutstanding && (
+               <Button variant="contained" color="success" onClick={() => setPayDialogOpen(true)} sx={{ borderRadius: 2 }} startIcon={<IconSend size={18} />}>
+                 <FormattedMessage id="pay-invoice" defaultMessage="Pay Invoice" />
+               </Button>
              )}
            </PermissionGuard>
 
@@ -151,6 +199,17 @@ export default function PurchaseInvoiceDetailsPage() {
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="supplier-invoice-number" /></Typography>
                            <Typography variant="body1" fontWeight={500}>{invoice.supplierInvoiceNumber ?? '-'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                           <InfoRow label={<FormattedMessage id="payment-method" defaultMessage="Payment Method" />}>{paymentMethodLabel}</InfoRow>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                           <InfoRow label={<FormattedMessage id="settlement-status" defaultMessage="Settlement Status" />}>{settlementStatusLabel}</InfoRow>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                           <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}>
+                             {invoice.treasuryAccountCode ? `${invoice.treasuryAccountCode}${invoice.treasuryAccountNameArabic ? ` - ${invoice.treasuryAccountNameArabic}` : ''}` : '-'}
+                           </InfoRow>
                         </Grid>
                      </Grid>
                   </Box>
@@ -316,6 +375,15 @@ export default function PurchaseInvoiceDetailsPage() {
             </Stack>
          </Grid>
       </Grid>
+      <InvoiceSettlementDialog
+        open={payDialogOpen}
+        title={<FormattedMessage id="pay-invoice" defaultMessage="Pay Invoice" />}
+        confirmLabel={<FormattedMessage id="pay-invoice" defaultMessage="Pay Invoice" />}
+        invoiceCurrencyCode={invoice.currencyCode}
+        treasuryAccounts={treasuryAccounts}
+        onClose={() => setPayDialogOpen(false)}
+        onConfirm={handlePay}
+      />
     </Box>
   );
 }

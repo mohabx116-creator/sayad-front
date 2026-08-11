@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -28,16 +28,37 @@ import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
-import { cancelInvoice, postInvoice } from '../api/salesApi';
+import { cancelInvoice, collectInvoice, postInvoice } from '../api/salesApi';
 import { useSalesInvoice } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
+import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
+import InvoiceSettlementDialog from 'shared/components/InvoiceSettlementDialog';
+import {
+  getInvoicePaymentMethodLabel,
+  getInvoiceSettlementStatusLabel
+} from 'shared/utils/invoiceSettlement';
+
+function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
+        {label}
+      </Typography>
+      <Typography variant="body2" fontWeight={500}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
 
 export default function SalesInvoiceDetailsPage() {
   const { id } = useParams();
   const intl = useIntl();
   const dispatch = useDispatch();
   const { invoice, isLoading, error, mutate } = useSalesInvoice(id);
+  const { items: treasuryAccounts } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
   const [reason, setReason] = useState('');
+  const [collectDialogOpen, setCollectDialogOpen] = useState(false);
   const customerControlAccountLabel = invoice?.customerControlAccountCode
     ? `${invoice.customerControlAccountCode}${invoice.customerControlAccountNameArabic ? ` - ${invoice.customerControlAccountNameArabic}` : ''}`
     : '—';
@@ -54,6 +75,10 @@ export default function SalesInvoiceDetailsPage() {
   const recognizedInventoryCost = invoice?.recognizedInventoryCost ?? 0;
   const noInventoryMovement = invoice?.inventoryCostAccountingStatus === 'لا توجد حركة مخزون لهذا المستند';
 
+  const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, invoice?.paymentMethod ?? 'Credit');
+  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, invoice?.settlementStatus ?? 'Outstanding');
+  const isCreditOutstanding = invoice?.status === 'Posted' && invoice?.paymentMethod === 'Credit' && invoice?.settlementStatus === 'Outstanding';
+
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
@@ -67,6 +92,21 @@ export default function SalesInvoiceDetailsPage() {
       await action();
       await refresh();
       notify(intl.formatMessage({ id: 'sales-action-success' }));
+    } catch (actionError) {
+      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
+    }
+  };
+
+  const handleCollect = async (request: { paymentMethod: 'Cash' | 'Wallet' | 'InstaPay'; treasuryAccountId: string }) => {
+    if (!invoice) {
+      return;
+    }
+
+    try {
+      await collectInvoice(invoice.id, { rowVersion: invoice.rowVersion, ...request });
+      notify(intl.formatMessage({ id: 'sales-invoice-collected', defaultMessage: 'Sales invoice collected successfully.' }));
+      await mutate();
+      setCollectDialogOpen(false);
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
     }
@@ -111,6 +151,14 @@ export default function SalesInvoiceDetailsPage() {
                 <Button variant="contained" color="primary" onClick={() => runAction(() => postInvoice(invoice.id, invoice.rowVersion))} sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
                    <FormattedMessage id="post" />
                 </Button>
+             )}
+           </PermissionGuard>
+
+           <PermissionGuard permission={SALES_PERMISSIONS.invoicesPost}>
+             {isCreditOutstanding && (
+               <Button variant="contained" color="success" onClick={() => setCollectDialogOpen(true)} sx={{ borderRadius: 2 }} startIcon={<IconSend size={18} />}>
+                 <FormattedMessage id="collect-invoice" defaultMessage="Collect Invoice" />
+               </Button>
              )}
            </PermissionGuard>
 
@@ -161,6 +209,17 @@ export default function SalesInvoiceDetailsPage() {
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="customer-reference-number" /></Typography>
                            <Typography variant="body1" fontWeight={500}>{invoice.customerReferenceNumber ?? '-'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                           <InfoRow label={<FormattedMessage id="payment-method" defaultMessage="Payment Method" />}>{paymentMethodLabel}</InfoRow>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                           <InfoRow label={<FormattedMessage id="settlement-status" defaultMessage="Settlement Status" />}>{settlementStatusLabel}</InfoRow>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                           <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}>
+                             {invoice.treasuryAccountCode ? `${invoice.treasuryAccountCode}${invoice.treasuryAccountNameArabic ? ` - ${invoice.treasuryAccountNameArabic}` : ''}` : '-'}
+                           </InfoRow>
                         </Grid>
                      </Grid>
                   </Box>
@@ -385,6 +444,15 @@ export default function SalesInvoiceDetailsPage() {
             </Stack>
          </Grid>
       </Grid>
+      <InvoiceSettlementDialog
+        open={collectDialogOpen}
+        title={<FormattedMessage id="collect-invoice" defaultMessage="Collect Invoice" />}
+        confirmLabel={<FormattedMessage id="collect-invoice" defaultMessage="Collect Invoice" />}
+        invoiceCurrencyCode={invoice.currencyCode}
+        treasuryAccounts={treasuryAccounts}
+        onClose={() => setCollectDialogOpen(false)}
+        onConfirm={handleCollect}
+      />
     </Box>
   );
 }

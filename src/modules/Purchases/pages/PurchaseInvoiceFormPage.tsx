@@ -19,6 +19,7 @@ import Box from '@mui/material/Box';
 import Autocomplete from '@mui/material/Autocomplete';
 import Divider from '@mui/material/Divider';
 import Alert from '@mui/material/Alert';
+import MenuItem from '@mui/material/MenuItem';
 
 import { IconPlus, IconTrash, IconInfoCircle, IconBox, IconCalculator, IconNotes, IconDeviceFloppy, IconSend } from '@tabler/icons-react';
 
@@ -32,13 +33,22 @@ import { createInvoice, updateInvoice, postInvoice } from '../api/purchasesApi';
 import { usePurchaseInvoice } from '../hooks/usePurchases';
 import { useParties } from 'modules/Parties/hooks/useParties';
 import { useInventoryItems } from 'modules/Inventory/hooks/useInventory';
+import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
 import type { PurchaseInvoiceInput, PurchaseLineInput } from '../types/purchases.types';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
+import CodeNameLabel from 'shared/components/CodeNameLabel';
+import {
+  getCompatibleTreasuryAccount,
+  getCompatibleTreasuryAccounts,
+  getInvoicePaymentMethodLabel,
+  isDirectInvoicePaymentMethod
+} from 'shared/utils/invoiceSettlement';
 
 type EditableLine = PurchaseLineInput & { itemCode?: string; unitCode?: string; itemName?: string };
 
 const today = new Date().toISOString().slice(0, 10);
+const invoiceCurrencyCode = 'EGP';
 
 function emptyLine(): EditableLine {
   return { itemId: '', unitOfMeasureId: '', quantity: 1, unitCost: 0, discountAmount: 0, taxAmount: 0, notes: '', itemCode: '', unitCode: '', itemName: '' };
@@ -53,6 +63,7 @@ export default function PurchaseInvoiceFormPage() {
   const { invoice, isLoading } = usePurchaseInvoice(id);
   const { items: suppliers } = useParties({ page: 1, pageSize: 100, isSupplier: true, sortBy: 'nameArabic' });
   const { items: inventoryItems } = useInventoryItems({ page: 1, pageSize: 100, search: '' });
+  const { items: treasuryAccounts, isLoading: isTreasuryAccountsLoading } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
   const [form, setForm] = useState<PurchaseInvoiceInput>({
     supplierId: '',
     invoiceDate: today,
@@ -61,22 +72,26 @@ export default function PurchaseInvoiceFormPage() {
     headerDiscount: 0,
     otherCosts: 0,
     notes: '',
-    lines: []
+    lines: [],
+    paymentMethod: 'Credit',
+    treasuryAccountId: null
   });
   const [rows, setRows] = useState<EditableLine[]>([emptyLine()]);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (invoice) {
-        setForm({
-          supplierId: invoice.supplierId,
-          invoiceDate: invoice.invoiceDate,
-          dueDate: invoice.dueDate ?? '',
-          supplierInvoiceNumber: invoice.supplierInvoiceNumber ?? '',
-          headerDiscount: invoice.headerDiscount,
-          otherCosts: invoice.otherCosts,
+      setForm({
+        supplierId: invoice.supplierId,
+        invoiceDate: invoice.invoiceDate,
+        dueDate: invoice.dueDate ?? '',
+        supplierInvoiceNumber: invoice.supplierInvoiceNumber ?? '',
+        headerDiscount: invoice.headerDiscount,
+        otherCosts: invoice.otherCosts,
         notes: invoice.notes ?? '',
-        lines: []
+        lines: [],
+        paymentMethod: invoice.paymentMethod ?? 'Credit',
+        treasuryAccountId: invoice.treasuryAccountId ?? null
       });
       setRows(invoice.lines.map((line) => ({
         itemId: line.itemId,
@@ -95,6 +110,31 @@ export default function PurchaseInvoiceFormPage() {
 
   const itemLookup = useMemo(() => new Map(inventoryItems.map((item) => [item.id, item])), [inventoryItems]);
   const supplierLookup = useMemo(() => new Map(suppliers.map((s) => [s.id, s])), [suppliers]);
+  const compatibleTreasuryAccounts = useMemo(
+    () => getCompatibleTreasuryAccounts(treasuryAccounts, form.paymentMethod, invoice?.currencyCode ?? invoiceCurrencyCode),
+    [form.paymentMethod, invoice?.currencyCode, treasuryAccounts]
+  );
+  const selectedTreasuryAccount = useMemo(
+    () => compatibleTreasuryAccounts.find((account) => account.id === form.treasuryAccountId) ?? null,
+    [compatibleTreasuryAccounts, form.treasuryAccountId]
+  );
+
+  useEffect(() => {
+    if (isDirectInvoicePaymentMethod(form.paymentMethod)) {
+      const autoSelected = getCompatibleTreasuryAccount(treasuryAccounts, form.paymentMethod, invoice?.currencyCode ?? invoiceCurrencyCode);
+      if (autoSelected && form.treasuryAccountId !== autoSelected.id) {
+        setForm((current) => ({ ...current, treasuryAccountId: autoSelected.id }));
+      }
+      if (!autoSelected && compatibleTreasuryAccounts.length === 0 && form.treasuryAccountId) {
+        setForm((current) => ({ ...current, treasuryAccountId: null }));
+      }
+      if (compatibleTreasuryAccounts.length > 1 && form.treasuryAccountId && !compatibleTreasuryAccounts.some((account) => account.id === form.treasuryAccountId)) {
+        setForm((current) => ({ ...current, treasuryAccountId: null }));
+      }
+    } else if (form.treasuryAccountId) {
+      setForm((current) => ({ ...current, treasuryAccountId: null }));
+    }
+  }, [compatibleTreasuryAccounts, form.paymentMethod, form.treasuryAccountId, invoice?.currencyCode, treasuryAccounts]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -106,6 +146,14 @@ export default function PurchaseInvoiceFormPage() {
 
   const addRow = () => setRows((current) => [...current, emptyLine()]);
   const removeRow = (index: number) => setRows((current) => current.filter((_, rowIndex) => rowIndex !== index));
+  const settlementRequiresTreasuryAccount = isDirectInvoicePaymentMethod(form.paymentMethod);
+  const settlementError =
+    settlementRequiresTreasuryAccount && !selectedTreasuryAccount
+      ? intl.formatMessage({
+          id: 'invoice-settlement.no-compatible-account',
+          defaultMessage: 'No active treasury account is compatible with the selected payment method and invoice currency.'
+        })
+      : '';
 
   const onItemChange = (index: number, itemId: string) => {
     const item = itemLookup.get(itemId);
@@ -145,6 +193,7 @@ export default function PurchaseInvoiceFormPage() {
       supplierInvoiceNumber: form.supplierInvoiceNumber || null,
       dueDate: form.dueDate || null,
       notes: form.notes || null,
+      treasuryAccountId: form.paymentMethod === 'Credit' ? null : form.treasuryAccountId,
       lines
     };
 
@@ -249,6 +298,93 @@ export default function PurchaseInvoiceFormPage() {
                </Grid>
             </Grid>
          </Box>
+      </MainCard>
+
+      <MainCard sx={cardSx} content={false}>
+        <Box sx={{ p: 3 }}>
+          <Box sx={headerSx}>
+            <IconSend color="var(--mui-palette-primary-main)" size={24} />
+            <Typography variant="h4" fontWeight={600}>
+              <FormattedMessage id="payment-method" defaultMessage="Payment Method" />
+            </Typography>
+          </Box>
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <FormattedMessage
+              id="purchases-direct-settlement-help"
+              defaultMessage="Cash, Wallet, and InstaPay invoices are settled automatically when posted. Credit invoices remain payable until settled later."
+            />
+          </Alert>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                required
+                label={<FormattedMessage id="payment-method" defaultMessage="Payment Method" />}
+                value={form.paymentMethod}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    paymentMethod: event.target.value as PurchaseInvoiceInput['paymentMethod'],
+                    treasuryAccountId: event.target.value === 'Credit' ? null : current.treasuryAccountId
+                  }))
+                }
+              >
+                <MenuItem value="Credit">{getInvoicePaymentMethodLabel(intl.locale, 'Credit')}</MenuItem>
+                <MenuItem value="Cash">{getInvoicePaymentMethodLabel(intl.locale, 'Cash')}</MenuItem>
+                <MenuItem value="Wallet">{getInvoicePaymentMethodLabel(intl.locale, 'Wallet')}</MenuItem>
+                <MenuItem value="InstaPay">{getInvoicePaymentMethodLabel(intl.locale, 'InstaPay')}</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={8}>
+              {settlementRequiresTreasuryAccount ? (
+                compatibleTreasuryAccounts.length === 0 ? (
+                  <Alert severity="warning" variant="outlined">
+                    {settlementError}
+                  </Alert>
+                ) : compatibleTreasuryAccounts.length === 1 ? (
+                  <TextField
+                    fullWidth
+                    label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
+                    value={`${compatibleTreasuryAccounts[0].code} - ${compatibleTreasuryAccounts[0].nameArabic}`}
+                    InputProps={{ readOnly: true }}
+                    helperText={<FormattedMessage id="invoice-settlement.auto-selected-account" defaultMessage="A single compatible treasury account was selected automatically." />}
+                  />
+                ) : (
+                  <Autocomplete
+                    options={compatibleTreasuryAccounts}
+                    value={selectedTreasuryAccount}
+                    loading={isTreasuryAccountsLoading}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <CodeNameLabel code={option.code} nameArabic={option.nameArabic} />
+                      </li>
+                    )}
+                    onChange={(_, newValue) => setForm((current) => ({ ...current, treasuryAccountId: newValue?.id ?? null }))}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        required
+                        label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
+                        helperText={<FormattedMessage id="invoice-settlement.select-compatible-account" defaultMessage="Select an active treasury account that matches the payment method and invoice currency." />}
+                      />
+                    )}
+                  />
+                )
+              ) : (
+                <TextField
+                  fullWidth
+                  label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
+                  value={intl.formatMessage({ id: 'invoice-settlement.credit-no-treasury-account', defaultMessage: 'Not required for Credit invoices.' })}
+                  InputProps={{ readOnly: true }}
+                  helperText={<FormattedMessage id="invoice-settlement.credit-outstanding" defaultMessage="Credit invoices remain payable until settled later." />}
+                />
+              )}
+            </Grid>
+          </Grid>
+        </Box>
       </MainCard>
 
       {/* Item Details Card */}
@@ -411,7 +547,14 @@ export default function PurchaseInvoiceFormPage() {
          </Button>
          {(!isEdit || (isEdit && invoice?.status === 'Draft')) && (
             <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesPost}>
-               <Button variant="contained" color="primary" onClick={() => submit('post')} disabled={isSaving} sx={{ borderRadius: 2, px: 4, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
+               <Button
+                 variant="contained"
+                 color="primary"
+                 onClick={() => submit('post')}
+                 disabled={isSaving || (settlementRequiresTreasuryAccount && !selectedTreasuryAccount)}
+                 sx={{ borderRadius: 2, px: 4, boxShadow: 2 }}
+                 startIcon={<IconSend size={18} />}
+               >
                   <FormattedMessage id="post-invoice" defaultMessage="اعتماد الفاتورة" />
                </Button>
             </PermissionGuard>
