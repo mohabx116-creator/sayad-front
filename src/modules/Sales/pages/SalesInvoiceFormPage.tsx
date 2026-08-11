@@ -44,7 +44,8 @@ import {
   getCompatibleTreasuryAccount,
   getCompatibleTreasuryAccounts,
   getInvoicePaymentMethodLabel,
-  isDirectInvoicePaymentMethod
+  isDirectInvoicePaymentMethod,
+  normalizeInvoicePaymentMethod
 } from 'shared/utils/invoiceSettlement';
 
 type EditableLine = SalesLineInput & {
@@ -116,7 +117,7 @@ export default function SalesInvoiceFormPage() {
           otherCharges: invoice.otherCharges,
           notes: invoice.notes ?? '',
           lines: [],
-          paymentMethod: invoice.paymentMethod ?? 'Credit',
+          paymentMethod: normalizeInvoicePaymentMethod(invoice.paymentMethod) ?? 'Credit',
           treasuryAccountId: invoice.treasuryAccountId ?? null
         });
 

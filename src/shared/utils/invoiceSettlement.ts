@@ -8,16 +8,72 @@ export type InvoiceSettlementStatus = 'Outstanding' | 'Settled' | 'Reversed';
 export const INVOICE_PAYMENT_METHODS: InvoicePaymentMethod[] = ['Credit', 'Cash', 'Wallet', 'InstaPay'];
 export const DIRECT_INVOICE_PAYMENT_METHODS: Exclude<InvoicePaymentMethod, 'Credit'>[] = ['Cash', 'Wallet', 'InstaPay'];
 
-export function isDirectInvoicePaymentMethod(value?: string | null): value is Exclude<InvoicePaymentMethod, 'Credit'> {
-  return value === 'Cash' || value === 'Wallet' || value === 'InstaPay';
+export function normalizeInvoicePaymentMethod(value?: string | number | null): InvoicePaymentMethod | null {
+  switch (String(value ?? '').trim()) {
+    case '1':
+    case 'Credit':
+    case 'credit':
+      return 'Credit';
+    case '2':
+    case 'Cash':
+    case 'cash':
+      return 'Cash';
+    case '3':
+    case 'Wallet':
+    case 'wallet':
+      return 'Wallet';
+    case '4':
+    case 'InstaPay':
+    case 'instapay':
+      return 'InstaPay';
+    default:
+      return null;
+  }
 }
 
-export function isInvoicePaymentMethod(value?: string | null): value is InvoicePaymentMethod {
-  return value === 'Credit' || value === 'Cash' || value === 'Wallet' || value === 'InstaPay';
+export function normalizeInvoiceSettlementStatus(value?: string | number | null): InvoiceSettlementStatus | null {
+  switch (String(value ?? '').trim()) {
+    case '1':
+    case 'Outstanding':
+    case 'outstanding':
+      return 'Outstanding';
+    case '2':
+    case 'Settled':
+    case 'settled':
+      return 'Settled';
+    case '3':
+    case 'Reversed':
+    case 'reversed':
+      return 'Reversed';
+    default:
+      return null;
+  }
 }
 
-export function getInvoicePaymentMethodLabel(locale: string, value?: string | null) {
+export function isDirectInvoicePaymentMethod(value?: string | number | null): value is Exclude<InvoicePaymentMethod, 'Credit'> {
+  const normalized = normalizeInvoicePaymentMethod(value);
+  return normalized === 'Cash' || normalized === 'Wallet' || normalized === 'InstaPay';
+}
+
+export function isInvoicePaymentMethod(value?: string | number | null): value is InvoicePaymentMethod {
+  return normalizeInvoicePaymentMethod(value) !== null;
+}
+
+export function toInvoicePaymentMethodCode(value: InvoicePaymentMethod): 1 | 2 | 3 | 4 {
   switch (value) {
+    case 'Credit':
+      return 1;
+    case 'Cash':
+      return 2;
+    case 'Wallet':
+      return 3;
+    case 'InstaPay':
+      return 4;
+  }
+}
+
+export function getInvoicePaymentMethodLabel(locale: string, value?: string | number | null) {
+  switch (normalizeInvoicePaymentMethod(value)) {
     case 'Credit':
       return resolveLocalizedText(locale, 'آجل', 'Credit');
     case 'Cash':
@@ -27,12 +83,12 @@ export function getInvoicePaymentMethodLabel(locale: string, value?: string | nu
     case 'InstaPay':
       return resolveLocalizedText(locale, 'إنستا باي', 'InstaPay');
     default:
-      return value ?? '—';
+      return value == null ? '—' : String(value);
   }
 }
 
-export function getInvoiceSettlementStatusLabel(locale: string, value?: string | null) {
-  switch (value) {
+export function getInvoiceSettlementStatusLabel(locale: string, value?: string | number | null) {
+  switch (normalizeInvoiceSettlementStatus(value)) {
     case 'Outstanding':
       return resolveLocalizedText(locale, 'غير مسددة', 'Outstanding');
     case 'Settled':
@@ -40,15 +96,16 @@ export function getInvoiceSettlementStatusLabel(locale: string, value?: string |
     case 'Reversed':
       return resolveLocalizedText(locale, 'معكوسة', 'Reversed');
     default:
-      return value ?? '—';
+      return value == null ? '—' : String(value);
   }
 }
 
 export function getCompatibleTreasuryAccounts(
   accounts: TreasuryAccountListItem[],
-  paymentMethod: string | null | undefined,
+  paymentMethod: string | number | null | undefined,
   currencyCode: string | null | undefined
 ) {
+  const normalizedPaymentMethod = normalizeInvoicePaymentMethod(paymentMethod);
   const normalizedCurrency = (currencyCode ?? '').trim().toUpperCase();
   const filtered = accounts.filter((account) => {
     if (!account.isActive) {
@@ -59,7 +116,7 @@ export function getCompatibleTreasuryAccounts(
       return false;
     }
 
-    switch (paymentMethod) {
+    switch (normalizedPaymentMethod) {
       case 'Cash':
         return account.accountType === TREASURY_ACCOUNT_TYPES.CASH || account.accountType === TREASURY_ACCOUNT_TYPES.PETTY_CASH;
       case 'Wallet':
@@ -76,7 +133,7 @@ export function getCompatibleTreasuryAccounts(
 
 export function getCompatibleTreasuryAccount(
   accounts: TreasuryAccountListItem[],
-  paymentMethod: string | null | undefined,
+  paymentMethod: string | number | null | undefined,
   currencyCode: string | null | undefined
 ) {
   const compatibleAccounts = getCompatibleTreasuryAccounts(accounts, paymentMethod, currencyCode);

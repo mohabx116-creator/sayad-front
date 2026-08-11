@@ -35,7 +35,9 @@ import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
 import InvoiceSettlementDialog from 'shared/components/InvoiceSettlementDialog';
 import {
   getInvoicePaymentMethodLabel,
-  getInvoiceSettlementStatusLabel
+  getInvoiceSettlementStatusLabel,
+  normalizeInvoicePaymentMethod,
+  normalizeInvoiceSettlementStatus
 } from 'shared/utils/invoiceSettlement';
 
 function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
@@ -75,9 +77,11 @@ export default function SalesInvoiceDetailsPage() {
   const recognizedInventoryCost = invoice?.recognizedInventoryCost ?? 0;
   const noInventoryMovement = invoice?.inventoryCostAccountingStatus === 'لا توجد حركة مخزون لهذا المستند';
 
-  const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, invoice?.paymentMethod ?? 'Credit');
-  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, invoice?.settlementStatus ?? 'Outstanding');
-  const isCreditOutstanding = invoice?.status === 'Posted' && invoice?.paymentMethod === 'Credit' && invoice?.settlementStatus === 'Outstanding';
+  const paymentMethod = normalizeInvoicePaymentMethod(invoice?.paymentMethod) ?? 'Credit';
+  const settlementStatus = normalizeInvoiceSettlementStatus(invoice?.settlementStatus) ?? 'Outstanding';
+  const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, paymentMethod);
+  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, settlementStatus);
+  const isCreditOutstanding = invoice?.status === 'Posted' && paymentMethod === 'Credit' && settlementStatus === 'Outstanding';
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));

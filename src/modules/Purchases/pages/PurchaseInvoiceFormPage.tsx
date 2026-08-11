@@ -42,7 +42,8 @@ import {
   getCompatibleTreasuryAccount,
   getCompatibleTreasuryAccounts,
   getInvoicePaymentMethodLabel,
-  isDirectInvoicePaymentMethod
+  isDirectInvoicePaymentMethod,
+  normalizeInvoicePaymentMethod
 } from 'shared/utils/invoiceSettlement';
 
 type EditableLine = PurchaseLineInput & { itemCode?: string; unitCode?: string; itemName?: string };
@@ -90,7 +91,7 @@ export default function PurchaseInvoiceFormPage() {
         otherCosts: invoice.otherCosts,
         notes: invoice.notes ?? '',
         lines: [],
-        paymentMethod: invoice.paymentMethod ?? 'Credit',
+        paymentMethod: normalizeInvoicePaymentMethod(invoice.paymentMethod) ?? 'Credit',
         treasuryAccountId: invoice.treasuryAccountId ?? null
       });
       setRows(invoice.lines.map((line) => ({

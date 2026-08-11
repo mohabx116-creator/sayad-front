@@ -13,7 +13,7 @@ import type {
   SalesReturnListItem,
   SalesReturnableLine
 } from '../types/sales.types';
-import type { InvoicePaymentMethod } from 'shared/utils/invoiceSettlement';
+import { toInvoicePaymentMethodCode, type InvoicePaymentMethod } from 'shared/utils/invoiceSettlement';
 
 function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
   return request.then((response) => {
@@ -42,11 +42,21 @@ export function getInvoice(id: string) {
 }
 
 export function createInvoice(request: SalesInvoiceInput) {
-  return unwrap(axiosServices.post<ApiResponse<SalesInvoice>>('/api/sales/invoices', request));
+  return unwrap(
+    axiosServices.post<ApiResponse<SalesInvoice>>('/api/sales/invoices', {
+      ...request,
+      paymentMethod: toInvoicePaymentMethodCode(request.paymentMethod)
+    })
+  );
 }
 
 export function updateInvoice(id: string, request: SalesInvoiceInput & { rowVersion: string }) {
-  return unwrap(axiosServices.put<ApiResponse<SalesInvoice>>(`/api/sales/invoices/${id}`, request));
+  return unwrap(
+    axiosServices.put<ApiResponse<SalesInvoice>>(`/api/sales/invoices/${id}`, {
+      ...request,
+      paymentMethod: toInvoicePaymentMethodCode(request.paymentMethod)
+    })
+  );
 }
 
 export function postInvoice(id: string, rowVersion: string) {
@@ -61,7 +71,12 @@ export function collectInvoice(
     treasuryAccountId: string;
   }
 ) {
-  return unwrap(axiosServices.post<ApiResponse<SalesInvoice>>(`/api/sales/invoices/${id}/collect`, request));
+  return unwrap(
+    axiosServices.post<ApiResponse<SalesInvoice>>(`/api/sales/invoices/${id}/collect`, {
+      ...request,
+      paymentMethod: toInvoicePaymentMethodCode(request.paymentMethod)
+    })
+  );
 }
 
 export function cancelInvoice(id: string, request: { reason: string; rowVersion: string }) {

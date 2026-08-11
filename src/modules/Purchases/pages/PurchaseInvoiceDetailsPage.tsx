@@ -35,7 +35,9 @@ import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
 import InvoiceSettlementDialog from 'shared/components/InvoiceSettlementDialog';
 import {
   getInvoicePaymentMethodLabel,
-  getInvoiceSettlementStatusLabel
+  getInvoiceSettlementStatusLabel,
+  normalizeInvoicePaymentMethod,
+  normalizeInvoiceSettlementStatus
 } from 'shared/utils/invoiceSettlement';
 
 function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
@@ -105,9 +107,11 @@ export default function PurchaseInvoiceDetailsPage() {
   if (isLoading) return <Loader />;
   if (error || !invoice) return <Typography color="error"><FormattedMessage id="purchase-load-error" /></Typography>;
 
-  const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, invoice.paymentMethod ?? 'Credit');
-  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, invoice.settlementStatus ?? 'Outstanding');
-  const isCreditOutstanding = invoice.status === 'Posted' && invoice.paymentMethod === 'Credit' && invoice.settlementStatus === 'Outstanding';
+  const paymentMethod = normalizeInvoicePaymentMethod(invoice.paymentMethod) ?? 'Credit';
+  const settlementStatus = normalizeInvoiceSettlementStatus(invoice.settlementStatus) ?? 'Outstanding';
+  const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, paymentMethod);
+  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, settlementStatus);
+  const isCreditOutstanding = invoice.status === 'Posted' && paymentMethod === 'Credit' && settlementStatus === 'Outstanding';
 
   const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3 };
   const headerSx = { display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' };
