@@ -14,6 +14,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import { usePermissions } from 'modules/Administration/hooks/useAdministration';
+import { getLocalizedLabel, getLocalizedPermissionResourceLabel } from 'modules/Administration/utils/access-labels';
 
 export default function SystemPermissionsPage() {
   const intl = useIntl();
@@ -38,7 +39,7 @@ export default function SystemPermissionsPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell><FormattedMessage id="permission-code" /></TableCell>
+                  <TableCell><FormattedMessage id="permission-name" /></TableCell>
                   <TableCell><FormattedMessage id="module" /></TableCell>
                   <TableCell><FormattedMessage id="name-arabic" /></TableCell>
                   <TableCell><FormattedMessage id="name-english" /></TableCell>
@@ -48,8 +49,8 @@ export default function SystemPermissionsPage() {
               <TableBody>
                 {permissions.map((permission) => (
                   <TableRow key={permission.id}>
-                    <TableCell>{permission.code}</TableCell>
-                    <TableCell>{permission.module}</TableCell>
+                    <TableCell>{getLocalizedPermissionResourceLabel(permission.code, intl.locale)}</TableCell>
+                    <TableCell>{getLocalizedLabel(permission.module, intl.locale)}</TableCell>
                     <TableCell>{permission.nameArabic}</TableCell>
                     <TableCell>{permission.nameEnglish}</TableCell>
                     <TableCell>

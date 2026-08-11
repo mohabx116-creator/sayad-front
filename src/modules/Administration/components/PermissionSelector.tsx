@@ -18,10 +18,9 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { PermissionDto } from '../types/administration.types';
 import {
-  getBilingualLabel,
-  getBilingualPermissionLabel,
+  getLocalizedLabel,
+  getLocalizedPermissionResourceLabel,
   getPermissionPathInfo,
-  getPermissionResourceLabel,
   getPermissionRoutePath,
   getPermissionScopeHelper,
   getPermissionScopeLabel
@@ -86,7 +85,7 @@ export default function PermissionSelector({ permissions, value, onChange, disab
       .reduce<Record<string, { moduleLabel: string; modulePermissions: PermissionDto[]; pageMap: Record<string, PermissionPageGroup> }>>((acc, permission) => {
         const moduleKey = permission.module || 'General';
         const pathInfo = getPermissionPathInfo(permission.code);
-        const moduleLabel = getBilingualLabel(moduleKey, intl.locale);
+        const moduleLabel = getLocalizedLabel(moduleKey, intl.locale);
 
         if (!acc[moduleKey]) {
           acc[moduleKey] = {
@@ -106,7 +105,7 @@ export default function PermissionSelector({ permissions, value, onChange, disab
         if (!acc[moduleKey].pageMap[pageKey]) {
           acc[moduleKey].pageMap[pageKey] = {
             pageKey,
-            pageLabel: getPermissionResourceLabel(permission.code, intl.locale),
+            pageLabel: getLocalizedPermissionResourceLabel(permission.code, intl.locale),
             routePath: getPermissionRoutePath(permission.code),
             pagePermissions: [],
             actionPermissions: []
@@ -129,8 +128,8 @@ export default function PermissionSelector({ permissions, value, onChange, disab
       })
       .map(([module, group]) => {
         const modulePermissions = group.modulePermissions.slice().sort((a, b) => {
-          const labelA = getBilingualPermissionLabel(a.nameArabic, a.nameEnglish, intl.locale);
-          const labelB = getBilingualPermissionLabel(b.nameArabic, b.nameEnglish, intl.locale);
+          const labelA = isArabic ? a.nameArabic : a.nameEnglish;
+          const labelB = isArabic ? b.nameArabic : b.nameEnglish;
           return labelA.localeCompare(labelB, intl.locale);
         });
 
@@ -138,13 +137,13 @@ export default function PermissionSelector({ permissions, value, onChange, disab
           .map((pageGroup) => ({
             ...pageGroup,
             pagePermissions: pageGroup.pagePermissions.slice().sort((a, b) => {
-              const labelA = getBilingualPermissionLabel(a.nameArabic, a.nameEnglish, intl.locale);
-              const labelB = getBilingualPermissionLabel(b.nameArabic, b.nameEnglish, intl.locale);
+              const labelA = isArabic ? a.nameArabic : a.nameEnglish;
+              const labelB = isArabic ? b.nameArabic : b.nameEnglish;
               return labelA.localeCompare(labelB, intl.locale);
             }),
             actionPermissions: pageGroup.actionPermissions.slice().sort((a, b) => {
-              const labelA = getBilingualPermissionLabel(a.nameArabic, a.nameEnglish, intl.locale);
-              const labelB = getBilingualPermissionLabel(b.nameArabic, b.nameEnglish, intl.locale);
+              const labelA = isArabic ? a.nameArabic : a.nameEnglish;
+              const labelB = isArabic ? b.nameArabic : b.nameEnglish;
               return labelA.localeCompare(labelB, intl.locale);
             })
           }))
@@ -181,7 +180,7 @@ export default function PermissionSelector({ permissions, value, onChange, disab
     const pathInfo = getPermissionPathInfo(permission.code);
     const scopeLabel = getPermissionScopeLabel(pathInfo.scope, intl.locale);
     const scopeHelp = getPermissionScopeHelper(pathInfo.scope, intl.locale);
-    const permissionLabel = getBilingualPermissionLabel(permission.nameArabic, permission.nameEnglish, intl.locale);
+    const permissionLabel = isArabic ? permission.nameArabic : permission.nameEnglish;
     const description = isArabic ? permission.descriptionArabic : permission.descriptionEnglish;
     const routePath = getPermissionRoutePath(permission.code);
     const isSelected = value.includes(permission.id);
@@ -211,7 +210,7 @@ export default function PermissionSelector({ permissions, value, onChange, disab
                   {permissionLabel}
                 </Typography>
                 <Chip size="small" color={accent} label={scopeLabel} sx={{ height: 20 }} />
-                <Chip size="small" label={permission.code} variant="outlined" sx={{ height: 20 }} />
+                <Chip size="small" label={getLocalizedPermissionResourceLabel(permission.code, intl.locale)} variant="outlined" sx={{ height: 20 }} />
                 <Chip size="small" label={routePath} variant="outlined" sx={{ height: 20 }} />
               </Stack>
               <Typography variant="caption" color="text.secondary">

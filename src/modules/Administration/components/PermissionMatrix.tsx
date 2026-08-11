@@ -10,6 +10,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { PermissionDto } from '../types/administration.types';
+import { getLocalizedLabel } from '../utils/access-labels';
 
 type PermissionMatrixProps = {
   permissions: PermissionDto[];
@@ -94,7 +95,7 @@ export default function PermissionMatrix({ permissions, value, onChange }: Permi
         <TableBody>
           {modules.map((mod) => (
             <TableRow key={mod} hover>
-              <TableCell sx={{ fontWeight: 600 }}>{mod}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{getLocalizedLabel(mod, intl.locale)}</TableCell>
               {ACTION_COLUMNS.map(col => {
                 const perms = matrixData[mod][col.key];
                 if (perms.length === 0) {

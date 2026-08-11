@@ -11,6 +11,13 @@ export type PermissionPathInfo = {
   routePath: string;
 };
 
+export function getLocalizedLabel(key: string, locale: string) {
+  const normalizedKey = key.toLowerCase().replace(/\s+/g, '-');
+  const messages = locale.startsWith('ar') ? (arMessages as Record<string, string>) : (enMessages as Record<string, string>);
+
+  return messages[normalizedKey] ?? key;
+}
+
 export function getBilingualLabel(key: string, locale: string) {
   const normalizedKey = key.toLowerCase().replace(/\s+/g, '-');
   const englishLabel = (enMessages as Record<string, string>)[normalizedKey] ?? key;
@@ -80,6 +87,23 @@ export function getPermissionScopeLabel(scope: PermissionScope, locale: string) 
 
 export function getPermissionScopeHelper(scope: PermissionScope, locale: string) {
   return getBilingualLabel(`permission-scope-${scope}-help`, locale);
+}
+
+export function getLocalizedPermissionResourceLabel(code: string, locale: string) {
+  const info = getPermissionPathInfo(code);
+
+  if (!info.resourceKey) {
+    return getLocalizedLabel(info.moduleKey, locale);
+  }
+
+  const modulePrefixedKey = `${info.moduleKey}-${info.resourceKey}`;
+  const modulePrefixedLabel = getLocalizedLabel(modulePrefixedKey, locale);
+
+  if (modulePrefixedLabel !== modulePrefixedKey) {
+    return modulePrefixedLabel;
+  }
+
+  return getLocalizedLabel(info.resourceKey, locale);
 }
 
 export function getPermissionResourceLabel(code: string, locale: string) {

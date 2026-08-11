@@ -1,4 +1,4 @@
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
@@ -9,8 +9,14 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import { useSystemMaintenance } from '../hooks/useSystem';
+import {
+  localizeSystemMaintenanceCheckDescription,
+  localizeSystemMaintenanceCheckTitle,
+  localizeSystemMaintenanceIssue
+} from '../utils/systemMaintenanceLocalization';
 
 export default function SystemMaintenancePage() {
+  const intl = useIntl();
   const { maintenance, isLoading, error } = useSystemMaintenance();
 
   if (isLoading) return <Loader />;
@@ -51,11 +57,11 @@ export default function SystemMaintenancePage() {
                     <MainCard key={check.code} contentSX={{ p: 2 }} sx={{ border: 1, borderColor: 'divider' }}>
                       <Stack spacing={1}>
                         <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                          <Typography variant="h5">{check.title}</Typography>
+                          <Typography variant="h5">{localizeSystemMaintenanceCheckTitle(check.code, intl)}</Typography>
                           <Chip color={check.isHealthy ? 'success' : 'error'} label={check.isHealthy ? <FormattedMessage id="healthy" /> : <FormattedMessage id="issues-found" />} />
                         </Stack>
                         <Typography variant="body2" color="text.secondary">
-                          {check.description}
+                          {localizeSystemMaintenanceCheckDescription(check.code, intl)}
                         </Typography>
                         <Typography variant="body2">
                           <FormattedMessage id="issue-count" />: {check.issueCount}
@@ -64,7 +70,7 @@ export default function SystemMaintenancePage() {
                           <Stack spacing={0.5}>
                             {check.issues.map((issue) => (
                               <Typography key={issue} variant="body2" color="error">
-                                {issue}
+                                {localizeSystemMaintenanceIssue(check.code, issue, intl)}
                               </Typography>
                             ))}
                           </Stack>
