@@ -48,16 +48,18 @@ export const INVENTORY_VIEW_PERMISSIONS = [
 export const ITEM_TYPES = ['RawMaterial', 'FinishedGood', 'PackagingMaterial', 'OperationalSupply', 'Other'] as const;
 
 export function getItemTypeLabel(intl: IntlShape, itemType: string) {
+  const isArabic = intl.locale.toLowerCase().startsWith('ar');
+
   switch (itemType) {
     case 'RawMaterial':
-      return intl.formatMessage({ id: 'item-type.raw-material', defaultMessage: 'Raw Material' });
+      return isArabic ? 'مواد خام' : 'Raw Material';
     case 'FinishedGood':
-      return intl.formatMessage({ id: 'item-type.finished-good', defaultMessage: 'Finished Good' });
+      return isArabic ? 'منتج نهائي' : 'Finished Good';
     case 'PackagingMaterial':
-      return intl.formatMessage({ id: 'item-type.packaging-material', defaultMessage: 'Packaging Material' });
+      return isArabic ? 'مواد تعبئة وتغليف' : 'Packaging Material';
     case 'OperationalSupply':
-      return intl.formatMessage({ id: 'item-type.operational-supply', defaultMessage: 'Operational Supply' });
+      return isArabic ? 'مستلزمات تشغيل' : 'Operational Supply';
     default:
-      return intl.formatMessage({ id: 'item-type.other', defaultMessage: 'Other' });
+      return isArabic ? 'أخرى' : 'Other';
   }
 }
