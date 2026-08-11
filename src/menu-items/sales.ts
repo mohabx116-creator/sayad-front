@@ -42,7 +42,7 @@ const sales: NavItemType = {
       children: [
         {
           id: 'sales-invoices-report',
-          title: 'sales-invoices-report',
+          title: 'sales.reports.invoices.title',
           type: 'item',
           url: '/sales/reports/invoices',
           breadcrumbs: true,
