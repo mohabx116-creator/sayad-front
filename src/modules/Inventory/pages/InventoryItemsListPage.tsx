@@ -41,7 +41,7 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 
 import { activateItem, deactivateItem } from '../api/inventoryApi';
 import { useInventoryCategories, useInventoryItems, useInventoryStockReport } from '../hooks/useInventory';
-import { INVENTORY_PERMISSIONS, ITEM_TYPES } from '../utils/inventory.constants';
+import { INVENTORY_PERMISSIONS, ITEM_TYPES, getItemTypeLabel } from '../utils/inventory.constants';
 
 type ItemStatusFilter = 'All' | 'Normal' | 'BelowMinimum' | 'ReorderRequired' | 'OutOfStock' | 'Negative';
 type ActiveFilter = 'All' | 'Active' | 'Inactive';
@@ -112,21 +112,6 @@ function formatQuantity(intl: ReturnType<typeof useIntl>, value?: number | null)
 
 function formatMoney(intl: ReturnType<typeof useIntl>, value?: number | null) {
   return value == null ? '-' : intl.formatNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-}
-
-function getItemTypeLabel(intl: ReturnType<typeof useIntl>, itemType: string) {
-  switch (itemType) {
-    case 'RawMaterial':
-      return intl.formatMessage({ id: 'item-type.raw-material', defaultMessage: 'Raw material' });
-    case 'FinishedGood':
-      return intl.formatMessage({ id: 'item-type.finished-good', defaultMessage: 'Finished good' });
-    case 'PackagingMaterial':
-      return intl.formatMessage({ id: 'item-type.packaging-material', defaultMessage: 'Packaging material' });
-    case 'OperationalSupply':
-      return intl.formatMessage({ id: 'item-type.operational-supply', defaultMessage: 'Operational supply' });
-    default:
-      return intl.formatMessage({ id: 'item-type.other', defaultMessage: 'Other' });
-  }
 }
 
 function getItemStatusLabel(intl: ReturnType<typeof useIntl>, status: ItemStatusFilter) {

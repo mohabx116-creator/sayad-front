@@ -52,7 +52,7 @@ import type {
   InventoryMovementRequest,
   OpeningStockRequest
 } from '../types/inventory.types';
-import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
+import { INVENTORY_PERMISSIONS, getItemTypeLabel } from '../utils/inventory.constants';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -280,7 +280,7 @@ export default function InventoryItemDetailsPage() {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="item-type" />
                 </Typography>
-                <Typography variant="h5">{item.itemType}</Typography>
+                <Typography variant="h5">{getItemTypeLabel(intl, item.itemType)}</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>

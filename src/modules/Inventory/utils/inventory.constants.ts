@@ -1,3 +1,5 @@
+import type { IntlShape } from 'react-intl';
+
 export const INVENTORY_PERMISSIONS = {
   view: 'inventory.view',
   itemsView: 'inventory.items.view',
@@ -44,3 +46,18 @@ export const INVENTORY_VIEW_PERMISSIONS = [
 ] as const;
 
 export const ITEM_TYPES = ['RawMaterial', 'FinishedGood', 'PackagingMaterial', 'OperationalSupply', 'Other'] as const;
+
+export function getItemTypeLabel(intl: IntlShape, itemType: string) {
+  switch (itemType) {
+    case 'RawMaterial':
+      return intl.formatMessage({ id: 'item-type.raw-material', defaultMessage: 'Raw Material' });
+    case 'FinishedGood':
+      return intl.formatMessage({ id: 'item-type.finished-good', defaultMessage: 'Finished Good' });
+    case 'PackagingMaterial':
+      return intl.formatMessage({ id: 'item-type.packaging-material', defaultMessage: 'Packaging Material' });
+    case 'OperationalSupply':
+      return intl.formatMessage({ id: 'item-type.operational-supply', defaultMessage: 'Operational Supply' });
+    default:
+      return intl.formatMessage({ id: 'item-type.other', defaultMessage: 'Other' });
+  }
+}

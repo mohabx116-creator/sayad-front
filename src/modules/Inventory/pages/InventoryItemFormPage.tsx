@@ -31,7 +31,7 @@ import Loader from 'ui-component/Loader';
 import { createItem, updateItem } from '../api/inventoryApi';
 import { useInventoryCategories, useInventoryItem, useInventoryItemUnits, useInventoryUnits } from '../hooks/useInventory';
 import type { CreateItemRequest, ItemUnitInput, UpdateItemRequest } from '../types/inventory.types';
-import { ITEM_TYPES } from '../utils/inventory.constants';
+import { ITEM_TYPES, getItemTypeLabel } from '../utils/inventory.constants';
 
 type EditableUnitRow = ItemUnitInput;
 
@@ -242,7 +242,7 @@ export default function InventoryItemFormPage() {
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <TextField size="small" select fullWidth label={<FormattedMessage id="item-type" />} value={form.itemType} onChange={(e) => setForm({ ...form, itemType: e.target.value })}>
-                        {ITEM_TYPES.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
+                        {ITEM_TYPES.map((type) => <MenuItem key={type} value={type}>{getItemTypeLabel(intl, type)}</MenuItem>)}
                       </TextField>
                     </Grid>
                     <Grid item xs={12} md={4}>
