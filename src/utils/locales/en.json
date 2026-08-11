@@ -1082,6 +1082,7 @@
   "accounting": "Accounting",
   "general-ledger": "General Ledger",
   "chart-of-accounts": "Chart of Accounts",
+  "reports": "Reports",
   "accounting-reports": "Reports",
   "general-ledger-report": "General Ledger Report",
   "general-ledger-report-description": "Review the ledger for one posting account and its descendants with running balances and journal entry links.",
