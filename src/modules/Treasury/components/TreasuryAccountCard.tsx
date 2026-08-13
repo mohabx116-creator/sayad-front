@@ -15,12 +15,11 @@ import { alpha, useTheme } from '@mui/material/styles';
 
 import {
   IconArrowLeft,
-  IconAward,
   IconBuildingBank,
   IconCashBanknote,
   IconCheck,
   IconClock,
-  IconDiamond,
+  IconSend,
   IconSparkles,
   IconWallet,
   IconX
@@ -31,7 +30,7 @@ import type { TreasuryAccountListItem } from '../types/treasury.types';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import { formatTreasuryMoney } from '../utils/treasury.format';
 
-export type TreasuryChannelIdentity = 'cash' | 'wallet' | 'naqdi' | 'bank' | 'generic';
+export type TreasuryChannelIdentity = 'cash' | 'wallet' | 'instapay' | 'bank' | 'generic';
 
 export function getTreasuryChannelIdentity(account: {
   nameArabic?: string | null;
@@ -44,16 +43,19 @@ export function getTreasuryChannelIdentity(account: {
   const code = (account.code ?? '').trim().toLowerCase();
   const accountType = (account.accountType ?? '').trim().toLowerCase();
 
-  // 1. Naqdi (نقدي / Naqdi) - exact or distinct channel identifier
+  // 1. InstaPay (إنستاباي / InstaPay)
   if (
-    arabic === 'نقدي' ||
-    arabic === 'نقدي كاش' ||
-    arabic.includes('قناة نقدي') ||
-    english === 'naqdi' ||
-    english.includes('naqdi') ||
-    code.includes('naqdi')
+    arabic === 'إنستاباي' ||
+    arabic === 'انستاباي' ||
+    arabic.includes('إنستاباي') ||
+    arabic.includes('انستاباي') ||
+    arabic.includes('إنستا باي') ||
+    arabic.includes('انستا باي') ||
+    english === 'instapay' ||
+    english.includes('instapay') ||
+    code.includes('instapay')
   ) {
-    return 'naqdi';
+    return 'instapay';
   }
 
   // 2. Electronic Wallet (المحفظة الإلكترونية / Electronic Wallet)
@@ -155,21 +157,21 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
           icon: IconWallet,
           tagline: intl.formatMessage({ id: 'treasury.tagline-wallet', defaultMessage: 'قناة الدفع والتحصيل الإلكتروني' })
         };
-      case 'naqdi':
+      case 'instapay':
         return {
-          primaryColor: '#B45309',
-          accentColor: '#D97706',
-          lightBg: '#FFFBEB',
-          subtleBg: 'rgba(217, 119, 6, 0.08)',
-          borderColor: 'rgba(217, 119, 6, 0.38)',
-          topBorder: 'linear-gradient(90deg, #92400E 0%, #F59E0B 50%, #FCD34D 100%)',
-          iconBg: 'linear-gradient(135deg, #F59E0B 0%, #B45309 100%)',
+          primaryColor: '#7C3AED',
+          accentColor: '#8B5CF6',
+          lightBg: '#FAF5FF',
+          subtleBg: 'rgba(124, 58, 237, 0.08)',
+          borderColor: 'rgba(124, 58, 237, 0.35)',
+          topBorder: 'linear-gradient(90deg, #6D28D9 0%, #8B5CF6 50%, #EC4899 100%)',
+          iconBg: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
           iconColor: '#FFFFFF',
-          badgeText: intl.formatMessage({ id: 'treasury.badge-naqdi', defaultMessage: 'نقدي — قناة فاخرة' }),
-          badgeBg: '#FEF3C7',
-          badgeColor: '#92400E',
-          icon: IconDiamond,
-          tagline: intl.formatMessage({ id: 'treasury.tagline-naqdi', defaultMessage: 'منظومة نقدي المعتمدة' })
+          badgeText: intl.formatMessage({ id: 'treasury.badge-instapay', defaultMessage: 'إنستاباي — تحويل فوري' }),
+          badgeBg: '#EDE9FE',
+          badgeColor: '#5B21B6',
+          icon: IconSend,
+          tagline: intl.formatMessage({ id: 'treasury.tagline-instapay', defaultMessage: 'قناة التحويلات والمدفوعات الفورية' })
         };
       case 'bank':
         return {
@@ -260,40 +262,17 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
               <IconComponent size={26} stroke={1.8} />
             </Box>
             <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                <Typography
-                  variant="h4"
-                  fontWeight={800}
-                  sx={{
-                    color: theme.palette.text.primary,
-                    fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                    lineHeight: 1.3
-                  }}
-                >
-                  {account.nameArabic}
-                </Typography>
-                {account.code && (
-                  <Chip
-                    label={account.code}
-                    size="small"
-                    sx={{
-                      height: 20,
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      bgcolor: alpha(styleConfig.primaryColor, 0.1),
-                      color: styleConfig.primaryColor,
-                      border: '1px solid',
-                      borderColor: alpha(styleConfig.primaryColor, 0.2)
-                    }}
-                  />
-                )}
-              </Box>
-
-              {account.nameEnglish && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25, fontWeight: 500 }}>
-                  {account.nameEnglish}
-                </Typography>
-              )}
+              <Typography
+                variant="h4"
+                fontWeight={800}
+                sx={{
+                  color: theme.palette.text.primary,
+                  fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                  lineHeight: 1.3
+                }}
+              >
+                {account.nameArabic}
+              </Typography>
             </Box>
           </Stack>
 
@@ -340,7 +319,7 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
                 fontWeight: 700
               }}
             >
-              {identity === 'naqdi' && <IconSparkles size={13} stroke={2} />}
+              {identity === 'instapay' && <IconSend size={13} stroke={2} />}
               {styleConfig.badgeText}
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
