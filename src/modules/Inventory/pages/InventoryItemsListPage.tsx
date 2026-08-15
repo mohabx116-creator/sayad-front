@@ -26,6 +26,7 @@ import {
   IconEdit,
   IconEye,
   IconPackage,
+  IconScale,
   IconRefresh,
   IconReportAnalytics,
   IconSearch,
@@ -44,6 +45,7 @@ import { ExcelActions } from 'shared/components/excel';
 
 import { activateItem, deactivateItem, downloadItemsImportTemplate, exportItemsToExcel } from '../api/inventoryApi';
 import ItemImportWizard from '../components/ItemImportWizard';
+import UnitsManagementDialog from '../components/UnitsManagementDialog';
 import { useInventoryCategories, useInventoryItems, useInventoryStockReport } from '../hooks/useInventory';
 import { INVENTORY_PERMISSIONS, ITEM_TYPES, getItemTypeLabel } from '../utils/inventory.constants';
 
@@ -187,6 +189,7 @@ export default function InventoryItemsListPage() {
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('All');
   const [statusFilter, setStatusFilter] = useState<ItemStatusFilter>('All');
   const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
+  const [isUnitsDialogOpen, setIsUnitsDialogOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(searchInput.trim(), 300);
 
   const categoryQuery = useMemo(() => ({ page: 1, pageSize: 100, isActive: true }), []);
@@ -332,6 +335,11 @@ export default function InventoryItemsListPage() {
           <PermissionGuard permission={INVENTORY_PERMISSIONS.view}>
             <Button component={Link} to="/inventory/reports/stock" variant="outlined" color="inherit" startIcon={<IconReportAnalytics size={18} />}>
               <FormattedMessage id="inventory-stock-report" defaultMessage="Stock Report" />
+            </Button>
+          </PermissionGuard>
+          <PermissionGuard permission={INVENTORY_PERMISSIONS.unitsView}>
+            <Button variant="outlined" color="inherit" startIcon={<IconScale size={18} />} onClick={() => setIsUnitsDialogOpen(true)}>
+              وحدات القياس
             </Button>
           </PermissionGuard>
           <ExcelActions
@@ -663,6 +671,8 @@ export default function InventoryItemsListPage() {
           await refreshAll();
         }}
       />
+
+      <UnitsManagementDialog open={isUnitsDialogOpen} onClose={() => setIsUnitsDialogOpen(false)} />
     </>
   );
 }
