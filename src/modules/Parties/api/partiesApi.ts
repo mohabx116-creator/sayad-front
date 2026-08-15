@@ -6,6 +6,9 @@ import type {
   CorrectOpeningBalanceRequest,
   CreatePartyAdjustmentRequest,
   CreatePartyRequest,
+  PartyImportCommitRequest,
+  PartyImportCommitResultDto,
+  PartyImportPreviewResultDto,
   ListMeta,
   OpeningBalanceDto,
   OpeningBalanceRequest,
@@ -40,6 +43,26 @@ export function unwrapList<T>(response: ApiResponse<T[]>): { items: T[]; meta: L
 
 export function createParty(request: CreatePartyRequest) {
   return unwrap(axiosServices.post<ApiResponse<PartyDto>>('/api/parties', request));
+}
+
+export async function exportPartiesToExcel() {
+  const response = await axiosServices.get<Blob>('/api/parties/export', { responseType: 'blob' });
+  return response.data;
+}
+
+export async function downloadPartiesImportTemplate() {
+  const response = await axiosServices.get<Blob>('/api/parties/template', { responseType: 'blob' });
+  return response.data;
+}
+
+export function previewPartiesImport(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return unwrap(axiosServices.post<ApiResponse<PartyImportPreviewResultDto>>('/api/parties/import/preview', formData));
+}
+
+export function commitPartiesImport(request: PartyImportCommitRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PartyImportCommitResultDto>>('/api/parties/import/commit', request));
 }
 
 export function updateParty(id: string, request: UpdatePartyRequest) {

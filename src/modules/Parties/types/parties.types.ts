@@ -173,6 +173,44 @@ export type UpdatePartyRequest = {
   rowVersion: string;
 };
 
+export type PartyImportValidationErrorDto = {
+  rowNumber: number;
+  field: string;
+  code: string;
+  message: string;
+};
+
+export type PartyImportPreviewRowDto = {
+  rowNumber: number;
+  nameArabic?: string | null;
+  nameEnglish?: string | null;
+  partyType?: string | null;
+  primaryPhone?: string | null;
+  secondaryPhone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  notes?: string | null;
+  errors: PartyImportValidationErrorDto[];
+  isValid: boolean;
+};
+
+export type PartyImportPreviewResultDto = {
+  rows: PartyImportPreviewRowDto[];
+  totalRows: number;
+  validRows: number;
+  failedRows: number;
+};
+
+export type PartyImportCommitRequest = {
+  rows: PartyImportPreviewRowDto[];
+};
+
+export type PartyImportCommitResultDto = {
+  totalRows: number;
+  importedRows: number;
+  failedRows: number;
+};
+
 export type OpeningBalanceRequest = {
   entryDate: string;
   amount: number;

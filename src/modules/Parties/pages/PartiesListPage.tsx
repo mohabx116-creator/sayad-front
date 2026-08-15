@@ -20,12 +20,14 @@ import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import {
+  IconDownload,
   IconEdit,
   IconEye,
   IconPlus,
   IconSearch,
   IconToggleLeft,
   IconToggleRight,
+  IconUpload,
   IconReportMoney,
   IconReceipt,
   IconUsers,
@@ -38,8 +40,9 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 import HoverDataCard from 'ui-component/cards/HoverDataCard';
 import PartyCashTransactionDialog from '../components/PartyCashTransactionDialog';
+import PartyImportWizard from '../components/PartyImportWizard';
 
-import { activateParty, deactivateParty } from '../api/partiesApi';
+import { activateParty, deactivateParty, downloadPartiesImportTemplate, exportPartiesToExcel } from '../api/partiesApi';
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyStatusChip from '../components/PartyStatusChip';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
@@ -69,6 +72,17 @@ function getTypeFilterParams(filter: PartyTypeFilter) {
   }
 }
 
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export default function PartiesListPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
@@ -79,6 +93,7 @@ export default function PartiesListPage() {
   const [partyType, setPartyType] = useState<PartyTypeFilter>('');
   const [status, setStatus] = useState<StatusFilter>('');
   const [cashDialogParty, setCashDialogParty] = useState<{ id: string; name: string; isCustomer: boolean } | null>(null);
+  const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
 
   const {
     items: parties,
@@ -106,6 +121,26 @@ export default function PartiesListPage() {
       notify(intl.formatMessage({ id: 'parties-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await exportPartiesToExcel();
+      downloadBlob(blob, 'parties-export.xlsx');
+      dispatch(openSnackbar({ open: true, message: 'تم تصدير الأطراف إلى Excel بنجاح.', variant: 'alert', severity: 'success' }));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تصدير الأطراف إلى Excel.', 'error');
+    }
+  };
+
+  const handleTemplateDownload = async () => {
+    try {
+      const blob = await downloadPartiesImportTemplate();
+      downloadBlob(blob, 'parties-import-template.xlsx');
+      dispatch(openSnackbar({ open: true, message: 'تم تحميل قالب الاستيراد بنجاح.', variant: 'alert', severity: 'success' }));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تنزيل قالب الاستيراد.', 'error');
     }
   };
 
@@ -171,11 +206,28 @@ export default function PartiesListPage() {
               />
             </Typography>
           </Box>
-          <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
-            <Button component={Link} to="/parties/new" variant="contained" startIcon={<IconPlus size={18} />}>
-              <FormattedMessage id={isCustomerList ? 'create-customer' : 'create-party'} />
-            </Button>
-          </PermissionGuard>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+            <PermissionGuard permission={PARTIES_PERMISSIONS.view}>
+              <Button variant="outlined" color="inherit" onClick={handleExport} startIcon={<IconDownload size={18} />}>
+                تصدير Excel
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
+              <Button variant="outlined" color="inherit" onClick={handleTemplateDownload} startIcon={<IconDownload size={18} />}>
+                تحميل قالب الاستيراد
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
+              <Button variant="contained" onClick={() => setIsImportWizardOpen(true)} startIcon={<IconUpload size={18} />}>
+                استيراد جماعي
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
+              <Button component={Link} to="/parties/new" variant="contained" startIcon={<IconPlus size={18} />}>
+                <FormattedMessage id={isCustomerList ? 'create-customer' : 'create-party'} />
+              </Button>
+            </PermissionGuard>
+          </Stack>
         </Box>
       </Box>
 
@@ -431,6 +483,15 @@ export default function PartiesListPage() {
           </>
         )}
       </Box>
+
+      <PartyImportWizard
+        open={isImportWizardOpen}
+        onClose={() => setIsImportWizardOpen(false)}
+        onImported={async () => {
+          await mutate();
+          await mutateParties((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+        }}
+      />
     </Box>
   );
 }
