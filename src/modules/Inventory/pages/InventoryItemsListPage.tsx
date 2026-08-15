@@ -40,6 +40,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { ExcelActions } from 'shared/components/excel';
 
 import { activateItem, deactivateItem, downloadItemsImportTemplate, exportItemsToExcel } from '../api/inventoryApi';
 import ItemImportWizard from '../components/ItemImportWizard';
@@ -328,24 +329,18 @@ export default function InventoryItemsListPage() {
           <Button variant="outlined" color="inherit" startIcon={<IconRefresh size={18} />} onClick={() => void refreshAll()}>
             <FormattedMessage id="refresh" />
           </Button>
-          <Button variant="outlined" color="inherit" startIcon={<IconDownload size={18} />} onClick={() => void handleExport()}>
-            تصدير Excel
-          </Button>
           <PermissionGuard permission={INVENTORY_PERMISSIONS.view}>
             <Button component={Link} to="/inventory/reports/stock" variant="outlined" color="inherit" startIcon={<IconReportAnalytics size={18} />}>
               <FormattedMessage id="inventory-stock-report" defaultMessage="Stock Report" />
             </Button>
           </PermissionGuard>
-          <PermissionGuard permission={INVENTORY_PERMISSIONS.itemsCreate}>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Button variant="outlined" color="inherit" startIcon={<IconDownload size={18} />} onClick={() => void handleTemplateDownload()}>
-                تحميل قالب الاستيراد
-              </Button>
-              <Button variant="contained" startIcon={<IconUpload size={18} />} onClick={() => setIsImportWizardOpen(true)}>
-                استيراد جماعي
-              </Button>
-            </Stack>
-          </PermissionGuard>
+          <ExcelActions
+            onExport={() => void handleExport()}
+            onDownloadTemplate={() => void handleTemplateDownload()}
+            onImportClick={() => setIsImportWizardOpen(true)}
+            templatePermission={INVENTORY_PERMISSIONS.itemsCreate}
+            importPermission={INVENTORY_PERMISSIONS.itemsCreate}
+          />
           <PermissionGuard permission={INVENTORY_PERMISSIONS.itemsCreate}>
             <Button component={Link} to="/inventory/items/new" variant="contained" startIcon={<IconPackage size={18} />}>
               <FormattedMessage id="create-item" />

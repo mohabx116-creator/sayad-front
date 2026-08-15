@@ -20,6 +20,7 @@ import Typography from '@mui/material/Typography';
 import { IconDeviceFloppy, IconDownload, IconEdit, IconPlus, IconScale, IconToggleLeft, IconToggleRight, IconTrash, IconUpload, IconX } from '@tabler/icons-react';
 
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { ExcelActions } from 'shared/components/excel';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
@@ -195,20 +196,15 @@ export default function InventoryUnitsPage() {
           </Typography>
         </Box>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-          <Button variant="outlined" color="inherit" size="small" onClick={handleExport} startIcon={<IconDownload size={18} />}>
-            تصدير Excel
-          </Button>
-          <PermissionGuard permission={INVENTORY_PERMISSIONS.unitsManage}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-              <Button variant="outlined" color="inherit" size="small" onClick={handleTemplateDownload} startIcon={<IconDownload size={18} />}>
-                تحميل قالب الاستيراد
-              </Button>
-              <Button variant="contained" size="small" onClick={() => setIsImportWizardOpen(true)} startIcon={<IconUpload size={18} />}>
-                استيراد جماعي
-              </Button>
-            </Stack>
-          </PermissionGuard>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems="center">
+          <ExcelActions
+            onExport={handleExport}
+            onDownloadTemplate={handleTemplateDownload}
+            onImportClick={() => setIsImportWizardOpen(true)}
+            templatePermission={INVENTORY_PERMISSIONS.unitsManage}
+            importPermission={INVENTORY_PERMISSIONS.unitsManage}
+            size="small"
+          />
           <Button
             variant="outlined"
             color="error"

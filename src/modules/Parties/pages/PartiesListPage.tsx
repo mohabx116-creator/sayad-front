@@ -46,6 +46,7 @@ import { activateParty, deactivateParty, downloadPartiesImportTemplate, exportPa
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyStatusChip from '../components/PartyStatusChip';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { ExcelActions } from 'shared/components/excel';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import { useDispatch } from 'store';
@@ -207,21 +208,14 @@ export default function PartiesListPage() {
             </Typography>
           </Box>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-            <PermissionGuard permission={PARTIES_PERMISSIONS.view}>
-              <Button variant="outlined" color="inherit" onClick={handleExport} startIcon={<IconDownload size={18} />}>
-                تصدير Excel
-              </Button>
-            </PermissionGuard>
-            <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
-              <Button variant="outlined" color="inherit" onClick={handleTemplateDownload} startIcon={<IconDownload size={18} />}>
-                تحميل قالب الاستيراد
-              </Button>
-            </PermissionGuard>
-            <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
-              <Button variant="contained" onClick={() => setIsImportWizardOpen(true)} startIcon={<IconUpload size={18} />}>
-                استيراد جماعي
-              </Button>
-            </PermissionGuard>
+            <ExcelActions
+              onExport={handleExport}
+              onDownloadTemplate={handleTemplateDownload}
+              onImportClick={() => setIsImportWizardOpen(true)}
+              exportPermission={PARTIES_PERMISSIONS.view}
+              templatePermission={PARTIES_PERMISSIONS.create}
+              importPermission={PARTIES_PERMISSIONS.create}
+            />
             <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
               <Button component={Link} to="/parties/new" variant="contained" startIcon={<IconPlus size={18} />}>
                 <FormattedMessage id={isCustomerList ? 'create-customer' : 'create-party'} />

@@ -19,6 +19,7 @@ import Typography from '@mui/material/Typography';
 import { IconDownload, IconEdit, IconToggleLeft, IconToggleRight, IconUpload } from '@tabler/icons-react';
 
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { ExcelActions } from 'shared/components/excel';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
@@ -145,21 +146,14 @@ export default function InventoryCategoriesPage() {
           </Typography>
         </Box>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-          <Button variant="outlined" color="inherit" size="small" onClick={handleExport} startIcon={<IconDownload size={18} />}>
-            تصدير Excel
-          </Button>
-          <PermissionGuard permission={INVENTORY_PERMISSIONS.categoriesManage}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-              <Button variant="outlined" color="inherit" size="small" onClick={handleTemplateDownload} startIcon={<IconDownload size={18} />}>
-                تحميل قالب الاستيراد
-              </Button>
-              <Button variant="contained" size="small" onClick={() => setIsImportWizardOpen(true)} startIcon={<IconUpload size={18} />}>
-                استيراد جماعي
-              </Button>
-            </Stack>
-          </PermissionGuard>
-        </Stack>
+        <ExcelActions
+          onExport={handleExport}
+          onDownloadTemplate={handleTemplateDownload}
+          onImportClick={() => setIsImportWizardOpen(true)}
+          templatePermission={INVENTORY_PERMISSIONS.categoriesManage}
+          importPermission={INVENTORY_PERMISSIONS.categoriesManage}
+          size="small"
+        />
       </Box>
 
       <MainCard title={<FormattedMessage id="inventory-categories" />}>

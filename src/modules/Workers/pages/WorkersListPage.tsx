@@ -23,6 +23,7 @@ import { IconClipboardList, IconCoins, IconEdit, IconEye, IconPlus, IconSearch, 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { ExcelActions } from 'shared/components/excel';
 import { useOperationalJobs } from 'modules/OperationalJobs/hooks/useOperationalJobs';
 import { OPERATIONAL_JOBS_PERMISSIONS } from 'modules/OperationalJobs/utils/operationalJobs.constants';
 import MainCard from 'ui-component/cards/MainCard';
@@ -173,22 +174,15 @@ export default function WorkersListPage() {
             <MenuItem value="asc"><FormattedMessage id="sort-ascending" /></MenuItem>
             <MenuItem value="desc"><FormattedMessage id="sort-descending" /></MenuItem>
           </Select>
-          <Stack direction="row" spacing={1} justifyContent="flex-end">
-            <PermissionGuard permission={WORKERS_PERMISSIONS.view}>
-              <Button variant="outlined" onClick={handleExport}>
-                تصدير Excel
-              </Button>
-            </PermissionGuard>
-            <PermissionGuard permission={WORKERS_PERMISSIONS.create}>
-              <Button variant="outlined" onClick={handleTemplateDownload}>
-                تحميل قالب الاستيراد
-              </Button>
-            </PermissionGuard>
-            <PermissionGuard permission={WORKERS_PERMISSIONS.create}>
-              <Button variant="outlined" onClick={() => setIsImportWizardOpen(true)}>
-                استيراد جماعي
-              </Button>
-            </PermissionGuard>
+          <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center" flexWrap="wrap">
+            <ExcelActions
+              onExport={handleExport}
+              onDownloadTemplate={handleTemplateDownload}
+              onImportClick={() => setIsImportWizardOpen(true)}
+              exportPermission={WORKERS_PERMISSIONS.view}
+              templatePermission={WORKERS_PERMISSIONS.create}
+              importPermission={WORKERS_PERMISSIONS.create}
+            />
             <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
               <Button component={Link} to="/labor/operational-jobs" variant="outlined" startIcon={<IconClipboardList size={18} />}>
                 <FormattedMessage id="manage-operational-jobs" />
