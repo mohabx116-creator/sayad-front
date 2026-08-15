@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
 
+import axios from 'axios';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -22,16 +23,60 @@ import Loader from 'ui-component/Loader';
 import { activateTreasuryAccount, createTreasuryAccount, deactivateTreasuryAccount, updateTreasuryAccount } from '../api/treasuryApi';
 import { useTreasuryAccount } from '../hooks/useTreasury';
 import type { TreasuryAccountInput } from '../types/treasury.types';
+import type { ApiResponse } from 'types/api';
 
 type TreasuryCashboxFormState = TreasuryAccountInput & {
   isActive: boolean;
 };
 
+type TreasuryFormFieldErrorState = Partial<Record<'code' | 'nameArabic' | 'openingBalanceAmount' | 'notes', string>>;
+
+const OPENING_BALANCE_LOCK_MESSAGE = 'لا يمكن تعديل الرصيد الافتتاحي بعد وجود حركات مالية على الحساب.';
+const OPENING_BALANCE_FIELD_ERROR_HINTS = [
+  OPENING_BALANCE_LOCK_MESSAGE,
+  'Opening balance nature must be Debit or Credit.',
+  'Opening balance',
+  'الرصيد الافتتاحي',
+  'Treasury account is not linked to an accounting account.'
+];
+const NAME_FIELD_ERROR_HINTS = ['Treasury account name already exists.', 'NameArabic', 'Name Arabic', 'الاسم'];
+const CODE_FIELD_ERROR_HINTS = ['Treasury account code already exists.', 'Code'];
+const NOTES_FIELD_ERROR_HINTS = ['Notes', 'ملاحظات'];
+
+function getTreasuryFormFieldErrors(error: unknown): TreasuryFormFieldErrorState {
+  const apiError = axios.isAxiosError(error) ? (error.response?.data as ApiResponse<unknown> | undefined) : undefined;
+  const messages = apiError?.errors ?? [];
+  const fieldErrors: TreasuryFormFieldErrorState = {};
+
+  for (const message of messages) {
+    if (OPENING_BALANCE_FIELD_ERROR_HINTS.some((hint) => message.includes(hint))) {
+      fieldErrors.openingBalanceAmount = message;
+      continue;
+    }
+
+    if (NAME_FIELD_ERROR_HINTS.some((hint) => message.includes(hint))) {
+      fieldErrors.nameArabic = message;
+      continue;
+    }
+
+    if (CODE_FIELD_ERROR_HINTS.some((hint) => message.includes(hint))) {
+      fieldErrors.code = message;
+      continue;
+    }
+
+    if (NOTES_FIELD_ERROR_HINTS.some((hint) => message.includes(hint))) {
+      fieldErrors.notes = message;
+    }
+  }
+
+  return fieldErrors;
+}
+
 function buildRequest(form: TreasuryCashboxFormState): TreasuryAccountInput {
   const openingBalanceAmount = Number(form.openingBalanceAmount) || 0;
 
   return {
-    code: '',
+    code: form.code.trim(),
     nameArabic: form.nameArabic.trim(),
     nameEnglish: null,
     accountType: 'Cash',
@@ -40,7 +85,7 @@ function buildRequest(form: TreasuryCashboxFormState): TreasuryAccountInput {
     openingBalanceAmount,
     openingBalanceNature: openingBalanceAmount > 0 ? 'Debit' : null,
     allowNegativeBalance: false,
-    accountingAccountId: null
+    accountingAccountId: form.accountingAccountId
   };
 }
 
@@ -67,6 +112,7 @@ export default function TreasuryAccountFormPage() {
     isActive: true
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<TreasuryFormFieldErrorState>({});
 
   useEffect(() => {
     if (!account) {
@@ -83,9 +129,10 @@ export default function TreasuryAccountFormPage() {
       openingBalanceAmount: account.openingBalance,
       openingBalanceNature: account.openingBalanceNature,
       allowNegativeBalance: false,
-      accountingAccountId: null,
+      accountingAccountId: account.accountingAccountId,
       isActive: account.isActive
     });
+    setFieldErrors({});
   }, [account]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -97,6 +144,7 @@ export default function TreasuryAccountFormPage() {
 
     try {
       setIsSaving(true);
+      setFieldErrors({});
       const request = buildRequest(form);
 
       if (isEdit && account) {
@@ -124,6 +172,11 @@ export default function TreasuryAccountFormPage() {
       await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
       navigate(`/treasury/accounts/${created.id}`);
     } catch (error) {
+      const mappedFieldErrors = getTreasuryFormFieldErrors(error);
+      if (Object.keys(mappedFieldErrors).length > 0) {
+        setFieldErrors(mappedFieldErrors);
+      }
+
       notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'action-failed', defaultMessage: 'The operation failed.' }), 'error');
     } finally {
       setIsSaving(false);
@@ -135,6 +188,7 @@ export default function TreasuryAccountFormPage() {
   }
 
   const openingBalanceLocked = isEdit && Boolean(account?.hasNonOpeningMovements);
+  const openingBalanceHelperText = fieldErrors.openingBalanceAmount ?? (openingBalanceLocked ? OPENING_BALANCE_LOCK_MESSAGE : ' ');
 
   return (
     <Box component="form" onSubmit={submit}>
@@ -155,6 +209,8 @@ export default function TreasuryAccountFormPage() {
               label={<FormattedMessage id="cashbox-name" defaultMessage="Cashbox Name" />}
               value={form.nameArabic}
               onChange={(event) => setForm({ ...form, nameArabic: event.target.value })}
+              error={Boolean(fieldErrors.nameArabic)}
+              helperText={fieldErrors.nameArabic ?? ' '}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -167,16 +223,13 @@ export default function TreasuryAccountFormPage() {
               onChange={(event) => setForm({ ...form, openingBalanceAmount: Number(event.target.value) })}
               inputProps={{ min: 0, step: 0.01 }}
               disabled={openingBalanceLocked}
+              error={Boolean(fieldErrors.openingBalanceAmount)}
+              helperText={openingBalanceHelperText}
             />
           </Grid>
           <Grid item xs={12}>
-            {openingBalanceLocked && (
-              <Alert severity="warning">
-                <FormattedMessage
-                  id="opening-balance-locked"
-                  defaultMessage="Opening balance can no longer be changed after non-opening movements exist."
-                />
-              </Alert>
+            {openingBalanceLocked && !fieldErrors.openingBalanceAmount && (
+              <Alert severity="warning">{OPENING_BALANCE_LOCK_MESSAGE}</Alert>
             )}
           </Grid>
           <Grid item xs={12}>
@@ -187,6 +240,8 @@ export default function TreasuryAccountFormPage() {
               label={<FormattedMessage id="notes" defaultMessage="Notes" />}
               value={form.notes ?? ''}
               onChange={(event) => setForm({ ...form, notes: event.target.value })}
+              error={Boolean(fieldErrors.notes)}
+              helperText={fieldErrors.notes ?? ' '}
             />
           </Grid>
           <Grid item xs={12}>
