@@ -10,15 +10,10 @@ import type {
   TreasuryAccountingAccountLookup,
   TreasuryAccountListItem,
   TreasuryDashboardSummary,
-  TreasuryEligibleInvoice,
   TreasuryLookupOption,
   TreasuryLookups,
   TreasuryListParams,
   TreasuryPagedMeta,
-  TreasuryPayment,
-  TreasuryPaymentListItem,
-  TreasuryReceipt,
-  TreasuryReceiptListItem,
   TreasuryStatement,
   TreasuryStatementParams,
   TreasuryTransfer,
@@ -131,30 +126,6 @@ export function useTreasuryAccountDeletionPreview(id?: string, enabled = false) 
   return useMemo(() => ({ preview: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
-export function useTreasuryReceipts(params: TreasuryListParams) {
-  const normalizedParams = normalizeParams(params);
-  const key = `/api/treasury/receipts?${buildQuery(normalizedParams)}`;
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryReceiptListItem[]>>(key, fetcher);
-  return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
-}
-
-export function useTreasuryReceipt(id?: string) {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryReceipt>>(id ? `/api/treasury/receipts/${id}` : null, fetcher);
-  return useMemo(() => ({ receipt: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
-}
-
-export function useTreasuryPayments(params: TreasuryListParams) {
-  const normalizedParams = normalizeParams(params);
-  const key = `/api/treasury/payments?${buildQuery(normalizedParams)}`;
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryPaymentListItem[]>>(key, fetcher);
-  return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
-}
-
-export function useTreasuryPayment(id?: string) {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryPayment>>(id ? `/api/treasury/payments/${id}` : null, fetcher);
-  return useMemo(() => ({ payment: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
-}
-
 export function useTreasuryTransfers(params: TreasuryListParams) {
   const normalizedParams = normalizeParams(params);
   const key = `/api/treasury/transfers?${buildQuery(normalizedParams)}`;
@@ -188,16 +159,4 @@ export function useTreasuryDashboardSummary(dateFrom?: string, dateTo?: string) 
   const key = `/api/treasury/dashboard/summary?${buildQuery({ dateFrom, dateTo })}`;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryDashboardSummary>>(key, fetcher, { revalidateOnFocus: false });
   return useMemo(() => ({ summary: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
-}
-
-export function useEligibleSalesInvoices(partyId?: string, page = 1, pageSize = 20, search = '') {
-  const key = partyId ? `/api/treasury/receipts/eligible-sales-invoices?${buildQuery(normalizeParams({ partyId, page, pageSize, search }))}` : null;
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryEligibleInvoice[]>>(key, fetcher);
-  return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
-}
-
-export function useEligiblePurchaseInvoices(partyId?: string, page = 1, pageSize = 20, search = '') {
-  const key = partyId ? `/api/treasury/payments/eligible-purchase-invoices?${buildQuery(normalizeParams({ partyId, page, pageSize, search }))}` : null;
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<TreasuryEligibleInvoice[]>>(key, fetcher);
-  return useMemo(() => ({ ...toListResult(data), error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }

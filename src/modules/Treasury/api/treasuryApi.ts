@@ -14,16 +14,9 @@ import type {
   TreasuryAccountFinalDeletionStrategy,
   TreasuryAccountingAccountLookup,
   TreasuryDashboardSummary,
-  TreasuryEligibleInvoice,
   TreasuryLookups,
   TreasuryCashMovementInput,
   TreasuryPagedMeta,
-  TreasuryPayment,
-  TreasuryPaymentInput,
-  TreasuryPaymentListItem,
-  TreasuryReceipt,
-  TreasuryReceiptInput,
-  TreasuryReceiptListItem,
   TreasuryStatement,
   TreasuryStatementParams,
   TreasuryTransfer,
@@ -149,64 +142,6 @@ export function createTreasuryCashIn(id: string, request: TreasuryCashMovementIn
 
 export function createTreasuryCashOut(id: string, request: TreasuryCashMovementInput) {
   return unwrap(axiosServices.post<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}/cash-out`, request));
-}
-
-// Receipts
-export function listTreasuryReceipts(params: TreasuryListParams) {
-  return unwrapPaged<TreasuryReceiptListItem>(axiosServices.get('/api/treasury/receipts', { params: clampLookupParams(params) }));
-}
-
-export function getTreasuryReceipt(id: string) {
-  return unwrap(axiosServices.get<ApiResponse<TreasuryReceipt>>(`/api/treasury/receipts/${id}`));
-}
-
-export function createTreasuryReceipt(request: TreasuryReceiptInput) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryReceipt>>('/api/treasury/receipts', request));
-}
-
-export function updateTreasuryReceipt(id: string, request: TreasuryReceiptInput & { rowVersion: string }) {
-  return unwrap(axiosServices.put<ApiResponse<TreasuryReceipt>>(`/api/treasury/receipts/${id}`, request));
-}
-
-export function postTreasuryReceipt(id: string, rowVersion: string) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryReceipt>>(`/api/treasury/receipts/${id}/post`, { rowVersion }));
-}
-
-export function cancelTreasuryReceipt(id: string, request: { reason: string; rowVersion: string }) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryReceipt>>(`/api/treasury/receipts/${id}/cancel`, request));
-}
-
-export function getEligibleSalesInvoices(params: { partyId: string; search?: string; page?: number; pageSize?: number }) {
-  return unwrapPaged<TreasuryEligibleInvoice>(axiosServices.get('/api/treasury/receipts/eligible-sales-invoices', { params: clampLookupParams(params) }));
-}
-
-// Payments
-export function listTreasuryPayments(params: TreasuryListParams) {
-  return unwrapPaged<TreasuryPaymentListItem>(axiosServices.get('/api/treasury/payments', { params: clampLookupParams(params) }));
-}
-
-export function getTreasuryPayment(id: string) {
-  return unwrap(axiosServices.get<ApiResponse<TreasuryPayment>>(`/api/treasury/payments/${id}`));
-}
-
-export function createTreasuryPayment(request: TreasuryPaymentInput) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryPayment>>('/api/treasury/payments', request));
-}
-
-export function updateTreasuryPayment(id: string, request: TreasuryPaymentInput & { rowVersion: string }) {
-  return unwrap(axiosServices.put<ApiResponse<TreasuryPayment>>(`/api/treasury/payments/${id}`, request));
-}
-
-export function postTreasuryPayment(id: string, rowVersion: string) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryPayment>>(`/api/treasury/payments/${id}/post`, { rowVersion }));
-}
-
-export function cancelTreasuryPayment(id: string, request: { reason: string; rowVersion: string }) {
-  return unwrap(axiosServices.post<ApiResponse<TreasuryPayment>>(`/api/treasury/payments/${id}/cancel`, request));
-}
-
-export function getEligiblePurchaseInvoices(params: { partyId: string; search?: string; page?: number; pageSize?: number }) {
-  return unwrapPaged<TreasuryEligibleInvoice>(axiosServices.get('/api/treasury/payments/eligible-purchase-invoices', { params: clampLookupParams(params) }));
 }
 
 // Transfers
