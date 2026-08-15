@@ -106,7 +106,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       treasuryAccountId: intl.formatMessage({
         id: DIRECT_SETTLEMENT_TREASURY_REQUIRED_MESSAGE_ID,
-        defaultMessage: '??? ?????? ???? ????? ??????? ????????.'
+        defaultMessage: 'يجب اختيار حساب خزينة للتسوية المباشرة.'
       })
     };
   }
@@ -115,10 +115,10 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     normalized.includes('customerid') && normalized.includes('required') ||
     normalized.includes('customer was not found') ||
     normalized.includes('select a customer first') ||
-    normalized.includes('???? ?????? ?????')
+    normalized.includes('اختر عميلاً أولاً')
   ) {
     return {
-      customerId: intl.formatMessage({ id: 'sales-customer-required', defaultMessage: '???? ?????? ?????.' })
+      customerId: intl.formatMessage({ id: 'sales-customer-required', defaultMessage: 'اختر عميلاً أولاً.' })
     };
   }
 
@@ -127,14 +127,14 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     normalized.includes('invoice date must') ||
     normalized.includes('invoice date')
   ) {
-    return { invoiceDate: intl.formatMessage({ id: 'sales-invoice-date-invalid', defaultMessage: '????? ???????? ??? ????.' }) };
+    return { invoiceDate: intl.formatMessage({ id: 'sales-invoice-date-invalid', defaultMessage: 'تاريخ الفاتورة غير صالح.' }) };
   }
 
-  if (normalized.includes('due date') || normalized.includes('????? ?????????')) {
+  if (normalized.includes('due date') || normalized.includes('تاريخ الاستحقاق')) {
     return {
       dueDate: intl.formatMessage({
         id: 'sales-due-date-invalid',
-        defaultMessage: '????? ????????? ??? ??? ???? ????? ????????.'
+        defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.'
       })
     };
   }
@@ -143,7 +143,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       paymentMethod: intl.formatMessage({
         id: 'sales-payment-method-invalid',
-        defaultMessage: '????? ????? ??? ?????.'
+        defaultMessage: 'طريقة الدفع غير صالحة.'
       })
     };
   }
@@ -152,7 +152,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       headerDiscount: intl.formatMessage({
         id: 'sales-header-discount-invalid',
-        defaultMessage: '??? ????? ??? ????.'
+        defaultMessage: 'خصم رأس الفاتورة غير صالح.'
       })
     };
   }
@@ -161,7 +161,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       otherCharges: intl.formatMessage({
         id: 'sales-other-charges-invalid',
-        defaultMessage: '?????? ???????? ??? ?????.'
+        defaultMessage: 'الرسوم الإضافية غير صالحة.'
       })
     };
   }
@@ -170,7 +170,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       notes: intl.formatMessage({
         id: 'sales-notes-too-long',
-        defaultMessage: '????????? ????? ????.'
+        defaultMessage: 'الملاحظات طويلة جداً.'
       })
     };
   }
@@ -407,7 +407,7 @@ export default function SalesInvoiceFormPage() {
       return;
     }
     if (form.dueDate && form.dueDate < form.invoiceDate) {
-      notify(intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: '????? ????????? ??? ??? ???? ????? ????????.' }), 'error');
+      notify(intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' }), 'error');
       return;
     }
     const lines = rows
@@ -499,7 +499,7 @@ export default function SalesInvoiceFormPage() {
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
-        ????? ????? ???????? ??? ???? ??????? ????? ??????? ????????.
+        سيتم ترحيل الفاتورة على حساب العملاء وحساب إيرادات المبيعات.
       </Alert>
 
       {/* Basic Info Card */}
@@ -547,15 +547,15 @@ export default function SalesInvoiceFormPage() {
                     type="date"
                     fullWidth
                     InputLabelProps={{ shrink: true }}
-                    label={<FormattedMessage id="due-date" defaultMessage="????? ?????????" />}
+                    label={<FormattedMessage id="due-date" defaultMessage="تاريخ الاستحقاق" />}
                     value={form.dueDate || ''}
                     onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
                     error={dueDateError || Boolean(fieldErrors.dueDate)}
                     helperText={
                       fieldErrors.dueDate ??
                       (dueDateError
-                        ? intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: '????? ????????? ??? ??? ???? ????? ????????.' })
-                        : intl.formatMessage({ id: 'optional-field', defaultMessage: '???????' }))
+                        ? intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' })
+                        : intl.formatMessage({ id: 'optional-field', defaultMessage: 'اختياري' }))
                     }
                   />
                </Grid>
@@ -775,7 +775,7 @@ export default function SalesInvoiceFormPage() {
                   startIcon={<IconPlus size={18} />}
                   sx={{ borderRadius: 2, px: 3 }}
                >
-                  <FormattedMessage id="add-item" defaultMessage="????? ??? ????" />
+                  <FormattedMessage id="add-item" defaultMessage="إضافة صنف جديد" />
                </Button>
             </Box>
          </Box>
@@ -795,7 +795,7 @@ export default function SalesInvoiceFormPage() {
                      fullWidth
                      multiline
                      minRows={5}
-                     placeholder={intl.formatMessage({ id: 'notes-placeholder', defaultMessage: '??? ?? ??????? ?? ???? ???? ???? ???????? ???...' })}
+                     placeholder={intl.formatMessage({ id: 'notes-placeholder', defaultMessage: 'أضف أي ملاحظات أو شروط خاصة بهذه الفاتورة هنا...' })}
                      value={form.notes ?? ''}
                      onChange={(event) => setForm({ ...form, notes: event.target.value })}
                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'grey.50' } }}
@@ -810,7 +810,7 @@ export default function SalesInvoiceFormPage() {
                <Box sx={{ p: 3 }}>
                   <Box sx={headerSx}>
                      <IconCalculator color="var(--mui-palette-primary-main)" size={24} />
-                     <Typography variant="h4" fontWeight={600}><FormattedMessage id="totals-summary" defaultMessage="???? ????????" /></Typography>
+                     <Typography variant="h4" fontWeight={600}><FormattedMessage id="totals-summary" defaultMessage="ملخص الحسابات" /></Typography>
                   </Box>
                   <Stack spacing={2.5}>
                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -831,7 +831,7 @@ export default function SalesInvoiceFormPage() {
                      </Box>
                      <Divider sx={{ my: 1 }} />
                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h3" fontWeight={700}><FormattedMessage id="grand-total" defaultMessage="???????? ???????" /></Typography>
+                        <Typography variant="h3" fontWeight={700}><FormattedMessage id="grand-total" defaultMessage="الإجمالي النهائي" /></Typography>
                         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, color: 'primary.main' }}>
                            <Typography variant="h2" fontWeight={800}>{grandTotal.toFixed(2)}</Typography>
                            <Typography variant="body1" fontWeight={600} color="text.secondary"><FormattedMessage id="currency" /></Typography>
@@ -861,7 +861,7 @@ export default function SalesInvoiceFormPage() {
                  sx={{ borderRadius: 2, px: 4, boxShadow: 2 }}
                  startIcon={<IconSend size={18} />}
                >
-                  <FormattedMessage id="post-invoice" defaultMessage="?????? ????????" />
+                  <FormattedMessage id="post-invoice" defaultMessage="ترحيل الفاتورة" />
                </Button>
             </PermissionGuard>
          )}
