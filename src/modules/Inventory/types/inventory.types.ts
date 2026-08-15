@@ -322,6 +322,42 @@ export type UpdateUnitRequest = {
   rowVersion: string;
 };
 
+export type UnitImportValidationErrorDto = {
+  rowNumber: number;
+  field: string;
+  code: string;
+  message: string;
+};
+
+export type UnitImportPreviewRowDto = {
+  rowNumber: number;
+  code?: string | null;
+  nameArabic?: string | null;
+  nameEnglish?: string | null;
+  symbolArabic?: string | null;
+  symbolEnglish?: string | null;
+  decimalPlaces?: number | null;
+  errors: UnitImportValidationErrorDto[];
+  isValid: boolean;
+};
+
+export type UnitImportPreviewResultDto = {
+  rows: UnitImportPreviewRowDto[];
+  totalRows: number;
+  validRows: number;
+  failedRows: number;
+};
+
+export type UnitImportCommitRequest = {
+  rows: UnitImportPreviewRowDto[];
+};
+
+export type UnitImportCommitResultDto = {
+  totalRows: number;
+  importedRows: number;
+  failedRows: number;
+};
+
 export type PartyItemRelationDto = {
   id: string;
   partyId: string;

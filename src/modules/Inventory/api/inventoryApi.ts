@@ -20,6 +20,9 @@ import type {
   InventoryValuationSummaryDto,
   PartyItemRelationDto,
   ReverseInventoryMovementRequest,
+  UnitImportCommitRequest,
+  UnitImportCommitResultDto,
+  UnitImportPreviewResultDto,
   UpdateCategoryRequest,
   UpdatePartyItemRelationRequest,
   UpdateUnitRequest,
@@ -91,6 +94,26 @@ export function deactivateUnit(id: string) {
 
 export function deleteUnit(id: string) {
   return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/inventory/units/${id}`));
+}
+
+export async function exportUnitsToExcel() {
+  const response = await axiosServices.get<Blob>('/api/inventory/units/export', { responseType: 'blob' });
+  return response.data;
+}
+
+export async function downloadUnitsImportTemplate() {
+  const response = await axiosServices.get<Blob>('/api/inventory/units/template', { responseType: 'blob' });
+  return response.data;
+}
+
+export function previewUnitsImport(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return unwrap(axiosServices.post<ApiResponse<UnitImportPreviewResultDto>>('/api/inventory/units/import/preview', formData));
+}
+
+export function commitUnitsImport(request: UnitImportCommitRequest) {
+  return unwrap(axiosServices.post<ApiResponse<UnitImportCommitResultDto>>('/api/inventory/units/import/commit', request));
 }
 
 export function getItemUnits(id: string) {
