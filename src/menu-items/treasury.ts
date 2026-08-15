@@ -1,4 +1,4 @@
-import { IconArrowsLeftRight, IconBuildingBank, IconReceipt2, IconReportAnalytics } from '@tabler/icons-react';
+import { IconArrowsLeftRight, IconBuildingBank, IconReportAnalytics } from '@tabler/icons-react';
 
 import { NavItemType } from 'types';
 import { TREASURY_PERMISSIONS, TREASURY_VIEW_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
@@ -6,7 +6,6 @@ import { TREASURY_PERMISSIONS, TREASURY_VIEW_PERMISSIONS } from 'modules/Treasur
 const icons = {
   IconArrowsLeftRight,
   IconBuildingBank,
-  IconReceipt2,
   IconReportAnalytics
 };
 
@@ -15,12 +14,7 @@ const treasury: NavItemType = {
   title: 'treasury',
   icon: icons.IconBuildingBank,
   type: 'group',
-  anyPermissions: [
-    ...TREASURY_VIEW_PERMISSIONS,
-    TREASURY_PERMISSIONS.receiptsView,
-    TREASURY_PERMISSIONS.paymentsView,
-    TREASURY_PERMISSIONS.transfersView
-  ],
+  anyPermissions: [...TREASURY_VIEW_PERMISSIONS, TREASURY_PERMISSIONS.transfersView],
   children: [
     {
       id: 'cashboxes',
@@ -30,24 +24,6 @@ const treasury: NavItemType = {
       icon: icons.IconBuildingBank,
       breadcrumbs: false,
       permission: TREASURY_PERMISSIONS.accountsView
-    },
-    {
-      id: 'treasury-receipts',
-      title: 'receipts',
-      type: 'item',
-      url: '/treasury/receipts',
-      icon: icons.IconReceipt2,
-      breadcrumbs: true,
-      permission: TREASURY_PERMISSIONS.receiptsView
-    },
-    {
-      id: 'treasury-payments',
-      title: 'payments',
-      type: 'item',
-      url: '/treasury/payments',
-      icon: icons.IconReceipt2,
-      breadcrumbs: true,
-      permission: TREASURY_PERMISSIONS.paymentsView
     },
     {
       id: 'treasury-transfers',

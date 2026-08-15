@@ -57,12 +57,6 @@ const TreasuryHomePage = Loadable(lazy(() => import('modules/Treasury/pages/Trea
 const TreasuryAccountsListPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountsListPage')));
 const TreasuryAccountDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountDetailsPage')));
 const TreasuryAccountFormPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountFormPage')));
-const TreasuryReceiptsListPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryReceiptsListPage')));
-const TreasuryReceiptDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryReceiptDetailsPage')));
-const TreasuryReceiptFormPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryReceiptFormPage')));
-const TreasuryPaymentsListPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryPaymentsListPage')));
-const TreasuryPaymentDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryPaymentDetailsPage')));
-const TreasuryPaymentFormPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryPaymentFormPage')));
 const TreasuryTransfersListPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryTransfersListPage')));
 const TreasuryTransferDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryTransferDetailsPage')));
 const TreasuryTransferFormPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryTransferFormPage')));
@@ -337,70 +331,6 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={TREASURY_PERMISSIONS.accountsUpdate}>
           <TreasuryAccountFormPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/receipts',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsView}>
-          <TreasuryReceiptsListPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/receipts/new',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsCreate}>
-          <TreasuryReceiptFormPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/receipts/:id',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsView}>
-          <TreasuryReceiptDetailsPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/receipts/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.receiptsUpdate}>
-          <TreasuryReceiptFormPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/payments',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsView}>
-          <TreasuryPaymentsListPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/payments/new',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsCreate}>
-          <TreasuryPaymentFormPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/payments/:id',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsView}>
-          <TreasuryPaymentDetailsPage />
-        </PermissionRouteGuard>
-      )
-    },
-    {
-      path: '/treasury/payments/:id/edit',
-      element: (
-        <PermissionRouteGuard permission={TREASURY_PERMISSIONS.paymentsUpdate}>
-          <TreasuryPaymentFormPage />
         </PermissionRouteGuard>
       )
     },

@@ -116,10 +116,10 @@ function getReferencePresentation(movement: TreasuryMovement) {
   switch (movement.referenceType.toLowerCase()) {
     case 'receiptvoucher':
     case 'receiptvouchercancellation':
-      return { label: 'Receipt Voucher', route: movement.referenceId ? `/treasury/receipts/${movement.referenceId}` : null };
+      return { label: 'Receipt Voucher', route: null };
     case 'paymentvoucher':
     case 'paymentvouchercancellation':
-      return { label: 'Payment Voucher', route: movement.referenceId ? `/treasury/payments/${movement.referenceId}` : null };
+      return { label: 'Payment Voucher', route: null };
     case 'transfervoucher':
     case 'transfervouchercancellation':
       return { label: 'Transfer Voucher', route: movement.referenceId ? `/treasury/transfers/${movement.referenceId}` : null };
@@ -138,12 +138,6 @@ function getReferenceRoute(referenceType: string, referenceId: string | null) {
   if (!referenceId) return null;
 
   switch (referenceType.toLowerCase()) {
-    case 'receiptvoucher':
-    case 'receiptvouchercancellation':
-      return `/treasury/receipts/${referenceId}`;
-    case 'paymentvoucher':
-    case 'paymentvouchercancellation':
-      return `/treasury/payments/${referenceId}`;
     case 'transfervoucher':
     case 'transfervouchercancellation':
       return `/treasury/transfers/${referenceId}`;

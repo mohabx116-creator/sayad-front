@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Box from '@mui/material/Box';
@@ -78,31 +78,6 @@ export default function TreasuryStatementsPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             <FormattedMessage id="treasury.statement-description" defaultMessage="عرض حركات الخزينة بأوصاف عملية وروابط مباشرة للمستندات المرتبطة." />
           </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            component={Link}
-            to="/treasury/payments/new"
-            variant="outlined"
-            color="secondary"
-            sx={{
-              bgcolor: 'secondary.lighter',
-              color: 'secondary.dark',
-              borderColor: 'secondary.light',
-              '&:hover': { bgcolor: 'secondary.light', borderColor: 'secondary.main' }
-            }}
-          >
-            <FormattedMessage id="create-payment" defaultMessage="سند صرف" />
-          </Button>
-          <Button
-            component={Link}
-            to="/treasury/receipts/new"
-            variant="contained"
-            color="primary"
-            sx={{ boxShadow: '0 4px 14px 0 rgba(0, 97, 164, 0.3)' }}
-          >
-            <FormattedMessage id="create-receipt" defaultMessage="سند قبض" />
-          </Button>
         </Box>
       </Box>
 

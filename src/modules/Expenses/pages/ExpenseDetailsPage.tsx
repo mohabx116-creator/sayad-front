@@ -3,12 +3,11 @@ import { Link, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
 import Typography from '@mui/material/Typography';
-import { IconArrowRight, IconInfoCircle } from '@tabler/icons-react';
+import { IconInfoCircle } from '@tabler/icons-react';
 
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
@@ -78,9 +77,11 @@ export default function ExpenseDetailsPage() {
             </Box>
           </Box>
           {expense.treasuryPaymentId && (
-            <Button component={Link} to={`/treasury/payments/${expense.treasuryPaymentId}`} variant="outlined" startIcon={<IconArrowRight size={16} />}>
-              <FormattedMessage id="expenses.treasury-reference" defaultMessage="Treasury Reference" />
-            </Button>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="body2" color="text.secondary">
+                <FormattedMessage id="expenses.treasury-reference" defaultMessage="Treasury Reference" />
+              </Typography>
+            </Box>
           )}
         </Box>
       </Box>
