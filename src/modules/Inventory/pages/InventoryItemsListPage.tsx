@@ -22,6 +22,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import {
+  IconDownload,
   IconEdit,
   IconEye,
   IconPackage,
@@ -29,7 +30,8 @@ import {
   IconReportAnalytics,
   IconSearch,
   IconToggleLeft,
-  IconToggleRight
+  IconToggleRight,
+  IconUpload
 } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
@@ -39,7 +41,8 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 
-import { activateItem, deactivateItem } from '../api/inventoryApi';
+import { activateItem, deactivateItem, downloadItemsImportTemplate, exportItemsToExcel } from '../api/inventoryApi';
+import ItemImportWizard from '../components/ItemImportWizard';
 import { useInventoryCategories, useInventoryItems, useInventoryStockReport } from '../hooks/useInventory';
 import { INVENTORY_PERMISSIONS, ITEM_TYPES, getItemTypeLabel } from '../utils/inventory.constants';
 
@@ -161,6 +164,17 @@ function mapSummaryStatusForReport(status: ItemStatusFilter) {
   }
 }
 
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export default function InventoryItemsListPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
@@ -171,6 +185,7 @@ export default function InventoryItemsListPage() {
   const [itemType, setItemType] = useState('');
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('All');
   const [statusFilter, setStatusFilter] = useState<ItemStatusFilter>('All');
+  const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(searchInput.trim(), 300);
 
   const categoryQuery = useMemo(() => ({ page: 1, pageSize: 100, isActive: true }), []);
@@ -209,6 +224,26 @@ export default function InventoryItemsListPage() {
 
   const refreshAll = async () => {
     await Promise.all([mutate(), mutateReport()]);
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await exportItemsToExcel();
+      downloadBlob(blob, 'items-export.xlsx');
+      notify('تم تصدير الأصناف إلى Excel بنجاح.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تصدير الأصناف إلى Excel.', 'error');
+    }
+  };
+
+  const handleTemplateDownload = async () => {
+    try {
+      const blob = await downloadItemsImportTemplate();
+      downloadBlob(blob, 'items-import-template.xlsx');
+      notify('تم تحميل قالب الاستيراد بنجاح.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تنزيل قالب الاستيراد.', 'error');
+    }
   };
 
   const toggle = async (id: string, active: boolean) => {
@@ -293,10 +328,23 @@ export default function InventoryItemsListPage() {
           <Button variant="outlined" color="inherit" startIcon={<IconRefresh size={18} />} onClick={() => void refreshAll()}>
             <FormattedMessage id="refresh" />
           </Button>
+          <Button variant="outlined" color="inherit" startIcon={<IconDownload size={18} />} onClick={() => void handleExport()}>
+            تصدير Excel
+          </Button>
           <PermissionGuard permission={INVENTORY_PERMISSIONS.view}>
             <Button component={Link} to="/inventory/reports/stock" variant="outlined" color="inherit" startIcon={<IconReportAnalytics size={18} />}>
               <FormattedMessage id="inventory-stock-report" defaultMessage="Stock Report" />
             </Button>
+          </PermissionGuard>
+          <PermissionGuard permission={INVENTORY_PERMISSIONS.itemsCreate}>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Button variant="outlined" color="inherit" startIcon={<IconDownload size={18} />} onClick={() => void handleTemplateDownload()}>
+                تحميل قالب الاستيراد
+              </Button>
+              <Button variant="contained" startIcon={<IconUpload size={18} />} onClick={() => setIsImportWizardOpen(true)}>
+                استيراد جماعي
+              </Button>
+            </Stack>
           </PermissionGuard>
           <PermissionGuard permission={INVENTORY_PERMISSIONS.itemsCreate}>
             <Button component={Link} to="/inventory/items/new" variant="contained" startIcon={<IconPackage size={18} />}>
@@ -612,6 +660,14 @@ export default function InventoryItemsListPage() {
           </>
         )}
       </MainCard>
+
+      <ItemImportWizard
+        open={isImportWizardOpen}
+        onClose={() => setIsImportWizardOpen(false)}
+        onImported={async () => {
+          await refreshAll();
+        }}
+      />
     </>
   );
 }

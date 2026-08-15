@@ -293,6 +293,58 @@ export type UpdateItemRequest = CreateItemRequest & {
   rowVersion: string;
 };
 
+export type ItemImportValidationErrorDto = {
+  rowNumber: number;
+  field: string;
+  code: string;
+  message: string;
+};
+
+export type ItemImportPreviewRowDto = {
+  rowNumber: number;
+  nameArabic?: string | null;
+  nameEnglish?: string | null;
+  itemType?: string | null;
+  baseUnitCode?: string | null;
+  baseUnitNameArabic?: string | null;
+  resolvedBaseUnitCode?: string | null;
+  resolvedBaseUnitNameArabic?: string | null;
+  categoryCode?: string | null;
+  categoryNameArabic?: string | null;
+  resolvedCategoryCode?: string | null;
+  resolvedCategoryNameArabic?: string | null;
+  sku?: string | null;
+  barcode?: string | null;
+  descriptionArabic?: string | null;
+  descriptionEnglish?: string | null;
+  isPurchasable?: boolean | null;
+  isSellable?: boolean | null;
+  minimumQuantity?: number | null;
+  reorderQuantity?: number | null;
+  allowNegativeStock?: boolean | null;
+  defaultSalePrice?: number | null;
+  notes?: string | null;
+  errors: ItemImportValidationErrorDto[];
+  isValid: boolean;
+};
+
+export type ItemImportPreviewResultDto = {
+  rows: ItemImportPreviewRowDto[];
+  totalRows: number;
+  validRows: number;
+  failedRows: number;
+};
+
+export type ItemImportCommitRequest = {
+  rows: ItemImportPreviewRowDto[];
+};
+
+export type ItemImportCommitResultDto = {
+  totalRows: number;
+  importedRows: number;
+  failedRows: number;
+};
+
 export type CreateCategoryRequest = {
   nameArabic: string;
   nameEnglish?: string | null;

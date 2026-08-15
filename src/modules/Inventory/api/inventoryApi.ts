@@ -18,6 +18,9 @@ import type {
   InventoryStockReportDto,
   ItemCategoryDto,
   ItemDto,
+  ItemImportCommitRequest,
+  ItemImportCommitResultDto,
+  ItemImportPreviewResultDto,
   ItemUnitInput,
   ItemUnitDto,
   InventoryValuationSummaryDto,
@@ -61,6 +64,26 @@ export function activateItem(id: string) {
 
 export function deactivateItem(id: string) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/inventory/items/${id}/deactivate`, {}));
+}
+
+export async function exportItemsToExcel() {
+  const response = await axiosServices.get<Blob>('/api/inventory/items/export', { responseType: 'blob' });
+  return response.data;
+}
+
+export async function downloadItemsImportTemplate() {
+  const response = await axiosServices.get<Blob>('/api/inventory/items/template', { responseType: 'blob' });
+  return response.data;
+}
+
+export function previewItemsImport(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return unwrap(axiosServices.post<ApiResponse<ItemImportPreviewResultDto>>('/api/inventory/items/import/preview', formData));
+}
+
+export function commitItemsImport(request: ItemImportCommitRequest) {
+  return unwrap(axiosServices.post<ApiResponse<ItemImportCommitResultDto>>('/api/inventory/items/import/commit', request));
 }
 
 export function createCategory(request: CreateCategoryRequest) {
