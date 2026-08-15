@@ -35,12 +35,14 @@ import {
   IconArrowUpRight,
   IconBuildingBank,
   IconCheck,
+  IconDownload,
   IconEye,
   IconLayoutGrid,
   IconList,
   IconPlus,
   IconRefresh,
   IconSearch,
+  IconUpload,
   IconWallet,
   IconX
 } from '@tabler/icons-react';
@@ -54,9 +56,10 @@ import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 
 import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/TreasuryConfirmationDialog';
 import TreasuryAccountCard from '../components/TreasuryAccountCard';
+import TreasuryAccountImportWizard from '../components/TreasuryAccountImportWizard';
 import TreasuryDeferredSection from '../components/TreasuryDeferredSection';
 import TreasuryMovementTable from '../components/TreasuryMovementTable';
-import { activateTreasuryAccount, deactivateTreasuryAccount } from '../api/treasuryApi';
+import { activateTreasuryAccount, deactivateTreasuryAccount, downloadTreasuryAccountsImportTemplate, exportTreasuryAccountsToExcel } from '../api/treasuryApi';
 import { useTreasuryAccounts, useTreasuryDashboardSummary } from '../hooks/useTreasury';
 import { TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import { formatTreasuryMoney } from '../utils/treasury.format';
@@ -79,6 +82,17 @@ function formatMovementDate(value: string | null, locale: string) {
   }).format(parsed);
 }
 
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export default function TreasuryAccountsListPage() {
   const theme = useTheme();
   const intl = useIntl();
@@ -89,6 +103,7 @@ export default function TreasuryAccountsListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
   const [params, setParams] = useState<TreasuryListParams>({
     page: 1,
     pageSize: 50
@@ -167,6 +182,26 @@ export default function TreasuryAccountsListPage() {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
+  const handleExport = async () => {
+    try {
+      const blob = await exportTreasuryAccountsToExcel();
+      downloadBlob(blob, 'treasury-accounts-export.xlsx');
+      notify('تم تصدير حسابات الخزينة إلى Excel بنجاح.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تصدير حسابات الخزينة إلى Excel.', 'error');
+    }
+  };
+
+  const handleTemplateDownload = async () => {
+    try {
+      const blob = await downloadTreasuryAccountsImportTemplate();
+      downloadBlob(blob, 'treasury-accounts-import-template.xlsx');
+      notify('تم تنزيل قالب الاستيراد بنجاح.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تنزيل قالب الاستيراد.', 'error');
+    }
+  };
+
   const handleConfirmAction = async () => {
     setIsProcessing(true);
     try {
@@ -225,6 +260,42 @@ export default function TreasuryAccountsListPage() {
                 <IconRefresh size={19} />
               </IconButton>
             </Tooltip>
+
+            <PermissionGuard permission={TREASURY_PERMISSIONS.accountsView}>
+              <Button
+                onClick={handleExport}
+                variant="outlined"
+                size="large"
+                startIcon={<IconDownload size={20} />}
+                sx={{ borderRadius: 2.5, px: 3, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
+              >
+                تصدير Excel
+              </Button>
+            </PermissionGuard>
+
+            <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
+              <Button
+                onClick={handleTemplateDownload}
+                variant="outlined"
+                size="large"
+                startIcon={<IconDownload size={20} />}
+                sx={{ borderRadius: 2.5, px: 3, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
+              >
+                تحميل قالب الاستيراد
+              </Button>
+            </PermissionGuard>
+
+            <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
+              <Button
+                onClick={() => setIsImportWizardOpen(true)}
+                variant="outlined"
+                size="large"
+                startIcon={<IconUpload size={20} />}
+                sx={{ borderRadius: 2.5, px: 3, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
+              >
+                استيراد جماعي
+              </Button>
+            </PermissionGuard>
 
             <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
               <Button
@@ -416,6 +487,18 @@ export default function TreasuryAccountsListPage() {
           </Card>
         </Grid>
       </Grid>
+
+      <TreasuryAccountImportWizard
+        open={isImportWizardOpen}
+        onClose={() => setIsImportWizardOpen(false)}
+        onImported={async () => {
+          await Promise.all([
+            mutate(),
+            mutateSummary(),
+            mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'))
+          ]);
+        }}
+      />
 
       {/* 3. Toolbar: Search, Status Filter & View Mode */}
       <Box

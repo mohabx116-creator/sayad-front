@@ -85,6 +85,47 @@ export interface TreasuryAccountListItem {
   rowVersion: string;
 }
 
+export interface TreasuryAccountImportValidationErrorDto {
+  rowNumber: number;
+  field: string;
+  code: string;
+  message: string;
+}
+
+export interface TreasuryAccountImportPreviewRowDto {
+  rowNumber: number;
+  code: string | null;
+  nameArabic: string | null;
+  nameEnglish: string | null;
+  accountType: string | null;
+  accountTypeLabel: string | null;
+  currencyCode: string | null;
+  notes: string | null;
+  allowNegativeBalance: boolean | null;
+  accountingAccountCode: string | null;
+  accountingAccountNameArabic: string | null;
+  resolvedAccountingAccountDisplayName: string | null;
+  errors: TreasuryAccountImportValidationErrorDto[];
+  isValid: boolean;
+}
+
+export interface TreasuryAccountImportPreviewResultDto {
+  rows: TreasuryAccountImportPreviewRowDto[];
+  totalRows: number;
+  validRows: number;
+  failedRows: number;
+}
+
+export interface TreasuryAccountImportCommitRequest {
+  rows: TreasuryAccountImportPreviewRowDto[];
+}
+
+export interface TreasuryAccountImportCommitResultDto {
+  totalRows: number;
+  importedRows: number;
+  failedRows: number;
+}
+
 export interface TreasuryAccountLookup {
   id: string;
   code: string;

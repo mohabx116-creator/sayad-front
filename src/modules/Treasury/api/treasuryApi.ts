@@ -5,6 +5,9 @@ import type { ApiResponse } from 'types/api';
 import { TREASURY_MAX_PAGE_SIZE } from '../utils/treasury.constants';
 import type {
   TreasuryAccount,
+  TreasuryAccountImportCommitRequest,
+  TreasuryAccountImportCommitResultDto,
+  TreasuryAccountImportPreviewResultDto,
   TreasuryAccountDeletionPreview,
   TreasuryAccountInput,
   TreasuryAccountListItem,
@@ -76,6 +79,26 @@ export function listTreasuryAccounts(params: TreasuryListParams) {
 
 export function getTreasuryAccount(id: string) {
   return unwrap(axiosServices.get<ApiResponse<TreasuryAccount>>(`/api/treasury/accounts/${id}`));
+}
+
+export async function exportTreasuryAccountsToExcel() {
+  const response = await axiosServices.get<Blob>('/api/treasury/accounts/export', { responseType: 'blob' });
+  return response.data;
+}
+
+export async function downloadTreasuryAccountsImportTemplate() {
+  const response = await axiosServices.get<Blob>('/api/treasury/accounts/template', { responseType: 'blob' });
+  return response.data;
+}
+
+export function previewTreasuryAccountsImport(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return unwrap(axiosServices.post<ApiResponse<TreasuryAccountImportPreviewResultDto>>('/api/treasury/accounts/import/preview', formData));
+}
+
+export function commitTreasuryAccountsImport(request: TreasuryAccountImportCommitRequest) {
+  return unwrap(axiosServices.post<ApiResponse<TreasuryAccountImportCommitResultDto>>('/api/treasury/accounts/import/commit', request));
 }
 
 export function createTreasuryAccount(request: TreasuryAccountInput) {
