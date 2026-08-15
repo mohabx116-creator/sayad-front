@@ -53,6 +53,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import MainCard from 'ui-component/cards/MainCard';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { ExcelActions } from 'shared/components/excel';
 
 import TreasuryConfirmationDialog, { TreasuryActionType } from '../components/TreasuryConfirmationDialog';
 import TreasuryAccountCard from '../components/TreasuryAccountCard';
@@ -261,41 +262,16 @@ export default function TreasuryAccountsListPage() {
               </IconButton>
             </Tooltip>
 
-            <PermissionGuard permission={TREASURY_PERMISSIONS.accountsView}>
-              <Button
-                onClick={handleExport}
-                variant="outlined"
-                size="large"
-                startIcon={<IconDownload size={20} />}
-                sx={{ borderRadius: 2.5, px: 3, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
-              >
-                تصدير Excel
-              </Button>
-            </PermissionGuard>
-
-            <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
-              <Button
-                onClick={handleTemplateDownload}
-                variant="outlined"
-                size="large"
-                startIcon={<IconDownload size={20} />}
-                sx={{ borderRadius: 2.5, px: 3, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
-              >
-                تحميل قالب الاستيراد
-              </Button>
-            </PermissionGuard>
-
-            <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
-              <Button
-                onClick={() => setIsImportWizardOpen(true)}
-                variant="outlined"
-                size="large"
-                startIcon={<IconUpload size={20} />}
-                sx={{ borderRadius: 2.5, px: 3, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
-              >
-                استيراد جماعي
-              </Button>
-            </PermissionGuard>
+            <ExcelActions
+              onExport={handleExport}
+              onDownloadTemplate={handleTemplateDownload}
+              onImportClick={() => setIsImportWizardOpen(true)}
+              exportPermission={TREASURY_PERMISSIONS.accountsView}
+              templatePermission={TREASURY_PERMISSIONS.accountsCreate}
+              importPermission={TREASURY_PERMISSIONS.accountsCreate}
+              size="large"
+              sx={{ borderRadius: 2.5, px: 2.5, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
+            />
 
             <PermissionGuard permission={TREASURY_PERMISSIONS.accountsCreate}>
               <Button

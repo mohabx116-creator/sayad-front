@@ -196,7 +196,7 @@ export default function InventoryUnitsPage() {
           </Typography>
         </Box>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems="center">
+        <Stack direction="row" spacing={1.25} alignItems="center" flexWrap="wrap">
           <ExcelActions
             onExport={handleExport}
             onDownloadTemplate={handleTemplateDownload}

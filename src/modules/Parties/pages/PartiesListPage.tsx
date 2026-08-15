@@ -207,7 +207,7 @@ export default function PartiesListPage() {
               />
             </Typography>
           </Box>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+          <Stack direction="row" spacing={1.25} alignItems="center" flexWrap="wrap">
             <ExcelActions
               onExport={handleExport}
               onDownloadTemplate={handleTemplateDownload}

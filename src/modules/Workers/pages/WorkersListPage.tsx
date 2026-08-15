@@ -120,17 +120,42 @@ export default function WorkersListPage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Breadcrumbs custom heading="workers" links={[{ title: 'labor', to: '/labor/workers' }, { title: 'workers' }]} />
-      <Box>
-        <Typography variant="h2" sx={{ fontWeight: 700 }}>
-          <FormattedMessage id="workers" />
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          <FormattedMessage id="workers-page-description" />
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h2" sx={{ fontWeight: 700 }}>
+            <FormattedMessage id="workers" />
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+            <FormattedMessage id="workers-page-description" />
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1.25} alignItems="center" flexWrap="wrap">
+          <ExcelActions
+            onExport={handleExport}
+            onDownloadTemplate={handleTemplateDownload}
+            onImportClick={() => setIsImportWizardOpen(true)}
+            exportPermission={WORKERS_PERMISSIONS.view}
+            templatePermission={WORKERS_PERMISSIONS.create}
+            importPermission={WORKERS_PERMISSIONS.create}
+          />
+          <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
+            <Button component={Link} to="/labor/operational-jobs" variant="outlined" startIcon={<IconClipboardList size={18} />}>
+              <FormattedMessage id="manage-operational-jobs" />
+            </Button>
+          </PermissionGuard>
+          <Button component={Link} to="/labor/workers/salary-report" variant="outlined" startIcon={<IconClipboardList size={18} />}>
+            <FormattedMessage id="salary-report" />
+          </Button>
+          <PermissionGuard permission={WORKERS_PERMISSIONS.create}>
+            <Button component={Link} to="/labor/workers/new" variant="contained" startIcon={<IconPlus size={18} />}>
+              <FormattedMessage id="create-worker" />
+            </Button>
+          </PermissionGuard>
+        </Stack>
       </Box>
 
       <MainCard content={false}>
-        <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr 1fr 1fr' }, gap: 2, alignItems: 'center' }}>
+        <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: '2fr repeat(4, 1fr)' }, gap: 2, alignItems: 'center' }}>
           <OutlinedInput
             value={searchInput}
             onChange={(event) => {
@@ -174,29 +199,6 @@ export default function WorkersListPage() {
             <MenuItem value="asc"><FormattedMessage id="sort-ascending" /></MenuItem>
             <MenuItem value="desc"><FormattedMessage id="sort-descending" /></MenuItem>
           </Select>
-          <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center" flexWrap="wrap">
-            <ExcelActions
-              onExport={handleExport}
-              onDownloadTemplate={handleTemplateDownload}
-              onImportClick={() => setIsImportWizardOpen(true)}
-              exportPermission={WORKERS_PERMISSIONS.view}
-              templatePermission={WORKERS_PERMISSIONS.create}
-              importPermission={WORKERS_PERMISSIONS.create}
-            />
-            <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
-              <Button component={Link} to="/labor/operational-jobs" variant="outlined" startIcon={<IconClipboardList size={18} />}>
-                <FormattedMessage id="manage-operational-jobs" />
-              </Button>
-            </PermissionGuard>
-            <Button component={Link} to="/labor/workers/salary-report" variant="outlined" startIcon={<IconClipboardList size={18} />}>
-              <FormattedMessage id="salary-report" />
-            </Button>
-            <PermissionGuard permission={WORKERS_PERMISSIONS.create}>
-              <Button component={Link} to="/labor/workers/new" variant="contained" startIcon={<IconPlus size={18} />}>
-                <FormattedMessage id="create-worker" />
-              </Button>
-            </PermissionGuard>
-          </Stack>
         </Box>
 
         {isLoading && (
