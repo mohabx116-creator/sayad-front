@@ -39,6 +39,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 import HoverDataCard from 'ui-component/cards/HoverDataCard';
+import CreatePartyDialog from '../components/CreatePartyDialog';
 import PartyCashTransactionDialog from '../components/PartyCashTransactionDialog';
 import PartyImportWizard from '../components/PartyImportWizard';
 
@@ -95,6 +96,7 @@ export default function PartiesListPage() {
   const [status, setStatus] = useState<StatusFilter>('');
   const [cashDialogParty, setCashDialogParty] = useState<{ id: string; name: string; isCustomer: boolean } | null>(null);
   const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const {
     items: parties,
@@ -217,7 +219,7 @@ export default function PartiesListPage() {
               importPermission={PARTIES_PERMISSIONS.create}
             />
             <PermissionGuard permission={PARTIES_PERMISSIONS.create}>
-              <Button component={Link} to="/parties/new" variant="contained" startIcon={<IconPlus size={18} />}>
+              <Button onClick={() => setIsCreateDialogOpen(true)} variant="contained" startIcon={<IconPlus size={18} />}>
                 <FormattedMessage id={isCustomerList ? 'create-customer' : 'create-party'} />
               </Button>
             </PermissionGuard>
@@ -477,6 +479,16 @@ export default function PartiesListPage() {
           </>
         )}
       </Box>
+
+      <CreatePartyDialog
+        open={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        initialPartyType={isSupplierList ? 'supplier' : 'customer'}
+        onSaved={async () => {
+          await mutate();
+          await mutateParties((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+        }}
+      />
 
       <PartyImportWizard
         open={isImportWizardOpen}
