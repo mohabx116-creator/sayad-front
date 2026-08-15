@@ -19,7 +19,8 @@ function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> 
   return request.then((response) => {
     const payload = response.data;
     if (!payload.success || payload.data == null) {
-      throw new Error(payload.message || payload.errors[0] || 'Request failed');
+      const message = payload.message || payload.errors[0] || 'Request failed';
+      throw Object.assign(new Error(message), { response: { data: payload } });
     }
 
     return payload.data;

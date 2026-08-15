@@ -969,6 +969,7 @@
   "sales-action-failed": "Sales action failed.",
   "sales-action-success": "Sales document saved successfully.",
   "sales-customer-required": "Select a customer first.",
+  "sales-invoice-direct-settlement-treasury-required": "A treasury account is required for direct settlement.",
   "sales-empty": "No matching sales documents.",
   "sales-invoice-required": "Select a sales invoice first.",
   "sales-lines-required": "Add at least one sales line.",

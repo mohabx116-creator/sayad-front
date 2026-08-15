@@ -970,6 +970,7 @@
   "sales-action-failed": "تعذر تنفيذ عملية المبيعات.",
   "sales-action-success": "تم حفظ مستند المبيعات بنجاح.",
   "sales-customer-required": "اختر عميلاً أولاً.",
+  "sales-invoice-direct-settlement-treasury-required": "يجب اختيار حساب خزينة للتسوية المباشرة.",
   "sales-empty": "لا توجد مستندات مبيعات مطابقة.",
   "sales-invoice-required": "اختر فاتورة مبيعات أولاً.",
   "sales-lines-required": "أضف صنفاً واحداً على الأقل.",

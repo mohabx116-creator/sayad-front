@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage, useIntl, type IntlShape } from 'react-intl';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
@@ -47,6 +47,7 @@ import {
   isDirectInvoicePaymentMethod,
   normalizeInvoicePaymentMethod
 } from 'shared/utils/invoiceSettlement';
+import type { ApiResponse } from 'types/api';
 
 type EditableLine = SalesLineInput & {
   itemCode?: string;
@@ -59,6 +60,7 @@ type EditableLine = SalesLineInput & {
 
 const today = new Date().toISOString().slice(0, 10);
 const invoiceCurrencyCode = 'EGP';
+const DIRECT_SETTLEMENT_TREASURY_REQUIRED_MESSAGE_ID = 'sales-invoice-direct-settlement-treasury-required';
 
 function emptyLine(): EditableLine {
   return {
@@ -75,6 +77,146 @@ function emptyLine(): EditableLine {
     factorToBase: 1,
     priceSource: 'auto',
     unitOptions: []
+  };
+}
+
+type SalesInvoiceFormFieldName = 'customerId' | 'invoiceDate' | 'dueDate' | 'paymentMethod' | 'treasuryAccountId' | 'headerDiscount' | 'otherCharges' | 'notes';
+
+type SalesInvoiceFormFieldErrors = Partial<Record<SalesInvoiceFormFieldName, string>>;
+
+type SalesInvoiceValidationState = {
+  summary: string;
+  fieldErrors: SalesInvoiceFormFieldErrors;
+};
+
+function normalizeValidationMessage(message: string) {
+  return message.toLowerCase().trim();
+}
+
+function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape): SalesInvoiceFormFieldErrors {
+  const normalized = normalizeValidationMessage(message);
+
+  if (!normalized) {
+    return {};
+  }
+
+  if (
+    normalized.includes('treasury account is required for direct invoice settlement') ||
+    normalized.includes('treasury account is not linked to a valid accounting account') ||
+    normalized.includes('treasury account type is not compatible with the selected payment method')
+  ) {
+    return {
+      treasuryAccountId: intl.formatMessage({
+        id: DIRECT_SETTLEMENT_TREASURY_REQUIRED_MESSAGE_ID,
+        defaultMessage: 'يجب اختيار حساب خزينة للتسوية المباشرة.'
+      })
+    };
+  }
+
+  if (
+    normalized.includes('customerid') && normalized.includes('required') ||
+    normalized.includes('customer was not found') ||
+    normalized.includes('select a customer first') ||
+    normalized.includes('اختر عميلاً أولاً')
+  ) {
+    return {
+      customerId: intl.formatMessage({ id: 'sales-customer-required', defaultMessage: 'اختر عميلاً أولاً.' })
+    };
+  }
+
+  if (
+    normalized.includes('invoice date') && normalized.includes('required') ||
+    normalized.includes('invoice date must') ||
+    normalized.includes('invoice date')
+  ) {
+    return { invoiceDate: intl.formatMessage({ id: 'sales-invoice-date-invalid', defaultMessage: 'تاريخ الفاتورة غير صالح.' }) };
+  }
+
+  if (normalized.includes('due date') || normalized.includes('تاريخ الاستحقاق')) {
+    return {
+      dueDate: intl.formatMessage({
+        id: 'sales-due-date-invalid',
+        defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.'
+      })
+    };
+  }
+
+  if (normalized.includes('payment method') && normalized.includes('required')) {
+    return {
+      paymentMethod: intl.formatMessage({
+        id: 'sales-payment-method-invalid',
+        defaultMessage: 'طريقة الدفع غير صالحة.'
+      })
+    };
+  }
+
+  if (normalized.includes('headerdiscount')) {
+    return {
+      headerDiscount: intl.formatMessage({
+        id: 'sales-header-discount-invalid',
+        defaultMessage: 'خصم الرأس غير صالح.'
+      })
+    };
+  }
+
+  if (normalized.includes('othercharges')) {
+    return {
+      otherCharges: intl.formatMessage({
+        id: 'sales-other-charges-invalid',
+        defaultMessage: 'الرسوم الإضافية غير صالحة.'
+      })
+    };
+  }
+
+  if (normalized.includes('notes') && normalized.includes('maximum')) {
+    return {
+      notes: intl.formatMessage({
+        id: 'sales-notes-too-long',
+        defaultMessage: 'الملاحظات طويلة جداً.'
+      })
+    };
+  }
+
+  return {};
+}
+
+function resolveSalesInvoiceValidationState(error: unknown, intl: IntlShape): SalesInvoiceValidationState {
+  const apiError = error as { response?: { data?: ApiResponse<unknown> } } | undefined;
+  const response = apiError?.response?.data;
+  const messages = [
+    ...(response?.errors ?? []),
+    typeof response?.message === 'string' ? response.message : '',
+    error instanceof Error ? error.message : ''
+  ]
+    .map((message) => message.trim())
+    .filter((message) => {
+      const normalized = normalizeValidationMessage(message);
+      return Boolean(message) && normalized !== 'validation failed' && normalized !== 'request failed';
+    });
+
+  const fieldErrors: SalesInvoiceFormFieldErrors = {};
+  const summaryMessages: string[] = [];
+
+  messages.forEach((message) => {
+    const classified = classifySalesInvoiceValidationMessage(message, intl);
+    const fieldName = Object.keys(classified)[0] as SalesInvoiceFormFieldName | undefined;
+
+    if (fieldName) {
+      fieldErrors[fieldName] = classified[fieldName]!;
+      return;
+    }
+
+    summaryMessages.push(message);
+  });
+
+  return {
+    fieldErrors,
+    summary:
+      summaryMessages[0] ??
+      intl.formatMessage({
+        id: 'sales-action-failed',
+        defaultMessage: 'Sales action failed.'
+      })
   };
 }
 
@@ -103,6 +245,7 @@ export default function SalesInvoiceFormPage() {
   }));
   const [rows, setRows] = useState<EditableLine[]>([emptyLine()]);
   const [isSaving, setIsSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<SalesInvoiceFormFieldErrors>({});
 
   useEffect(() => {
     let active = true;
@@ -286,6 +429,7 @@ export default function SalesInvoiceFormPage() {
 
     try {
       setIsSaving(true);
+      setFieldErrors({});
       let savedInvoiceId = '';
       let savedRowVersion = '';
 
@@ -309,7 +453,12 @@ export default function SalesInvoiceFormPage() {
       }
 
     } catch (saveError) {
-      notify(saveError instanceof Error ? saveError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
+      const validationState = resolveSalesInvoiceValidationState(saveError, intl);
+      if (Object.keys(validationState.fieldErrors).length > 0) {
+        setFieldErrors(validationState.fieldErrors);
+      }
+
+      notify(validationState.summary, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -353,16 +502,36 @@ export default function SalesInvoiceFormPage() {
             </Box>
             <Grid container spacing={4}>
                <Grid item xs={12} md={4}>
-                  <Autocomplete
+              <Autocomplete
                      options={customers}
                      getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
                      value={customerLookup.get(form.customerId) || null}
                      onChange={(_, newValue) => setForm({ ...form, customerId: newValue?.id || '' })}
-                     renderInput={(params) => <TextField {...params} required label={<FormattedMessage id="customer" />} variant="outlined" InputLabelProps={{ shrink: true }} />}
+                     renderInput={(params) => (
+                       <TextField
+                         {...params}
+                         required
+                         label={<FormattedMessage id="customer" />}
+                         variant="outlined"
+                         InputLabelProps={{ shrink: true }}
+                         error={Boolean(fieldErrors.customerId)}
+                         helperText={fieldErrors.customerId ?? ' '}
+                       />
+                     )}
                   />
                </Grid>
                <Grid item xs={12} md={4}>
-                  <TextField type="date" required fullWidth InputLabelProps={{ shrink: true }} label={<FormattedMessage id="invoice-date" />} value={form.invoiceDate} onChange={(event) => setForm({ ...form, invoiceDate: event.target.value })} />
+                  <TextField
+                    type="date"
+                    required
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    label={<FormattedMessage id="invoice-date" />}
+                    value={form.invoiceDate}
+                    onChange={(event) => setForm({ ...form, invoiceDate: event.target.value })}
+                    error={Boolean(fieldErrors.invoiceDate)}
+                    helperText={fieldErrors.invoiceDate ?? ' '}
+                  />
                </Grid>
                <Grid item xs={12} md={4}>
                   <TextField
@@ -372,8 +541,13 @@ export default function SalesInvoiceFormPage() {
                     label={<FormattedMessage id="due-date" defaultMessage="تاريخ الاستحقاق" />}
                     value={form.dueDate || ''}
                     onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
-                    error={dueDateError}
-                    helperText={dueDateError ? intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' }) : intl.formatMessage({ id: 'optional-field', defaultMessage: 'اختياري' })}
+                    error={dueDateError || Boolean(fieldErrors.dueDate)}
+                    helperText={
+                      fieldErrors.dueDate ??
+                      (dueDateError
+                        ? intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' })
+                        : intl.formatMessage({ id: 'optional-field', defaultMessage: 'اختياري' }))
+                    }
                   />
                </Grid>
                <Grid item xs={12} md={4}>
@@ -415,6 +589,8 @@ export default function SalesInvoiceFormPage() {
                     treasuryAccountId: event.target.value === 'Credit' ? null : current.treasuryAccountId
                   }))
                 }
+                error={Boolean(fieldErrors.paymentMethod)}
+                helperText={fieldErrors.paymentMethod ?? ' '}
               >
                 <MenuItem value="Credit">{getInvoicePaymentMethodLabel(intl.locale, 'Credit')}</MenuItem>
                 <MenuItem value="Cash">{getInvoicePaymentMethodLabel(intl.locale, 'Cash')}</MenuItem>
@@ -425,8 +601,8 @@ export default function SalesInvoiceFormPage() {
             <Grid item xs={12} md={8}>
               {settlementRequiresTreasuryAccount ? (
                 compatibleTreasuryAccounts.length === 0 ? (
-                  <Alert severity="warning" variant="outlined">
-                    {settlementError}
+                  <Alert severity={fieldErrors.treasuryAccountId ? 'error' : 'warning'} variant="outlined">
+                    {fieldErrors.treasuryAccountId ?? settlementError}
                   </Alert>
                 ) : compatibleTreasuryAccounts.length === 1 ? (
                   <TextField
@@ -434,7 +610,12 @@ export default function SalesInvoiceFormPage() {
                     label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
                     value={`${compatibleTreasuryAccounts[0].code} - ${compatibleTreasuryAccounts[0].nameArabic}`}
                     InputProps={{ readOnly: true }}
-                    helperText={<FormattedMessage id="invoice-settlement.auto-selected-account" defaultMessage="A single compatible treasury account was selected automatically." />}
+                    error={Boolean(fieldErrors.treasuryAccountId)}
+                    helperText={
+                      fieldErrors.treasuryAccountId ?? (
+                        <FormattedMessage id="invoice-settlement.auto-selected-account" defaultMessage="A single compatible treasury account was selected automatically." />
+                      )
+                    }
                   />
                 ) : (
                   <Autocomplete
@@ -454,7 +635,15 @@ export default function SalesInvoiceFormPage() {
                         {...params}
                         required
                         label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
-                        helperText={<FormattedMessage id="invoice-settlement.select-compatible-account" defaultMessage="Select an active treasury account that matches the payment method and invoice currency." />}
+                        error={Boolean(fieldErrors.treasuryAccountId)}
+                        helperText={
+                          fieldErrors.treasuryAccountId ?? (
+                            <FormattedMessage
+                              id="invoice-settlement.select-compatible-account"
+                              defaultMessage="Select an active treasury account that matches the payment method and invoice currency."
+                            />
+                          )
+                        }
                       />
                     )}
                   />
@@ -659,7 +848,7 @@ export default function SalesInvoiceFormPage() {
          </Button>
          {(!isEdit || (isEdit && invoice?.status === 'Draft')) && (
             <PermissionGuard permission={SALES_PERMISSIONS.invoicesPost}>
-               <Button
+                <Button
                  variant="contained"
                  color="primary"
                  onClick={() => submit('post')}
