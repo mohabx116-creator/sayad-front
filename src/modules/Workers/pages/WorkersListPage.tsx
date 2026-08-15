@@ -28,7 +28,8 @@ import { OPERATIONAL_JOBS_PERMISSIONS } from 'modules/OperationalJobs/utils/oper
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import { activateWorker, deactivateWorker } from '../api/workersApi';
+import { activateWorker, deactivateWorker, downloadWorkersImportTemplate, exportWorkersToExcel } from '../api/workersApi';
+import WorkerImportWizard from '../components/WorkerImportWizard';
 import WorkerStatusChip from '../components/WorkerStatusChip';
 import { useWorkers } from '../hooks/useWorkers';
 import { WORKERS_PAGE_SIZE, WORKERS_PERMISSIONS } from '../utils/workers.constants';
@@ -52,6 +53,7 @@ export default function WorkersListPage() {
   const [operationalJobId, setOperationalJobId] = useState('');
   const [sortBy, setSortBy] = useState('code');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
 
   const { items: operationalJobs } = useOperationalJobs({ page: 1, pageSize: 100, sortBy: 'name', sortDirection: 'asc' });
   const { items, meta, isLoading, error, mutate } = useWorkers({
@@ -71,6 +73,37 @@ export default function WorkersListPage() {
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
+  };
+
+  const downloadBlob = (blob: Blob, fileName: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await exportWorkersToExcel();
+      downloadBlob(blob, 'workers-export.xlsx');
+      notify('تم تنزيل ملف Excel بنجاح.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تنزيل ملف Excel.', 'error');
+    }
+  };
+
+  const handleTemplateDownload = async () => {
+    try {
+      const blob = await downloadWorkersImportTemplate();
+      downloadBlob(blob, 'workers-import-template.xlsx');
+      notify('تم تنزيل قالب الاستيراد بنجاح.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'تعذر تنزيل قالب الاستيراد.', 'error');
+    }
   };
 
   const runAction = async (action: () => Promise<unknown>) => {
@@ -141,6 +174,21 @@ export default function WorkersListPage() {
             <MenuItem value="desc"><FormattedMessage id="sort-descending" /></MenuItem>
           </Select>
           <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <PermissionGuard permission={WORKERS_PERMISSIONS.view}>
+              <Button variant="outlined" onClick={handleExport}>
+                تصدير Excel
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard permission={WORKERS_PERMISSIONS.create}>
+              <Button variant="outlined" onClick={handleTemplateDownload}>
+                تحميل قالب الاستيراد
+              </Button>
+            </PermissionGuard>
+            <PermissionGuard permission={WORKERS_PERMISSIONS.create}>
+              <Button variant="outlined" onClick={() => setIsImportWizardOpen(true)}>
+                استيراد جماعي
+              </Button>
+            </PermissionGuard>
             <PermissionGuard permission={OPERATIONAL_JOBS_PERMISSIONS.view}>
               <Button component={Link} to="/labor/operational-jobs" variant="outlined" startIcon={<IconClipboardList size={18} />}>
                 <FormattedMessage id="manage-operational-jobs" />
@@ -284,6 +332,14 @@ export default function WorkersListPage() {
           </>
         )}
       </MainCard>
+
+      <WorkerImportWizard
+        open={isImportWizardOpen}
+        onClose={() => setIsImportWizardOpen(false)}
+        onImported={async () => {
+          await mutate();
+        }}
+      />
     </Box>
   );
 }

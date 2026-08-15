@@ -71,6 +71,51 @@ export type WorkerListItemDto = {
   currentWageProfile: WorkerWageProfileDto | null;
 };
 
+export type WorkerImportValidationErrorDto = {
+  rowNumber: number;
+  field: string;
+  code: string;
+  message: string;
+};
+
+export type WorkerImportPreviewRowDto = {
+  rowNumber: number;
+  code: string | null;
+  name: string | null;
+  mobileNumber: string | null;
+  address: string | null;
+  operationalJobCode: string | null;
+  operationalJobName: string | null;
+  isActive: boolean;
+  wageEffectiveFrom: string | null;
+  dailyWage: number | null;
+  monthlyDaysBasis: number | null;
+  mealAllowanceType: string | null;
+  mealAllowanceValue: number | null;
+  overtimeCalculationType: string | null;
+  overtimeRate: number | null;
+  wageNotes: string | null;
+  errors: WorkerImportValidationErrorDto[];
+  isValid: boolean;
+};
+
+export type WorkerImportPreviewResultDto = {
+  rows: WorkerImportPreviewRowDto[];
+  totalRows: number;
+  validRows: number;
+  failedRows: number;
+};
+
+export type WorkerImportCommitRequest = {
+  rows: WorkerImportPreviewRowDto[];
+};
+
+export type WorkerImportCommitResultDto = {
+  totalRows: number;
+  importedRows: number;
+  failedRows: number;
+};
+
 export type WorkerMonthlySalaryDeductionDto = {
   amount: number;
   reason: string;

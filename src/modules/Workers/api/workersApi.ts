@@ -4,6 +4,9 @@ import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
 import type {
   CreateWorkerRequest,
+  WorkerImportCommitRequest,
+  WorkerImportCommitResultDto,
+  WorkerImportPreviewResultDto,
   ListMeta,
   UpdateWorkerRequest,
   WorkerMonthlySalaryDto,
@@ -61,6 +64,26 @@ export function getWorkerWageProfiles(id: string) {
 
 export function getWorkerSalarySettings(id: string) {
   return unwrap(axiosServices.get<ApiResponse<WorkerSalarySettingsDto>>(`/api/labor/workers/${id}/salary-settings`));
+}
+
+export async function exportWorkersToExcel() {
+  const response = await axiosServices.get<Blob>('/api/labor/workers/export', { responseType: 'blob' });
+  return response.data;
+}
+
+export async function downloadWorkersImportTemplate() {
+  const response = await axiosServices.get<Blob>('/api/labor/workers/template', { responseType: 'blob' });
+  return response.data;
+}
+
+export function previewWorkersImport(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return unwrap(axiosServices.post<ApiResponse<WorkerImportPreviewResultDto>>('/api/labor/workers/import/preview', formData));
+}
+
+export function commitWorkersImport(request: WorkerImportCommitRequest) {
+  return unwrap(axiosServices.post<ApiResponse<WorkerImportCommitResultDto>>('/api/labor/workers/import/commit', request));
 }
 
 export function getWorkerMonthlySalaries(id: string) {
