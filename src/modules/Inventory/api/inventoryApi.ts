@@ -7,6 +7,9 @@ import type {
   CreateItemPartyRelationRequest,
   CreatePartyItemRelationRequest,
   CreateCategoryRequest,
+  CategoryImportCommitRequest,
+  CategoryImportCommitResultDto,
+  CategoryImportPreviewResultDto,
   CreateItemRequest,
   CreateUnitRequest,
   InventoryAdjustmentRequest,
@@ -74,6 +77,26 @@ export function activateCategory(id: string) {
 
 export function deactivateCategory(id: string) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/inventory/categories/${id}/deactivate`, {}));
+}
+
+export async function exportCategoriesToExcel() {
+  const response = await axiosServices.get<Blob>('/api/inventory/categories/export', { responseType: 'blob' });
+  return response.data;
+}
+
+export async function downloadCategoriesImportTemplate() {
+  const response = await axiosServices.get<Blob>('/api/inventory/categories/template', { responseType: 'blob' });
+  return response.data;
+}
+
+export function previewCategoriesImport(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return unwrap(axiosServices.post<ApiResponse<CategoryImportPreviewResultDto>>('/api/inventory/categories/import/preview', formData));
+}
+
+export function commitCategoriesImport(request: CategoryImportCommitRequest) {
+  return unwrap(axiosServices.post<ApiResponse<CategoryImportCommitResultDto>>('/api/inventory/categories/import/commit', request));
 }
 
 export function createUnit(request: CreateUnitRequest) {

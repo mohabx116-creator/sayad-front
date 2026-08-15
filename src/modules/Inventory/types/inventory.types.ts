@@ -304,6 +304,39 @@ export type UpdateCategoryRequest = CreateCategoryRequest & {
   rowVersion: string;
 };
 
+export type CategoryImportValidationErrorDto = {
+  rowNumber: number;
+  field: string;
+  code: string;
+  message: string;
+};
+
+export type CategoryImportPreviewRowDto = {
+  rowNumber: number;
+  nameArabic?: string | null;
+  nameEnglish?: string | null;
+  notes?: string | null;
+  errors: CategoryImportValidationErrorDto[];
+  isValid: boolean;
+};
+
+export type CategoryImportPreviewResultDto = {
+  rows: CategoryImportPreviewRowDto[];
+  totalRows: number;
+  validRows: number;
+  failedRows: number;
+};
+
+export type CategoryImportCommitRequest = {
+  rows: CategoryImportPreviewRowDto[];
+};
+
+export type CategoryImportCommitResultDto = {
+  totalRows: number;
+  importedRows: number;
+  failedRows: number;
+};
+
 export type CreateUnitRequest = {
   code: string;
   nameArabic: string;
