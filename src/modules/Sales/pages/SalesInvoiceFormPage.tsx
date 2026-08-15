@@ -39,9 +39,7 @@ import type { ItemUnitDto } from 'modules/Inventory/types/inventory.types';
 import type { SalesInvoiceInput, SalesLineInput } from '../types/sales.types';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
-import CodeNameLabel from 'shared/components/CodeNameLabel';
 import {
-  getCompatibleTreasuryAccount,
   getCompatibleTreasuryAccounts,
   getInvoicePaymentMethodLabel,
   isDirectInvoicePaymentMethod,
@@ -108,7 +106,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       treasuryAccountId: intl.formatMessage({
         id: DIRECT_SETTLEMENT_TREASURY_REQUIRED_MESSAGE_ID,
-        defaultMessage: 'يجب اختيار حساب خزينة للتسوية المباشرة.'
+        defaultMessage: '??? ?????? ???? ????? ??????? ????????.'
       })
     };
   }
@@ -117,10 +115,10 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     normalized.includes('customerid') && normalized.includes('required') ||
     normalized.includes('customer was not found') ||
     normalized.includes('select a customer first') ||
-    normalized.includes('اختر عميلاً أولاً')
+    normalized.includes('???? ?????? ?????')
   ) {
     return {
-      customerId: intl.formatMessage({ id: 'sales-customer-required', defaultMessage: 'اختر عميلاً أولاً.' })
+      customerId: intl.formatMessage({ id: 'sales-customer-required', defaultMessage: '???? ?????? ?????.' })
     };
   }
 
@@ -129,14 +127,14 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     normalized.includes('invoice date must') ||
     normalized.includes('invoice date')
   ) {
-    return { invoiceDate: intl.formatMessage({ id: 'sales-invoice-date-invalid', defaultMessage: 'تاريخ الفاتورة غير صالح.' }) };
+    return { invoiceDate: intl.formatMessage({ id: 'sales-invoice-date-invalid', defaultMessage: '????? ???????? ??? ????.' }) };
   }
 
-  if (normalized.includes('due date') || normalized.includes('تاريخ الاستحقاق')) {
+  if (normalized.includes('due date') || normalized.includes('????? ?????????')) {
     return {
       dueDate: intl.formatMessage({
         id: 'sales-due-date-invalid',
-        defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.'
+        defaultMessage: '????? ????????? ??? ??? ???? ????? ????????.'
       })
     };
   }
@@ -145,7 +143,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       paymentMethod: intl.formatMessage({
         id: 'sales-payment-method-invalid',
-        defaultMessage: 'طريقة الدفع غير صالحة.'
+        defaultMessage: '????? ????? ??? ?????.'
       })
     };
   }
@@ -154,7 +152,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       headerDiscount: intl.formatMessage({
         id: 'sales-header-discount-invalid',
-        defaultMessage: 'خصم الرأس غير صالح.'
+        defaultMessage: '??? ????? ??? ????.'
       })
     };
   }
@@ -163,7 +161,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       otherCharges: intl.formatMessage({
         id: 'sales-other-charges-invalid',
-        defaultMessage: 'الرسوم الإضافية غير صالحة.'
+        defaultMessage: '?????? ???????? ??? ?????.'
       })
     };
   }
@@ -172,7 +170,7 @@ function classifySalesInvoiceValidationMessage(message: string, intl: IntlShape)
     return {
       notes: intl.formatMessage({
         id: 'sales-notes-too-long',
-        defaultMessage: 'الملاحظات طويلة جداً.'
+        defaultMessage: '????????? ????? ????.'
       })
     };
   }
@@ -306,21 +304,25 @@ export default function SalesInvoiceFormPage() {
   );
 
   useEffect(() => {
-    if (isDirectInvoicePaymentMethod(form.paymentMethod)) {
-      const autoSelected = getCompatibleTreasuryAccount(treasuryAccounts, form.paymentMethod, invoice?.currencyCode ?? invoiceCurrencyCode);
-      if (autoSelected && form.treasuryAccountId !== autoSelected.id) {
-        setForm((current) => ({ ...current, treasuryAccountId: autoSelected.id }));
-      }
-      if (!autoSelected && compatibleTreasuryAccounts.length === 0 && form.treasuryAccountId) {
+    if (!isDirectInvoicePaymentMethod(form.paymentMethod)) {
+      if (form.treasuryAccountId) {
         setForm((current) => ({ ...current, treasuryAccountId: null }));
       }
-      if (compatibleTreasuryAccounts.length > 1 && form.treasuryAccountId && !compatibleTreasuryAccounts.some((account) => account.id === form.treasuryAccountId)) {
-        setForm((current) => ({ ...current, treasuryAccountId: null }));
+      return;
+    }
+
+    if (compatibleTreasuryAccounts.length === 1) {
+      const onlyAccount = compatibleTreasuryAccounts[0];
+      if (form.treasuryAccountId !== onlyAccount.id) {
+        setForm((current) => ({ ...current, treasuryAccountId: onlyAccount.id }));
       }
-    } else if (form.treasuryAccountId) {
+      return;
+    }
+
+    if (form.treasuryAccountId && !compatibleTreasuryAccounts.some((account) => account.id === form.treasuryAccountId)) {
       setForm((current) => ({ ...current, treasuryAccountId: null }));
     }
-  }, [compatibleTreasuryAccounts, form.paymentMethod, form.treasuryAccountId, invoice?.currencyCode, treasuryAccounts]);
+  }, [compatibleTreasuryAccounts, form.paymentMethod, form.treasuryAccountId]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -348,8 +350,15 @@ export default function SalesInvoiceFormPage() {
   const removeRow = (index: number) => setRows((current) => current.filter((_, rowIndex) => rowIndex !== index));
   const dueDateError = Boolean(form.dueDate && form.dueDate < form.invoiceDate);
   const settlementRequiresTreasuryAccount = isDirectInvoicePaymentMethod(form.paymentMethod);
-  const settlementError =
-    settlementRequiresTreasuryAccount && !selectedTreasuryAccount
+  const treasurySelectionError =
+    settlementRequiresTreasuryAccount && !form.treasuryAccountId && compatibleTreasuryAccounts.length > 0
+      ? intl.formatMessage({
+          id: DIRECT_SETTLEMENT_TREASURY_REQUIRED_MESSAGE_ID,
+          defaultMessage: 'يجب اختيار حساب خزينة للتسوية المباشرة.'
+        })
+      : '';
+  const treasuryAvailabilityWarning =
+    settlementRequiresTreasuryAccount && compatibleTreasuryAccounts.length === 0
       ? intl.formatMessage({
           id: 'invoice-settlement.no-compatible-account',
           defaultMessage: 'No active treasury account is compatible with the selected payment method and invoice currency.'
@@ -398,7 +407,7 @@ export default function SalesInvoiceFormPage() {
       return;
     }
     if (form.dueDate && form.dueDate < form.invoiceDate) {
-      notify(intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' }), 'error');
+      notify(intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: '????? ????????? ??? ??? ???? ????? ????????.' }), 'error');
       return;
     }
     const lines = rows
@@ -490,7 +499,7 @@ export default function SalesInvoiceFormPage() {
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
-        سيتيم ترحيل الفاتورة على حساب العملاء وحساب إيرادات المبيعات.
+        ????? ????? ???????? ??? ???? ??????? ????? ??????? ????????.
       </Alert>
 
       {/* Basic Info Card */}
@@ -538,15 +547,15 @@ export default function SalesInvoiceFormPage() {
                     type="date"
                     fullWidth
                     InputLabelProps={{ shrink: true }}
-                    label={<FormattedMessage id="due-date" defaultMessage="تاريخ الاستحقاق" />}
+                    label={<FormattedMessage id="due-date" defaultMessage="????? ?????????" />}
                     value={form.dueDate || ''}
                     onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
                     error={dueDateError || Boolean(fieldErrors.dueDate)}
                     helperText={
                       fieldErrors.dueDate ??
                       (dueDateError
-                        ? intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: 'تاريخ الاستحقاق يجب ألا يسبق تاريخ الفاتورة.' })
-                        : intl.formatMessage({ id: 'optional-field', defaultMessage: 'اختياري' }))
+                        ? intl.formatMessage({ id: 'sales-due-date-invalid', defaultMessage: '????? ????????? ??? ??? ???? ????? ????????.' })
+                        : intl.formatMessage({ id: 'optional-field', defaultMessage: '???????' }))
                     }
                   />
                </Grid>
@@ -602,20 +611,18 @@ export default function SalesInvoiceFormPage() {
               {settlementRequiresTreasuryAccount ? (
                 compatibleTreasuryAccounts.length === 0 ? (
                   <Alert severity={fieldErrors.treasuryAccountId ? 'error' : 'warning'} variant="outlined">
-                    {fieldErrors.treasuryAccountId ?? settlementError}
+                    {fieldErrors.treasuryAccountId ?? treasuryAvailabilityWarning}
                   </Alert>
                 ) : compatibleTreasuryAccounts.length === 1 ? (
                   <TextField
                     fullWidth
-                    label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
-                    value={`${compatibleTreasuryAccounts[0].code} - ${compatibleTreasuryAccounts[0].nameArabic}`}
+                    label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />}
+                    value={compatibleTreasuryAccounts[0].nameArabic}
                     InputProps={{ readOnly: true }}
                     error={Boolean(fieldErrors.treasuryAccountId)}
-                    helperText={
-                      fieldErrors.treasuryAccountId ?? (
-                        <FormattedMessage id="invoice-settlement.auto-selected-account" defaultMessage="A single compatible treasury account was selected automatically." />
-                      )
-                    }
+                    helperText={fieldErrors.treasuryAccountId ?? treasurySelectionError ?? (
+                      <FormattedMessage id="invoice-settlement.auto-selected-account" defaultMessage="تم اختيار حساب الخزينة المتوافق تلقائياً." />
+                    )}
                   />
                 ) : (
                   <Autocomplete
@@ -623,10 +630,10 @@ export default function SalesInvoiceFormPage() {
                     value={selectedTreasuryAccount}
                     loading={isTreasuryAccountsLoading}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
-                    getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
+                    getOptionLabel={(option) => option.nameArabic}
                     renderOption={(props, option) => (
                       <li {...props}>
-                        <CodeNameLabel code={option.code} nameArabic={option.nameArabic} />
+                        {option.nameArabic}
                       </li>
                     )}
                     onChange={(_, newValue) => setForm((current) => ({ ...current, treasuryAccountId: newValue?.id ?? null }))}
@@ -634,16 +641,14 @@ export default function SalesInvoiceFormPage() {
                       <TextField
                         {...params}
                         required
-                        label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
+                        label={<FormattedMessage id="treasury-account" defaultMessage="حساب الخزينة" />}
                         error={Boolean(fieldErrors.treasuryAccountId)}
-                        helperText={
-                          fieldErrors.treasuryAccountId ?? (
-                            <FormattedMessage
-                              id="invoice-settlement.select-compatible-account"
-                              defaultMessage="Select an active treasury account that matches the payment method and invoice currency."
-                            />
-                          )
-                        }
+                        helperText={fieldErrors.treasuryAccountId ?? treasurySelectionError ?? (
+                          <FormattedMessage
+                            id="invoice-settlement.select-compatible-account"
+                            defaultMessage="اختر حساب خزينة نشط متوافق مع طريقة الدفع وعملة الفاتورة."
+                          />
+                        )}
                       />
                     )}
                   />
@@ -770,7 +775,7 @@ export default function SalesInvoiceFormPage() {
                   startIcon={<IconPlus size={18} />}
                   sx={{ borderRadius: 2, px: 3 }}
                >
-                  <FormattedMessage id="add-item" defaultMessage="إضافة صنف جديد" />
+                  <FormattedMessage id="add-item" defaultMessage="????? ??? ????" />
                </Button>
             </Box>
          </Box>
@@ -790,7 +795,7 @@ export default function SalesInvoiceFormPage() {
                      fullWidth
                      multiline
                      minRows={5}
-                     placeholder={intl.formatMessage({ id: 'notes-placeholder', defaultMessage: 'أضف أي ملاحظات أو شروط خاصة بهذه الفاتورة هنا...' })}
+                     placeholder={intl.formatMessage({ id: 'notes-placeholder', defaultMessage: '??? ?? ??????? ?? ???? ???? ???? ???????? ???...' })}
                      value={form.notes ?? ''}
                      onChange={(event) => setForm({ ...form, notes: event.target.value })}
                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'grey.50' } }}
@@ -805,7 +810,7 @@ export default function SalesInvoiceFormPage() {
                <Box sx={{ p: 3 }}>
                   <Box sx={headerSx}>
                      <IconCalculator color="var(--mui-palette-primary-main)" size={24} />
-                     <Typography variant="h4" fontWeight={600}><FormattedMessage id="totals-summary" defaultMessage="ملخص الحسابات" /></Typography>
+                     <Typography variant="h4" fontWeight={600}><FormattedMessage id="totals-summary" defaultMessage="???? ????????" /></Typography>
                   </Box>
                   <Stack spacing={2.5}>
                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -826,7 +831,7 @@ export default function SalesInvoiceFormPage() {
                      </Box>
                      <Divider sx={{ my: 1 }} />
                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h3" fontWeight={700}><FormattedMessage id="grand-total" defaultMessage="الإجمالي النهائي" /></Typography>
+                        <Typography variant="h3" fontWeight={700}><FormattedMessage id="grand-total" defaultMessage="???????? ???????" /></Typography>
                         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, color: 'primary.main' }}>
                            <Typography variant="h2" fontWeight={800}>{grandTotal.toFixed(2)}</Typography>
                            <Typography variant="body1" fontWeight={600} color="text.secondary"><FormattedMessage id="currency" /></Typography>
@@ -856,7 +861,7 @@ export default function SalesInvoiceFormPage() {
                  sx={{ borderRadius: 2, px: 4, boxShadow: 2 }}
                  startIcon={<IconSend size={18} />}
                >
-                  <FormattedMessage id="post-invoice" defaultMessage="اعتماد الفاتورة" />
+                  <FormattedMessage id="post-invoice" defaultMessage="?????? ????????" />
                </Button>
             </PermissionGuard>
          )}
