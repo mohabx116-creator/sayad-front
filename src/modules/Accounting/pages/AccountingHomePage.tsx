@@ -7,13 +7,13 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/GridLegacy';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Skeleton from '@mui/material/Skeleton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Skeleton from '@mui/material/Skeleton';
 
 import {
   IconWallet,
@@ -22,9 +22,13 @@ import {
   IconUsers,
   IconTruck,
   IconChartLine,
-  IconFileDescription
+  IconFileDescription,
+  IconCalendarStats
 } from '@tabler/icons-react';
 
+import useAuth from 'hooks/useAuth';
+import { hasPermission } from 'modules/Administration/utils/permission-utils';
+import { ACCOUNTING_PERMISSIONS } from 'modules/Accounting/utils/accounting.constants';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import MainCard from 'ui-component/cards/MainCard';
 import PageTitle from 'ui-component/PageTitle';
@@ -48,6 +52,8 @@ function formatDate(locale: string, value: string) {
 export default function AccountingHomePage() {
   const intl = useIntl();
   const locale = intl.locale;
+  const { user } = useAuth();
+  const canViewPeriods = hasPermission(user, ACCOUNTING_PERMISSIONS.periodsView);
 
   const today = dayjs().format('YYYY-MM-DD');
   const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
@@ -247,6 +253,33 @@ export default function AccountingHomePage() {
             )}
           </Grid>
         </Grid>
+
+        {canViewPeriods && (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <MainCard title={<FormattedMessage id="accounting-periods-entry-title" defaultMessage="Fiscal Years & Periods" />}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                  justifyContent="space-between"
+                >
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <FormattedMessage
+                        id="accounting-periods-entry-description"
+                        defaultMessage="Manage fiscal years and open or close accounting periods."
+                      />
+                    </Typography>
+                  </Box>
+                  <Button component={Link} to="/accounting/periods" variant="contained" startIcon={<IconCalendarStats size={18} />}>
+                    <FormattedMessage id="accounting-periods-entry-action" defaultMessage="Open Fiscal Years & Periods" />
+                  </Button>
+                </Stack>
+              </MainCard>
+            </Grid>
+          </Grid>
+        )}
 
         {/* LOWER SECTIONS */}
         <Grid container spacing={3}>
