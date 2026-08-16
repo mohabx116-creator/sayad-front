@@ -27,6 +27,7 @@ export type PartyLedgerEntryDto = {
   entryDate: string;
   entryType: string;
   referenceType: string;
+  referenceId: string | null;
   referenceNumber: string | null;
   descriptionArabic: string;
   descriptionEnglish: string | null;

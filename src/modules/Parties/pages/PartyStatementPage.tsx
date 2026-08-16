@@ -136,18 +136,22 @@ function getMovementTypeSummary(intl: ReturnType<typeof useIntl>, entryType: str
   return label;
 }
 
-function getStatementReferenceRoute(entryType: string, referenceNumber: string | null) {
-  if (!referenceNumber) {
+function getStatementReferenceRoute(referenceType: string, referenceId: string | null) {
+  if (!referenceId) {
     return null;
   }
 
-  switch (entryType) {
-    case 'SalesInvoiceDebit':
-    case 'SalesInvoiceDebitReversal':
-      return `/sales/invoices?search=${encodeURIComponent(referenceNumber)}`;
-    case 'PurchaseInvoiceCredit':
-    case 'PurchaseInvoiceCreditReversal':
-      return `/purchases/invoices?search=${encodeURIComponent(referenceNumber)}`;
+  switch (referenceType) {
+    case 'SalesInvoice':
+    case 'SalesInvoiceCancellation':
+    case 'SalesInvoiceSettlement':
+    case 'SalesInvoiceSettlementCancellation':
+      return `/sales/invoices/${referenceId}`;
+    case 'PurchaseInvoice':
+    case 'PurchaseInvoiceCancellation':
+    case 'PurchaseInvoiceSettlement':
+    case 'PurchaseInvoiceSettlementCancellation':
+      return `/purchases/invoices/${referenceId}`;
     default:
       return null;
   }
@@ -451,7 +455,7 @@ export default function PartyStatementPage() {
                               {entry.referenceNumber && (
                                 <Typography variant="caption" color="text.secondary" display="block" dir="ltr">
                                   {(() => {
-                                    const referenceRoute = getStatementReferenceRoute(entry.entryType, entry.referenceNumber);
+                                    const referenceRoute = getStatementReferenceRoute(entry.referenceType, entry.referenceId);
 
                                     if (!referenceRoute) {
                                       return (
