@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -47,13 +47,20 @@ const getInitials = (name: string) => {
 
 export default function SalesInvoicesListPage() {
   const intl = useIntl();
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') ?? '';
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [status, setStatus] = useState('');
   const [customerId, setCustomerId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  useEffect(() => {
+    setSearch(initialSearch);
+    setPage(0);
+  }, [initialSearch]);
 
   const { items, meta, isLoading, error } = useSalesInvoices({ 
      page: page + 1, 
@@ -164,7 +171,7 @@ export default function SalesInvoicesListPage() {
              <TextField
                size="small"
                fullWidth
-               placeholder={intl.formatMessage({ id: 'search-invoice-or-customer', defaultMessage: 'البحث برقم الفاتورة أو اسم العميل...' })}
+               placeholder={intl.formatMessage({ id: 'search-invoice-or-customer', defaultMessage: 'Ø§Ù„Ø¨Ø­Ø« Ø¨Ø±Ù‚Ù… Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ø£Ùˆ Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„...' })}
                value={search}
                onChange={(event) => { setSearch(event.target.value); setPage(0); }}
                InputProps={{
@@ -178,7 +185,7 @@ export default function SalesInvoicesListPage() {
            </Box>
            <Box sx={{ width: 200 }}>
              <TextField size="small" select fullWidth value={status} onChange={(event) => { setStatus(event.target.value); setPage(0); }} SelectProps={{ displayEmpty: true }}>
-               <MenuItem value=""><FormattedMessage id="all-statuses" defaultMessage="جميع الحالات" /></MenuItem>
+               <MenuItem value=""><FormattedMessage id="all-statuses" defaultMessage="Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª" /></MenuItem>
                <MenuItem value="Draft"><FormattedMessage id="sales.status.draft" /></MenuItem>
                <MenuItem value="Posted"><FormattedMessage id="sales.status.posted" /></MenuItem>
                <MenuItem value="Cancelled"><FormattedMessage id="sales.status.cancelled" /></MenuItem>
@@ -188,11 +195,11 @@ export default function SalesInvoicesListPage() {
              <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(0); }} />
            </Box>
            <Button variant="outlined" color="inherit" startIcon={<IconFilter size={18} />} sx={{ borderRadius: 2 }}>
-             <FormattedMessage id="more-filters" defaultMessage="مزيد من الفلاتر" />
+             <FormattedMessage id="more-filters" defaultMessage="Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ÙÙ„Ø§ØªØ±" />
            </Button>
            {/* Add a subtle reset button if any filter is active */}
            {(search || status || customerId || dateFrom || dateTo) && (
-             <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="إعادة ضبط" />}>
+             <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="Ø¥Ø¹Ø§Ø¯Ø© Ø¶Ø¨Ø·" />}>
                <IconButton onClick={resetFilters} color="primary" size="small">
                  <IconRefresh size={18} />
                </IconButton>

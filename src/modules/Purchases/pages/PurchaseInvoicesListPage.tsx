@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -57,13 +57,20 @@ const getInitials = (name: string) => {
 
 export default function PurchaseInvoicesListPage() {
   const intl = useIntl();
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') ?? '';
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [status, setStatus] = useState('');
   const [supplierId, setSupplierId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  useEffect(() => {
+    setSearch(initialSearch);
+    setPage(0);
+  }, [initialSearch]);
 
   const { items, meta, isLoading, error } = usePurchaseInvoices({ 
      page: page + 1, 
@@ -121,7 +128,7 @@ export default function PurchaseInvoicesListPage() {
               <FormattedMessage id="purchase-invoices" />
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              <FormattedMessage id="purchase-invoices-page-description" defaultMessage="إدارة قائمة فواتير المشتريات" />
+              <FormattedMessage id="purchase-invoices-page-description" defaultMessage="Ø¥Ø¯Ø§Ø±Ø© Ù‚Ø§Ø¦Ù…Ø© ÙÙˆØ§ØªÙŠØ± Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª" />
             </Typography>
           </Box>
           <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesCreate}>
@@ -188,7 +195,7 @@ export default function PurchaseInvoicesListPage() {
              <TextField
                size="small"
                fullWidth
-               placeholder={intl.formatMessage({ id: 'search-invoice-or-supplier', defaultMessage: 'البحث برقم الفاتورة أو المورد...' })}
+               placeholder={intl.formatMessage({ id: 'search-invoice-or-supplier', defaultMessage: 'Ø§Ù„Ø¨Ø­Ø« Ø¨Ø±Ù‚Ù… Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ø£Ùˆ Ø§Ù„Ù…ÙˆØ±Ø¯...' })}
                value={search}
                onChange={(event) => { setSearch(event.target.value); setPage(0); }}
                InputProps={{
@@ -212,7 +219,7 @@ export default function PurchaseInvoicesListPage() {
            </Box>
            <Box sx={{ width: 200 }}>
              <TextField size="small" select fullWidth value={status} onChange={(event) => { setStatus(event.target.value); setPage(0); }} SelectProps={{ displayEmpty: true }}>
-               <MenuItem value=""><FormattedMessage id="all-statuses" defaultMessage="جميع الحالات" /></MenuItem>
+               <MenuItem value=""><FormattedMessage id="all-statuses" defaultMessage="Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª" /></MenuItem>
                <MenuItem value="Draft"><FormattedMessage id="purchases.status.draft" /></MenuItem>
                <MenuItem value="Posted"><FormattedMessage id="purchases.status.posted" /></MenuItem>
                <MenuItem value="Cancelled"><FormattedMessage id="purchases.status.cancelled" /></MenuItem>
@@ -222,10 +229,10 @@ export default function PurchaseInvoicesListPage() {
              <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(0); }} />
            </Box>
            <Button variant="outlined" color="inherit" startIcon={<IconFilter size={18} />} sx={{ borderRadius: 2 }}>
-             <FormattedMessage id="more-filters" defaultMessage="مزيد من الفلاتر" />
+             <FormattedMessage id="more-filters" defaultMessage="Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ÙÙ„Ø§ØªØ±" />
            </Button>
            {(search || status || supplierId || dateFrom || dateTo) && (
-             <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="إعادة ضبط" />}>
+             <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="Ø¥Ø¹Ø§Ø¯Ø© Ø¶Ø¨Ø·" />}>
                <IconButton onClick={resetFilters} color="primary" size="small">
                  <IconRefresh size={18} />
                </IconButton>
@@ -245,7 +252,7 @@ export default function PurchaseInvoicesListPage() {
                    <TableHead sx={{ bgcolor: 'grey.50' }}>
                      <TableRow>
                        <TableCell><FormattedMessage id="invoice-number" /></TableCell>
-                       <TableCell><FormattedMessage id="supplier-reference" defaultMessage="مرجع المورد" /></TableCell>
+                       <TableCell><FormattedMessage id="supplier-reference" defaultMessage="Ù…Ø±Ø¬Ø¹ Ø§Ù„Ù…ÙˆØ±Ø¯" /></TableCell>
                        <TableCell><FormattedMessage id="invoice-date" /></TableCell>
                        <TableCell><FormattedMessage id="supplier" /></TableCell>
                        <TableCell><FormattedMessage id="grand-total" /></TableCell>
@@ -317,20 +324,20 @@ export default function PurchaseInvoicesListPage() {
       >
         <MenuItem component={Link} to={`/purchases/invoices/${selectedInvoice?.id}`} onClick={handleMenuClose}>
           <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
-          <ListItemText><FormattedMessage id="view-invoice" defaultMessage="عرض الفاتورة" /></ListItemText>
+          <ListItemText><FormattedMessage id="view-invoice" defaultMessage="Ø¹Ø±Ø¶ Ø§Ù„ÙØ§ØªÙˆØ±Ø©" /></ListItemText>
         </MenuItem>
         {selectedInvoice?.status === 'Draft' && (
           <PermissionGuard permission={PURCHASES_PERMISSIONS.invoicesUpdate}>
             <MenuItem component={Link} to={`/purchases/invoices/${selectedInvoice?.id}/edit`} onClick={handleMenuClose}>
               <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
-              <ListItemText><FormattedMessage id="edit-invoice" defaultMessage="تعديل الفاتورة" /></ListItemText>
+              <ListItemText><FormattedMessage id="edit-invoice" defaultMessage="ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ÙØ§ØªÙˆØ±Ø©" /></ListItemText>
             </MenuItem>
           </PermissionGuard>
         )}
         <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsCreate}>
           <MenuItem component={Link} to={`/purchases/returns/new?purchaseInvoiceId=${selectedInvoice?.id}`} onClick={handleMenuClose}>
             <ListItemIcon><AssignmentReturnIcon fontSize="small" /></ListItemIcon>
-            <ListItemText><FormattedMessage id="create-purchase-return" defaultMessage="إنشاء مرتجع مشتريات" /></ListItemText>
+            <ListItemText><FormattedMessage id="create-purchase-return" defaultMessage="Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø±ØªØ¬Ø¹ Ù…Ø´ØªØ±ÙŠØ§Øª" /></ListItemText>
           </MenuItem>
         </PermissionGuard>
       </Menu>

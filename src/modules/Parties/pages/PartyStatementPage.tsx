@@ -83,9 +83,9 @@ function getPartyTypeLabel(intl: ReturnType<typeof useIntl>, isCustomer: boolean
 function getBalanceNatureLabel(intl: ReturnType<typeof useIntl>, nature: string) {
   switch (nature) {
     case 'Debit':
-      return intl.formatMessage({ id: 'parties.statement.debit-against-party', defaultMessage: 'عليه' });
+      return intl.formatMessage({ id: 'parties.statement.debit-against-party', defaultMessage: 'Ø¹Ù„ÙŠÙ‡' });
     case 'Credit':
-      return intl.formatMessage({ id: 'parties.statement.credit-for-party', defaultMessage: 'له' });
+      return intl.formatMessage({ id: 'parties.statement.credit-for-party', defaultMessage: 'Ù„Ù‡' });
     default:
       return '';
   }
@@ -134,6 +134,23 @@ function getMovementTypeSummary(intl: ReturnType<typeof useIntl>, entryType: str
   }
 
   return label;
+}
+
+function getStatementReferenceRoute(entryType: string, referenceNumber: string | null) {
+  if (!referenceNumber) {
+    return null;
+  }
+
+  switch (entryType) {
+    case 'SalesInvoiceDebit':
+    case 'SalesInvoiceDebitReversal':
+      return `/sales/invoices?search=${encodeURIComponent(referenceNumber)}`;
+    case 'PurchaseInvoiceCredit':
+    case 'PurchaseInvoiceCreditReversal':
+      return `/purchases/invoices?search=${encodeURIComponent(referenceNumber)}`;
+    default:
+      return null;
+  }
 }
 
 function BidiIsolatedDate({ value }: { value: string }) {
@@ -293,14 +310,14 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.total-debit" defaultMessage="إجمالي عليه" />
+                      <FormattedMessage id="parties.statement.total-debit" defaultMessage="Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¹Ù„ÙŠÙ‡" />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         {formatAmount(intl.locale, statement.debitTotal)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="عليه" />
+                        <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="Ø¹Ù„ÙŠÙ‡" />
                       </Typography>
                     </Stack>
                   </Box>
@@ -308,14 +325,14 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.total-credit" defaultMessage="إجمالي له" />
+                      <FormattedMessage id="parties.statement.total-credit" defaultMessage="Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù„Ù‡" />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         {formatAmount(intl.locale, statement.creditTotal)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="له" />
+                        <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="Ù„Ù‡" />
                       </Typography>
                     </Stack>
                   </Box>
@@ -323,7 +340,7 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.closing-balance" defaultMessage="الرصيد النهائي" />
+                      <FormattedMessage id="parties.statement.closing-balance" defaultMessage="Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ" />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -408,16 +425,16 @@ export default function PartyStatementPage() {
                             <FormattedMessage id="date" />
                           </TableCell>
                           <TableCell sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="parties.statement.details" defaultMessage="التفاصيل" />
+                            <FormattedMessage id="parties.statement.details" defaultMessage="Ø§Ù„ØªÙØ§ØµÙŠÙ„" />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700, width: '150px' }}>
-                            <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="عليه" />
+                            <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="Ø¹Ù„ÙŠÙ‡" />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700, width: '150px' }}>
-                            <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="له" />
+                            <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="Ù„Ù‡" />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700, width: '180px' }}>
-                            <FormattedMessage id="parties.statement.balance" defaultMessage="الرصيد" />
+                            <FormattedMessage id="parties.statement.balance" defaultMessage="Ø§Ù„Ø±ØµÙŠØ¯" />
                           </TableCell>
                         </TableRow>
                       </TableHead>
@@ -433,7 +450,37 @@ export default function PartyStatementPage() {
                               </Typography>
                               {entry.referenceNumber && (
                                 <Typography variant="caption" color="text.secondary" display="block" dir="ltr">
-                                  Ref: {entry.referenceNumber}
+                                  {(() => {
+                                    const referenceRoute = getStatementReferenceRoute(entry.entryType, entry.referenceNumber);
+
+                                    if (!referenceRoute) {
+                                      return (
+                                        <>
+                                          Ref: {entry.referenceNumber}
+                                        </>
+                                      );
+                                    }
+
+                                    return (
+                                      <>
+                                        Ref:{' '}
+                                        <Box
+                                          component={Link}
+                                          to={referenceRoute}
+                                          sx={{
+                                            color: 'primary.main',
+                                            textDecoration: 'none',
+                                            fontWeight: 600,
+                                            '&:hover': {
+                                              textDecoration: 'underline'
+                                            }
+                                          }}
+                                        >
+                                          {entry.referenceNumber}
+                                        </Box>
+                                      </>
+                                    );
+                                  })()}
                                 </Typography>
                               )}
                               {isPartyAdjustmentEntryType(entry.entryType) && (
@@ -447,12 +494,12 @@ export default function PartyStatementPage() {
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ color: entry.debitAmount > 0 ? 'inherit' : 'text.disabled' }}>
-                                {entry.debitAmount > 0 ? formatAmount(intl.locale, entry.debitAmount) : '—'}
+                                {entry.debitAmount > 0 ? formatAmount(intl.locale, entry.debitAmount) : 'â€”'}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ color: entry.creditAmount > 0 ? 'inherit' : 'text.disabled' }}>
-                                {entry.creditAmount > 0 ? formatAmount(intl.locale, entry.creditAmount) : '—'}
+                                {entry.creditAmount > 0 ? formatAmount(intl.locale, entry.creditAmount) : 'â€”'}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
