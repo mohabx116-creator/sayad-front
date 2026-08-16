@@ -10,6 +10,7 @@ import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/GridLegacy';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 
 import { IconDeviceFloppy } from '@tabler/icons-react';
@@ -22,10 +23,12 @@ import Loader from 'ui-component/Loader';
 
 import { activateTreasuryAccount, createTreasuryAccount, deactivateTreasuryAccount, updateTreasuryAccount } from '../api/treasuryApi';
 import { useTreasuryAccount } from '../hooks/useTreasury';
+import { TREASURY_ACCOUNT_TYPES } from '../utils/treasury.constants';
+import { getTreasuryAccountTypeLabel } from '../utils/treasury.labels';
 import type { TreasuryAccountInput } from '../types/treasury.types';
 import type { ApiResponse } from 'types/api';
 
-type TreasuryCashboxFormState = TreasuryAccountInput & {
+type TreasuryAccountFormState = TreasuryAccountInput & {
   isActive: boolean;
 };
 
@@ -72,14 +75,22 @@ function getTreasuryFormFieldErrors(error: unknown): TreasuryFormFieldErrorState
   return fieldErrors;
 }
 
-function buildRequest(form: TreasuryCashboxFormState): TreasuryAccountInput {
+const TREASURY_ACCOUNT_TYPE_OPTIONS = [
+  TREASURY_ACCOUNT_TYPES.CASH,
+  TREASURY_ACCOUNT_TYPES.BANK,
+  TREASURY_ACCOUNT_TYPES.PETTY_CASH,
+  TREASURY_ACCOUNT_TYPES.DIGITAL_WALLET,
+  TREASURY_ACCOUNT_TYPES.OTHER
+] as const;
+
+function buildRequest(form: TreasuryAccountFormState): TreasuryAccountInput {
   const openingBalanceAmount = Number(form.openingBalanceAmount) || 0;
 
   return {
     code: form.code.trim(),
     nameArabic: form.nameArabic.trim(),
     nameEnglish: null,
-    accountType: 'Cash',
+    accountType: form.accountType,
     currencyCode: 'EGP',
     notes: form.notes?.trim() ? form.notes.trim() : null,
     openingBalanceAmount,
@@ -98,7 +109,7 @@ export default function TreasuryAccountFormPage() {
   const isEdit = Boolean(id);
 
   const { account, isLoading } = useTreasuryAccount(id);
-  const [form, setForm] = useState<TreasuryCashboxFormState>({
+  const [form, setForm] = useState<TreasuryAccountFormState>({
     code: '',
     nameArabic: '',
     nameEnglish: null,
@@ -123,7 +134,7 @@ export default function TreasuryAccountFormPage() {
       code: account.code,
       nameArabic: account.nameArabic,
       nameEnglish: account.nameEnglish,
-      accountType: 'Cash',
+      accountType: account.accountType || 'Cash',
       currencyCode: 'EGP',
       notes: account.notes,
       openingBalanceAmount: account.openingBalance,
@@ -157,7 +168,7 @@ export default function TreasuryAccountFormPage() {
           }
         }
 
-        notify(intl.formatMessage({ id: 'cashbox-updated', defaultMessage: 'Cashbox updated successfully.' }));
+        notify(intl.formatMessage({ id: 'treasury-account-updated', defaultMessage: 'Treasury account updated successfully.' }));
         await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
         navigate(`/treasury/accounts/${account.id}`);
         return;
@@ -168,7 +179,7 @@ export default function TreasuryAccountFormPage() {
         await deactivateTreasuryAccount(created.id, created.rowVersion);
       }
 
-      notify(intl.formatMessage({ id: 'cashbox-created', defaultMessage: 'Cashbox created successfully.' }));
+      notify(intl.formatMessage({ id: 'treasury-account-created', defaultMessage: 'Treasury account created successfully.' }));
       await mutateTreasury((key) => typeof key === 'string' && key.startsWith('/api/treasury/'));
       navigate(`/treasury/accounts/${created.id}`);
     } catch (error) {
@@ -195,18 +206,34 @@ export default function TreasuryAccountFormPage() {
       <Box sx={{ mb: 3 }}>
         <Breadcrumbs
           custom
-          heading={isEdit ? 'edit-account' : 'add-cashbox'}
-          links={[{ title: 'cashboxes', to: '/treasury/accounts' }, { title: isEdit ? 'edit-account' : 'add-cashbox' }]}
+          heading={isEdit ? 'edit-treasury-account' : 'add-treasury-account'}
+          links={[{ title: 'treasury-accounts', to: '/treasury/accounts' }, { title: isEdit ? 'edit-treasury-account' : 'add-treasury-account' }]}
         />
       </Box>
 
-      <MainCard title={<FormattedMessage id={isEdit ? 'edit-account' : 'add-cashbox'} defaultMessage={isEdit ? 'Edit Cashbox' : 'Add Cashbox'} />}>
+      <MainCard title={<FormattedMessage id={isEdit ? 'edit-treasury-account' : 'add-treasury-account'} defaultMessage={isEdit ? 'Edit Treasury Account' : 'Add Treasury Account'} />}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <TextField
               required
+              select
               fullWidth
-              label={<FormattedMessage id="cashbox-name" defaultMessage="Cashbox Name" />}
+              label={<FormattedMessage id="account-type" defaultMessage="Account Type" />}
+              value={form.accountType}
+              onChange={(event) => setForm({ ...form, accountType: event.target.value })}
+            >
+              {TREASURY_ACCOUNT_TYPE_OPTIONS.map((accountType) => (
+                <MenuItem key={accountType} value={accountType}>
+                  {getTreasuryAccountTypeLabel(accountType)}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              required
+              fullWidth
+              label={<FormattedMessage id="account-name" defaultMessage="Account Name" />}
               value={form.nameArabic}
               onChange={(event) => setForm({ ...form, nameArabic: event.target.value })}
               error={Boolean(fieldErrors.nameArabic)}

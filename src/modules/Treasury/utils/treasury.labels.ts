@@ -1,3 +1,20 @@
+export function getTreasuryAccountTypeLabel(accountType?: string | null) {
+  switch ((accountType ?? '').toLowerCase()) {
+    case 'cash':
+      return 'Ù†Ù‚Ø¯ÙŠ';
+    case 'bank':
+      return 'Ø¨Ù†Ùƒ';
+    case 'pettycash':
+      return 'ØµÙ†Ø¯ÙˆÙ‚ ØµØºÙŠØ±';
+    case 'digitalwallet':
+      return 'Ù…Ø­ÙØ¸Ø© Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ©';
+    case 'other':
+      return 'Ø£Ø®Ø±Ù‰';
+    default:
+      return accountType ?? 'â€”';
+  }
+}
+
 export function getTreasurySourceDocumentLabel(sourceDocumentType?: string | null) {
   switch ((sourceDocumentType ?? '').toLowerCase()) {
     case 'salesinvoice':
