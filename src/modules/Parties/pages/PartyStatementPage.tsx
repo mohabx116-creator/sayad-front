@@ -56,6 +56,14 @@ function formatDate(locale: string, value: string) {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(locale);
 }
 
+function sanitizeBidiControls(value: string) {
+  return value.replace(/[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '');
+}
+
+function formatStatementRangeDate(locale: string, value: string) {
+  return sanitizeBidiControls(formatDate(locale, value));
+}
+
 function formatDateInput(value: Date) {
   return value.toISOString().slice(0, 10);
 }
@@ -254,11 +262,11 @@ export default function PartyStatementPage() {
                       <FormattedMessage id="date-range" />
                     </Typography>
                     <Typography variant="body1" fontWeight={600} dir="ltr">
-                      <BidiIsolatedDate value={formatDate(intl.locale, dateFrom)} />
+                      <BidiIsolatedDate value={formatStatementRangeDate(intl.locale, dateFrom)} />
                       <Box component="span" aria-hidden="true" sx={{ px: 0.5 }}>
                         -
                       </Box>
-                      <BidiIsolatedDate value={formatDate(intl.locale, dateTo)} />
+                      <BidiIsolatedDate value={formatStatementRangeDate(intl.locale, dateTo)} />
                     </Typography>
                   </Grid>
                 </Grid>
