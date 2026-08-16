@@ -128,6 +128,21 @@ function getMovementTypeSummary(intl: ReturnType<typeof useIntl>, entryType: str
   return label;
 }
 
+function BidiIsolatedDate({ value }: { value: string }) {
+  return (
+    <Box
+      component="span"
+      dir="ltr"
+      sx={{
+        unicodeBidi: 'isolate',
+        display: 'inline-block'
+      }}
+    >
+      {value}
+    </Box>
+  );
+}
+
 export default function PartyStatementPage() {
   const { id } = useParams();
   const intl = useIntl();
@@ -239,7 +254,11 @@ export default function PartyStatementPage() {
                       <FormattedMessage id="date-range" />
                     </Typography>
                     <Typography variant="body1" fontWeight={600} dir="ltr">
-                      {formatDate(intl.locale, dateFrom)} - {formatDate(intl.locale, dateTo)}
+                      <BidiIsolatedDate value={formatDate(intl.locale, dateFrom)} />
+                      <Box component="span" aria-hidden="true" sx={{ px: 0.5 }}>
+                        -
+                      </Box>
+                      <BidiIsolatedDate value={formatDate(intl.locale, dateTo)} />
                     </Typography>
                   </Grid>
                 </Grid>
