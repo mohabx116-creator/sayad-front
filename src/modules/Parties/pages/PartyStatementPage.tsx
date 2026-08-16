@@ -51,6 +51,8 @@ function formatAmount(locale: string, value: number) {
   return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 }
 
+const EMPTY_AMOUNT_PLACEHOLDER = '\u2014';
+
 function formatDate(locale: string, value: string) {
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(locale);
@@ -498,12 +500,12 @@ export default function PartyStatementPage() {
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ color: entry.debitAmount > 0 ? 'inherit' : 'text.disabled' }}>
-                                {entry.debitAmount > 0 ? formatAmount(intl.locale, entry.debitAmount) : 'â€”'}
+                                {entry.debitAmount > 0 ? formatAmount(intl.locale, entry.debitAmount) : EMPTY_AMOUNT_PLACEHOLDER}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ color: entry.creditAmount > 0 ? 'inherit' : 'text.disabled' }}>
-                                {entry.creditAmount > 0 ? formatAmount(intl.locale, entry.creditAmount) : 'â€”'}
+                                {entry.creditAmount > 0 ? formatAmount(intl.locale, entry.creditAmount) : EMPTY_AMOUNT_PLACEHOLDER}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
