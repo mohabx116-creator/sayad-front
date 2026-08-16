@@ -1,4 +1,4 @@
-﻿import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -52,7 +52,7 @@ import type {
   InventoryMovementRequest,
   OpeningStockRequest
 } from '../types/inventory.types';
-import { INVENTORY_PERMISSIONS, getItemTypeLabel } from '../utils/inventory.constants';
+import { INVENTORY_PERMISSIONS, getInventoryMovementAccountingStatusLabel, getItemTypeLabel } from '../utils/inventory.constants';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -240,7 +240,7 @@ export default function InventoryItemDetailsPage() {
             {item.nameArabic}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            كود الصنف: {item.code}
+            ÙƒÙˆØ¯ Ø§Ù„ØµÙ†Ù: {item.code}
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
@@ -292,13 +292,13 @@ export default function InventoryItemDetailsPage() {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="approximate-cost-price" />
                 </Typography>
-                <Typography variant="h5">{item.defaultSalePrice.toFixed(2)} ج.م</Typography>
+                <Typography variant="h5">{item.defaultSalePrice.toFixed(2)} Ø¬.Ù…</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="primary-supplier" />
                 </Typography>
-                <Typography variant="h5">الشركة الهندسية للبلاستيك</Typography>
+                <Typography variant="h5">Ø§Ù„Ø´Ø±ÙƒØ© Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠØ© Ù„Ù„Ø¨Ù„Ø§Ø³ØªÙŠÙƒ</Typography>
               </Grid>
             </Grid>
           </MainCard>
@@ -308,7 +308,7 @@ export default function InventoryItemDetailsPage() {
           <MainCard title={<FormattedMessage id="stock-summary" />} sx={{ height: '100%' }}>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                الرصيد الحالي
+                Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ø­Ø§Ù„ÙŠ
               </Typography>
               <Typography variant="h1" sx={{ fontSize: '3rem', fontWeight: 700, mb: 1 }}>
                 {item.currentQuantity}
@@ -432,13 +432,22 @@ export default function InventoryItemDetailsPage() {
                       <TableCell align="center">
                         {movement.accountingJournalEntryId ? (
                           <Stack spacing={0.5} alignItems="center">
-                            <Chip size="small" color="success" variant="outlined" label={movement.accountingPostingStatus} />
+                            <Chip
+                              size="small"
+                              color="success"
+                              variant="outlined"
+                              label={getInventoryMovementAccountingStatusLabel(intl, movement.accountingPostingStatus)}
+                            />
                             <Typography component={Link} to={`/accounting/journal-entries/${movement.accountingJournalEntryId}`} variant="caption" color="primary" sx={{ textDecoration: 'none' }}>
                               {movement.accountingEntryNumber ?? movement.accountingJournalEntryId}
                             </Typography>
                           </Stack>
                         ) : (
-                          <Chip size="small" variant="outlined" label={movement.accountingPostingStatus} />
+                          <Chip
+                            size="small"
+                            variant="outlined"
+                            label={getInventoryMovementAccountingStatusLabel(intl, movement.accountingPostingStatus)}
+                          />
                         )}
                       </TableCell>
                     </TableRow>
@@ -446,7 +455,7 @@ export default function InventoryItemDetailsPage() {
                   {movements.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} align="center">
-                        لا توجد حركات
+                        Ù„Ø§ ØªÙˆØ¬Ø¯ Ø­Ø±ÙƒØ§Øª
                       </TableCell>
                     </TableRow>
                   )}
@@ -459,7 +468,7 @@ export default function InventoryItemDetailsPage() {
       
       <Box sx={{ mt: 5 }}>
         <Typography variant="h4" color="text.secondary" sx={{ mb: 2, px: 1 }}>
-          إدارة إضافية
+          Ø¥Ø¯Ø§Ø±Ø© Ø¥Ø¶Ø§ÙÙŠØ©
         </Typography>
         <Stack spacing={3}>
           <MainCard title={<FormattedMessage id="opening-stock" />}>

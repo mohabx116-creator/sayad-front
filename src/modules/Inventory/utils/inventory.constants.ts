@@ -52,14 +52,24 @@ export function getItemTypeLabel(intl: IntlShape, itemType: string) {
 
   switch (itemType) {
     case 'RawMaterial':
-      return isArabic ? 'مواد خام' : 'Raw Material';
+      return isArabic ? 'Ã™â€¦Ã™Ë†Ã˜Â§Ã˜Â¯ Ã˜Â®Ã˜Â§Ã™â€¦' : 'Raw Material';
     case 'FinishedGood':
-      return isArabic ? 'منتج نهائي' : 'Finished Good';
+      return isArabic ? 'Ã™â€¦Ã™â€ Ã˜ÂªÃ˜Â¬ Ã™â€ Ã™â€¡Ã˜Â§Ã˜Â¦Ã™Å ' : 'Finished Good';
     case 'PackagingMaterial':
-      return isArabic ? 'مواد تعبئة وتغليف' : 'Packaging Material';
+      return isArabic ? 'Ã™â€¦Ã™Ë†Ã˜Â§Ã˜Â¯ Ã˜ÂªÃ˜Â¹Ã˜Â¨Ã˜Â¦Ã˜Â© Ã™Ë†Ã˜ÂªÃ˜ÂºÃ™â€žÃ™Å Ã™Â' : 'Packaging Material';
     case 'OperationalSupply':
-      return isArabic ? 'مستلزمات تشغيل' : 'Operational Supply';
+      return isArabic ? 'Ã™â€¦Ã˜Â³Ã˜ÂªÃ™â€žÃ˜Â²Ã™â€¦Ã˜Â§Ã˜Âª Ã˜ÂªÃ˜Â´Ã˜ÂºÃ™Å Ã™â€ž' : 'Operational Supply';
     default:
-      return isArabic ? 'أخرى' : 'Other';
+      return isArabic ? 'Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€°' : 'Other';
   }
+}
+
+export function getInventoryMovementAccountingStatusLabel(intl: IntlShape, accountingPostingStatus: string) {
+  const isArabic = intl.locale.toLowerCase().startsWith('ar');
+
+  if (accountingPostingStatus === 'NotApplicable') {
+    return isArabic ? 'Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™â€ Ã˜Â·Ã˜Â¨Ã™â€š Ã™â€¦Ã˜Â­Ã˜Â§Ã˜Â³Ã˜Â¨Ã™Å Ã™â€¹Ã˜Â§' : 'Accounting not applicable';
+  }
+
+  return accountingPostingStatus;
 }
