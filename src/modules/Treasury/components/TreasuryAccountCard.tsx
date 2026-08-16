@@ -19,7 +19,6 @@ import {
   IconCashBanknote,
   IconCheck,
   IconClock,
-  IconSend,
   IconSparkles,
   IconWallet,
   IconX
@@ -135,11 +134,7 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
           topBorder: 'linear-gradient(90deg, #059669 0%, #34D399 100%)',
           iconBg: 'linear-gradient(135deg, #10B981 0%, #047857 100%)',
           iconColor: '#FFFFFF',
-          badgeText: intl.formatMessage({ id: 'treasury.badge-cash', defaultMessage: 'نقد سائل — كاش' }),
-          badgeBg: '#DCFCE7',
-          badgeColor: '#166534',
-          icon: IconCashBanknote,
-          tagline: intl.formatMessage({ id: 'treasury.tagline-cash', defaultMessage: 'الخزينة النقدية الرئيسية' })
+          icon: IconCashBanknote
         };
       case 'wallet':
         return {
@@ -151,11 +146,7 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
           topBorder: 'linear-gradient(90deg, #4F46E5 0%, #06B6D4 100%)',
           iconBg: 'linear-gradient(135deg, #6366F1 0%, #4338CA 100%)',
           iconColor: '#FFFFFF',
-          badgeText: intl.formatMessage({ id: 'treasury.badge-wallet', defaultMessage: 'محفظة رقمية — E-Wallet' }),
-          badgeBg: '#E0E7FF',
-          badgeColor: '#3730A3',
-          icon: IconWallet,
-          tagline: intl.formatMessage({ id: 'treasury.tagline-wallet', defaultMessage: 'قناة الدفع والتحصيل الإلكتروني' })
+          icon: IconWallet
         };
       case 'instapay':
         return {
@@ -167,11 +158,7 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
           topBorder: 'linear-gradient(90deg, #6D28D9 0%, #8B5CF6 50%, #EC4899 100%)',
           iconBg: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
           iconColor: '#FFFFFF',
-          badgeText: intl.formatMessage({ id: 'treasury.badge-instapay', defaultMessage: 'إنستاباي — تحويل فوري' }),
-          badgeBg: '#EDE9FE',
-          badgeColor: '#5B21B6',
-          icon: IconSend,
-          tagline: intl.formatMessage({ id: 'treasury.tagline-instapay', defaultMessage: 'قناة التحويلات والمدفوعات الفورية' })
+          icon: IconSparkles
         };
       case 'bank':
         return {
@@ -183,11 +170,7 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
           topBorder: 'linear-gradient(90deg, #0369A1 0%, #38BDF8 100%)',
           iconBg: 'linear-gradient(135deg, #0284C7 0%, #075985 100%)',
           iconColor: '#FFFFFF',
-          badgeText: intl.formatMessage({ id: 'treasury.badge-bank', defaultMessage: 'حساب مصرفي' }),
-          badgeBg: '#E0F2FE',
-          badgeColor: '#075985',
-          icon: IconBuildingBank,
-          tagline: intl.formatMessage({ id: 'treasury.tagline-bank', defaultMessage: 'معاملات وحوالات بنكية' })
+          icon: IconBuildingBank
         };
       default:
         return {
@@ -199,16 +182,13 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
           topBorder: 'linear-gradient(90deg, #475569 0%, #94A3B8 100%)',
           iconBg: 'linear-gradient(135deg, #64748B 0%, #334155 100%)',
           iconColor: '#FFFFFF',
-          badgeText: account.accountTypeLabel || intl.formatMessage({ id: 'treasury.badge-generic', defaultMessage: 'خزينة مالية' }),
-          badgeBg: '#F1F5F9',
-          badgeColor: '#334155',
-          icon: IconBuildingBank,
-          tagline: intl.formatMessage({ id: 'treasury.tagline-generic', defaultMessage: 'حساب خزينة معتمد' })
+          icon: IconBuildingBank
         };
     }
   }, [identity, intl, account.accountTypeLabel]);
 
   const IconComponent = styleConfig.icon;
+  const displayName = isRtl ? (account.nameArabic ?? account.nameEnglish ?? '') : (account.nameEnglish ?? account.nameArabic ?? '');
 
   return (
     <Card
@@ -242,15 +222,14 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
         }
       }}
     >
-      <Box sx={{ p: 3, pb: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Header Strip: Icon, Title, Channel Badge & Status */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, gap: 1.5 }}>
-          <Stack direction="row" spacing={1.75} alignItems="center">
+      <Box sx={{ p: { xs: 2.25, sm: 2.5 }, pb: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5, gap: 1.25 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
             <Box
               sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2.5,
+                width: 44,
+                height: 44,
+                borderRadius: 2.25,
                 background: styleConfig.iconBg,
                 color: styleConfig.iconColor,
                 display: 'grid',
@@ -271,7 +250,7 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
                   lineHeight: 1.3
                 }}
               >
-                {account.nameArabic}
+                {displayName}
               </Typography>
             </Box>
           </Stack>
@@ -302,38 +281,12 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
           />
         </Box>
 
-        {/* Identity Pill Badge */}
-        <Box sx={{ mb: 2.5 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.75,
-                px: 1.25,
-                py: 0.4,
-                borderRadius: 1.5,
-                bgcolor: styleConfig.badgeBg,
-                color: styleConfig.badgeColor,
-                fontSize: '0.75rem',
-                fontWeight: 700
-              }}
-            >
-              {identity === 'instapay' && <IconSend size={13} stroke={2} />}
-              {styleConfig.badgeText}
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              {styleConfig.tagline}
-            </Typography>
-          </Stack>
-        </Box>
-
         {/* Major Balance Display */}
         <Box
           sx={{
             my: 'auto',
-            py: 2,
-            px: 2.25,
+            py: 1.75,
+            px: 2,
             borderRadius: 2.5,
             bgcolor: alpha(styleConfig.primaryColor, 0.05),
             border: '1px solid',
@@ -359,7 +312,7 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
             <Typography
               component="div"
               sx={{
-                fontSize: { xs: '1.85rem', sm: '2.15rem', md: '2.4rem' },
+                fontSize: { xs: '1.7rem', sm: '1.95rem', md: '2.15rem' },
                 fontWeight: 900,
                 letterSpacing: '-0.03em',
                 lineHeight: 1.1,
@@ -369,71 +322,24 @@ export default function TreasuryAccountCard({ account, onActivate, onDeactivate 
             >
               {formatTreasuryMoney(account.balance, account.currencyCode)}
             </Typography>
-
-            {account.balanceNature && (
-              <Chip
-                size="small"
-                label={
-                  account.balanceNature === 'Debit'
-                    ? (intl.formatMessage({ id: 'debit', defaultMessage: 'مدين' }))
-                    : account.balanceNature === 'Credit'
-                      ? (intl.formatMessage({ id: 'credit', defaultMessage: 'دائن' }))
-                      : (intl.formatMessage({ id: 'settled', defaultMessage: 'متزن' }))
-                }
-                sx={{
-                  height: 20,
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  bgcolor:
-                    account.balanceNature === 'Debit'
-                      ? alpha(theme.palette.warning.main, 0.12)
-                      : account.balanceNature === 'Credit'
-                        ? alpha(theme.palette.error.main, 0.12)
-                        : alpha(theme.palette.success.main, 0.12),
-                  color:
-                    account.balanceNature === 'Debit'
-                      ? 'warning.dark'
-                      : account.balanceNature === 'Credit'
-                        ? 'error.dark'
-                        : 'success.dark'
-                }}
-              />
-            )}
           </Box>
         </Box>
 
         {/* Metadata info: Last Movement */}
-        <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ color: 'text.secondary' }}>
             <IconClock size={15} stroke={1.5} />
             <Typography variant="caption" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
               <FormattedMessage id="last-movement" defaultMessage="آخر حركة" />: {formatMovementDate(account.lastMovementDate, intl.locale)}
             </Typography>
           </Stack>
-
-          {account.isAccountingMapped && (
-            <Tooltip title={intl.formatMessage({ id: 'treasury.linked-to-gl', defaultMessage: 'مرتبط بحساب الأستاذ العام' })}>
-              <Chip
-                size="small"
-                variant="outlined"
-                label={intl.formatMessage({ id: 'treasury.gl-linked', defaultMessage: 'مربوط محاسبياً' })}
-                sx={{
-                  height: 20,
-                  fontSize: '0.68rem',
-                  fontWeight: 600,
-                  borderColor: 'divider',
-                  color: 'text.secondary'
-                }}
-              />
-            </Tooltip>
-          )}
         </Box>
       </Box>
 
       <Divider sx={{ borderColor: styleConfig.borderColor, opacity: 0.6 }} />
 
       {/* Card Action Footer */}
-      <Box sx={{ p: 2, px: 3, bgcolor: alpha('#FFFFFF', 0.5), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
+      <Box sx={{ p: { xs: 1.75, sm: 2 }, px: { xs: 2.25, sm: 3 }, bgcolor: alpha('#FFFFFF', 0.5), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.25 }}>
         <Button
           component={Link}
           to={`/treasury/accounts/${account.id}`}
