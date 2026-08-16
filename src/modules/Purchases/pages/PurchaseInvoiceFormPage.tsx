@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 
@@ -32,7 +32,7 @@ import Loader from 'ui-component/Loader';
 import { createInvoice, updateInvoice, postInvoice } from '../api/purchasesApi';
 import { usePurchaseInvoice } from '../hooks/usePurchases';
 import { useParties } from 'modules/Parties/hooks/useParties';
-import { useInventoryItems } from 'modules/Inventory/hooks/useInventory';
+import { useInventoryItemUnits, useInventoryItems } from 'modules/Inventory/hooks/useInventory';
 import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
 import type { PurchaseInvoiceInput, PurchaseLineInput } from '../types/purchases.types';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
@@ -53,6 +53,117 @@ const invoiceCurrencyCode = 'EGP';
 
 function emptyLine(): EditableLine {
   return { itemId: '', unitOfMeasureId: '', quantity: 1, unitCost: 0, discountAmount: 0, taxAmount: 0, notes: '', itemCode: '', unitCode: '', itemName: '' };
+}
+
+type PurchaseLineUnitFieldProps = {
+  lineIndex: number;
+  itemId: string;
+  baseUnitId?: string;
+  value: string;
+  unitCode?: string;
+  onUnitChange: (lineIndex: number, next: Partial<EditableLine>) => void;
+  disabled?: boolean;
+};
+
+function PurchaseLineUnitField({ lineIndex, itemId, baseUnitId, value, unitCode, onUnitChange, disabled }: PurchaseLineUnitFieldProps) {
+  const intl = useIntl();
+  const { items: unitOptions, isLoading, error } = useInventoryItemUnits(itemId || undefined);
+
+  const selectedUnit = unitOptions.find((unit) => unit.unitOfMeasureId === value) ?? null;
+  const hasSelectedUnit = Boolean(value) && unitOptions.some((unit) => unit.unitOfMeasureId === value);
+
+  useEffect(() => {
+    if (!itemId || isLoading || error || unitOptions.length === 0 || hasSelectedUnit) {
+      return;
+    }
+
+    const preferredUnit =
+      unitOptions.find((unit) => unit.isDefaultPurchaseUnit) ??
+      (baseUnitId ? unitOptions.find((unit) => unit.unitOfMeasureId === baseUnitId) : undefined) ??
+      unitOptions[0];
+
+    if (preferredUnit) {
+      onUnitChange(lineIndex, {
+        unitOfMeasureId: preferredUnit.unitOfMeasureId,
+        unitCode: preferredUnit.unitCode
+      });
+    }
+  }, [baseUnitId, error, hasSelectedUnit, isLoading, itemId, lineIndex, onUnitChange, unitOptions]);
+
+  const helperText = !itemId
+    ? intl.formatMessage({
+        id: 'purchase-unit-select-item-first',
+        defaultMessage: 'Select an item first.'
+      })
+    : error
+      ? intl.formatMessage({
+          id: 'purchase-unit-load-error',
+          defaultMessage: 'Unable to load item units.'
+        })
+      : isLoading
+        ? intl.formatMessage({
+            id: 'purchase-unit-loading',
+            defaultMessage: 'Loading item units...'
+          })
+        : unitOptions.length === 0
+          ? intl.formatMessage({
+              id: 'purchase-unit-empty',
+              defaultMessage: 'No configured units are available for this item.'
+            })
+          : intl.formatMessage({
+              id: 'purchase-unit-help',
+              defaultMessage: 'Choose any configured purchase unit for this item.'
+            });
+
+  return (
+    <TextField
+      select
+      size="small"
+      fullWidth
+      value={value}
+      onChange={(event) => {
+        const nextUnit = unitOptions.find((unit) => unit.unitOfMeasureId === event.target.value);
+        onUnitChange(lineIndex, {
+          unitOfMeasureId: event.target.value,
+          unitCode: nextUnit?.unitCode ?? ''
+        });
+      }}
+      disabled={disabled || !itemId || isLoading || Boolean(error) || unitOptions.length === 0}
+      error={Boolean(error)}
+      helperText={helperText}
+      SelectProps={{
+        displayEmpty: true,
+        renderValue: (selected) => {
+          if (!selected) {
+            return helperText;
+          }
+
+          if (selectedUnit) {
+            return <CodeNameLabel code={selectedUnit.unitCode} nameArabic={selectedUnit.unitNameArabic} />;
+          }
+
+          return unitCode || String(selected);
+        }
+      }}
+    >
+      <MenuItem value="" disabled>
+        {itemId
+          ? intl.formatMessage({
+              id: 'purchase-unit-select-placeholder',
+              defaultMessage: 'Select a unit'
+            })
+          : intl.formatMessage({
+              id: 'purchase-unit-select-item-first',
+              defaultMessage: 'Select an item first.'
+            })}
+      </MenuItem>
+      {unitOptions.map((unit) => (
+        <MenuItem key={unit.unitOfMeasureId} value={unit.unitOfMeasureId}>
+          <CodeNameLabel code={unit.unitCode} nameArabic={unit.unitNameArabic} />
+        </MenuItem>
+      ))}
+    </TextField>
+  );
 }
 
 export default function PurchaseInvoiceFormPage() {
@@ -120,6 +231,26 @@ export default function PurchaseInvoiceFormPage() {
     [compatibleTreasuryAccounts, form.treasuryAccountId]
   );
 
+  const updateRow = useCallback((index: number, next: Partial<EditableLine>) => {
+    setRows((current) => current.map((row, rowIndex) => (rowIndex === index ? { ...row, ...next } : row)));
+  }, []);
+
+  const addRow = useCallback(() => setRows((current) => [...current, emptyLine()]), []);
+  const removeRow = useCallback((index: number) => setRows((current) => current.filter((_, rowIndex) => rowIndex !== index)), []);
+  const onItemChange = useCallback(
+    (index: number, itemId: string) => {
+      const item = itemLookup.get(itemId);
+      updateRow(index, {
+        itemId,
+        itemCode: item?.code ?? '',
+        itemName: item?.nameArabic ?? '',
+        unitOfMeasureId: '',
+        unitCode: ''
+      });
+    },
+    [itemLookup, updateRow]
+  );
+
   useEffect(() => {
     if (isDirectInvoicePaymentMethod(form.paymentMethod)) {
       const autoSelected = getCompatibleTreasuryAccount(treasuryAccounts, form.paymentMethod, invoice?.currencyCode ?? invoiceCurrencyCode);
@@ -137,16 +268,9 @@ export default function PurchaseInvoiceFormPage() {
     }
   }, [compatibleTreasuryAccounts, form.paymentMethod, form.treasuryAccountId, invoice?.currencyCode, treasuryAccounts]);
 
-  const notify = (message: string, severity: 'success' | 'error' = 'success') => {
+  const notify = useCallback((message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
-  };
-
-  const updateRow = (index: number, next: Partial<EditableLine>) => {
-    setRows((current) => current.map((row, rowIndex) => (rowIndex === index ? { ...row, ...next } : row)));
-  };
-
-  const addRow = () => setRows((current) => [...current, emptyLine()]);
-  const removeRow = (index: number) => setRows((current) => current.filter((_, rowIndex) => rowIndex !== index));
+  }, [dispatch]);
   const settlementRequiresTreasuryAccount = isDirectInvoicePaymentMethod(form.paymentMethod);
   const settlementError =
     settlementRequiresTreasuryAccount && !selectedTreasuryAccount
@@ -155,17 +279,6 @@ export default function PurchaseInvoiceFormPage() {
           defaultMessage: 'No active treasury account is compatible with the selected payment method and invoice currency.'
         })
       : '';
-
-  const onItemChange = (index: number, itemId: string) => {
-    const item = itemLookup.get(itemId);
-    updateRow(index, {
-      itemId,
-      itemCode: item?.code ?? '',
-      itemName: item?.nameArabic ?? '',
-      unitOfMeasureId: item?.baseUnitId ?? '',
-      unitCode: item?.baseUnitCode ?? ''
-    });
-  };
 
   const submit = async (actionType: 'draft' | 'post') => {
     if (!form.supplierId) {
@@ -412,6 +525,7 @@ export default function PurchaseInvoiceFormPage() {
                  </TableHead>
                  <TableBody>
                    {rows.map((row, index) => {
+                      const item = itemLookup.get(row.itemId);
                       const lineTotal = (Number(row.quantity) || 0) * (Number(row.unitCost) || 0) - (Number(row.discountAmount) || 0) + (Number(row.taxAmount) || 0);
                       return (
                       <TableRow key={`${row.itemId || 'line'}-${index}`} hover>
@@ -430,7 +544,15 @@ export default function PurchaseInvoiceFormPage() {
                           <TextField size="small" fullWidth type="number" value={row.quantity} onChange={(event) => updateRow(index, { quantity: Number(event.target.value) })} inputProps={{ min: 1 }} />
                         </TableCell>
                         <TableCell>
-                          <TextField size="small" fullWidth value={row.unitCode ?? ''} InputProps={{ readOnly: true }} sx={{ bgcolor: 'grey.50' }} />
+                          <PurchaseLineUnitField
+                            lineIndex={index}
+                            itemId={row.itemId}
+                            baseUnitId={item?.baseUnitId}
+                            value={row.unitOfMeasureId}
+                            unitCode={row.unitCode}
+                            onUnitChange={updateRow}
+                            disabled={isSaving}
+                          />
                         </TableCell>
                         <TableCell>
                           <TextField size="small" fullWidth type="number" value={row.unitCost} onChange={(event) => updateRow(index, { unitCost: Number(event.target.value) })} inputProps={{ step: 0.01 }} />
