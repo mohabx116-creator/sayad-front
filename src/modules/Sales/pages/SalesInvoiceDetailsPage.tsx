@@ -121,7 +121,14 @@ export default function SalesInvoiceDetailsPage() {
   };
 
   if (isLoading) return <Loader />;
-  if (error || !invoice) return <Typography color="error"><FormattedMessage id="sales-load-error" /></Typography>;
+  if (!invoice) return <Typography variant="h6" color="error"><FormattedMessage id="not-found" defaultMessage="Not Found" /></Typography>;
+
+  const journalEntryRoute = invoice.accountingJournalEntryId
+    ? `/accounting/journal-entries/${invoice.accountingJournalEntryId}`
+    : undefined;
+  const settlementJournalEntryRoute = invoice?.settlementJournalEntryId
+    ? `/accounting/journal-entries/${invoice.settlementJournalEntryId}`
+    : undefined;
 
   const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3 };
   const headerSx = { display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' };
@@ -369,6 +376,18 @@ export default function SalesInvoiceDetailsPage() {
                            {invoice.accountingJournalEntryId ? (
                               <Button component={Link} to={`/accounting/journal-entries/${invoice.accountingJournalEntryId}`} size="small" variant="outlined">
                                  {invoice.accountingEntryNumber ?? invoice.accountingJournalEntryId}
+                              </Button>
+                           ) : (
+                              <Typography variant="body2" fontWeight={500}>—</Typography>
+                           )}
+                        </Box>
+                        <Box>
+                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                              <FormattedMessage id="settlement-journal-entry" defaultMessage="Payment Settlement Journal" />
+                           </Typography>
+                           {settlementJournalEntryRoute ? (
+                              <Button component={Link} to={settlementJournalEntryRoute} size="small" variant="outlined">
+                                 {invoice.settlementJournalEntryNumber ?? invoice.settlementJournalEntryId}
                               </Button>
                            ) : (
                               <Typography variant="body2" fontWeight={500}>—</Typography>

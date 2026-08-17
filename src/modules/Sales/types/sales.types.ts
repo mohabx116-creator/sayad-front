@@ -118,6 +118,8 @@ export type SalesInvoice = {
   accountingEntryNumber?: string | null;
   isAccountingPosted?: boolean;
   accountingPostingStatus?: string;
+  settlementJournalEntryId?: string | null;
+  settlementJournalEntryNumber?: string | null;
   paymentMethod?: InvoicePaymentMethod;
   paymentMethodLabel?: string;
   settlementStatus?: InvoiceSettlementStatus;
