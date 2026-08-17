@@ -93,6 +93,44 @@ function getBalanceNatureLabel(intl: ReturnType<typeof useIntl>, nature: string)
   }
 }
 
+type StatementSummaryLabels = {
+  openingBalance: string;
+  debitTotal: string;
+  creditTotal: string;
+  currentBalance: string;
+};
+
+function getStatementSummaryLabels(
+  intl: ReturnType<typeof useIntl>,
+  isCustomer: boolean,
+  isSupplier: boolean
+): StatementSummaryLabels {
+  if (isCustomer && isSupplier) {
+    return {
+      openingBalance: intl.formatMessage({ id: 'parties.statement.opening-balance' }),
+      debitTotal: intl.formatMessage({ id: 'parties.statement.total-debit-neutral' }),
+      creditTotal: intl.formatMessage({ id: 'parties.statement.total-credit-neutral' }),
+      currentBalance: intl.formatMessage({ id: 'parties.statement.current-balance' })
+    };
+  }
+
+  if (isCustomer) {
+    return {
+      openingBalance: intl.formatMessage({ id: 'parties.statement.opening-balance' }),
+      debitTotal: intl.formatMessage({ id: 'parties.statement.total-due-from-customer' }),
+      creditTotal: intl.formatMessage({ id: 'parties.statement.total-collected-from-customer' }),
+      currentBalance: intl.formatMessage({ id: 'parties.statement.current-balance' })
+    };
+  }
+
+  return {
+    openingBalance: intl.formatMessage({ id: 'parties.statement.opening-balance' }),
+    debitTotal: intl.formatMessage({ id: 'parties.statement.total-paid-to-supplier' }),
+    creditTotal: intl.formatMessage({ id: 'parties.statement.total-owed-to-supplier' }),
+    currentBalance: intl.formatMessage({ id: 'parties.statement.current-balance' })
+  };
+}
+
 function getMovementLabel(intl: ReturnType<typeof useIntl>, entryType: string) {
   switch (entryType) {
     case 'OpeningBalance':
@@ -206,6 +244,7 @@ export default function PartyStatementPage() {
   const errorMessage = partyError || statementError;
   const partyTypeLabel = party ? getPartyTypeLabel(intl, party.isCustomer, party.isSupplier) : '';
   const currentBalanceLabel = statement ? getBalanceNatureLabel(intl, statement.closingBalanceNature) : '';
+  const summaryLabels = party ? getStatementSummaryLabels(intl, party.isCustomer, party.isSupplier) : null;
 
   const handlePartyAdjustmentsSaved = async () => {
     await Promise.all([mutateParty(), mutateStatement()]);
@@ -301,7 +340,7 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="opening-balance" />
+                      <FormattedMessage id={summaryLabels?.openingBalance ?? 'opening-balance'} />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -316,7 +355,7 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.total-debit" />
+                      <FormattedMessage id={summaryLabels?.debitTotal ?? 'parties.statement.total-debit'} />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -331,7 +370,7 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.total-credit" />
+                      <FormattedMessage id={summaryLabels?.creditTotal ?? 'parties.statement.total-credit'} />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -346,7 +385,7 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.closing-balance" />
+                      <FormattedMessage id={summaryLabels?.currentBalance ?? 'parties.statement.closing-balance'} />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
