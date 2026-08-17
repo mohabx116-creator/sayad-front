@@ -131,6 +131,14 @@ function getStatementSummaryLabels(
   };
 }
 
+function getStatementSummaryCardOrder(isCustomer: boolean, isSupplier: boolean) {
+  if (isSupplier && !isCustomer) {
+    return ['openingBalance', 'creditTotal', 'debitTotal', 'currentBalance'] as const;
+  }
+
+  return ['openingBalance', 'debitTotal', 'creditTotal', 'currentBalance'] as const;
+}
+
 function getMovementLabel(intl: ReturnType<typeof useIntl>, entryType: string) {
   switch (entryType) {
     case 'OpeningBalance':
@@ -245,6 +253,41 @@ export default function PartyStatementPage() {
   const partyTypeLabel = party ? getPartyTypeLabel(intl, party.isCustomer, party.isSupplier) : '';
   const currentBalanceLabel = statement ? getBalanceNatureLabel(intl, statement.closingBalanceNature) : '';
   const summaryLabels = party ? getStatementSummaryLabels(intl, party.isCustomer, party.isSupplier) : null;
+  const summaryCardOrder = party ? getStatementSummaryCardOrder(party.isCustomer, party.isSupplier) : [];
+  const summaryCards = party && statement
+    ? summaryCardOrder.map((cardKey) => {
+        switch (cardKey) {
+          case 'openingBalance':
+            return {
+              key: cardKey,
+              label: summaryLabels?.openingBalance ?? 'opening-balance',
+              amount: statement.openingBalance.amount,
+              helper: getBalanceNatureLabel(intl, statement.openingBalance.balanceNature)
+            };
+          case 'debitTotal':
+            return {
+              key: cardKey,
+              label: summaryLabels?.debitTotal ?? 'parties.statement.total-debit',
+              amount: statement.debitTotal,
+              helper: intl.formatMessage({ id: 'parties.statement.debit-against-party' })
+            };
+          case 'creditTotal':
+            return {
+              key: cardKey,
+              label: summaryLabels?.creditTotal ?? 'parties.statement.total-credit',
+              amount: statement.creditTotal,
+              helper: intl.formatMessage({ id: 'parties.statement.credit-for-party' })
+            };
+          case 'currentBalance':
+            return {
+              key: cardKey,
+              label: summaryLabels?.currentBalance ?? 'parties.statement.closing-balance',
+              amount: statement.closingBalance,
+              helper: currentBalanceLabel
+            };
+        }
+      })
+    : [];
 
   const handlePartyAdjustmentsSaved = async () => {
     await Promise.all([mutateParty(), mutateStatement()]);
@@ -337,68 +380,27 @@ export default function PartyStatementPage() {
 
             <Card variant="outlined" sx={{ borderRadius: 2, p: 2 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} lg={3}>
-                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id={summaryLabels?.openingBalance ?? 'opening-balance'} />
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                        {formatAmount(intl.locale, statement.openingBalance.amount)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        {getBalanceNatureLabel(intl, statement.openingBalance.balanceNature)}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} lg={3}>
-                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id={summaryLabels?.debitTotal ?? 'parties.statement.total-debit'} />
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                        {formatAmount(intl.locale, statement.debitTotal)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        <FormattedMessage id="parties.statement.debit-against-party" />
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} lg={3}>
-                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id={summaryLabels?.creditTotal ?? 'parties.statement.total-credit'} />
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                        {formatAmount(intl.locale, statement.creditTotal)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        <FormattedMessage id="parties.statement.credit-for-party" />
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} lg={3}>
-                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id={summaryLabels?.currentBalance ?? 'parties.statement.closing-balance'} />
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                        {formatAmount(intl.locale, statement.closingBalance)}
-                      </Typography>
-                      {currentBalanceLabel && (
-                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                          {currentBalanceLabel}
+                {summaryCards.map((card) => {
+                  return (
+                    <Grid key={card.key} item xs={12} sm={6} lg={3}>
+                      <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          <FormattedMessage id={card.label} />
                         </Typography>
-                      )}
-                    </Stack>
-                  </Box>
-                </Grid>
+                        <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                            {formatAmount(intl.locale, card.amount)}
+                          </Typography>
+                          {card.helper && (
+                            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                              {card.helper}
+                            </Typography>
+                          )}
+                        </Stack>
+                      </Box>
+                    </Grid>
+                  );
+                })}
               </Grid>
             </Card>
 
