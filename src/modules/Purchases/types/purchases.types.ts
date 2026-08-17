@@ -106,6 +106,8 @@ export type PurchaseInvoice = {
   treasuryAccountId?: string | null;
   treasuryAccountCode?: string | null;
   treasuryAccountNameArabic?: string | null;
+  settlementJournalEntryId?: string | null;
+  settlementJournalEntryNumber?: string | null;
 };
 
 export type PurchaseInvoiceListItem = {

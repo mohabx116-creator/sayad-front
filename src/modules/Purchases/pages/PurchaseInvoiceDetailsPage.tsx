@@ -141,6 +141,7 @@ export default function PurchaseInvoiceDetailsPage() {
   const canPayInvoice = isCreditOutstanding && hasInvoiceRowVersion;
   const paymentUnavailable = isCreditOutstanding && !hasInvoiceRowVersion;
   const journalEntryRoute = getJournalEntryDetailsRoute(invoice.accountingJournalEntryId);
+  const settlementJournalEntryRoute = getJournalEntryDetailsRoute(invoice.settlementJournalEntryId);
 
   const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3 };
   const headerSx = { display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' };
@@ -476,6 +477,37 @@ export default function PurchaseInvoiceDetailsPage() {
                     ) : (
                       <Typography variant="body2" color="text.secondary">
                         {invoice.accountingPostingStatus}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      <FormattedMessage id="settlement-journal-entry" defaultMessage="Settlement Journal" />
+                    </Typography>
+                    {settlementJournalEntryRoute ? (
+                      <Button
+                        component={Link}
+                        to={settlementJournalEntryRoute}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          '&:hover': {
+                            textDecoration: 'none'
+                          },
+                          '&:focus-visible': {
+                            outline: '2px solid',
+                            outlineColor: 'primary.main',
+                            outlineOffset: 2
+                          }
+                        }}
+                      >
+                        {invoice.settlementJournalEntryNumber || invoice.settlementJournalEntryId}
+                      </Button>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        -
                       </Typography>
                     )}
                   </Box>
