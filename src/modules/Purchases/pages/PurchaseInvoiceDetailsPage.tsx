@@ -62,6 +62,10 @@ function formatDate(value: string | null | undefined, locale: string) {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(locale);
 }
 
+function getJournalEntryDetailsRoute(journalEntryId: string | null | undefined) {
+  return journalEntryId ? `/accounting/journal-entries/${journalEntryId}` : null;
+}
+
 export default function PurchaseInvoiceDetailsPage() {
   const { id } = useParams();
   const intl = useIntl();
@@ -112,6 +116,7 @@ export default function PurchaseInvoiceDetailsPage() {
   const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, paymentMethod);
   const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, settlementStatus);
   const isCreditOutstanding = invoice.status === 'Posted' && paymentMethod === 'Credit' && settlementStatus === 'Outstanding';
+  const journalEntryRoute = getJournalEntryDetailsRoute(invoice.accountingJournalEntryId);
 
   const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3 };
   const headerSx = { display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' };
@@ -349,8 +354,25 @@ export default function PurchaseInvoiceDetailsPage() {
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
                               القيد المحاسبي
                            </Typography>
-                           {invoice.accountingJournalEntryId ? (
-                             <Button component={Link} to={`/accounting/journal-entries/${invoice.accountingJournalEntryId}`} variant="outlined" size="small" sx={{ borderRadius: 2 }}>
+                           {journalEntryRoute ? (
+                             <Button
+                               component={Link}
+                               to={journalEntryRoute}
+                               variant="outlined"
+                               size="small"
+                               sx={{
+                                 borderRadius: 2,
+                                 textTransform: 'none',
+                                 '&:hover': {
+                                   textDecoration: 'none'
+                                 },
+                                 '&:focus-visible': {
+                                   outline: '2px solid',
+                                   outlineColor: 'primary.main',
+                                   outlineOffset: 2
+                                 }
+                               }}
+                             >
                                 {invoice.accountingEntryNumber || invoice.accountingJournalEntryId}
                              </Button>
                            ) : (
