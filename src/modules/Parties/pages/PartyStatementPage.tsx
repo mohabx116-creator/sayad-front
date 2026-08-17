@@ -489,7 +489,9 @@ export default function PartyStatementPage() {
                         {statement.entries.map((entry) => (
                           <TableRow key={entry.id} hover sx={isPartyAdjustmentEntryType(entry.entryType) ? { bgcolor: 'action.hover' } : undefined}>
                             <TableCell dir="ltr">
-                              <Typography variant="body2">{formatDate(intl.locale, entry.entryDate)}</Typography>
+                              <Typography variant="body2">
+                                <BidiIsolatedDate value={formatStatementRangeDate(intl.locale, entry.entryDate)} />
+                              </Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2">
