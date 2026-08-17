@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Autocomplete from '@mui/material/Autocomplete';
 import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -13,6 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 import CodeNameLabel from './CodeNameLabel';
 import type { TreasuryAccountListItem } from 'modules/Treasury/types/treasury.types';
@@ -108,8 +108,10 @@ export default function InvoiceSettlementDialog({
     }
   };
 
-  const handleConfirm = async () => {
-    if (!treasuryAccountId || compatibleAccounts.length === 0) {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (isSubmitting || !treasuryAccountId || compatibleAccounts.length === 0) {
       return;
     }
 
@@ -132,7 +134,7 @@ export default function InvoiceSettlementDialog({
         </Typography>
       </DialogTitle>
       <DialogContent dividers>
-        <Stack spacing={2.5} sx={{ pt: 0.5 }}>
+        <Stack component="form" onSubmit={handleSubmit} spacing={2.5} sx={{ pt: 0.5 }} noValidate>
           <Alert severity="info" variant="outlined">
             <FormattedMessage
               id="invoice-settlement.dialog-help"
@@ -159,6 +161,7 @@ export default function InvoiceSettlementDialog({
               <TextField
                 select
                 fullWidth
+                disabled={isSubmitting}
                 label={<FormattedMessage id="payment-method" defaultMessage="Payment Method" />}
                 value={paymentMethod}
                 onChange={(event) => {
@@ -184,6 +187,7 @@ export default function InvoiceSettlementDialog({
               ) : compatibleAccounts.length === 1 ? (
                 <TextField
                   fullWidth
+                  disabled={isSubmitting}
                   label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}
                   value={`${compatibleAccounts[0].code} - ${compatibleAccounts[0].nameArabic}`}
                   InputProps={{ readOnly: true }}
@@ -193,6 +197,7 @@ export default function InvoiceSettlementDialog({
                 <Autocomplete
                   options={compatibleAccounts}
                   value={selectedAccount}
+                  disabled={isSubmitting}
                   isOptionEqualToValue={(option, value) => option.id === value.id}
                   getOptionLabel={(option) => `${option.code} - ${option.nameArabic}`}
                   renderOption={(props, option) => (
@@ -216,12 +221,12 @@ export default function InvoiceSettlementDialog({
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={handleClose} color="inherit" disabled={isSubmitting}>
+        <LoadingButton onClick={handleClose} color="inherit" disabled={isSubmitting}>
           <FormattedMessage id="cancel" />
-        </Button>
-        <Button variant="contained" onClick={handleConfirm} disabled={!canConfirm}>
-          {confirmLabel}
-        </Button>
+        </LoadingButton>
+        <LoadingButton type="submit" variant="contained" loading={isSubmitting} loadingPosition="start" disabled={!canConfirm}>
+          {isSubmitting ? <FormattedMessage id="invoice-settlement.processing-payment" defaultMessage="Processing payment..." /> : confirmLabel}
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );

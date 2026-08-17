@@ -80,6 +80,7 @@ export default function PurchaseInvoiceDetailsPage() {
   const { items: treasuryAccounts } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
   const [reason, setReason] = useState('');
   const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [isPayingInvoice, setIsPayingInvoice] = useState(false);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -115,6 +116,7 @@ export default function PurchaseInvoiceDetailsPage() {
       return;
     }
 
+    setIsPayingInvoice(true);
     try {
       await payInvoice(invoice.id, { rowVersion: invoice.rowVersion, ...request });
       notify(intl.formatMessage({ id: 'purchase-invoice-paid', defaultMessage: 'Purchase invoice paid successfully.' }));
@@ -122,6 +124,8 @@ export default function PurchaseInvoiceDetailsPage() {
       setPayDialogOpen(false);
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'purchase-action-failed' }), 'error');
+    } finally {
+      setIsPayingInvoice(false);
     }
   };
 
@@ -506,6 +510,7 @@ export default function PurchaseInvoiceDetailsPage() {
         treasuryAccounts={treasuryAccounts}
         settlementAmount={invoice.grandTotal}
         settlementCurrencyCode={invoice.currencyCode}
+        isSubmitting={isPayingInvoice}
         onClose={() => setPayDialogOpen(false)}
         onConfirm={handlePay}
       />

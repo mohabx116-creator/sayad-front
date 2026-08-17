@@ -120,6 +120,7 @@
   "invoice-settlement.no-compatible-account": "No active treasury account is compatible with the selected payment method and invoice currency.",
   "invoice-settlement.credit-no-treasury-account": "Not required for Credit invoices.",
   "invoice-settlement.credit-outstanding": "Credit invoices remain outstanding until collected later.",
+  "invoice-settlement.processing-payment": "Processing payment...",
   "sales-invoice-collected": "Sales invoice collected successfully.",
   "purchase-invoice-paid": "Purchase invoice paid successfully.",
   "purchase-rowversion-missing": "This invoice cannot be paid right now because its current version is unavailable. Refresh the page and try again.",

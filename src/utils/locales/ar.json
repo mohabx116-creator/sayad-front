@@ -120,6 +120,7 @@
   "invoice-settlement.no-compatible-account": "لا يوجد حساب خزينة نشط متوافق مع طريقة الدفع المختارة وعملة الفاتورة.",
   "invoice-settlement.credit-no-treasury-account": "غير مطلوب لفواتير الآجل.",
   "invoice-settlement.credit-outstanding": "تبقى فواتير الآجل غير مسددة حتى تتم تحصيلها لاحقًا.",
+  "invoice-settlement.processing-payment": "جاري دفع الفاتورة...",
   "sales-invoice-collected": "تم تحصيل فاتورة المبيعات بنجاح.",
   "purchase-invoice-paid": "تم دفع فاتورة المشتريات بنجاح.",
   "purchase-rowversion-missing": "لا يمكن سداد هذه الفاتورة الآن لأن نسختها الحالية غير متاحة. حدّث الصفحة وأعد المحاولة.",

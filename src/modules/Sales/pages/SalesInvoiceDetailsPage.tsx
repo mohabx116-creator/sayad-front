@@ -61,6 +61,7 @@ export default function SalesInvoiceDetailsPage() {
   const { items: treasuryAccounts } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
   const [reason, setReason] = useState('');
   const [collectDialogOpen, setCollectDialogOpen] = useState(false);
+  const [isCollectingInvoice, setIsCollectingInvoice] = useState(false);
   const customerControlAccountLabel = invoice?.customerControlAccountCode
     ? `${invoice.customerControlAccountCode}${invoice.customerControlAccountNameArabic ? ` - ${invoice.customerControlAccountNameArabic}` : ''}`
     : '—';
@@ -106,6 +107,7 @@ export default function SalesInvoiceDetailsPage() {
       return;
     }
 
+    setIsCollectingInvoice(true);
     try {
       await collectInvoice(invoice.id, { rowVersion: invoice.rowVersion, ...request });
       notify(intl.formatMessage({ id: 'sales-invoice-collected', defaultMessage: 'Sales invoice collected successfully.' }));
@@ -113,6 +115,8 @@ export default function SalesInvoiceDetailsPage() {
       setCollectDialogOpen(false);
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
+    } finally {
+      setIsCollectingInvoice(false);
     }
   };
 
@@ -454,6 +458,7 @@ export default function SalesInvoiceDetailsPage() {
         confirmLabel={<FormattedMessage id="collect-invoice" defaultMessage="Collect Invoice" />}
         invoiceCurrencyCode={invoice.currencyCode}
         treasuryAccounts={treasuryAccounts}
+        isSubmitting={isCollectingInvoice}
         onClose={() => setCollectDialogOpen(false)}
         onConfirm={handleCollect}
       />
