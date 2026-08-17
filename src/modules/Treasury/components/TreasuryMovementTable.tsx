@@ -149,11 +149,11 @@ function getReferenceRoute(referenceType: string, referenceId: string | null) {
 export function getTreasuryMovementSourceRoute(movement: TreasuryMovement): string | undefined {
   const referenceType = movement.referenceType?.toLowerCase();
 
-  if (referenceType === 'salesinvoicesettlement' && movement.referenceId) {
+  if ((referenceType === 'salesinvoicesettlement' || referenceType === 'تسوية فاتورة مبيعات') && movement.referenceId) {
     return `/sales/invoices/${movement.referenceId}`;
   }
 
-  if (referenceType === 'purchaseinvoicesettlement' && movement.referenceId) {
+  if ((referenceType === 'purchaseinvoicesettlement' || referenceType === 'تسوية فاتورة شراء') && movement.referenceId) {
     return `/purchases/invoices/${movement.referenceId}`;
   }
 
