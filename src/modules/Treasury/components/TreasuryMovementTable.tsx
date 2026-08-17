@@ -146,6 +146,20 @@ function getReferenceRoute(referenceType: string, referenceId: string | null) {
   }
 }
 
+export function getTreasuryMovementSourceRoute(movement: TreasuryMovement): string | undefined {
+  const sourceType = movement.sourceDocumentType?.toLowerCase();
+
+  if (sourceType === 'salesinvoice' && movement.sourceDocumentId) {
+    return `/sales/invoices/${movement.sourceDocumentId}`;
+  }
+
+  if (sourceType === 'purchaseinvoice' && movement.sourceDocumentId) {
+    return `/purchases/invoices/${movement.sourceDocumentId}`;
+  }
+
+  return undefined;
+}
+
 interface Props {
   movements: TreasuryMovement[];
   page: number;
@@ -187,12 +201,25 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
             {movements.map((row) => {
               const relatedDocument = getReferencePresentation(row);
               const route = relatedDocument.route ?? getReferenceRoute(row.referenceType, row.referenceId);
+              const sourceRoute = getTreasuryMovementSourceRoute(row);
               const movement = getMovementPresentation(row.movementType);
 
               return (
                 <TableRow key={row.id} hover sx={{ bgcolor: row.isReversal ? 'error.lighter' : 'inherit' }}>
                   <TableCell>{row.movementDate}</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>{row.referenceNumber || '-'}</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>
+                    {row.referenceNumber ? (
+                      sourceRoute ? (
+                        <Button component={Link} to={sourceRoute} size="small" variant="text" sx={{ px: 0, minWidth: 0, textTransform: 'none', fontWeight: 600 }}>
+                          {row.referenceNumber}
+                        </Button>
+                      ) : (
+                        row.referenceNumber
+                      )
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Chip size="small" variant="outlined" color={movement.color} icon={movement.icon} label={movement.label} />
                   </TableCell>
