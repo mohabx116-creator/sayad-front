@@ -387,7 +387,7 @@ export default function SalesInvoiceDetailsPage() {
                            </Typography>
                            {settlementJournalEntryRoute ? (
                               <Button component={Link} to={settlementJournalEntryRoute} size="small" variant="outlined">
-                                 {invoice.settlementJournalEntryNumber ?? invoice.settlementJournalEntryId}
+                                 {invoice.settlementJournalEntryNumber || invoice.settlementJournalEntryId}
                               </Button>
                            ) : (
                               <Typography variant="body2" fontWeight={500}>—</Typography>
