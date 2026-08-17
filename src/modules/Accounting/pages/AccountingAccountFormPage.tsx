@@ -43,7 +43,7 @@ function toFormValues(account?: ReturnType<typeof useAccountingAccount>['account
     isSystem: account?.isSystem ?? false,
     cashFlowActivityType: account?.cashFlowActivityType ?? CASH_FLOW_ACTIVITY_TYPES.UNCLASSIFIED,
     description: account?.description ?? '',
-    rowVersion: account?.rowVersion
+    rowVersion: account?.rowVersion ?? ''
   };
 }
 
@@ -151,6 +151,11 @@ export default function AccountingAccountFormPage() {
       />
 
       <Stack spacing={3}>
+        {Object.keys(form.formState.errors).length > 0 && (
+          <Alert severity="error">
+            <FormattedMessage id="form-validation-error" defaultMessage="Please fix the validation errors before saving." />
+          </Alert>
+        )}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <PageTitle>
             <FormattedMessage id={schemaTitle} defaultMessage={isEdit ? 'تعديل حساب' : 'إضافة حساب'} />
@@ -360,7 +365,7 @@ export default function AccountingAccountFormPage() {
           <Button component={Link} to="/accounting/chart-of-accounts" variant="outlined" color="inherit">
             <FormattedMessage id="cancel" />
           </Button>
-          <Button type="submit" variant="contained" startIcon={<IconDeviceFloppy size={18} />}>
+          <Button type="submit" variant="contained" disabled={form.formState.isSubmitting} startIcon={<IconDeviceFloppy size={18} />}>
             <FormattedMessage id="save" />
           </Button>
         </Box>
