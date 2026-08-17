@@ -451,7 +451,7 @@ export default function PurchaseInvoiceDetailsPage() {
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                      القيد المحاسبي
+                      <FormattedMessage id="invoice-posting-journal" defaultMessage="Invoice Posting Journal" />
                     </Typography>
                     {journalEntryRoute ? (
                       <Button

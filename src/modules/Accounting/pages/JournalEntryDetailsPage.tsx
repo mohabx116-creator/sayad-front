@@ -50,11 +50,63 @@ function InfoRow({ label, children }: { label: React.ReactNode; children: React.
 
 function formatLocalizedText(arabic: string | null | undefined, english: string | null | undefined, locale: string) {
   const isArabic = locale.toLowerCase().startsWith('ar');
-  return isArabic ? arabic || english || '-' : english || arabic || '-';
+  const arabicText = arabic?.trim() || '';
+  const englishText = english?.trim() || '';
+  return isArabic ? arabicText || englishText || '-' : englishText || arabicText || '-';
 }
 
-function formatLocalizedAccountLabel(accountCode: string, accountNameArabic: string, accountNameEnglish: string | null, locale: string) {
-  return `${accountCode} - ${formatLocalizedText(accountNameArabic, accountNameEnglish, locale)}`;
+function getLocalizedAccountName(
+  line: {
+    accountNameArabic?: string | null;
+    accountNameEnglish?: string | null;
+    accountArabicName?: string | null;
+    accountEnglishName?: string | null;
+    nameArabic?: string | null;
+    nameEnglish?: string | null;
+    accountName?: string | null;
+    name?: string | null;
+  },
+  locale: string
+): string {
+  const isArabic = locale.toLowerCase().startsWith('ar');
+  const arabic =
+    line.accountNameArabic?.trim() ||
+    line.accountArabicName?.trim() ||
+    line.nameArabic?.trim() ||
+    '';
+  const english =
+    line.accountNameEnglish?.trim() ||
+    line.accountEnglishName?.trim() ||
+    line.nameEnglish?.trim() ||
+    '';
+  const existing =
+    line.accountName?.trim() ||
+    line.name?.trim() ||
+    '';
+
+  if (isArabic) {
+    return arabic || english || existing || '-';
+  }
+  return english || arabic || existing || '-';
+}
+
+function formatLocalizedAccountLabel(
+  accountCode: string | null | undefined,
+  line: {
+    accountNameArabic?: string | null;
+    accountNameEnglish?: string | null;
+    accountArabicName?: string | null;
+    accountEnglishName?: string | null;
+    nameArabic?: string | null;
+    nameEnglish?: string | null;
+    accountName?: string | null;
+    name?: string | null;
+  },
+  locale: string
+) {
+  const code = accountCode?.trim() || '';
+  const name = getLocalizedAccountName(line, locale);
+  return code ? `${code} - ${name}` : name;
 }
 
 export default function JournalEntryDetailsPage() {
@@ -249,7 +301,7 @@ export default function JournalEntryDetailsPage() {
                         <FormattedMessage id="account" defaultMessage="الحساب" />
                       </TableCell>
                       <TableCell>
-                        <FormattedMessage id="description-arabic" />
+                        <FormattedMessage id="description" defaultMessage="الوصف" />
                       </TableCell>
                       <TableCell align="right">
                         <FormattedMessage id="debit" />
@@ -263,7 +315,7 @@ export default function JournalEntryDetailsPage() {
                     {entry.lines.map((line) => (
                       <TableRow key={line.id} hover>
                         <TableCell>{line.lineNumber}</TableCell>
-                        <TableCell>{formatLocalizedAccountLabel(line.accountCode, line.accountNameArabic, line.accountNameEnglish, intl.locale)}</TableCell>
+                        <TableCell>{formatLocalizedAccountLabel(line.accountCode, line, intl.locale)}</TableCell>
                         <TableCell>{formatLocalizedText(line.descriptionArabic, line.descriptionEnglish, intl.locale)}</TableCell>
                         <TableCell align="right">{line.debitAmount.toFixed(2)}</TableCell>
                         <TableCell align="right">{line.creditAmount.toFixed(2)}</TableCell>
