@@ -458,6 +458,8 @@ export default function SalesInvoiceDetailsPage() {
         confirmLabel={<FormattedMessage id="collect-invoice" defaultMessage="Collect Invoice" />}
         invoiceCurrencyCode={invoice.currencyCode}
         treasuryAccounts={treasuryAccounts}
+        settlementAmount={invoice.grandTotal}
+        settlementCurrencyCode={invoice.currencyCode}
         isSubmitting={isCollectingInvoice}
         onClose={() => setCollectDialogOpen(false)}
         onConfirm={handleCollect}

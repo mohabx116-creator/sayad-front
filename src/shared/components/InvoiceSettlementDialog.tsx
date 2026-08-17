@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Autocomplete from '@mui/material/Autocomplete';
@@ -58,6 +58,7 @@ export default function InvoiceSettlementDialog({
   onConfirm
 }: Props) {
   const intl = useIntl();
+  const formId = useId();
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Wallet' | 'InstaPay'>('Cash');
   const [treasuryAccountId, setTreasuryAccountId] = useState('');
 
@@ -134,7 +135,7 @@ export default function InvoiceSettlementDialog({
         </Typography>
       </DialogTitle>
       <DialogContent dividers>
-        <Stack component="form" onSubmit={handleSubmit} spacing={2.5} sx={{ pt: 0.5 }} noValidate>
+        <Stack component="form" id={formId} onSubmit={handleSubmit} spacing={2.5} sx={{ pt: 0.5 }} noValidate>
           <Alert severity="info" variant="outlined">
             <FormattedMessage
               id="invoice-settlement.dialog-help"
@@ -224,7 +225,7 @@ export default function InvoiceSettlementDialog({
         <LoadingButton onClick={handleClose} color="inherit" disabled={isSubmitting}>
           <FormattedMessage id="cancel" />
         </LoadingButton>
-        <LoadingButton type="submit" variant="contained" loading={isSubmitting} loadingPosition="start" disabled={!canConfirm}>
+        <LoadingButton form={formId} type="submit" variant="contained" loading={isSubmitting} loadingPosition="start" disabled={!canConfirm}>
           {isSubmitting ? <FormattedMessage id="invoice-settlement.processing-payment" defaultMessage="Processing payment..." /> : confirmLabel}
         </LoadingButton>
       </DialogActions>
