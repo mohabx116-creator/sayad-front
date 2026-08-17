@@ -83,8 +83,9 @@ function getLocalizedAccountName(
     line.accountName?.trim() ||
     line.name?.trim() ||
     '';
+  const isArabicLocale = locale.toLowerCase().startsWith('ar');
 
-  return resolveLocalizedText(locale, arabic || null, english || null, existing || '');
+  return isArabicLocale ? arabic || english || existing || '' : english || arabic || existing || '';
 }
 
 function formatLocalizedAccountLabel(
