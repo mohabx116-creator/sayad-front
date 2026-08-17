@@ -120,6 +120,8 @@ export type PurchaseInvoiceListItem = {
   status: PurchaseDocumentStatus;
   grandTotal: number;
   currencyCode: 'EGP';
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
   isAccountingPosted: boolean;
   accountingPostingStatus: string;
   rowVersion: string;
@@ -177,6 +179,8 @@ export type PurchaseReturnListItem = {
   status: PurchaseDocumentStatus;
   grandTotal: number;
   currencyCode: 'EGP';
+  accountingJournalEntryId?: string | null;
+  accountingEntryNumber?: string | null;
   isAccountingPosted: boolean;
   accountingPostingStatus: string;
   rowVersion: string;
