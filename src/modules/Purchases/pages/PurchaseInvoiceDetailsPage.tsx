@@ -407,6 +407,8 @@ export default function PurchaseInvoiceDetailsPage() {
         confirmLabel={<FormattedMessage id="pay-invoice" defaultMessage="Pay Invoice" />}
         invoiceCurrencyCode={invoice.currencyCode}
         treasuryAccounts={treasuryAccounts}
+        settlementAmount={invoice.grandTotal}
+        settlementCurrencyCode={invoice.currencyCode}
         onClose={() => setPayDialogOpen(false)}
         onConfirm={handlePay}
       />

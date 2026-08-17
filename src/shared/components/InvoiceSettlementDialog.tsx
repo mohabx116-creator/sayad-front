@@ -23,12 +23,23 @@ import {
   getInvoicePaymentMethodLabel
 } from 'shared/utils/invoiceSettlement';
 
+function formatSettlementAmount(locale: string, value: number, currencyCode?: string) {
+  const formattedValue = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+
+  return currencyCode ? `${formattedValue} ${currencyCode}` : formattedValue;
+}
+
 type Props = {
   open: boolean;
   title: ReactNode;
   confirmLabel: ReactNode;
   invoiceCurrencyCode: string;
   treasuryAccounts: TreasuryAccountListItem[];
+  settlementAmount?: number;
+  settlementCurrencyCode?: string;
   isSubmitting?: boolean;
   onClose: () => void;
   onConfirm: (request: { paymentMethod: 'Cash' | 'Wallet' | 'InstaPay'; treasuryAccountId: string }) => Promise<void> | void;
@@ -40,6 +51,8 @@ export default function InvoiceSettlementDialog({
   confirmLabel,
   invoiceCurrencyCode,
   treasuryAccounts,
+  settlementAmount,
+  settlementCurrencyCode,
   isSubmitting = false,
   onClose,
   onConfirm
@@ -126,6 +139,21 @@ export default function InvoiceSettlementDialog({
               defaultMessage="Choose a direct payment method and a compatible active treasury account for the invoice currency."
             />
           </Alert>
+          {typeof settlementAmount === 'number' && (
+            <TextField
+              fullWidth
+              label={<FormattedMessage id="invoice-settlement.payment-amount" defaultMessage="Payment Amount" />}
+              value={formatSettlementAmount(intl.locale, settlementAmount, settlementCurrencyCode)}
+              InputProps={{ readOnly: true }}
+              inputProps={{ dir: 'ltr' }}
+              helperText={
+                <FormattedMessage
+                  id="invoice-settlement.payment-amount-help"
+                  defaultMessage="This is the full remaining amount that will be settled now."
+                />
+              }
+            />
+          )}
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
