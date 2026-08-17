@@ -113,6 +113,8 @@
   "sales-direct-settlement-help": "Cash, Wallet, and InstaPay invoices are settled automatically when posted. Credit invoices remain outstanding until collected later.",
   "purchases-direct-settlement-help": "Cash, Wallet, and InstaPay invoices are settled automatically when posted. Credit invoices remain payable until settled later.",
   "invoice-settlement.dialog-help": "Choose a direct payment method and a compatible active treasury account for the invoice currency.",
+  "invoice-settlement.payment-amount": "Payment Amount",
+  "invoice-settlement.payment-amount-help": "This is the full remaining amount that will be settled now.",
   "invoice-settlement.select-compatible-account": "Select an active treasury account that matches the payment method and invoice currency.",
   "invoice-settlement.auto-selected-account": "A single compatible treasury account was selected automatically.",
   "invoice-settlement.no-compatible-account": "No active treasury account is compatible with the selected payment method and invoice currency.",
