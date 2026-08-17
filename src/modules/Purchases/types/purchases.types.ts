@@ -84,9 +84,11 @@ export type PurchaseInvoice = {
   supplierControlAccountId?: string | null;
   supplierControlAccountCode?: string | null;
   supplierControlAccountArabicName?: string | null;
+  supplierControlAccountEnglishName?: string | null;
   inventoryAssetAccountId?: string | null;
   inventoryAssetAccountCode?: string | null;
   inventoryAssetAccountArabicName?: string | null;
+  inventoryAssetAccountEnglishName?: string | null;
   subtotal: number;
   lineDiscountTotal: number;
   headerDiscount: number;
@@ -106,6 +108,7 @@ export type PurchaseInvoice = {
   treasuryAccountId?: string | null;
   treasuryAccountCode?: string | null;
   treasuryAccountNameArabic?: string | null;
+  treasuryAccountNameEnglish?: string | null;
   settlementJournalEntryId?: string | null;
   settlementJournalEntryNumber?: string | null;
 };
@@ -134,6 +137,7 @@ export type PurchaseInvoiceListItem = {
   treasuryAccountId?: string | null;
   treasuryAccountCode?: string | null;
   treasuryAccountNameArabic?: string | null;
+  treasuryAccountNameEnglish?: string | null;
 };
 
 export type PurchaseReturn = {
@@ -155,9 +159,11 @@ export type PurchaseReturn = {
   supplierControlAccountId?: string | null;
   supplierControlAccountCode?: string | null;
   supplierControlAccountArabicName?: string | null;
+  supplierControlAccountEnglishName?: string | null;
   inventoryAssetAccountId?: string | null;
   inventoryAssetAccountCode?: string | null;
   inventoryAssetAccountArabicName?: string | null;
+  inventoryAssetAccountEnglishName?: string | null;
   subtotal: number;
   discountTotal: number;
   taxTotal: number;

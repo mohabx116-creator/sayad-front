@@ -27,6 +27,7 @@ import Loader from 'ui-component/Loader';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { cancelInvoice, payInvoice, postInvoice } from '../api/purchasesApi';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
@@ -70,6 +71,15 @@ function formatDate(value: string | null | undefined, locale: string) {
 
 function getJournalEntryDetailsRoute(journalEntryId: string | null | undefined) {
   return journalEntryId ? `/accounting/journal-entries/${journalEntryId}` : null;
+}
+
+function formatCodeNameLabel(locale: string, code: string | null | undefined, nameArabic: string | null | undefined, nameEnglish: string | null | undefined) {
+  const resolvedName = resolveLocalizedText(locale, nameArabic, nameEnglish, '');
+  if (code) {
+    return resolvedName ? `${code} - ${resolvedName}` : code;
+  }
+
+  return resolvedName || '-';
 }
 
 export default function PurchaseInvoiceDetailsPage() {
@@ -275,11 +285,11 @@ export default function PurchaseInvoiceDetailsPage() {
                   <Grid item xs={12} md={4}>
                     <InfoRow label={<FormattedMessage id="settlement-status" defaultMessage="Settlement Status" />}>{settlementStatusLabel}</InfoRow>
                   </Grid>
-                  <Grid item xs={12} md={4}>
-                    <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}>
-                      {invoice.treasuryAccountCode ? `${invoice.treasuryAccountCode}${invoice.treasuryAccountNameArabic ? ` - ${invoice.treasuryAccountNameArabic}` : ''}` : '-'}
-                    </InfoRow>
-                  </Grid>
+                    <Grid item xs={12} md={4}>
+                      <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}>
+                        {formatCodeNameLabel(intl.locale, invoice.treasuryAccountCode, invoice.treasuryAccountNameArabic, invoice.treasuryAccountNameEnglish)}
+                      </InfoRow>
+                    </Grid>
                 </Grid>
               </Box>
             </MainCard>
@@ -516,7 +526,12 @@ export default function PurchaseInvoiceDetailsPage() {
                       حساب الموردين
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {invoice.supplierControlAccountCode ? `${invoice.supplierControlAccountCode} - ${invoice.supplierControlAccountArabicName}` : '-'}
+                      {formatCodeNameLabel(
+                        intl.locale,
+                        invoice.supplierControlAccountCode,
+                        invoice.supplierControlAccountArabicName,
+                        invoice.supplierControlAccountEnglishName
+                      )}
                     </Typography>
                   </Box>
                   <Box>
@@ -524,7 +539,12 @@ export default function PurchaseInvoiceDetailsPage() {
                       حساب المخزون
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {invoice.inventoryAssetAccountCode ? `${invoice.inventoryAssetAccountCode} - ${invoice.inventoryAssetAccountArabicName}` : '-'}
+                      {formatCodeNameLabel(
+                        intl.locale,
+                        invoice.inventoryAssetAccountCode,
+                        invoice.inventoryAssetAccountArabicName,
+                        invoice.inventoryAssetAccountEnglishName
+                      )}
                     </Typography>
                   </Box>
                 </Stack>

@@ -26,11 +26,21 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { cancelReturn, postReturn } from '../api/purchasesApi';
 import { usePurchaseReturn } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
+
+function formatCodeNameLabel(locale: string, code: string | null | undefined, nameArabic: string | null | undefined, nameEnglish: string | null | undefined) {
+  const resolvedName = resolveLocalizedText(locale, nameArabic, nameEnglish, '');
+  if (code) {
+    return resolvedName ? `${code} - ${resolvedName}` : code;
+  }
+
+  return resolvedName || '-';
+}
 
 export default function PurchaseReturnDetailsPage() {
   const { id } = useParams();
@@ -273,7 +283,12 @@ export default function PurchaseReturnDetailsPage() {
                               حساب الموردين
                            </Typography>
                            <Typography variant="body2" fontWeight={600}>
-                              {purchaseReturn.supplierControlAccountCode ? `${purchaseReturn.supplierControlAccountCode} - ${purchaseReturn.supplierControlAccountArabicName}` : '-'}
+                              {formatCodeNameLabel(
+                                intl.locale,
+                                purchaseReturn.supplierControlAccountCode,
+                                purchaseReturn.supplierControlAccountArabicName,
+                                purchaseReturn.supplierControlAccountEnglishName
+                              )}
                            </Typography>
                         </Box>
                         <Box>
@@ -281,7 +296,12 @@ export default function PurchaseReturnDetailsPage() {
                               حساب المخزون
                            </Typography>
                            <Typography variant="body2" fontWeight={600}>
-                              {purchaseReturn.inventoryAssetAccountCode ? `${purchaseReturn.inventoryAssetAccountCode} - ${purchaseReturn.inventoryAssetAccountArabicName}` : '-'}
+                              {formatCodeNameLabel(
+                                intl.locale,
+                                purchaseReturn.inventoryAssetAccountCode,
+                                purchaseReturn.inventoryAssetAccountArabicName,
+                                purchaseReturn.inventoryAssetAccountEnglishName
+                              )}
                            </Typography>
                         </Box>
                      </Stack>

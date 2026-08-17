@@ -26,6 +26,7 @@ import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 
 import JournalEntryCancelDialog from '../components/JournalEntryCancelDialog';
 import JournalEntryDeleteDialog from '../components/JournalEntryDeleteDialog';
@@ -68,7 +69,6 @@ function getLocalizedAccountName(
   },
   locale: string
 ): string {
-  const isArabic = locale.toLowerCase().startsWith('ar');
   const arabic =
     line.accountNameArabic?.trim() ||
     line.accountArabicName?.trim() ||
@@ -84,10 +84,7 @@ function getLocalizedAccountName(
     line.name?.trim() ||
     '';
 
-  if (isArabic) {
-    return arabic || english || existing || '-';
-  }
-  return english || arabic || existing || '-';
+  return resolveLocalizedText(locale, arabic || null, english || null, existing || '');
 }
 
 function formatLocalizedAccountLabel(
@@ -106,7 +103,11 @@ function formatLocalizedAccountLabel(
 ) {
   const code = accountCode?.trim() || '';
   const name = getLocalizedAccountName(line, locale);
-  return code ? `${code} - ${name}` : name;
+  if (code) {
+    return name ? `${code} - ${name}` : code;
+  }
+
+  return name || '-';
 }
 
 export default function JournalEntryDetailsPage() {
