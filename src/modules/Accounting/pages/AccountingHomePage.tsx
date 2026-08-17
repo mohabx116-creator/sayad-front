@@ -330,6 +330,10 @@ export default function AccountingHomePage() {
           <Grid item xs={12} md={4}>
             <MainCard title={<FormattedMessage id="reports" defaultMessage="Reports" />}>
               <List sx={{ p: 0 }}>
+                <ListItemButton component={Link} to="/accounting/reports/trial-balance" divider sx={{ px: 0 }}>
+                  <IconFileDescription size={20} style={{ marginRight: 8, marginLeft: 8 }} />
+                  <ListItemText primary={<FormattedMessage id="trial-balance-report" defaultMessage="Trial Balance Report" />} />
+                </ListItemButton>
                 <ListItemButton component={Link} to="/accounting/reports/income-statement" divider sx={{ px: 0 }}>
                   <IconFileDescription size={20} style={{ marginRight: 8, marginLeft: 8 }} />
                   <ListItemText primary={<FormattedMessage id="profit-and-loss-report" defaultMessage="Profit and Loss" />} />
