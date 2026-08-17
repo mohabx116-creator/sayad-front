@@ -228,7 +228,7 @@ export default function TreasuryAccountDetailsPage() {
       />
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={7}>
+        <Grid item xs={12}>
           <MainCard sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3, height: '100%' }} content={false}>
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h5" fontWeight={700}>
@@ -272,7 +272,7 @@ export default function TreasuryAccountDetailsPage() {
           </MainCard>
         </Grid>
 
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12}>
           <MainCard
             content={false}
             sx={{
