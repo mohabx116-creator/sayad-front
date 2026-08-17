@@ -48,27 +48,23 @@ export const INVENTORY_VIEW_PERMISSIONS = [
 export const ITEM_TYPES = ['RawMaterial', 'FinishedGood', 'PackagingMaterial', 'OperationalSupply', 'Other'] as const;
 
 export function getItemTypeLabel(intl: IntlShape, itemType: string) {
-  const isArabic = intl.locale.toLowerCase().startsWith('ar');
-
   switch (itemType) {
     case 'RawMaterial':
-      return isArabic ? 'Ã™â€¦Ã™Ë†Ã˜Â§Ã˜Â¯ Ã˜Â®Ã˜Â§Ã™â€¦' : 'Raw Material';
+      return intl.formatMessage({ id: 'item-type.raw-material', defaultMessage: 'Raw Material' });
     case 'FinishedGood':
-      return isArabic ? 'Ã™â€¦Ã™â€ Ã˜ÂªÃ˜Â¬ Ã™â€ Ã™â€¡Ã˜Â§Ã˜Â¦Ã™Å ' : 'Finished Good';
+      return intl.formatMessage({ id: 'item-type.finished-good', defaultMessage: 'Finished Good' });
     case 'PackagingMaterial':
-      return isArabic ? 'Ã™â€¦Ã™Ë†Ã˜Â§Ã˜Â¯ Ã˜ÂªÃ˜Â¹Ã˜Â¨Ã˜Â¦Ã˜Â© Ã™Ë†Ã˜ÂªÃ˜ÂºÃ™â€žÃ™Å Ã™Â' : 'Packaging Material';
+      return intl.formatMessage({ id: 'item-type.packaging-material', defaultMessage: 'Packaging Material' });
     case 'OperationalSupply':
-      return isArabic ? 'Ã™â€¦Ã˜Â³Ã˜ÂªÃ™â€žÃ˜Â²Ã™â€¦Ã˜Â§Ã˜Âª Ã˜ÂªÃ˜Â´Ã˜ÂºÃ™Å Ã™â€ž' : 'Operational Supply';
+      return intl.formatMessage({ id: 'item-type.operational-supply', defaultMessage: 'Operational Supply' });
     default:
-      return isArabic ? 'Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€°' : 'Other';
+      return intl.formatMessage({ id: 'item-type.other', defaultMessage: 'Other' });
   }
 }
 
 export function getInventoryMovementAccountingStatusLabel(intl: IntlShape, accountingPostingStatus: string) {
-  const isArabic = intl.locale.toLowerCase().startsWith('ar');
-
   if (accountingPostingStatus === 'NotApplicable') {
-    return isArabic ? 'Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™â€ Ã˜Â·Ã˜Â¨Ã™â€š Ã™â€¦Ã˜Â­Ã˜Â§Ã˜Â³Ã˜Â¨Ã™Å Ã™â€¹Ã˜Â§' : 'Accounting not applicable';
+    return intl.locale.toLowerCase().startsWith('ar') ? 'غير منطبق محاسبيًا' : 'Accounting not applicable';
   }
 
   return accountingPostingStatus;

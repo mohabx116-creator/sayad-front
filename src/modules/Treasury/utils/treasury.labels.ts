@@ -1,17 +1,17 @@
 export function getTreasuryAccountTypeLabel(accountType?: string | null) {
   switch ((accountType ?? '').toLowerCase()) {
     case 'cash':
-      return 'Ù†Ù‚Ø¯ÙŠ';
+      return 'نقدي';
     case 'bank':
-      return 'Ø¨Ù†Ùƒ';
+      return 'بنك';
     case 'pettycash':
-      return 'ØµÙ†Ø¯ÙˆÙ‚ ØµØºÙŠØ±';
+      return 'صندوق صغير';
     case 'digitalwallet':
-      return 'Ù…Ø­ÙØ¸Ø© Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ©';
+      return 'محفظة إلكترونية';
     case 'other':
-      return 'Ø£Ø®Ø±Ù‰';
+      return 'أخرى';
     default:
-      return accountType ?? 'â€”';
+      return accountType ?? '—';
   }
 }
 

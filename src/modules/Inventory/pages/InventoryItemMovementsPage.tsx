@@ -50,7 +50,7 @@ export default function InventoryItemMovementsPage() {
         {error && <Typography color="error"><FormattedMessage id="inventory-load-error" /></Typography>}
         <TableContainer>
           <Table>
-            <TableHead><TableRow><TableCell><FormattedMessage id="date" /></TableCell><TableCell><FormattedMessage id="entry-type" /></TableCell><TableCell><FormattedMessage id="quantity" /></TableCell><TableCell><FormattedMessage id="running-balance" /></TableCell><TableCell><FormattedMessage id="description" /></TableCell><TableCell><FormattedMessage id="accounting" defaultMessage="Ã˜Â§Ã™â€žÃ˜Â­Ã˜Â³Ã˜Â§Ã˜Â¨Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ˜Â¹Ã˜Â§Ã™â€¦Ã˜Â©" /></TableCell></TableRow></TableHead>
+            <TableHead><TableRow><TableCell><FormattedMessage id="date" /></TableCell><TableCell><FormattedMessage id="entry-type" /></TableCell><TableCell><FormattedMessage id="quantity" /></TableCell><TableCell><FormattedMessage id="running-balance" /></TableCell><TableCell><FormattedMessage id="description" /></TableCell><TableCell><FormattedMessage id="accounting" defaultMessage="Accounting" /></TableCell></TableRow></TableHead>
             <TableBody>
               {items.map((movement) => (
                 <TableRow key={movement.id}>

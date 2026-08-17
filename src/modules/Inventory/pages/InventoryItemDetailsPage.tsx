@@ -240,7 +240,7 @@ export default function InventoryItemDetailsPage() {
             {item.nameArabic}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            ÙƒÙˆØ¯ Ø§Ù„ØµÙ†Ù: {item.code}
+            <FormattedMessage id="item-code" defaultMessage="Code" />: {item.code}
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
@@ -292,13 +292,13 @@ export default function InventoryItemDetailsPage() {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="approximate-cost-price" />
                 </Typography>
-                <Typography variant="h5">{item.defaultSalePrice.toFixed(2)} Ø¬.Ù…</Typography>
+                <Typography variant="h5">{item.defaultSalePrice.toFixed(2)} ج.م</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="primary-supplier" />
                 </Typography>
-                <Typography variant="h5">Ø§Ù„Ø´Ø±ÙƒØ© Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠØ© Ù„Ù„Ø¨Ù„Ø§Ø³ØªÙŠÙƒ</Typography>
+                <Typography variant="h5">-</Typography>
               </Grid>
             </Grid>
           </MainCard>
@@ -308,7 +308,7 @@ export default function InventoryItemDetailsPage() {
           <MainCard title={<FormattedMessage id="stock-summary" />} sx={{ height: '100%' }}>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ø­Ø§Ù„ÙŠ
+                الرصيد الحالي
               </Typography>
               <Typography variant="h1" sx={{ fontSize: '3rem', fontWeight: 700, mb: 1 }}>
                 {item.currentQuantity}
@@ -455,7 +455,7 @@ export default function InventoryItemDetailsPage() {
                   {movements.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} align="center">
-                        Ù„Ø§ ØªÙˆØ¬Ø¯ Ø­Ø±ÙƒØ§Øª
+                        <FormattedMessage id="no-movements" />
                       </TableCell>
                     </TableRow>
                   )}
@@ -468,7 +468,7 @@ export default function InventoryItemDetailsPage() {
       
       <Box sx={{ mt: 5 }}>
         <Typography variant="h4" color="text.secondary" sx={{ mb: 2, px: 1 }}>
-          Ø¥Ø¯Ø§Ø±Ø© Ø¥Ø¶Ø§ÙÙŠØ©
+          إدارة إضافية
         </Typography>
         <Stack spacing={3}>
           <MainCard title={<FormattedMessage id="opening-stock" />}>

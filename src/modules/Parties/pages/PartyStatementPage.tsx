@@ -85,9 +85,9 @@ function getPartyTypeLabel(intl: ReturnType<typeof useIntl>, isCustomer: boolean
 function getBalanceNatureLabel(intl: ReturnType<typeof useIntl>, nature: string) {
   switch (nature) {
     case 'Debit':
-      return intl.formatMessage({ id: 'parties.statement.debit-against-party', defaultMessage: 'Ø¹Ù„ÙŠÙ‡' });
+      return intl.formatMessage({ id: 'parties.statement.debit-against-party' });
     case 'Credit':
-      return intl.formatMessage({ id: 'parties.statement.credit-for-party', defaultMessage: 'Ù„Ù‡' });
+      return intl.formatMessage({ id: 'parties.statement.credit-for-party' });
     default:
       return '';
   }
@@ -316,14 +316,14 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.total-debit" defaultMessage="Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¹Ù„ÙŠÙ‡" />
+                      <FormattedMessage id="parties.statement.total-debit" />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         {formatAmount(intl.locale, statement.debitTotal)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="Ø¹Ù„ÙŠÙ‡" />
+                        <FormattedMessage id="parties.statement.debit-against-party" />
                       </Typography>
                     </Stack>
                   </Box>
@@ -331,14 +331,14 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.total-credit" defaultMessage="Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù„Ù‡" />
+                      <FormattedMessage id="parties.statement.total-credit" />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         {formatAmount(intl.locale, statement.creditTotal)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                        <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="Ù„Ù‡" />
+                        <FormattedMessage id="parties.statement.credit-for-party" />
                       </Typography>
                     </Stack>
                   </Box>
@@ -346,7 +346,7 @@ export default function PartyStatementPage() {
                 <Grid item xs={12} sm={6} lg={3}>
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
                     <Typography variant="caption" color="text.secondary">
-                      <FormattedMessage id="parties.statement.closing-balance" defaultMessage="Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ" />
+                      <FormattedMessage id="parties.statement.closing-balance" />
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -431,16 +431,16 @@ export default function PartyStatementPage() {
                             <FormattedMessage id="date" />
                           </TableCell>
                           <TableCell sx={{ fontWeight: 700 }}>
-                            <FormattedMessage id="parties.statement.details" defaultMessage="Ø§Ù„ØªÙØ§ØµÙŠÙ„" />
+                            <FormattedMessage id="parties.statement.details" />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700, width: '150px' }}>
-                            <FormattedMessage id="parties.statement.debit-against-party" defaultMessage="Ø¹Ù„ÙŠÙ‡" />
+                            <FormattedMessage id="parties.statement.debit-against-party" />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700, width: '150px' }}>
-                            <FormattedMessage id="parties.statement.credit-for-party" defaultMessage="Ù„Ù‡" />
+                            <FormattedMessage id="parties.statement.credit-for-party" />
                           </TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700, width: '180px' }}>
-                            <FormattedMessage id="parties.statement.balance" defaultMessage="Ø§Ù„Ø±ØµÙŠØ¯" />
+                            <FormattedMessage id="parties.statement.balance" />
                           </TableCell>
                         </TableRow>
                       </TableHead>

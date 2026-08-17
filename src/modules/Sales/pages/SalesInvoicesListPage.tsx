@@ -171,7 +171,7 @@ export default function SalesInvoicesListPage() {
              <TextField
                size="small"
                fullWidth
-               placeholder={intl.formatMessage({ id: 'search-invoice-or-customer', defaultMessage: 'Ø§Ù„Ø¨Ø­Ø« Ø¨Ø±Ù‚Ù… Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ø£Ùˆ Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„...' })}
+               placeholder={intl.formatMessage({ id: 'search-invoice-or-customer', defaultMessage: 'Search by invoice number or customer name...' })}
                value={search}
                onChange={(event) => { setSearch(event.target.value); setPage(0); }}
                InputProps={{
@@ -185,7 +185,7 @@ export default function SalesInvoicesListPage() {
            </Box>
            <Box sx={{ width: 200 }}>
              <TextField size="small" select fullWidth value={status} onChange={(event) => { setStatus(event.target.value); setPage(0); }} SelectProps={{ displayEmpty: true }}>
-               <MenuItem value=""><FormattedMessage id="all-statuses" defaultMessage="Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª" /></MenuItem>
+               <MenuItem value=""><FormattedMessage id="all-statuses" defaultMessage="All statuses" /></MenuItem>
                <MenuItem value="Draft"><FormattedMessage id="sales.status.draft" /></MenuItem>
                <MenuItem value="Posted"><FormattedMessage id="sales.status.posted" /></MenuItem>
                <MenuItem value="Cancelled"><FormattedMessage id="sales.status.cancelled" /></MenuItem>
@@ -195,11 +195,11 @@ export default function SalesInvoicesListPage() {
              <TextField size="small" type="date" fullWidth InputLabelProps={{ shrink: true }} value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setPage(0); }} />
            </Box>
            <Button variant="outlined" color="inherit" startIcon={<IconFilter size={18} />} sx={{ borderRadius: 2 }}>
-             <FormattedMessage id="more-filters" defaultMessage="Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ÙÙ„Ø§ØªØ±" />
+             <FormattedMessage id="more-filters" defaultMessage="More filters" />
            </Button>
            {/* Add a subtle reset button if any filter is active */}
            {(search || status || customerId || dateFrom || dateTo) && (
-             <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="Ø¥Ø¹Ø§Ø¯Ø© Ø¶Ø¨Ø·" />}>
+             <Tooltip title={<FormattedMessage id="reset-filters" defaultMessage="Reset filters" />}>
                <IconButton onClick={resetFilters} color="primary" size="small">
                  <IconRefresh size={18} />
                </IconButton>
