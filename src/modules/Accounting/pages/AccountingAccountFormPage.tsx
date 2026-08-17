@@ -261,7 +261,8 @@ export default function AccountingAccountFormPage() {
                       label={<FormattedMessage id="account-type" defaultMessage="نوع الحساب" />}
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
-                      disabled={isParentLocked}
+                      InputProps={{ readOnly: isParentLocked }}
+                      sx={isParentLocked ? { opacity: 0.7, pointerEvents: 'none' } : {}}
                     >
                       {ACCOUNTING_ACCOUNT_TYPE_ORDER.map((type) => (
                         <MenuItem key={type} value={type}>
