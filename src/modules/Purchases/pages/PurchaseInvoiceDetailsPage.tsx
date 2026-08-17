@@ -482,7 +482,7 @@ export default function PurchaseInvoiceDetailsPage() {
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                      <FormattedMessage id="settlement-journal-entry" defaultMessage="Settlement Journal" />
+                      <FormattedMessage id="settlement-journal-entry" defaultMessage="Payment Settlement Journal" />
                     </Typography>
                     {settlementJournalEntryRoute ? (
                       <Button

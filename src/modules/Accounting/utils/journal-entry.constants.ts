@@ -16,6 +16,8 @@ export const JOURNAL_ENTRY_SOURCE_TYPES = {
   SALES_INVOICE: 'SalesInvoice',
   SALES_RETURN: 'SalesReturn',
   PURCHASE_INVOICE: 'PurchaseInvoice',
+  SALES_INVOICE_SETTLEMENT: 'SalesInvoiceSettlement',
+  PURCHASE_INVOICE_SETTLEMENT: 'PurchaseInvoiceSettlement',
   PURCHASE_RETURN: 'PurchaseReturn',
   INVENTORY_MOVEMENT: 'InventoryMovement',
   FISCAL_YEAR_CLOSING: 'FiscalYearClosing',

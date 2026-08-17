@@ -48,6 +48,10 @@ export function formatJournalEntrySourceType(sourceType?: JournalEntrySourceType
       return isArabic ? '\u0645\u0631\u062A\u062C\u0639 \u0628\u064A\u0639' : 'Sales Return';
     case JOURNAL_ENTRY_SOURCE_TYPES.PURCHASE_INVOICE:
       return isArabic ? '\u0641\u0627\u062A\u0648\u0631\u0629 \u0634\u0631\u0627\u0621' : 'Purchase Invoice';
+    case JOURNAL_ENTRY_SOURCE_TYPES.SALES_INVOICE_SETTLEMENT:
+      return isArabic ? '\u0633\u062F\u0627\u062F \u0641\u0627\u062A\u0648\u0631\u0629 \u0628\u064A\u0639' : 'Sales Invoice Settlement';
+    case JOURNAL_ENTRY_SOURCE_TYPES.PURCHASE_INVOICE_SETTLEMENT:
+      return isArabic ? '\u0633\u062F\u0627\u062F \u0641\u0627\u062A\u0648\u0631\u0629 \u0634\u0631\u0627\u0621' : 'Purchase Invoice Settlement';
     case JOURNAL_ENTRY_SOURCE_TYPES.PURCHASE_RETURN:
       return isArabic ? '\u0645\u0631\u062A\u062C\u0639 \u0634\u0631\u0627\u0621' : 'Purchase Return';
     case JOURNAL_ENTRY_SOURCE_TYPES.INVENTORY_MOVEMENT:

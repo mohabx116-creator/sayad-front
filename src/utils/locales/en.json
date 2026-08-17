@@ -124,6 +124,7 @@
   "sales-invoice-collected": "Sales invoice collected successfully.",
   "purchase-invoice-paid": "Purchase invoice paid successfully.",
   "purchase-rowversion-missing": "This invoice cannot be paid right now because its current version is unavailable. Refresh the page and try again.",
+  "settlement-journal-entry": "Payment Settlement Journal",
   "details": "Details",
   "edit": "Edit",
   "crm": "CRM",

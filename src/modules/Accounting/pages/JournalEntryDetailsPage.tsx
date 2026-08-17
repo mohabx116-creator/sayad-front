@@ -48,6 +48,15 @@ function InfoRow({ label, children }: { label: React.ReactNode; children: React.
   );
 }
 
+function formatLocalizedText(arabic: string | null | undefined, english: string | null | undefined, locale: string) {
+  const isArabic = locale.toLowerCase().startsWith('ar');
+  return isArabic ? arabic || english || '-' : english || arabic || '-';
+}
+
+function formatLocalizedAccountLabel(accountCode: string, accountNameArabic: string, accountNameEnglish: string | null, locale: string) {
+  return `${accountCode} - ${formatLocalizedText(accountNameArabic, accountNameEnglish, locale)}`;
+}
+
 export default function JournalEntryDetailsPage() {
   const { id } = useParams();
   const intl = useIntl();
@@ -68,6 +77,7 @@ export default function JournalEntryDetailsPage() {
   const canPost = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
   const canCancel = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.POSTED;
   const canDelete = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
+  const description = formatLocalizedText(entry?.descriptionArabic, entry?.descriptionEnglish, intl.locale);
 
   const handlePost = async () => {
     if (!id || !entry) {
@@ -218,7 +228,7 @@ export default function JournalEntryDetailsPage() {
                     </InfoRow>
                   </Grid>
                   <Grid item xs={12}>
-                    <InfoRow label={<FormattedMessage id="description" />}>{entry.descriptionArabic || entry.descriptionEnglish || '—'}</InfoRow>
+                    <InfoRow label={<FormattedMessage id="description" />}>{description}</InfoRow>
                   </Grid>
                 </Grid>
               </Box>
@@ -253,10 +263,8 @@ export default function JournalEntryDetailsPage() {
                     {entry.lines.map((line) => (
                       <TableRow key={line.id} hover>
                         <TableCell>{line.lineNumber}</TableCell>
-                        <TableCell>
-                          {line.accountCode} - {line.accountNameArabic}
-                        </TableCell>
-                        <TableCell>{line.descriptionArabic || line.descriptionEnglish || '—'}</TableCell>
+                        <TableCell>{formatLocalizedAccountLabel(line.accountCode, line.accountNameArabic, line.accountNameEnglish, intl.locale)}</TableCell>
+                        <TableCell>{formatLocalizedText(line.descriptionArabic, line.descriptionEnglish, intl.locale)}</TableCell>
                         <TableCell align="right">{line.debitAmount.toFixed(2)}</TableCell>
                         <TableCell align="right">{line.creditAmount.toFixed(2)}</TableCell>
                       </TableRow>
