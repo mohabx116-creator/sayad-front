@@ -122,6 +122,7 @@
   "invoice-settlement.credit-outstanding": "Credit invoices remain outstanding until collected later.",
   "sales-invoice-collected": "Sales invoice collected successfully.",
   "purchase-invoice-paid": "Purchase invoice paid successfully.",
+  "purchase-rowversion-missing": "This invoice cannot be paid right now because its current version is unavailable. Refresh the page and try again.",
   "details": "Details",
   "edit": "Edit",
   "crm": "CRM",
