@@ -108,6 +108,11 @@ export default function AccountingAccountFormPage() {
     form.setValue('accountType', selectedParent.accountType, { shouldDirty: true, shouldValidate: true });
   }, [form, selectedParent]);
 
+  useEffect(() => {
+    form.register('rowVersion');
+    form.register('isSystem');
+  }, [form.register]);
+
   const schemaTitle = useMemo(() => (isEdit ? 'edit-account' : parentIdFromQuery ? 'add-child-account' : 'create-account'), [isEdit, parentIdFromQuery]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -153,7 +158,16 @@ export default function AccountingAccountFormPage() {
       <Stack spacing={3}>
         {Object.keys(form.formState.errors).length > 0 && (
           <Alert severity="error">
-            <FormattedMessage id="form-validation-error" defaultMessage="Please fix the validation errors before saving." />
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <FormattedMessage id="form-validation-error" defaultMessage="Please fix the validation errors before saving:" />
+            </Typography>
+            <Box component="ul" sx={{ m: 0, pl: 2 }}>
+              {Object.entries(form.formState.errors).map(([field, error]) => (
+                <li key={field}>
+                  {field}: {error?.message as string}
+                </li>
+              ))}
+            </Box>
           </Alert>
         )}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
