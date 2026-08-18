@@ -19,6 +19,7 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { IconEdit, IconTrash, IconAdjustments, IconArrowDown, IconArrowUp } from '@tabler/icons-react';
+import { useTheme } from '@mui/material/styles';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -94,6 +95,7 @@ function getMovementTypeLabel(intl: ReturnType<typeof useIntl>, movementType: st
 
 export default function InventoryItemDetailsPage() {
   const { id } = useParams();
+  const theme = useTheme();
   const intl = useIntl();
   const dispatch = useDispatch();
   const { item, isLoading, error, mutate: mutateItem } = useInventoryItem(id);
@@ -399,7 +401,7 @@ export default function InventoryItemDetailsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {movements.slice(0, 5).map((movement) => (
+                  {[...movements].reverse().slice(0, 5).map((movement) => (
                     <TableRow key={movement.id} hover>
                       <TableCell>
                         {movement.movementDate}
@@ -418,13 +420,13 @@ export default function InventoryItemDetailsPage() {
                       <TableCell align="center">
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Typography variant="subtitle1" sx={{ mr: 1, fontWeight: 'bold' }}>
-                            {Math.abs(movement.quantity)}
+                            {Math.abs(movement.quantity)} {movement.unitCode}
                           </Typography>
-                          {movement.quantity > 0 ? (
-                            <IconArrowUp size={16} color="green" />
-                          ) : (
-                            <IconArrowDown size={16} color="red" />
-                          )}
+                          {movement.baseQuantityIn > 0 ? (
+                            <IconArrowUp size={16} color={theme.palette.success.main} />
+                          ) : movement.baseQuantityOut > 0 ? (
+                            <IconArrowDown size={16} color={theme.palette.error.main} />
+                          ) : null}
                         </Box>
                       </TableCell>
                       <TableCell align="center">{movement.runningQuantity}</TableCell>
