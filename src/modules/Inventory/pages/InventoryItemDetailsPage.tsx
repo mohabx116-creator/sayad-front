@@ -18,8 +18,9 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconTrash, IconAdjustments, IconArrowDown, IconArrowUp } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconAdjustments, IconArrowDown, IconArrowUp, IconInfoCircle } from '@tabler/icons-react';
 import { useTheme } from '@mui/material/styles';
+import Tooltip from '@mui/material/Tooltip';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -54,6 +55,7 @@ import type {
   OpeningStockRequest
 } from '../types/inventory.types';
 import { INVENTORY_PERMISSIONS, getInventoryMovementAccountingStatusLabel, getItemTypeLabel } from '../utils/inventory.constants';
+import InventoryMovementActionsGuide from '../components/InventoryMovementActionsGuide';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -518,10 +520,21 @@ export default function InventoryItemDetailsPage() {
             </form>
           </MainCard>
 
-          <MainCard title={<FormattedMessage id="inventory-movement-actions" />}>
+          <MainCard
+            title={<FormattedMessage id="inventory-movement-actions" />}
+            secondary={<InventoryMovementActionsGuide />}
+          >
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
-                <Typography variant="subtitle2"><FormattedMessage id="stock-in" /></Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="subtitle2"><FormattedMessage id="stock-in" /></Typography>
+                  <Tooltip title={<FormattedMessage id="inventory-actions-guide-stock-in-tooltip" defaultMessage="إضافة كمية يدويًا للمخزون في الحالات الاستثنائية." />} arrow>
+                    <IconInfoCircle size={16} color={theme.palette.text.secondary} />
+                  </Tooltip>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  <FormattedMessage id="inventory-actions-guide-stock-in-inline" defaultMessage="يزيد كمية وقيمة المخزون يدويًا." />
+                </Typography>
                 <Stack spacing={1} sx={{ mt: 1 }}>
                   <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={stockInForm.movementDate} onChange={(event) => setStockInForm({ ...stockInForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} size="small" />
                   <TextField select fullWidth label={<FormattedMessage id="unit" />} value={stockInForm.unitOfMeasureId} onChange={(event) => setStockInForm({ ...stockInForm, unitOfMeasureId: event.target.value })} size="small">
@@ -538,7 +551,15 @@ export default function InventoryItemDetailsPage() {
                 </Stack>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Typography variant="subtitle2"><FormattedMessage id="stock-out" /></Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="subtitle2"><FormattedMessage id="stock-out" /></Typography>
+                  <Tooltip title={<FormattedMessage id="inventory-actions-guide-stock-out-tooltip" defaultMessage="إخراج كمية يدويًا بسبب التالف أو الاستخدام الداخلي أو أسباب مشابهة." />} arrow>
+                    <IconInfoCircle size={16} color={theme.palette.text.secondary} />
+                  </Tooltip>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  <FormattedMessage id="inventory-actions-guide-stock-out-inline" defaultMessage="يقلل كمية وقيمة المخزون يدويًا." />
+                </Typography>
                 <Stack spacing={1} sx={{ mt: 1 }}>
                   <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={stockOutForm.movementDate} onChange={(event) => setStockOutForm({ ...stockOutForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} size="small" />
                   <TextField select fullWidth label={<FormattedMessage id="unit" />} value={stockOutForm.unitOfMeasureId} onChange={(event) => setStockOutForm({ ...stockOutForm, unitOfMeasureId: event.target.value })} size="small">
@@ -554,7 +575,15 @@ export default function InventoryItemDetailsPage() {
                 </Stack>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Typography variant="subtitle2"><FormattedMessage id="inventory-adjustment" /></Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="subtitle2"><FormattedMessage id="inventory-adjustment" /></Typography>
+                  <Tooltip title={<FormattedMessage id="inventory-actions-guide-adjustment-tooltip" defaultMessage="تصحيح الرصيد طبقًا للكمية الفعلية بالمخزن." />} arrow>
+                    <IconInfoCircle size={16} color={theme.palette.text.secondary} />
+                  </Tooltip>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  <FormattedMessage id="inventory-actions-guide-adjustment-inline" defaultMessage="يصحح الرصيد حسب نتيجة الجرد أو الفرق الفعلي." />
+                </Typography>
                 <Stack spacing={1} sx={{ mt: 1 }}>
                   <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={adjustmentForm.movementDate} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} size="small" />
                   <TextField select fullWidth label={<FormattedMessage id="unit" />} value={adjustmentForm.unitOfMeasureId} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, unitOfMeasureId: event.target.value })} size="small">
