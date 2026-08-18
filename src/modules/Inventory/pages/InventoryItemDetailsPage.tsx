@@ -108,7 +108,7 @@ export default function InventoryItemDetailsPage() {
   const { items: parties } = useParties({ page: 1, pageSize: 100 });
   const { items: units } = useInventoryUnits({ page: 1, pageSize: 100 });
   const { items: accountingAccounts } = useJournalEntryAccounts({ page: 1, pageSize: 100, excludeInventoryAsset: true });
-  
+
   const [openingForm, setOpeningForm] = useState<OpeningStockRequest & { reason?: string; expectedOpeningMovementId?: string }>({
     movementDate: today,
     unitOfMeasureId: '',
@@ -167,7 +167,12 @@ export default function InventoryItemDetailsPage() {
     if (!adjustmentForm.offsetAccountingAccountId) {
       setAdjustmentForm((current) => ({ ...current, offsetAccountingAccountId: firstAccountId }));
     }
-  }, [accountingAccounts, adjustmentForm.offsetAccountingAccountId, stockInForm.offsetAccountingAccountId, stockOutForm.offsetAccountingAccountId]);
+  }, [
+    accountingAccounts,
+    adjustmentForm.offsetAccountingAccountId,
+    stockInForm.offsetAccountingAccountId,
+    stockOutForm.offsetAccountingAccountId
+  ]);
 
   useEffect(() => {
     if (openingStock?.movementId) {
@@ -201,43 +206,57 @@ export default function InventoryItemDetailsPage() {
     }
   };
 
-  const selectedPartyOptions = useMemo(
-    () => parties.filter((party) => party.isCustomer || party.isSupplier),
-    [parties]
-  );
+  const selectedPartyOptions = useMemo(() => parties.filter((party) => party.isCustomer || party.isSupplier), [parties]);
 
   const openingSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!id) return;
 
     if (openingStock?.movementId && openingForm.expectedOpeningMovementId) {
-      await runAction(() => correctItemOpeningStock(id, {
+      await runAction(() =>
+        correctItemOpeningStock(id, {
+          movementDate: openingForm.movementDate,
+          unitOfMeasureId: openingForm.unitOfMeasureId,
+          quantity: Number(openingForm.quantity),
+          unitCost: Number(openingForm.unitCost),
+          reason: openingForm.reason || '',
+          expectedOpeningMovementId: openingForm.expectedOpeningMovementId ?? openingStock.movementId ?? ''
+        } satisfies CorrectOpeningStockRequest)
+      );
+      return;
+    }
+
+    await runAction(() =>
+      setItemOpeningStock(id, {
         movementDate: openingForm.movementDate,
         unitOfMeasureId: openingForm.unitOfMeasureId,
         quantity: Number(openingForm.quantity),
         unitCost: Number(openingForm.unitCost),
-        reason: openingForm.reason || '',
-        expectedOpeningMovementId: openingForm.expectedOpeningMovementId ?? openingStock.movementId ?? ''
-      } satisfies CorrectOpeningStockRequest));
-      return;
-    }
-
-    await runAction(() => setItemOpeningStock(id, {
-      movementDate: openingForm.movementDate,
-      unitOfMeasureId: openingForm.unitOfMeasureId,
-      quantity: Number(openingForm.quantity),
-      unitCost: Number(openingForm.unitCost),
-      notes: openingForm.notes ?? null
-    }));
+        notes: openingForm.notes ?? null
+      })
+    );
   };
 
   if (isLoading) return <Loader />;
-  if (error || !item) return <Typography color="error"><FormattedMessage id="inventory-load-error" /></Typography>;
+  if (error || !item)
+    return (
+      <Typography color="error">
+        <FormattedMessage id="inventory-load-error" />
+      </Typography>
+    );
 
   return (
     <>
-      <Breadcrumbs custom heading="item-details" links={[{ title: 'inventory', to: '/inventory/items' }, { title: 'inventory-items', to: '/inventory/items' }, { title: 'item-details' }]} />
-      
+      <Breadcrumbs
+        custom
+        heading="item-details"
+        links={[
+          { title: 'inventory', to: '/inventory/items' },
+          { title: 'inventory-items', to: '/inventory/items' },
+          { title: 'item-details' }
+        ]}
+      />
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h3" gutterBottom>
@@ -257,7 +276,13 @@ export default function InventoryItemDetailsPage() {
             <FormattedMessage id="inventory-settlement" />
           </Button>
           <PermissionGuard permission={INVENTORY_PERMISSIONS.itemsUpdate}>
-            <Button component={Link} to={`/inventory/items/${item.id}/edit`} variant="outlined" color="inherit" startIcon={<IconEdit size={18} />}>
+            <Button
+              component={Link}
+              to={`/inventory/items/${item.id}/edit`}
+              variant="outlined"
+              color="inherit"
+              startIcon={<IconEdit size={18} />}
+            >
               <FormattedMessage id="edit" />
             </Button>
           </PermissionGuard>
@@ -321,29 +346,65 @@ export default function InventoryItemDetailsPage() {
                 {item.baseUnitCode}
               </Typography>
             </Box>
-            
+
             <Stack spacing={2} sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                <Typography variant="body1"><FormattedMessage id="minimum-quantity" /></Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  p: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1
+                }}
+              >
+                <Typography variant="body1">
+                  <FormattedMessage id="minimum-quantity" />
+                </Typography>
                 <Typography variant="h5">{item.minimumQuantity}</Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                <Typography variant="body1"><FormattedMessage id="reorder-quantity" /></Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  p: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1
+                }}
+              >
+                <Typography variant="body1">
+                  <FormattedMessage id="reorder-quantity" />
+                </Typography>
                 <Typography variant="h5">{item.reorderQuantity}</Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                <Typography variant="body1"><FormattedMessage id="reserved-for-orders" /></Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  p: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1
+                }}
+              >
+                <Typography variant="body1">
+                  <FormattedMessage id="reserved-for-orders" />
+                </Typography>
                 <Typography variant="h5">0</Typography>
               </Box>
             </Stack>
 
             <Divider sx={{ my: 2 }} />
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary">
                 <FormattedMessage id="stock-indicator" />
               </Typography>
-              <Typography variant="subtitle1" sx={{ color: item.stockStatus === 'Normal' ? 'success.main' : 'warning.main', fontWeight: 'bold' }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ color: item.stockStatus === 'Normal' ? 'success.main' : 'warning.main', fontWeight: 'bold' }}
+              >
                 <FormattedMessage id={item.stockStatus === 'Normal' ? 'good' : 'warning'} />
               </Typography>
             </Box>
@@ -357,7 +418,11 @@ export default function InventoryItemDetailsPage() {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   <FormattedMessage id="valuation-status" />
                 </Typography>
-                <Chip label={getValuationStatusLabel(intl, item.valuationStatus)} color={item.isValuationInitialized ? 'success' : 'warning'} variant="outlined" />
+                <Chip
+                  label={getValuationStatusLabel(intl, item.valuationStatus)}
+                  color={item.isValuationInitialized ? 'success' : 'warning'}
+                  variant="outlined"
+                />
               </Grid>
               <Grid item xs={12} md={3}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -382,10 +447,16 @@ export default function InventoryItemDetailsPage() {
         </Grid>
 
         <Grid item xs={12}>
-          <MainCard 
+          <MainCard
             title={<FormattedMessage id="recent-movements" />}
             secondary={
-              <Typography component={Link} to={`/inventory/items/${item.id}/movements`} variant="body2" color="primary" sx={{ textDecoration: 'none' }}>
+              <Typography
+                component={Link}
+                to={`/inventory/items/${item.id}/movements`}
+                variant="body2"
+                color="primary"
+                sx={{ textDecoration: 'none' }}
+              >
                 <FormattedMessage id="view-all" /> &gt;
               </Typography>
             }
@@ -395,67 +466,86 @@ export default function InventoryItemDetailsPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell><FormattedMessage id="date" /></TableCell>
-                    <TableCell align="center"><FormattedMessage id="movement-type" /></TableCell>
-                    <TableCell align="center"><FormattedMessage id="quantity" /></TableCell>
-                    <TableCell align="center"><FormattedMessage id="balance-after-movement" /></TableCell>
-                    <TableCell align="left"><FormattedMessage id="reference" /></TableCell>
+                    <TableCell>
+                      <FormattedMessage id="date" />
+                    </TableCell>
+                    <TableCell align="center">
+                      <FormattedMessage id="movement-type" />
+                    </TableCell>
+                    <TableCell align="center">
+                      <FormattedMessage id="quantity" />
+                    </TableCell>
+                    <TableCell align="center">
+                      <FormattedMessage id="balance-after-movement" />
+                    </TableCell>
+                    <TableCell align="left">
+                      <FormattedMessage id="reference" />
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {[...movements].reverse().slice(0, 5).map((movement) => (
-                    <TableRow key={movement.id} hover>
-                      <TableCell>
-                        {movement.movementDate}
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          10:00
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip 
-                          label={getMovementTypeLabel(intl, movement.movementType)}
-                          variant="outlined" 
-                          size="small"
-                          sx={{ borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Typography variant="subtitle1" sx={{ mr: 1, fontWeight: 'bold' }}>
-                            {Math.abs(movement.quantity)} {movement.unitCode}
+                  {[...movements]
+                    .reverse()
+                    .slice(0, 5)
+                    .map((movement) => (
+                      <TableRow key={movement.id} hover>
+                        <TableCell>
+                          {movement.movementDate}
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            10:00
                           </Typography>
-                          {movement.baseQuantityIn > 0 ? (
-                            <IconArrowUp size={16} color={theme.palette.success.main} />
-                          ) : movement.baseQuantityOut > 0 ? (
-                            <IconArrowDown size={16} color={theme.palette.error.main} />
-                          ) : null}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">{movement.runningQuantity}</TableCell>
-                      <TableCell align="left">{movement.descriptionArabic || '-'}</TableCell>
-                      <TableCell align="center">
-                        {movement.accountingJournalEntryId ? (
-                          <Stack spacing={0.5} alignItems="center">
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={getMovementTypeLabel(intl, movement.movementType)}
+                            variant="outlined"
+                            size="small"
+                            sx={{ borderRadius: 1 }}
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography variant="subtitle1" sx={{ mr: 1, fontWeight: 'bold' }}>
+                              {Math.abs(movement.quantity)} {movement.unitCode}
+                            </Typography>
+                            {movement.baseQuantityIn > 0 ? (
+                              <IconArrowUp size={16} color={theme.palette.success.main} />
+                            ) : movement.baseQuantityOut > 0 ? (
+                              <IconArrowDown size={16} color={theme.palette.error.main} />
+                            ) : null}
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">{movement.runningQuantity}</TableCell>
+                        <TableCell align="left">{movement.descriptionArabic || '-'}</TableCell>
+                        <TableCell align="center">
+                          {movement.accountingJournalEntryId ? (
+                            <Stack spacing={0.5} alignItems="center">
+                              <Chip
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                                label={getInventoryMovementAccountingStatusLabel(intl, movement.accountingPostingStatus)}
+                              />
+                              <Typography
+                                component={Link}
+                                to={`/accounting/journal-entries/${movement.accountingJournalEntryId}`}
+                                variant="caption"
+                                color="primary"
+                                sx={{ textDecoration: 'none' }}
+                              >
+                                {movement.accountingEntryNumber ?? movement.accountingJournalEntryId}
+                              </Typography>
+                            </Stack>
+                          ) : (
                             <Chip
                               size="small"
-                              color="success"
                               variant="outlined"
                               label={getInventoryMovementAccountingStatusLabel(intl, movement.accountingPostingStatus)}
                             />
-                            <Typography component={Link} to={`/accounting/journal-entries/${movement.accountingJournalEntryId}`} variant="caption" color="primary" sx={{ textDecoration: 'none' }}>
-                              {movement.accountingEntryNumber ?? movement.accountingJournalEntryId}
-                            </Typography>
-                          </Stack>
-                        ) : (
-                          <Chip
-                            size="small"
-                            variant="outlined"
-                            label={getInventoryMovementAccountingStatusLabel(intl, movement.accountingPostingStatus)}
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   {movements.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} align="center">
@@ -469,7 +559,7 @@ export default function InventoryItemDetailsPage() {
           </MainCard>
         </Grid>
       </Grid>
-      
+
       <Box sx={{ mt: 5 }}>
         <Typography variant="h4" color="text.secondary" sx={{ mb: 2, px: 1 }}>
           إدارة إضافية
@@ -479,18 +569,47 @@ export default function InventoryItemDetailsPage() {
             <form onSubmit={openingSubmit}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={3}>
-                  <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={openingForm.movementDate} onChange={(event) => setOpeningForm({ ...openingForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} />
+                  <TextField
+                    type="date"
+                    fullWidth
+                    label={<FormattedMessage id="date" />}
+                    value={openingForm.movementDate}
+                    onChange={(event) => setOpeningForm({ ...openingForm, movementDate: event.target.value })}
+                    InputLabelProps={{ shrink: true }}
+                  />
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <TextField select fullWidth label={<FormattedMessage id="unit" />} value={openingForm.unitOfMeasureId} onChange={(event) => setOpeningForm({ ...openingForm, unitOfMeasureId: event.target.value })}>
-                    {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="unit" />}
+                    value={openingForm.unitOfMeasureId}
+                    onChange={(event) => setOpeningForm({ ...openingForm, unitOfMeasureId: event.target.value })}
+                  >
+                    {units.map((unit) => (
+                      <MenuItem key={unit.id} value={unit.id}>
+                        {unit.code} - {unit.nameArabic}
+                      </MenuItem>
+                    ))}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={openingForm.quantity} onChange={(event) => setOpeningForm({ ...openingForm, quantity: Number(event.target.value) })} />
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={<FormattedMessage id="quantity" />}
+                    value={openingForm.quantity}
+                    onChange={(event) => setOpeningForm({ ...openingForm, quantity: Number(event.target.value) })}
+                  />
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <TextField type="number" fullWidth label={<FormattedMessage id="unit-cost" />} value={openingForm.unitCost} onChange={(event) => setOpeningForm({ ...openingForm, unitCost: Number(event.target.value) })} />
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={<FormattedMessage id="unit-cost" />}
+                    value={openingForm.unitCost}
+                    onChange={(event) => setOpeningForm({ ...openingForm, unitCost: Number(event.target.value) })}
+                  />
                 </Grid>
                 <Grid item xs={12} md={3}>
                   <Button type="submit" variant="contained" disabled={isSaving} sx={{ mt: 1 }}>
@@ -499,7 +618,9 @@ export default function InventoryItemDetailsPage() {
                 </Grid>
                 {openingStock?.movementId && (
                   <Grid item xs={12}>
-                    <Typography color="text.secondary"><FormattedMessage id="opening-stock-current" />: {openingStock.quantity}</Typography>
+                    <Typography color="text.secondary">
+                      <FormattedMessage id="opening-stock-current" />: {openingStock.quantity}
+                    </Typography>
                     <TextField
                       fullWidth
                       multiline
@@ -507,28 +628,48 @@ export default function InventoryItemDetailsPage() {
                       sx={{ mt: 1 }}
                       label={<FormattedMessage id="correction-reason" />}
                       value={openingForm.reason ?? ''}
-                      onChange={(event) => setOpeningForm({ ...openingForm, reason: event.target.value, expectedOpeningMovementId: openingStock.movementId ?? '' })}
+                      onChange={(event) =>
+                        setOpeningForm({
+                          ...openingForm,
+                          reason: event.target.value,
+                          expectedOpeningMovementId: openingStock.movementId ?? ''
+                        })
+                      }
                     />
                   </Grid>
                 )}
                 {!openingStock?.movementId && (
                   <Grid item xs={12}>
-                    <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} value={openingForm.notes ?? ''} onChange={(event) => setOpeningForm({ ...openingForm, notes: event.target.value })} />
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      label={<FormattedMessage id="notes" />}
+                      value={openingForm.notes ?? ''}
+                      onChange={(event) => setOpeningForm({ ...openingForm, notes: event.target.value })}
+                    />
                   </Grid>
                 )}
               </Grid>
             </form>
           </MainCard>
 
-          <MainCard
-            title={<FormattedMessage id="inventory-movement-actions" />}
-            secondary={<InventoryMovementActionsGuide />}
-          >
+          <MainCard title={<FormattedMessage id="inventory-movement-actions" />} secondary={<InventoryMovementActionsGuide />}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography variant="subtitle2"><FormattedMessage id="stock-in" /></Typography>
-                  <Tooltip title={<FormattedMessage id="inventory-actions-guide-stock-in-tooltip" defaultMessage="إضافة كمية يدويًا للمخزون في الحالات الاستثنائية." />} arrow>
+                  <Typography variant="subtitle2">
+                    <FormattedMessage id="stock-in" />
+                  </Typography>
+                  <Tooltip
+                    title={
+                      <FormattedMessage
+                        id="inventory-actions-guide-stock-in-tooltip"
+                        defaultMessage="إضافة كمية يدويًا للمخزون في الحالات الاستثنائية."
+                      />
+                    }
+                    arrow
+                  >
                     <IconInfoCircle size={16} color={theme.palette.text.secondary} />
                   </Tooltip>
                 </Stack>
@@ -536,24 +677,90 @@ export default function InventoryItemDetailsPage() {
                   <FormattedMessage id="inventory-actions-guide-stock-in-inline" defaultMessage="يزيد كمية وقيمة المخزون يدويًا." />
                 </Typography>
                 <Stack spacing={1} sx={{ mt: 1 }}>
-                  <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={stockInForm.movementDate} onChange={(event) => setStockInForm({ ...stockInForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} size="small" />
-                  <TextField select fullWidth label={<FormattedMessage id="unit" />} value={stockInForm.unitOfMeasureId} onChange={(event) => setStockInForm({ ...stockInForm, unitOfMeasureId: event.target.value })} size="small">
-                    {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
+                  <TextField
+                    type="date"
+                    fullWidth
+                    label={<FormattedMessage id="date" />}
+                    value={stockInForm.movementDate}
+                    onChange={(event) => setStockInForm({ ...stockInForm, movementDate: event.target.value })}
+                    InputLabelProps={{ shrink: true }}
+                    size="small"
+                  />
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="unit" />}
+                    value={stockInForm.unitOfMeasureId}
+                    onChange={(event) => setStockInForm({ ...stockInForm, unitOfMeasureId: event.target.value })}
+                    size="small"
+                  >
+                    {units.map((unit) => (
+                      <MenuItem key={unit.id} value={unit.id}>
+                        {unit.code} - {unit.nameArabic}
+                      </MenuItem>
+                    ))}
                   </TextField>
-                  <TextField select fullWidth label={<FormattedMessage id="offset-account" />} value={stockInForm.offsetAccountingAccountId ?? ''} onChange={(event) => setStockInForm({ ...stockInForm, offsetAccountingAccountId: event.target.value || null })} size="small">
-                    <MenuItem value=""><FormattedMessage id="select-account" /></MenuItem>
-                    {accountingAccounts.map((account) => <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>)}
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="offset-account" />}
+                    value={stockInForm.offsetAccountingAccountId ?? ''}
+                    onChange={(event) => setStockInForm({ ...stockInForm, offsetAccountingAccountId: event.target.value || null })}
+                    size="small"
+                  >
+                    <MenuItem value="">
+                      <FormattedMessage id="select-account" />
+                    </MenuItem>
+                    {accountingAccounts.map((account) => (
+                      <MenuItem key={account.id} value={account.id}>
+                        {account.code} - {account.nameArabic}
+                      </MenuItem>
+                    ))}
                   </TextField>
-                  <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={stockInForm.quantity} onChange={(event) => setStockInForm({ ...stockInForm, quantity: Number(event.target.value) })} size="small" />
-                  <TextField type="number" fullWidth label={<FormattedMessage id="unit-cost" />} value={stockInForm.unitCost ?? 0} onChange={(event) => setStockInForm({ ...stockInForm, unitCost: Number(event.target.value) })} size="small" />
-                  <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} value={stockInForm.notes ?? ''} onChange={(event) => setStockInForm({ ...stockInForm, notes: event.target.value })} size="small" />
-                  <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postStockIn(item.id, stockInForm))}><FormattedMessage id="post-stock-in" /></Button>
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={<FormattedMessage id="quantity" />}
+                    value={stockInForm.quantity}
+                    onChange={(event) => setStockInForm({ ...stockInForm, quantity: Number(event.target.value) })}
+                    size="small"
+                  />
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={<FormattedMessage id="unit-cost" />}
+                    value={stockInForm.unitCost ?? 0}
+                    onChange={(event) => setStockInForm({ ...stockInForm, unitCost: Number(event.target.value) })}
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    label={<FormattedMessage id="notes" />}
+                    value={stockInForm.notes ?? ''}
+                    onChange={(event) => setStockInForm({ ...stockInForm, notes: event.target.value })}
+                    size="small"
+                  />
+                  <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postStockIn(item.id, stockInForm))}>
+                    <FormattedMessage id="post-stock-in" />
+                  </Button>
                 </Stack>
               </Grid>
               <Grid item xs={12} md={4}>
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography variant="subtitle2"><FormattedMessage id="stock-out" /></Typography>
-                  <Tooltip title={<FormattedMessage id="inventory-actions-guide-stock-out-tooltip" defaultMessage="إخراج كمية يدويًا بسبب التالف أو الاستخدام الداخلي أو أسباب مشابهة." />} arrow>
+                  <Typography variant="subtitle2">
+                    <FormattedMessage id="stock-out" />
+                  </Typography>
+                  <Tooltip
+                    title={
+                      <FormattedMessage
+                        id="inventory-actions-guide-stock-out-tooltip"
+                        defaultMessage="إخراج كمية يدويًا بسبب التالف أو الاستخدام الداخلي أو أسباب مشابهة."
+                      />
+                    }
+                    arrow
+                  >
                     <IconInfoCircle size={16} color={theme.palette.text.secondary} />
                   </Tooltip>
                 </Stack>
@@ -561,46 +768,177 @@ export default function InventoryItemDetailsPage() {
                   <FormattedMessage id="inventory-actions-guide-stock-out-inline" defaultMessage="يقلل كمية وقيمة المخزون يدويًا." />
                 </Typography>
                 <Stack spacing={1} sx={{ mt: 1 }}>
-                  <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={stockOutForm.movementDate} onChange={(event) => setStockOutForm({ ...stockOutForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} size="small" />
-                  <TextField select fullWidth label={<FormattedMessage id="unit" />} value={stockOutForm.unitOfMeasureId} onChange={(event) => setStockOutForm({ ...stockOutForm, unitOfMeasureId: event.target.value })} size="small">
-                    {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
+                  <TextField
+                    type="date"
+                    fullWidth
+                    label={<FormattedMessage id="date" />}
+                    value={stockOutForm.movementDate}
+                    onChange={(event) => setStockOutForm({ ...stockOutForm, movementDate: event.target.value })}
+                    InputLabelProps={{ shrink: true }}
+                    size="small"
+                  />
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="unit" />}
+                    value={stockOutForm.unitOfMeasureId}
+                    onChange={(event) => setStockOutForm({ ...stockOutForm, unitOfMeasureId: event.target.value })}
+                    size="small"
+                  >
+                    {units.map((unit) => (
+                      <MenuItem key={unit.id} value={unit.id}>
+                        {unit.code} - {unit.nameArabic}
+                      </MenuItem>
+                    ))}
                   </TextField>
-                  <TextField select fullWidth label={<FormattedMessage id="offset-account" />} value={stockOutForm.offsetAccountingAccountId ?? ''} onChange={(event) => setStockOutForm({ ...stockOutForm, offsetAccountingAccountId: event.target.value || null })} size="small">
-                    <MenuItem value=""><FormattedMessage id="select-account" /></MenuItem>
-                    {accountingAccounts.map((account) => <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>)}
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="offset-account" />}
+                    value={stockOutForm.offsetAccountingAccountId ?? ''}
+                    onChange={(event) => setStockOutForm({ ...stockOutForm, offsetAccountingAccountId: event.target.value || null })}
+                    size="small"
+                  >
+                    <MenuItem value="">
+                      <FormattedMessage id="select-account" />
+                    </MenuItem>
+                    {accountingAccounts.map((account) => (
+                      <MenuItem key={account.id} value={account.id}>
+                        {account.code} - {account.nameArabic}
+                      </MenuItem>
+                    ))}
                   </TextField>
-                  <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={stockOutForm.quantity} onChange={(event) => setStockOutForm({ ...stockOutForm, quantity: Number(event.target.value) })} size="small" />
-                  <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} value={stockOutForm.notes ?? ''} onChange={(event) => setStockOutForm({ ...stockOutForm, notes: event.target.value })} size="small" />
-                  <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postStockOut(item.id, stockOutForm))}><FormattedMessage id="post-stock-out" /></Button>
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={<FormattedMessage id="quantity" />}
+                    value={stockOutForm.quantity}
+                    onChange={(event) => setStockOutForm({ ...stockOutForm, quantity: Number(event.target.value) })}
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    label={<FormattedMessage id="notes" />}
+                    value={stockOutForm.notes ?? ''}
+                    onChange={(event) => setStockOutForm({ ...stockOutForm, notes: event.target.value })}
+                    size="small"
+                  />
+                  <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postStockOut(item.id, stockOutForm))}>
+                    <FormattedMessage id="post-stock-out" />
+                  </Button>
                 </Stack>
               </Grid>
               <Grid item xs={12} md={4}>
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography variant="subtitle2"><FormattedMessage id="inventory-adjustment" /></Typography>
-                  <Tooltip title={<FormattedMessage id="inventory-actions-guide-adjustment-tooltip" defaultMessage="تصحيح الرصيد طبقًا للكمية الفعلية بالمخزن." />} arrow>
+                  <Typography variant="subtitle2">
+                    <FormattedMessage id="inventory-adjustment" />
+                  </Typography>
+                  <Tooltip
+                    title={
+                      <FormattedMessage
+                        id="inventory-actions-guide-adjustment-tooltip"
+                        defaultMessage="تصحيح الرصيد طبقًا للكمية الفعلية بالمخزن."
+                      />
+                    }
+                    arrow
+                  >
                     <IconInfoCircle size={16} color={theme.palette.text.secondary} />
                   </Tooltip>
                 </Stack>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                  <FormattedMessage id="inventory-actions-guide-adjustment-inline" defaultMessage="يصحح الرصيد حسب نتيجة الجرد أو الفرق الفعلي." />
+                  <FormattedMessage
+                    id="inventory-actions-guide-adjustment-inline"
+                    defaultMessage="يصحح الرصيد حسب نتيجة الجرد أو الفرق الفعلي."
+                  />
                 </Typography>
                 <Stack spacing={1} sx={{ mt: 1 }}>
-                  <TextField type="date" fullWidth label={<FormattedMessage id="date" />} value={adjustmentForm.movementDate} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, movementDate: event.target.value })} InputLabelProps={{ shrink: true }} size="small" />
-                  <TextField select fullWidth label={<FormattedMessage id="unit" />} value={adjustmentForm.unitOfMeasureId} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, unitOfMeasureId: event.target.value })} size="small">
-                    {units.map((unit) => <MenuItem key={unit.id} value={unit.id}>{unit.code} - {unit.nameArabic}</MenuItem>)}
+                  <TextField
+                    type="date"
+                    fullWidth
+                    label={<FormattedMessage id="date" />}
+                    value={adjustmentForm.movementDate}
+                    onChange={(event) => setAdjustmentForm({ ...adjustmentForm, movementDate: event.target.value })}
+                    InputLabelProps={{ shrink: true }}
+                    size="small"
+                  />
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="unit" />}
+                    value={adjustmentForm.unitOfMeasureId}
+                    onChange={(event) => setAdjustmentForm({ ...adjustmentForm, unitOfMeasureId: event.target.value })}
+                    size="small"
+                  >
+                    {units.map((unit) => (
+                      <MenuItem key={unit.id} value={unit.id}>
+                        {unit.code} - {unit.nameArabic}
+                      </MenuItem>
+                    ))}
                   </TextField>
-                  <TextField select fullWidth label={<FormattedMessage id="offset-account" />} value={adjustmentForm.offsetAccountingAccountId ?? ''} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, offsetAccountingAccountId: event.target.value || null })} size="small">
-                    <MenuItem value=""><FormattedMessage id="select-account" /></MenuItem>
-                    {accountingAccounts.map((account) => <MenuItem key={account.id} value={account.id}>{account.code} - {account.nameArabic}</MenuItem>)}
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="offset-account" />}
+                    value={adjustmentForm.offsetAccountingAccountId ?? ''}
+                    onChange={(event) => setAdjustmentForm({ ...adjustmentForm, offsetAccountingAccountId: event.target.value || null })}
+                    size="small"
+                  >
+                    <MenuItem value="">
+                      <FormattedMessage id="select-account" />
+                    </MenuItem>
+                    {accountingAccounts.map((account) => (
+                      <MenuItem key={account.id} value={account.id}>
+                        {account.code} - {account.nameArabic}
+                      </MenuItem>
+                    ))}
                   </TextField>
-                  <TextField select fullWidth label={<FormattedMessage id="adjustment-type" />} value={adjustmentForm.adjustmentType} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, adjustmentType: event.target.value as 'Increase' | 'Decrease' })} size="small">
-                    <MenuItem value="Increase"><FormattedMessage id="increase" /></MenuItem>
-                    <MenuItem value="Decrease"><FormattedMessage id="decrease" /></MenuItem>
+                  <TextField
+                    select
+                    fullWidth
+                    label={<FormattedMessage id="adjustment-type" />}
+                    value={adjustmentForm.adjustmentType}
+                    onChange={(event) =>
+                      setAdjustmentForm({ ...adjustmentForm, adjustmentType: event.target.value as 'Increase' | 'Decrease' })
+                    }
+                    size="small"
+                  >
+                    <MenuItem value="Increase">
+                      <FormattedMessage id="increase" />
+                    </MenuItem>
+                    <MenuItem value="Decrease">
+                      <FormattedMessage id="decrease" />
+                    </MenuItem>
                   </TextField>
-                  <TextField type="number" fullWidth label={<FormattedMessage id="quantity" />} value={adjustmentForm.quantity} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, quantity: Number(event.target.value) })} size="small" />
-                  <TextField type="number" fullWidth label={<FormattedMessage id="unit-cost" />} value={adjustmentForm.unitCost ?? 0} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, unitCost: Number(event.target.value) })} size="small" />
-                  <TextField fullWidth multiline minRows={2} label={<FormattedMessage id="adjustment-reason" />} value={adjustmentForm.reason} onChange={(event) => setAdjustmentForm({ ...adjustmentForm, reason: event.target.value })} size="small" />
-                  <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postAdjustment(item.id, adjustmentForm))}><FormattedMessage id="post-adjustment" /></Button>
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={<FormattedMessage id="quantity" />}
+                    value={adjustmentForm.quantity}
+                    onChange={(event) => setAdjustmentForm({ ...adjustmentForm, quantity: Number(event.target.value) })}
+                    size="small"
+                  />
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={<FormattedMessage id="unit-cost" />}
+                    value={adjustmentForm.unitCost ?? 0}
+                    onChange={(event) => setAdjustmentForm({ ...adjustmentForm, unitCost: Number(event.target.value) })}
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    label={<FormattedMessage id="adjustment-reason" />}
+                    value={adjustmentForm.reason}
+                    onChange={(event) => setAdjustmentForm({ ...adjustmentForm, reason: event.target.value })}
+                    size="small"
+                  />
+                  <Button variant="outlined" disabled={isSaving} onClick={() => runAction(() => postAdjustment(item.id, adjustmentForm))}>
+                    <FormattedMessage id="post-adjustment" />
+                  </Button>
                 </Stack>
               </Grid>
             </Grid>
@@ -609,57 +947,114 @@ export default function InventoryItemDetailsPage() {
           <MainCard title={<FormattedMessage id="party-item-relations" />}>
             <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} md={4}>
-                <TextField select fullWidth label={<FormattedMessage id="party" />} value={relationForm.partyId} onChange={(event) => setRelationForm({ ...relationForm, partyId: event.target.value })} size="small">
-                  <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
+                <TextField
+                  select
+                  fullWidth
+                  label={<FormattedMessage id="party" />}
+                  value={relationForm.partyId}
+                  onChange={(event) => setRelationForm({ ...relationForm, partyId: event.target.value })}
+                  size="small"
+                >
+                  <MenuItem value="">
+                    <FormattedMessage id="none" />
+                  </MenuItem>
                   {selectedPartyOptions.map((party) => (
-                    <MenuItem key={party.id} value={party.id}>{party.code} - {party.nameArabic}</MenuItem>
+                    <MenuItem key={party.id} value={party.id}>
+                      {party.code} - {party.nameArabic}
+                    </MenuItem>
                   ))}
                 </TextField>
               </Grid>
               <Grid item xs={12} md={2}>
-                <TextField select fullWidth label={<FormattedMessage id="relation-type" />} value={relationForm.relationType} onChange={(event) => setRelationForm({ ...relationForm, relationType: event.target.value as 'Customer' | 'Supplier' })} size="small">
-                  <MenuItem value="Customer"><FormattedMessage id="party-customer" /></MenuItem>
-                  <MenuItem value="Supplier"><FormattedMessage id="party-supplier" /></MenuItem>
+                <TextField
+                  select
+                  fullWidth
+                  label={<FormattedMessage id="relation-type" />}
+                  value={relationForm.relationType}
+                  onChange={(event) => setRelationForm({ ...relationForm, relationType: event.target.value as 'Customer' | 'Supplier' })}
+                  size="small"
+                >
+                  <MenuItem value="Customer">
+                    <FormattedMessage id="party-customer" />
+                  </MenuItem>
+                  <MenuItem value="Supplier">
+                    <FormattedMessage id="party-supplier" />
+                  </MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} md={2}>
-                <TextField fullWidth label={<FormattedMessage id="party-item-code" />} value={relationForm.partyItemCode ?? ''} onChange={(event) => setRelationForm({ ...relationForm, partyItemCode: event.target.value })} size="small" />
+                <TextField
+                  fullWidth
+                  label={<FormattedMessage id="party-item-code" />}
+                  value={relationForm.partyItemCode ?? ''}
+                  onChange={(event) => setRelationForm({ ...relationForm, partyItemCode: event.target.value })}
+                  size="small"
+                />
               </Grid>
               <Grid item xs={12} md={2}>
-                <TextField fullWidth label={<FormattedMessage id="notes" />} value={relationForm.notes ?? ''} onChange={(event) => setRelationForm({ ...relationForm, notes: event.target.value })} size="small" />
+                <TextField
+                  fullWidth
+                  label={<FormattedMessage id="notes" />}
+                  value={relationForm.notes ?? ''}
+                  onChange={(event) => setRelationForm({ ...relationForm, notes: event.target.value })}
+                  size="small"
+                />
               </Grid>
               <Grid item xs={12} md={2}>
-                <Button variant="contained" disabled={isSaving || !relationForm.partyId} onClick={() => runAction(() => createItemPartyRelation(item.id, relationForm))}>
+                <Button
+                  variant="contained"
+                  disabled={isSaving || !relationForm.partyId}
+                  onClick={() => runAction(() => createItemPartyRelation(item.id, relationForm))}
+                >
                   <FormattedMessage id="add-relation" />
                 </Button>
               </Grid>
             </Grid>
             {relations.length === 0 ? (
-              <Typography><FormattedMessage id="inventory-empty-items" /></Typography>
+              <Typography>
+                <FormattedMessage id="inventory-empty-items" />
+              </Typography>
             ) : (
               <TableContainer>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell><FormattedMessage id="party" /></TableCell>
-                      <TableCell><FormattedMessage id="relation-type" /></TableCell>
-                      <TableCell><FormattedMessage id="party-item-code" /></TableCell>
-                      <TableCell><FormattedMessage id="preferred" /></TableCell>
-                      <TableCell><FormattedMessage id="status" /></TableCell>
+                      <TableCell>
+                        <FormattedMessage id="party" />
+                      </TableCell>
+                      <TableCell>
+                        <FormattedMessage id="relation-type" />
+                      </TableCell>
+                      <TableCell>
+                        <FormattedMessage id="party-item-code" />
+                      </TableCell>
+                      <TableCell>
+                        <FormattedMessage id="preferred" />
+                      </TableCell>
+                      <TableCell>
+                        <FormattedMessage id="status" />
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {relations.map((relation) => (
                       <TableRow key={relation.id}>
-                        <TableCell>{relation.partyCode} - {relation.partyNameArabic}</TableCell>
+                        <TableCell>
+                          {relation.partyCode} - {relation.partyNameArabic}
+                        </TableCell>
                         <TableCell>{relation.relationType}</TableCell>
                         <TableCell>{relation.partyItemCode ?? '-'}</TableCell>
                         <TableCell>{relation.isPreferred ? <FormattedMessage id="yes" /> : <FormattedMessage id="no" />}</TableCell>
                         <TableCell>
                           <Stack direction="row" spacing={1}>
-                            <Chip label={relation.isActive ? <FormattedMessage id="active" /> : <FormattedMessage id="inactive" />} size="small" />
+                            <Chip
+                              label={relation.isActive ? <FormattedMessage id="active" /> : <FormattedMessage id="inactive" />}
+                              size="small"
+                            />
                             {relation.isActive ? (
-                              <Button size="small" onClick={() => runAction(() => deactivatePartyItemRelation(relation.id))}><FormattedMessage id="deactivate" /></Button>
+                              <Button size="small" onClick={() => runAction(() => deactivatePartyItemRelation(relation.id))}>
+                                <FormattedMessage id="deactivate" />
+                              </Button>
                             ) : null}
                           </Stack>
                         </TableCell>
@@ -676,18 +1071,32 @@ export default function InventoryItemDetailsPage() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell><FormattedMessage id="unit" /></TableCell>
-                    <TableCell><FormattedMessage id="factor-to-base" /></TableCell>
-                    <TableCell><FormattedMessage id="sale-price-override" /></TableCell>
-                    <TableCell><FormattedMessage id="effective-sale-price" /></TableCell>
-                    <TableCell><FormattedMessage id="default-purchase" /></TableCell>
-                    <TableCell><FormattedMessage id="default-sales" /></TableCell>
+                    <TableCell>
+                      <FormattedMessage id="unit" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="factor-to-base" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="sale-price-override" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="effective-sale-price" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="default-purchase" />
+                    </TableCell>
+                    <TableCell>
+                      <FormattedMessage id="default-sales" />
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {itemUnits.map((unit) => (
                     <TableRow key={unit.id}>
-                      <TableCell>{unit.unitCode} - {unit.unitNameArabic}</TableCell>
+                      <TableCell>
+                        {unit.unitCode} - {unit.unitNameArabic}
+                      </TableCell>
                       <TableCell>{unit.factorToBase}</TableCell>
                       <TableCell>{unit.salePriceOverride == null ? '-' : unit.salePriceOverride.toFixed(4)}</TableCell>
                       <TableCell>{unit.effectiveSalePrice.toFixed(4)}</TableCell>
