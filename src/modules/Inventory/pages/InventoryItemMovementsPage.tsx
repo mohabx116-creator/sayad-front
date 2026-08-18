@@ -10,6 +10,9 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import { useTheme } from '@mui/material/styles';
+import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 
 import MainCard from 'ui-component/cards/MainCard';
@@ -20,6 +23,7 @@ import { getInventoryMovementAccountingStatusLabel } from '../utils/inventory.co
 
 export default function InventoryItemMovementsPage() {
   const { id } = useParams();
+  const theme = useTheme();
   const intl = useIntl();
   const { items, isLoading, error } = useItemMovements(id);
 
@@ -56,7 +60,18 @@ export default function InventoryItemMovementsPage() {
                 <TableRow key={movement.id}>
                   <TableCell>{movement.movementDate}</TableCell>
                   <TableCell>{getMovementTypeLabel(movement.movementType)}</TableCell>
-                  <TableCell>{movement.quantity} {movement.unitCode}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>
+                        {Math.abs(movement.quantity)} {movement.unitCode}
+                      </Typography>
+                      {movement.baseQuantityIn > 0 ? (
+                        <IconArrowUp size={16} color={theme.palette.success.main} />
+                      ) : movement.baseQuantityOut > 0 ? (
+                        <IconArrowDown size={16} color={theme.palette.error.main} />
+                      ) : null}
+                    </Box>
+                  </TableCell>
                   <TableCell>{movement.runningQuantity}</TableCell>
                   <TableCell>{movement.descriptionArabic}</TableCell>
                   <TableCell>
