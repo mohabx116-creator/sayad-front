@@ -27,6 +27,7 @@ import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
+import { usePartyOpenDocuments } from 'modules/Parties/hooks/useParties';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
@@ -49,6 +50,10 @@ export default function PurchaseReturnDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { purchaseReturn, isLoading, error, mutate } = usePurchaseReturn(id);
+  const {
+    items: supplierReceiptOpenDocuments,
+    mutate: mutateSupplierReceiptOpenDocuments
+  } = usePartyOpenDocuments(purchaseReturn?.supplierId, 'SupplierReceipt');
   const [reason, setReason] = useState('');
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
 
@@ -68,6 +73,14 @@ export default function PurchaseReturnDetailsPage() {
 
   if (isLoading) return <Loader />;
   if (error || !purchaseReturn) return <Typography color="error"><FormattedMessage id="purchase-load-error" /></Typography>;
+
+  const purchaseReturnOpenDocument =
+    supplierReceiptOpenDocuments.find(
+      (openDocument) => openDocument.documentType === 'PurchaseReturn' && openDocument.documentId === purchaseReturn.id
+    ) ?? null;
+
+  const remainingReceivableAmount = purchaseReturnOpenDocument?.outstandingAmount ?? 0;
+  const canReceiveSupplierReceipt = purchaseReturn.status === 'Posted' && remainingReceivableAmount > 0;
 
   const cardSx = { border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', mb: 3 };
   const headerSx = { display: 'flex', alignItems: 'center', gap: 1, pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' };
@@ -109,7 +122,7 @@ export default function PurchaseReturnDetailsPage() {
            </PermissionGuard>
 
            <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]}>
-             {purchaseReturn.status === 'Posted' && (
+             {canReceiveSupplierReceipt && (
                <Button
                  variant="contained"
                  color="success"
@@ -329,16 +342,16 @@ export default function PurchaseReturnDetailsPage() {
       </Grid>
 
       {purchaseReturn.status === 'Posted' && (
-        <PartySettlementDialog
-          open={receiptDialogOpen}
-          mode="receipt"
-          settlementDirection="SupplierReceipt"
-          partyId={purchaseReturn.supplierId}
-          partyName={purchaseReturn.supplierNameArabic}
-          settlementAmount={purchaseReturn.grandTotal}
-          settlementReferenceNumber={purchaseReturn.number}
-          settlementDescriptionArabic={intl.formatMessage(
-            { id: 'purchase-return-receipt-description', defaultMessage: 'Receipt for purchase return {number}' },
+          <PartySettlementDialog
+            open={receiptDialogOpen}
+            mode="receipt"
+            settlementDirection="SupplierReceipt"
+            partyId={purchaseReturn.supplierId}
+            partyName={purchaseReturn.supplierNameArabic}
+            settlementAmount={remainingReceivableAmount}
+            settlementReferenceNumber={purchaseReturn.number}
+            settlementDescriptionArabic={intl.formatMessage(
+              { id: 'purchase-return-receipt-description', defaultMessage: 'Receipt for purchase return {number}' },
             { number: purchaseReturn.number }
           )}
           settlementDescriptionEnglish={intl.formatMessage(
@@ -357,10 +370,11 @@ export default function PurchaseReturnDetailsPage() {
           ]}
           onClose={() => setReceiptDialogOpen(false)}
           onSaved={async () => {
+            await mutateSupplierReceiptOpenDocuments();
             await mutate();
           }}
         />
       )}
-    </Box>
+      </Box>
   );
 }
