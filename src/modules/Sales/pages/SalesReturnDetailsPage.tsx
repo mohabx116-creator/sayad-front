@@ -27,6 +27,7 @@ import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
+import { usePartyOpenDocuments } from 'modules/Parties/hooks/useParties';
 import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { cancelReturn, postReturn } from '../api/salesApi';
@@ -39,6 +40,11 @@ export default function SalesReturnDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { salesReturn, isLoading, error, mutate } = useSalesReturn(id);
+  const {
+    items: openDocuments,
+    isLoading: openDocumentsLoading,
+    mutate: mutateOpenDocuments
+  } = usePartyOpenDocuments(salesReturn?.customerId, 'CustomerRefund');
   const [reason, setReason] = useState('');
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const customerControlAccountLabel = salesReturn?.customerControlAccountCode
@@ -55,6 +61,9 @@ export default function SalesReturnDetailsPage() {
     : '—';
   const inventoryCostAccountingStatus = salesReturn?.inventoryCostAccountingStatus ?? '—';
   const recognizedInventoryCost = salesReturn?.recognizedInventoryCost ?? 0;
+  const refundableOpenDocument = openDocuments.find((document) => document.documentType === 'SalesReturn' && document.documentId === salesReturn?.id);
+  const refundableAmount = refundableOpenDocument?.outstandingAmount ?? 0;
+  const canRefundCustomer = salesReturn?.status === 'Posted' && !openDocumentsLoading && refundableAmount > 0;
   const noInventoryMovement = salesReturn?.inventoryCostAccountingStatus === 'لا توجد حركة مخزون لهذا المستند';
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -64,7 +73,7 @@ export default function SalesReturnDetailsPage() {
   const runAction = async (action: () => Promise<unknown>) => {
     try {
       await action();
-      await mutate();
+      await Promise.all([mutate(), mutateOpenDocuments()]);
       notify(intl.formatMessage({ id: 'sales-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
@@ -114,7 +123,7 @@ export default function SalesReturnDetailsPage() {
            </PermissionGuard>
 
            <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.paymentsCreate, TREASURY_PERMISSIONS.paymentsPost]}>
-             {salesReturn.status === 'Posted' && (
+             {canRefundCustomer && (
                <Button
                  variant="contained"
                  color="warning"
@@ -382,14 +391,14 @@ export default function SalesReturnDetailsPage() {
          </Grid>
       </Grid>
 
-      {salesReturn.status === 'Posted' && (
+      {canRefundCustomer && (
         <PartySettlementDialog
           open={refundDialogOpen}
           mode="payment"
           settlementDirection="CustomerRefund"
           partyId={salesReturn.customerId}
           partyName={salesReturn.customerNameArabic}
-          settlementAmount={salesReturn.grandTotal}
+          settlementAmount={refundableAmount}
           settlementReferenceNumber={salesReturn.number}
           settlementDescriptionArabic={intl.formatMessage(
             { id: 'sales-return-refund-description', defaultMessage: 'Refund for sales return {number}' },
@@ -411,7 +420,7 @@ export default function SalesReturnDetailsPage() {
           ]}
           onClose={() => setRefundDialogOpen(false)}
           onSaved={async () => {
-            await mutate();
+            await Promise.all([mutate(), mutateOpenDocuments()]);
           }}
         />
       )}

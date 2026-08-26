@@ -228,9 +228,11 @@ export type PartyCashTransactionRequest = {
 
 export type PartySettlementDirection = 'CustomerReceipt' | 'CustomerRefund' | 'SupplierPayment' | 'SupplierReceipt';
 
+export type PartySettlementDocumentType = 'SalesInvoice' | 'PurchaseInvoice' | 'SalesReturn' | 'PurchaseReturn';
+
 export type PartySettlementAllocationRequest = {
   lineNumber: number;
-  documentType: 'SalesInvoice' | 'PurchaseInvoice' | 'SalesReturn' | 'PurchaseReturn';
+  documentType: PartySettlementDocumentType;
   documentId: string;
   documentNumber: string;
   allocatedAmount: number;
@@ -249,6 +251,21 @@ export type PartySettlementRequest = {
   descriptionEnglish?: string | null;
   idempotencyKey?: string | null;
   allocations: PartySettlementAllocationRequest[];
+};
+
+export type PartySettlementOpenDocumentDto = {
+  documentType: PartySettlementDocumentType;
+  documentTypeLabel: string;
+  documentId: string;
+  documentNumber: string;
+  documentDate: string;
+  documentAmount: number;
+  allocatedAmount: number;
+  outstandingAmount: number;
+  currencyCode: string;
+  status: string;
+  statusLabel: string;
+  notes?: string | null;
 };
 
 export type CorrectOpeningBalanceRequest = {

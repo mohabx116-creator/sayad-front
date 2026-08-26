@@ -3,7 +3,15 @@ import useSWR from 'swr';
 
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import type { ListMeta, PartyDeletionPreview, PartyDto, PartyStatementDto, PartyStatementParams } from '../types/parties.types';
+import type {
+  ListMeta,
+  PartyDeletionPreview,
+  PartyDto,
+  PartySettlementDirection,
+  PartySettlementOpenDocumentDto,
+  PartyStatementDto,
+  PartyStatementParams
+} from '../types/parties.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams();
@@ -42,4 +50,10 @@ export function usePartyDeletionPreview(id?: string, enabled = false) {
   const key = id && enabled ? `/api/parties/${id}/deletion-preview` : null;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartyDeletionPreview>>(key, fetcher);
   return useMemo(() => ({ preview: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
+}
+
+export function usePartyOpenDocuments(id?: string, direction?: PartySettlementDirection) {
+  const key = id && direction ? `/api/parties/${id}/open-documents?direction=${encodeURIComponent(direction)}` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartySettlementOpenDocumentDto[]>>(key, fetcher);
+  return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
