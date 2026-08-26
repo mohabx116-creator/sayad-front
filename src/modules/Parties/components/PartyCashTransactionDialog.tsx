@@ -14,19 +14,35 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 
-import { createCustomerReceipt, createSupplierPayment } from '../api/partiesApi';
 import { useCashboxAccounts } from 'modules/Treasury/hooks/useTreasury';
-import type { PartyCashTransactionRequest } from '../types/parties.types';
+import type { PartySettlementAllocationRequest, PartySettlementDirection, PartySettlementRequest } from '../types/parties.types';
+import { usePartySettlementActions } from '../hooks/usePartySettlements';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 
 type PartyCashTransactionMode = 'receipt' | 'payment';
+
+type PartyCashTransactionCopy = {
+  titleLabel: string;
+  helpLabel: string;
+  submitLabel: string;
+  successLabel: string;
+  failureLabel: string;
+  dateLabel: string;
+  defaultDescription: string;
+};
 
 type PartyCashTransactionDialogProps = {
   open: boolean;
   mode: PartyCashTransactionMode;
   partyId: string;
   partyName: string;
+  settlementDirection?: PartySettlementDirection;
+  settlementAmount?: number;
+  settlementDescriptionArabic?: string | null;
+  settlementDescriptionEnglish?: string | null;
+  settlementReferenceNumber?: string | null;
+  buildAllocations?: (amount: number) => PartySettlementAllocationRequest[];
   onClose: () => void;
   onSaved?: () => Promise<void> | void;
 };
@@ -44,6 +60,56 @@ function getLocalDateInputValue() {
   return new Date(now.getTime() - offsetMinutes * 60_000).toISOString().slice(0, 10);
 }
 
+function resolveDirection(mode: PartyCashTransactionMode, settlementDirection?: PartySettlementDirection) {
+  return settlementDirection ?? (mode === 'receipt' ? 'CustomerReceipt' : 'SupplierPayment');
+}
+
+function getSettlementCopy(mode: PartyCashTransactionMode, settlementDirection?: PartySettlementDirection): PartyCashTransactionCopy {
+  switch (resolveDirection(mode, settlementDirection)) {
+    case 'CustomerRefund':
+      return {
+        titleLabel: 'party-customer-refund-title',
+        helpLabel: 'party-customer-refund-help',
+        submitLabel: 'party-customer-refund-submit',
+        successLabel: 'party-customer-refund-success',
+        failureLabel: 'party-customer-refund-failed',
+        dateLabel: 'settlement-date',
+        defaultDescription: 'Customer refund'
+      };
+    case 'SupplierReceipt':
+      return {
+        titleLabel: 'party-supplier-receipt-title',
+        helpLabel: 'party-supplier-receipt-help',
+        submitLabel: 'party-supplier-receipt-submit',
+        successLabel: 'party-supplier-receipt-success',
+        failureLabel: 'party-supplier-receipt-failed',
+        dateLabel: 'settlement-date',
+        defaultDescription: 'Supplier receipt'
+      };
+    case 'SupplierPayment':
+      return {
+        titleLabel: 'party-supplier-payment-title',
+        helpLabel: 'party-supplier-payment-help',
+        submitLabel: 'party-supplier-payment-submit',
+        successLabel: 'party-supplier-payment-success',
+        failureLabel: 'party-supplier-payment-failed',
+        dateLabel: 'payment-date',
+        defaultDescription: 'Supplier payment'
+      };
+    case 'CustomerReceipt':
+    default:
+      return {
+        titleLabel: 'party-customer-receipt-title',
+        helpLabel: 'party-customer-receipt-help',
+        submitLabel: 'party-customer-receipt-submit',
+        successLabel: 'party-customer-receipt-success',
+        failureLabel: 'party-customer-receipt-failed',
+        dateLabel: 'receipt-date',
+        defaultDescription: 'Customer receipt'
+      };
+  }
+}
+
 function buildSchema(intl: ReturnType<typeof useIntl>) {
   return z.object({
     treasuryAccountId: z.string().min(1, intl.formatMessage({ id: 'cashbox-required' })),
@@ -56,17 +122,32 @@ function buildSchema(intl: ReturnType<typeof useIntl>) {
   });
 }
 
-export default function PartyCashTransactionDialog({ open, mode, partyId, partyName, onClose, onSaved }: PartyCashTransactionDialogProps) {
+export default function PartyCashTransactionDialog({
+  open,
+  mode,
+  partyId,
+  partyName,
+  settlementDirection,
+  settlementAmount,
+  settlementDescriptionArabic,
+  settlementDescriptionEnglish,
+  settlementReferenceNumber,
+  buildAllocations,
+  onClose,
+  onSaved
+}: PartyCashTransactionDialogProps) {
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { createSettlement } = usePartySettlementActions();
   const { items: cashboxes, isLoading } = useCashboxAccounts();
   const schema = useMemo(() => buildSchema(intl), [intl]);
+  const copy = useMemo(() => getSettlementCopy(mode, settlementDirection), [mode, settlementDirection]);
   const form = useForm<PartyCashTransactionFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       treasuryAccountId: '',
       transactionDate: getLocalDateInputValue(),
-      amount: '',
+      amount: settlementAmount != null ? String(settlementAmount) : '',
       notes: ''
     }
   });
@@ -79,43 +160,54 @@ export default function PartyCashTransactionDialog({ open, mode, partyId, partyN
     form.reset({
       treasuryAccountId: cashboxes[0]?.id ?? '',
       transactionDate: getLocalDateInputValue(),
-      amount: '',
+      amount: settlementAmount != null ? String(settlementAmount) : '',
       notes: ''
     });
-  }, [cashboxes, form, open]);
+  }, [cashboxes, form, open, settlementAmount]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
   const submit = async (values: PartyCashTransactionFormValues) => {
-    const request: PartyCashTransactionRequest = {
+    const selectedAccount = cashboxes.find((account) => account.id === values.treasuryAccountId);
+    if (!selectedAccount) {
+      notify(intl.formatMessage({ id: 'no-cashbox-accounts' }), 'error');
+      return;
+    }
+
+    const amount = Number(values.amount);
+    const direction = resolveDirection(mode, settlementDirection);
+
+    const request: PartySettlementRequest = {
+      direction,
+      settlementDate: values.transactionDate,
+      amount,
+      currencyCode: selectedAccount.currencyCode,
       treasuryAccountId: values.treasuryAccountId,
-      transactionDate: values.transactionDate,
-      amount: Number(values.amount),
-      notes: values.notes.trim() || null
+      paymentMethod: 'Cash',
+      referenceNumber: settlementReferenceNumber ?? null,
+      descriptionArabic: settlementDescriptionArabic?.trim() || values.notes.trim() || copy.defaultDescription,
+      descriptionEnglish: settlementDescriptionEnglish?.trim() || values.notes.trim() || copy.defaultDescription,
+      idempotencyKey: null,
+      allocations: buildAllocations ? buildAllocations(amount) : []
     };
 
     try {
-      if (mode === 'receipt') {
-        await createCustomerReceipt(partyId, request);
-        notify(intl.formatMessage({ id: 'party-customer-receipt-success' }));
-      } else {
-        await createSupplierPayment(partyId, request);
-        notify(intl.formatMessage({ id: 'party-supplier-payment-success' }));
-      }
+      await createSettlement(partyId, request);
+      notify(intl.formatMessage({ id: copy.successLabel }));
 
       await onSaved?.();
       onClose();
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: mode === 'receipt' ? 'party-customer-receipt-failed' : 'party-supplier-payment-failed' }), 'error');
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: copy.failureLabel }), 'error');
     }
   };
 
-  const submitLabel = mode === 'receipt' ? 'party-customer-receipt-submit' : 'party-supplier-payment-submit';
-  const titleLabel = mode === 'receipt' ? 'party-customer-receipt-title' : 'party-supplier-payment-title';
-  const helperLabel = mode === 'receipt' ? 'party-customer-receipt-help' : 'party-supplier-payment-help';
-  const dateLabel = mode === 'receipt' ? 'receipt-date' : 'payment-date';
+  const submitLabel = copy.submitLabel;
+  const titleLabel = copy.titleLabel;
+  const helperLabel = copy.helpLabel;
+  const dateLabel = copy.dateLabel;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">

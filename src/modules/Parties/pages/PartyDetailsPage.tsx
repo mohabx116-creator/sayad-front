@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography';
 import { IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { activateParty, deactivateParty } from '../api/partiesApi';
-import PartyCashTransactionDialog from '../components/PartyCashTransactionDialog';
+import PartySettlementDialog from '../components/PartySettlementDialog';
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyStatusChip from '../components/PartyStatusChip';
 import { useParty } from '../hooks/useParties';
@@ -136,7 +136,7 @@ export default function PartyDetailsPage() {
         )}
       </MainCard>
       {party && id && (
-        <PartyCashTransactionDialog
+        <PartySettlementDialog
           open={cashTransactionMode !== null}
           mode={cashTransactionMode ?? 'receipt'}
           partyId={id}

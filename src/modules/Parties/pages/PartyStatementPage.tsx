@@ -25,9 +25,12 @@ import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyAdjustmentsPanel from '../components/PartyAdjustmentsPanel';
+import PartySettlementDialog from '../components/PartySettlementDialog';
 import { useParty, usePartyStatement } from '../hooks/useParties';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { getPartyAdjustmentEntryLabelId, isPartyAdjustmentEntryType } from '../utils/party-adjustments';
+import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 
 type MovementTypeOption = {
   value: string;
@@ -230,6 +233,7 @@ export default function PartyStatementPage() {
   const [movementType, setMovementType] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [cashTransactionMode, setCashTransactionMode] = useState<'receipt' | 'payment' | null>(null);
 
   const { party, error: partyError, isLoading: isPartyLoading, mutate: mutateParty } = useParty(id);
   const { statement, error: statementError, isLoading: isStatementLoading, mutate: mutateStatement } = usePartyStatement(id, {
@@ -289,9 +293,11 @@ export default function PartyStatementPage() {
       })
     : [];
 
-  const handlePartyAdjustmentsSaved = async () => {
+  const refreshPartyData = async () => {
     await Promise.all([mutateParty(), mutateStatement()]);
   };
+
+  const closeCashTransactionDialog = () => setCashTransactionMode(null);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -312,6 +318,24 @@ export default function PartyStatementPage() {
             <Button component={Link} to={`/parties/${id}`} variant="outlined">
               <FormattedMessage id="party-details" />
             </Button>
+            {party && (
+              <>
+                <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]} fallback={null}>
+                  {party.isCustomer && (
+                    <Button variant="contained" color="success" onClick={() => setCashTransactionMode('receipt')}>
+                      <FormattedMessage id="party-customer-receipt-submit" />
+                    </Button>
+                  )}
+                </PermissionGuard>
+                <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.paymentsCreate, TREASURY_PERMISSIONS.paymentsPost]} fallback={null}>
+                  {party.isSupplier && (
+                    <Button variant="contained" color="warning" onClick={() => setCashTransactionMode('payment')}>
+                      <FormattedMessage id="party-supplier-payment-submit" />
+                    </Button>
+                  )}
+                </PermissionGuard>
+              </>
+            )}
           </Stack>
         }
       >
@@ -451,7 +475,7 @@ export default function PartyStatementPage() {
                 isCustomer={party.isCustomer}
                 isSupplier={party.isSupplier}
                 isActive={party.isActive}
-                onSaved={handlePartyAdjustmentsSaved}
+                onSaved={refreshPartyData}
               />
             )}
 
@@ -586,6 +610,18 @@ export default function PartyStatementPage() {
           </Stack>
         )}
       </MainCard>
+      {party && id && (
+        <PartySettlementDialog
+          open={cashTransactionMode !== null}
+          mode={cashTransactionMode ?? 'receipt'}
+          partyId={id}
+          partyName={resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
+          onClose={closeCashTransactionDialog}
+          onSaved={async () => {
+            await refreshPartyData();
+          }}
+        />
+      )}
     </Box>
   );
 }

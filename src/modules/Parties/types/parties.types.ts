@@ -226,6 +226,31 @@ export type PartyCashTransactionRequest = {
   notes?: string | null;
 };
 
+export type PartySettlementDirection = 'CustomerReceipt' | 'CustomerRefund' | 'SupplierPayment' | 'SupplierReceipt';
+
+export type PartySettlementAllocationRequest = {
+  lineNumber: number;
+  documentType: 'SalesInvoice' | 'PurchaseInvoice' | 'SalesReturn' | 'PurchaseReturn';
+  documentId: string;
+  documentNumber: string;
+  allocatedAmount: number;
+  notes?: string | null;
+};
+
+export type PartySettlementRequest = {
+  direction: PartySettlementDirection;
+  settlementDate: string;
+  amount: number;
+  currencyCode: string;
+  treasuryAccountId: string;
+  paymentMethod: 'Cash';
+  referenceNumber?: string | null;
+  descriptionArabic: string;
+  descriptionEnglish?: string | null;
+  idempotencyKey?: string | null;
+  allocations: PartySettlementAllocationRequest[];
+};
+
 export type CorrectOpeningBalanceRequest = {
   entryDate: string;
   amount: number;

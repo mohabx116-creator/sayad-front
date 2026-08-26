@@ -26,12 +26,14 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { cancelReturn, postReturn } from '../api/purchasesApi';
 import { usePurchaseReturn } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
+import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 
 function formatCodeNameLabel(locale: string, code: string | null | undefined, nameArabic: string | null | undefined, nameEnglish: string | null | undefined) {
   const resolvedName = resolveLocalizedText(locale, nameArabic, nameEnglish, '');
@@ -48,6 +50,7 @@ export default function PurchaseReturnDetailsPage() {
   const dispatch = useDispatch();
   const { purchaseReturn, isLoading, error, mutate } = usePurchaseReturn(id);
   const [reason, setReason] = useState('');
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -102,6 +105,20 @@ export default function PurchaseReturnDetailsPage() {
                 <Button variant="contained" color="primary" onClick={() => runAction(() => postReturn(purchaseReturn.id, purchaseReturn.rowVersion))} sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
                    <FormattedMessage id="post" />
                 </Button>
+             )}
+           </PermissionGuard>
+
+           <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]}>
+             {purchaseReturn.status === 'Posted' && (
+               <Button
+                 variant="contained"
+                 color="success"
+                 onClick={() => setReceiptDialogOpen(true)}
+                 sx={{ borderRadius: 2 }}
+                 startIcon={<IconArrowLeft size={18} />}
+               >
+                 <FormattedMessage id="purchase-return-receipt" defaultMessage="Receive from Supplier" />
+               </Button>
              )}
            </PermissionGuard>
         </Stack>
@@ -310,6 +327,40 @@ export default function PurchaseReturnDetailsPage() {
             </Stack>
          </Grid>
       </Grid>
+
+      {purchaseReturn.status === 'Posted' && (
+        <PartySettlementDialog
+          open={receiptDialogOpen}
+          mode="receipt"
+          settlementDirection="SupplierReceipt"
+          partyId={purchaseReturn.supplierId}
+          partyName={purchaseReturn.supplierNameArabic}
+          settlementAmount={purchaseReturn.grandTotal}
+          settlementReferenceNumber={purchaseReturn.number}
+          settlementDescriptionArabic={intl.formatMessage(
+            { id: 'purchase-return-receipt-description', defaultMessage: 'Receipt for purchase return {number}' },
+            { number: purchaseReturn.number }
+          )}
+          settlementDescriptionEnglish={intl.formatMessage(
+            { id: 'purchase-return-receipt-description', defaultMessage: 'Receipt for purchase return {number}' },
+            { number: purchaseReturn.number }
+          )}
+          buildAllocations={(amount) => [
+            {
+              lineNumber: 1,
+              documentType: 'PurchaseReturn',
+              documentId: purchaseReturn.id,
+              documentNumber: purchaseReturn.number,
+              allocatedAmount: amount,
+              notes: purchaseReturn.notes ?? null
+            }
+          ]}
+          onClose={() => setReceiptDialogOpen(false)}
+          onSaved={async () => {
+            await mutate();
+          }}
+        />
+      )}
     </Box>
   );
 }

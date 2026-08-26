@@ -28,11 +28,10 @@ import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
-import { cancelInvoice, collectInvoice, postInvoice } from '../api/salesApi';
+import { cancelInvoice, postInvoice } from '../api/salesApi';
 import { useSalesInvoice } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
-import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
-import InvoiceSettlementDialog from 'shared/components/InvoiceSettlementDialog';
+import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
 import {
   getInvoicePaymentMethodLabel,
   getInvoiceSettlementStatusLabel,
@@ -58,10 +57,8 @@ export default function SalesInvoiceDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { invoice, isLoading, error, mutate } = useSalesInvoice(id);
-  const { items: treasuryAccounts } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
   const [reason, setReason] = useState('');
   const [collectDialogOpen, setCollectDialogOpen] = useState(false);
-  const [isCollectingInvoice, setIsCollectingInvoice] = useState(false);
   const customerControlAccountLabel = invoice?.customerControlAccountCode
     ? `${invoice.customerControlAccountCode}${invoice.customerControlAccountNameArabic ? ` - ${invoice.customerControlAccountNameArabic}` : ''}`
     : '—';
@@ -102,30 +99,9 @@ export default function SalesInvoiceDetailsPage() {
     }
   };
 
-  const handleCollect = async (request: { paymentMethod: 'Cash' | 'Wallet' | 'InstaPay'; treasuryAccountId: string }) => {
-    if (!invoice) {
-      return;
-    }
-
-    setIsCollectingInvoice(true);
-    try {
-      await collectInvoice(invoice.id, { rowVersion: invoice.rowVersion, ...request });
-      notify(intl.formatMessage({ id: 'sales-invoice-collected', defaultMessage: 'Sales invoice collected successfully.' }));
-      await mutate();
-      setCollectDialogOpen(false);
-    } catch (actionError) {
-      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
-    } finally {
-      setIsCollectingInvoice(false);
-    }
-  };
-
   if (isLoading) return <Loader />;
-  if (!invoice) return <Typography variant="h6" color="error"><FormattedMessage id="not-found" defaultMessage="Not Found" /></Typography>;
+  if (error || !invoice) return <Typography variant="h6" color="error"><FormattedMessage id="not-found" defaultMessage="Not Found" /></Typography>;
 
-  const journalEntryRoute = invoice.accountingJournalEntryId
-    ? `/accounting/journal-entries/${invoice.accountingJournalEntryId}`
-    : undefined;
   const settlementJournalEntryRoute = invoice?.settlementJournalEntryId
     ? `/accounting/journal-entries/${invoice.settlementJournalEntryId}`
     : undefined;
@@ -471,17 +447,36 @@ export default function SalesInvoiceDetailsPage() {
             </Stack>
          </Grid>
       </Grid>
-      <InvoiceSettlementDialog
+      <PartySettlementDialog
         open={collectDialogOpen}
-        title={<FormattedMessage id="collect-invoice" defaultMessage="Collect Invoice" />}
-        confirmLabel={<FormattedMessage id="collect-invoice" defaultMessage="Collect Invoice" />}
-        invoiceCurrencyCode={invoice.currencyCode}
-        treasuryAccounts={treasuryAccounts}
+        mode="receipt"
+        settlementDirection="CustomerReceipt"
+        partyId={invoice.customerId}
+        partyName={invoice.customerNameArabic}
         settlementAmount={invoice.grandTotal}
-        settlementCurrencyCode={invoice.currencyCode}
-        isSubmitting={isCollectingInvoice}
+        settlementReferenceNumber={invoice.number}
+        settlementDescriptionArabic={intl.formatMessage(
+          { id: 'sales-invoice-settlement-description', defaultMessage: 'Receipt for sales invoice {number}' },
+          { number: invoice.number }
+        )}
+        settlementDescriptionEnglish={intl.formatMessage(
+          { id: 'sales-invoice-settlement-description', defaultMessage: 'Receipt for sales invoice {number}' },
+          { number: invoice.number }
+        )}
+        buildAllocations={(amount) => [
+          {
+            lineNumber: 1,
+            documentType: 'SalesInvoice',
+            documentId: invoice.id,
+            documentNumber: invoice.number,
+            allocatedAmount: amount,
+            notes: invoice.notes ?? null
+          }
+        ]}
         onClose={() => setCollectDialogOpen(false)}
-        onConfirm={handleCollect}
+        onSaved={async () => {
+          await mutate();
+        }}
       />
     </Box>
   );

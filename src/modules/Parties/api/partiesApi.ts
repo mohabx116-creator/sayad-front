@@ -17,6 +17,7 @@ import type {
   PartyDto,
   PartyFinalDeleteRequest,
   PartyCashTransactionRequest,
+  PartySettlementRequest,
   ReversePartyAdjustmentRequest,
   PartyStatementDto,
   PartyStatementParams,
@@ -107,6 +108,10 @@ export function createCustomerReceipt(id: string, request: PartyCashTransactionR
 
 export function createSupplierPayment(id: string, request: PartyCashTransactionRequest) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/supplier-payments`, request));
+}
+
+export function createPartySettlement(id: string, request: PartySettlementRequest) {
+  return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/settlements`, request));
 }
 
 export function createPartyAdjustment(id: string, request: CreatePartyAdjustmentRequest) {

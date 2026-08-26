@@ -17,7 +17,7 @@ import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Alert from '@mui/material/Alert';
 
-import { IconInfoCircle, IconBox, IconCalculator, IconNotes, IconEdit, IconSend, IconArrowLeft, IconX } from '@tabler/icons-react';
+import { IconInfoCircle, IconBox, IconCalculator, IconNotes, IconEdit, IconSend, IconArrowLeft, IconArrowBackUp, IconX } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -26,11 +26,13 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
 import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { cancelReturn, postReturn } from '../api/salesApi';
 import { useSalesReturn } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
+import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 
 export default function SalesReturnDetailsPage() {
   const { id } = useParams();
@@ -38,6 +40,7 @@ export default function SalesReturnDetailsPage() {
   const dispatch = useDispatch();
   const { salesReturn, isLoading, error, mutate } = useSalesReturn(id);
   const [reason, setReason] = useState('');
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const customerControlAccountLabel = salesReturn?.customerControlAccountCode
     ? `${salesReturn.customerControlAccountCode}${salesReturn.customerControlAccountNameArabic ? ` - ${salesReturn.customerControlAccountNameArabic}` : ''}`
     : '—';
@@ -107,6 +110,20 @@ export default function SalesReturnDetailsPage() {
                 <Button variant="contained" color="primary" onClick={() => runAction(() => postReturn(salesReturn.id, salesReturn.rowVersion))} sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
                    <FormattedMessage id="post" />
                 </Button>
+             )}
+           </PermissionGuard>
+
+           <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.paymentsCreate, TREASURY_PERMISSIONS.paymentsPost]}>
+             {salesReturn.status === 'Posted' && (
+               <Button
+                 variant="contained"
+                 color="warning"
+                 onClick={() => setRefundDialogOpen(true)}
+                 sx={{ borderRadius: 2 }}
+                 startIcon={<IconArrowBackUp size={18} />}
+               >
+                 <FormattedMessage id="sales-return-refund" defaultMessage="Refund Customer" />
+               </Button>
              )}
            </PermissionGuard>
         </Stack>
@@ -364,6 +381,40 @@ export default function SalesReturnDetailsPage() {
             </Stack>
          </Grid>
       </Grid>
+
+      {salesReturn.status === 'Posted' && (
+        <PartySettlementDialog
+          open={refundDialogOpen}
+          mode="payment"
+          settlementDirection="CustomerRefund"
+          partyId={salesReturn.customerId}
+          partyName={salesReturn.customerNameArabic}
+          settlementAmount={salesReturn.grandTotal}
+          settlementReferenceNumber={salesReturn.number}
+          settlementDescriptionArabic={intl.formatMessage(
+            { id: 'sales-return-refund-description', defaultMessage: 'Refund for sales return {number}' },
+            { number: salesReturn.number }
+          )}
+          settlementDescriptionEnglish={intl.formatMessage(
+            { id: 'sales-return-refund-description', defaultMessage: 'Refund for sales return {number}' },
+            { number: salesReturn.number }
+          )}
+          buildAllocations={(amount) => [
+            {
+              lineNumber: 1,
+              documentType: 'SalesReturn',
+              documentId: salesReturn.id,
+              documentNumber: salesReturn.number,
+              allocatedAmount: amount,
+              notes: salesReturn.notes ?? null
+            }
+          ]}
+          onClose={() => setRefundDialogOpen(false)}
+          onSaved={async () => {
+            await mutate();
+          }}
+        />
+      )}
     </Box>
   );
 }

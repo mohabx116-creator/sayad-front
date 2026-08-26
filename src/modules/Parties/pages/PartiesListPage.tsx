@@ -40,7 +40,7 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 import HoverDataCard from 'ui-component/cards/HoverDataCard';
 import CreatePartyDialog from '../components/CreatePartyDialog';
-import PartyCashTransactionDialog from '../components/PartyCashTransactionDialog';
+import PartySettlementDialog from '../components/PartySettlementDialog';
 import PartyImportWizard from '../components/PartyImportWizard';
 
 import { activateParty, deactivateParty, downloadPartiesImportTemplate, exportPartiesToExcel } from '../api/partiesApi';
@@ -179,7 +179,7 @@ export default function PartiesListPage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {cashDialogParty && (
-        <PartyCashTransactionDialog
+        <PartySettlementDialog
           open={!!cashDialogParty}
           mode={cashDialogParty.isCustomer ? 'receipt' : 'payment'}
           partyId={cashDialogParty.id}

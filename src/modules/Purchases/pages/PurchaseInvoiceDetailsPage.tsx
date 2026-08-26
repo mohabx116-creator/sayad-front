@@ -26,14 +26,13 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
-import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
-import { cancelInvoice, payInvoice, postInvoice } from '../api/purchasesApi';
+import { cancelInvoice, postInvoice } from '../api/purchasesApi';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
 import PurchaseStatusChip from '../components/PurchaseStatusChip';
 import { usePurchaseInvoice } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
-import InvoiceSettlementDialog from 'shared/components/InvoiceSettlementDialog';
+import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
 import {
   getInvoicePaymentMethodLabel,
   getInvoiceSettlementStatusLabel,
@@ -87,10 +86,8 @@ export default function PurchaseInvoiceDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { invoice, isLoading, error, mutate } = usePurchaseInvoice(id);
-  const { items: treasuryAccounts } = useTreasuryAccounts({ page: 1, pageSize: 100, isActive: true });
   const [reason, setReason] = useState('');
   const [payDialogOpen, setPayDialogOpen] = useState(false);
-  const [isPayingInvoice, setIsPayingInvoice] = useState(false);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -107,35 +104,6 @@ export default function PurchaseInvoiceDetailsPage() {
       notify(intl.formatMessage({ id: 'purchase-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'purchase-action-failed' }), 'error');
-    }
-  };
-
-  const handlePay = async (request: { paymentMethod: 'Cash' | 'Wallet' | 'InstaPay'; treasuryAccountId: string }) => {
-    if (!invoice) {
-      return;
-    }
-
-    if (!invoice.rowVersion.trim()) {
-      notify(
-        intl.formatMessage({
-          id: 'purchase-rowversion-missing',
-          defaultMessage: 'This invoice cannot be paid right now because its current version is unavailable. Refresh the page and try again.'
-        }),
-        'error'
-      );
-      return;
-    }
-
-    setIsPayingInvoice(true);
-    try {
-      await payInvoice(invoice.id, { rowVersion: invoice.rowVersion, ...request });
-      notify(intl.formatMessage({ id: 'purchase-invoice-paid', defaultMessage: 'Purchase invoice paid successfully.' }));
-      await mutate();
-      setPayDialogOpen(false);
-    } catch (actionError) {
-      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'purchase-action-failed' }), 'error');
-    } finally {
-      setIsPayingInvoice(false);
     }
   };
 
@@ -554,17 +522,36 @@ export default function PurchaseInvoiceDetailsPage() {
         </Grid>
       </Grid>
 
-      <InvoiceSettlementDialog
+      <PartySettlementDialog
         open={payDialogOpen}
-        title={<FormattedMessage id="pay-invoice" defaultMessage="Pay Invoice" />}
-        confirmLabel={<FormattedMessage id="pay-invoice" defaultMessage="Pay Invoice" />}
-        invoiceCurrencyCode={invoice.currencyCode}
-        treasuryAccounts={treasuryAccounts}
+        mode="payment"
+        settlementDirection="SupplierPayment"
+        partyId={invoice.supplierId}
+        partyName={invoice.supplierNameArabic}
         settlementAmount={invoice.grandTotal}
-        settlementCurrencyCode={invoice.currencyCode}
-        isSubmitting={isPayingInvoice}
+        settlementReferenceNumber={invoice.number}
+        settlementDescriptionArabic={intl.formatMessage(
+          { id: 'purchase-invoice-settlement-description', defaultMessage: 'Payment for purchase invoice {number}' },
+          { number: invoice.number }
+        )}
+        settlementDescriptionEnglish={intl.formatMessage(
+          { id: 'purchase-invoice-settlement-description', defaultMessage: 'Payment for purchase invoice {number}' },
+          { number: invoice.number }
+        )}
+        buildAllocations={(amount) => [
+          {
+            lineNumber: 1,
+            documentType: 'PurchaseInvoice',
+            documentId: invoice.id,
+            documentNumber: invoice.number,
+            allocatedAmount: amount,
+            notes: invoice.notes ?? null
+          }
+        ]}
         onClose={() => setPayDialogOpen(false)}
-        onConfirm={handlePay}
+        onSaved={async () => {
+          await mutate();
+        }}
       />
     </Box>
   );
