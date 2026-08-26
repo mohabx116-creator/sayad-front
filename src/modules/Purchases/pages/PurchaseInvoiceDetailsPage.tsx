@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { usePartyOpenDocuments } from 'modules/Parties/hooks/useParties';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { cancelInvoice, postInvoice } from '../api/purchasesApi';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
@@ -86,6 +87,11 @@ export default function PurchaseInvoiceDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { invoice, isLoading, error, mutate } = usePurchaseInvoice(id);
+  const {
+    items: supplierPaymentOpenDocuments,
+    isLoading: isSupplierPaymentOpenDocumentsLoading,
+    mutate: mutateSupplierPaymentOpenDocuments
+  } = usePartyOpenDocuments(invoice?.supplierId, 'SupplierPayment');
   const [reason, setReason] = useState('');
   const [payDialogOpen, setPayDialogOpen] = useState(false);
 
@@ -113,8 +119,18 @@ export default function PurchaseInvoiceDetailsPage() {
   const paymentMethod = normalizeInvoicePaymentMethod(invoice.paymentMethod) ?? 'Credit';
   const settlementStatus = normalizeInvoiceSettlementStatus(invoice.settlementStatus) ?? 'Outstanding';
   const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, paymentMethod);
-  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, settlementStatus);
-  const isCreditOutstanding = invoice.status === 'Posted' && paymentMethod === 'Credit' && settlementStatus === 'Outstanding';
+  const purchaseInvoiceOpenDocument =
+    supplierPaymentOpenDocuments.find(
+      (openDocument) => openDocument.documentType === 'PurchaseInvoice' && openDocument.documentId === invoice.id
+    ) ?? null;
+  const remainingPayableAmount = purchaseInvoiceOpenDocument?.outstandingAmount ?? 0;
+  const effectiveSettlementStatus = isSupplierPaymentOpenDocumentsLoading
+    ? settlementStatus
+    : remainingPayableAmount > 0
+      ? 'Outstanding'
+      : 'Settled';
+  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, effectiveSettlementStatus);
+  const isCreditOutstanding = invoice.status === 'Posted' && paymentMethod === 'Credit' && remainingPayableAmount > 0;
   const hasInvoiceRowVersion = Boolean(invoice.rowVersion.trim());
   const canPayInvoice = isCreditOutstanding && hasInvoiceRowVersion;
   const paymentUnavailable = isCreditOutstanding && !hasInvoiceRowVersion;
@@ -528,7 +544,7 @@ export default function PurchaseInvoiceDetailsPage() {
         settlementDirection="SupplierPayment"
         partyId={invoice.supplierId}
         partyName={invoice.supplierNameArabic}
-        settlementAmount={invoice.grandTotal}
+        settlementAmount={remainingPayableAmount}
         settlementReferenceNumber={invoice.number}
         settlementDescriptionArabic={intl.formatMessage(
           { id: 'purchase-invoice-settlement-description', defaultMessage: 'Payment for purchase invoice {number}' },
@@ -550,6 +566,7 @@ export default function PurchaseInvoiceDetailsPage() {
         ]}
         onClose={() => setPayDialogOpen(false)}
         onSaved={async () => {
+          await mutateSupplierPaymentOpenDocuments();
           await mutate();
         }}
       />
