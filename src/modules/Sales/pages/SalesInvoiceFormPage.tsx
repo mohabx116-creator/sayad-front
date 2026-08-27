@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl, type IntlShape } from 'react-intl';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
+import dayjs from 'dayjs';
 
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
@@ -56,7 +57,7 @@ type EditableLine = SalesLineInput & {
   unitOptions: ItemUnitDto[];
 };
 
-const today = new Date().toISOString().slice(0, 10);
+const today = dayjs().format('YYYY-MM-DD');
 const invoiceCurrencyCode = 'EGP';
 const DIRECT_SETTLEMENT_TREASURY_REQUIRED_MESSAGE_ID = 'sales-invoice-direct-settlement-treasury-required';
 
