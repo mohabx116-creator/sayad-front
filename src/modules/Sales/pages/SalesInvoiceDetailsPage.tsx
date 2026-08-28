@@ -33,6 +33,7 @@ import { useSalesInvoice } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
 import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
 import { usePartyOpenDocuments } from 'modules/Parties/hooks/useParties';
+import { getTreasurySettlementStatusLabel } from 'modules/Treasury/utils/treasury.labels';
 import {
   getInvoicePaymentMethodLabel,
   getInvoiceSettlementStatusLabel,
@@ -87,12 +88,13 @@ export default function SalesInvoiceDetailsPage() {
   const salesInvoiceOpenDocument =
     customerReceiptOpenDocuments.find((openDocument) => openDocument.documentType === 'SalesInvoice' && openDocument.documentId === invoice?.id) ?? null;
   const remainingReceivableAmount = salesInvoiceOpenDocument?.outstandingAmount ?? 0;
-  const effectiveSettlementStatus = isCustomerReceiptOpenDocumentsLoading
-    ? settlementStatus
-    : remainingReceivableAmount > 0
-      ? 'Outstanding'
-      : 'Settled';
-  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, effectiveSettlementStatus);
+  const effectiveSettlementStatusLabel = isCustomerReceiptOpenDocumentsLoading
+    ? getInvoiceSettlementStatusLabel(intl.locale, settlementStatus)
+    : remainingReceivableAmount <= 0
+      ? getInvoiceSettlementStatusLabel(intl.locale, 'Settled')
+      : remainingReceivableAmount < invoice!.grandTotal
+        ? getTreasurySettlementStatusLabel(invoice!.grandTotal - remainingReceivableAmount, remainingReceivableAmount)
+        : getInvoiceSettlementStatusLabel(intl.locale, 'Outstanding');
   const isCreditOutstanding = invoice?.status === 'Posted' && paymentMethod === 'Credit' && remainingReceivableAmount > 0;
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
@@ -219,7 +221,7 @@ export default function SalesInvoiceDetailsPage() {
                            <InfoRow label={<FormattedMessage id="payment-method" defaultMessage="Payment Method" />}>{paymentMethodLabel}</InfoRow>
                         </Grid>
                         <Grid item xs={12} md={4}>
-                           <InfoRow label={<FormattedMessage id="settlement-status" defaultMessage="Settlement Status" />}>{settlementStatusLabel}</InfoRow>
+                           <InfoRow label={<FormattedMessage id="settlement-status" defaultMessage="Settlement Status" />}>{effectiveSettlementStatusLabel}</InfoRow>
                         </Grid>
                         <Grid item xs={12} md={4}>
                            <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}>
@@ -467,7 +469,7 @@ export default function SalesInvoiceDetailsPage() {
         settlementDirection="CustomerReceipt"
         partyId={invoice.customerId}
         partyName={invoice.customerNameArabic}
-        settlementAmount={invoice.grandTotal}
+        settlementAmount={remainingReceivableAmount}
         settlementReferenceNumber={invoice.number}
         settlementDescriptionArabic={intl.formatMessage(
           { id: 'sales-invoice-settlement-description', defaultMessage: 'Receipt for sales invoice {number}' },
