@@ -1,21 +1,35 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
 import MenuItem from '@mui/material/MenuItem';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 
 import { useCashboxAccounts } from 'modules/Treasury/hooks/useTreasury';
-import type { PartySettlementAllocationRequest, PartySettlementDirection, PartySettlementRequest } from '../types/parties.types';
+import TreasuryAllocationTable from 'modules/Treasury/components/TreasuryAllocationTable';
+import type { TreasuryEligibleInvoice } from 'modules/Treasury/types/treasury.types';
+import type {
+  PartySettlementAllocationRequest,
+  PartySettlementDirection,
+  PartySettlementOpenDocumentDto,
+  PartySettlementRequest
+} from '../types/parties.types';
 import { usePartySettlementActions } from '../hooks/usePartySettlements';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -39,6 +53,7 @@ type PartyCashTransactionDialogProps = {
   partyName: string;
   settlementDirection?: PartySettlementDirection;
   settlementAmount?: number;
+  openDocuments?: PartySettlementOpenDocumentDto[];
   settlementDescriptionArabic?: string | null;
   settlementDescriptionEnglish?: string | null;
   settlementReferenceNumber?: string | null;
@@ -53,6 +68,8 @@ type PartyCashTransactionFormValues = {
   amount: string;
   notes: string;
 };
+
+type PartyCashTransactionAllocationMode = 'onAccount' | 'documents';
 
 function getLocalDateInputValue() {
   const now = new Date();
@@ -129,6 +146,7 @@ export default function PartyCashTransactionDialog({
   partyName,
   settlementDirection,
   settlementAmount,
+  openDocuments,
   settlementDescriptionArabic,
   settlementDescriptionEnglish,
   settlementReferenceNumber,
@@ -142,6 +160,10 @@ export default function PartyCashTransactionDialog({
   const { items: cashboxes, isLoading } = useCashboxAccounts();
   const schema = useMemo(() => buildSchema(intl), [intl]);
   const copy = useMemo(() => getSettlementCopy(mode, settlementDirection), [mode, settlementDirection]);
+  const settlementOpenDocuments = useMemo(() => openDocuments ?? [], [openDocuments]);
+  const hasOpenDocuments = settlementOpenDocuments.length > 0 && !buildAllocations;
+  const [allocationMode, setAllocationMode] = useState<PartyCashTransactionAllocationMode>('onAccount');
+  const [allocationAmounts, setAllocationAmounts] = useState<Record<string, number>>({});
   const form = useForm<PartyCashTransactionFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -157,13 +179,32 @@ export default function PartyCashTransactionDialog({
       return;
     }
 
+    const nextAllocationMode: PartyCashTransactionAllocationMode = hasOpenDocuments ? 'documents' : 'onAccount';
     form.reset({
       treasuryAccountId: cashboxes[0]?.id ?? '',
       transactionDate: getLocalDateInputValue(),
       amount: settlementAmount != null ? String(settlementAmount) : '',
       notes: ''
     });
-  }, [cashboxes, form, open, settlementAmount]);
+    setAllocationMode(nextAllocationMode);
+    setAllocationAmounts(Object.fromEntries(settlementOpenDocuments.map((document) => [document.documentId, 0])));
+  }, [cashboxes, form, hasOpenDocuments, open, settlementAmount, settlementOpenDocuments]);
+
+  const receiptAmount = Number(form.watch('amount') || 0);
+  const openDocumentRows = useMemo<TreasuryEligibleInvoice[]>(
+    () =>
+      settlementOpenDocuments.map((document) => ({
+        invoiceId: document.documentId,
+        invoiceNumber: document.documentNumber,
+        invoiceDate: document.documentDate,
+        grandTotal: document.documentAmount,
+        allocatedAmount: allocationAmounts[document.documentId] ?? 0,
+        outstandingAmount: document.outstandingAmount
+      })),
+    [allocationAmounts, settlementOpenDocuments]
+  );
+  const allocatedTotal = openDocumentRows.reduce((sum, row) => sum + row.allocatedAmount, 0);
+  const remainingOnAccount = Math.max(0, receiptAmount - allocatedTotal);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -178,6 +219,45 @@ export default function PartyCashTransactionDialog({
 
     const amount = Number(values.amount);
     const direction = resolveDirection(mode, settlementDirection);
+    const allocations =
+      buildAllocations != null
+        ? buildAllocations(amount)
+        : allocationMode === 'documents'
+          ? openDocumentRows
+              .filter((row) => row.allocatedAmount > 0)
+              .map((row, index) => ({
+                lineNumber: index + 1,
+                documentType: 'SalesInvoice' as const,
+                documentId: row.invoiceId,
+                documentNumber: row.invoiceNumber,
+                allocatedAmount: row.allocatedAmount,
+                notes: null
+              }))
+          : [];
+
+    if (allocationMode === 'documents' && !buildAllocations && openDocumentRows.length > 0) {
+      if (allocatedTotal <= 0) {
+        notify(
+          intl.formatMessage({
+            id: 'party-settlement-allocation-required',
+            defaultMessage: 'اختر مستندًا واحدًا على الأقل للتخصيص.'
+          }),
+          'error'
+        );
+        return;
+      }
+
+      if (allocatedTotal > amount) {
+        notify(
+          intl.formatMessage({
+            id: 'party-settlement-allocation-exceeds-amount',
+            defaultMessage: 'إجمالي التخصيص لا يمكن أن يتجاوز مبلغ القبض.'
+          }),
+          'error'
+        );
+        return;
+      }
+    }
 
     const request: PartySettlementRequest = {
       direction,
@@ -190,7 +270,7 @@ export default function PartyCashTransactionDialog({
       descriptionArabic: settlementDescriptionArabic?.trim() || values.notes.trim() || copy.defaultDescription,
       descriptionEnglish: settlementDescriptionEnglish?.trim() || values.notes.trim() || copy.defaultDescription,
       idempotencyKey: null,
-      allocations: buildAllocations ? buildAllocations(amount) : []
+      allocations
     };
 
     try {
@@ -208,6 +288,7 @@ export default function PartyCashTransactionDialog({
   const titleLabel = copy.titleLabel;
   const helperLabel = copy.helpLabel;
   const dateLabel = copy.dateLabel;
+  const canAllocateDocuments = openDocuments !== undefined && !buildAllocations;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -252,6 +333,82 @@ export default function PartyCashTransactionDialog({
                 />
               )}
             />
+
+            {canAllocateDocuments && (
+              <Stack spacing={2}>
+                <FormControl>
+                  <FormLabel>
+                    <FormattedMessage id="party-settlement-mode" defaultMessage="وضع التسوية" />
+                  </FormLabel>
+                  <RadioGroup
+                    row
+                    value={allocationMode}
+                    onChange={(event) => setAllocationMode(event.target.value as PartyCashTransactionAllocationMode)}
+                  >
+                    <FormControlLabel
+                      value="documents"
+                      control={<Radio />}
+                      label={<FormattedMessage id="settle-by-documents" defaultMessage="تخصيص على مستندات" />}
+                    />
+                    <FormControlLabel
+                      value="onAccount"
+                      control={<Radio />}
+                      label={<FormattedMessage id="settle-on-account" defaultMessage="قبض على الحساب" />}
+                    />
+                  </RadioGroup>
+                </FormControl>
+
+                {allocationMode === 'documents' ? (
+                  openDocumentRows.length > 0 ? (
+                    <Stack spacing={1.5}>
+                      <Typography variant="body2" color="text.secondary">
+                        <FormattedMessage
+                          id="party-settlement-documents-help"
+                          defaultMessage="اختر مستندًا أو أكثر للتخصيص. يمكن ترك جزء من مبلغ القبض على الحساب."
+                        />
+                      </Typography>
+                      <TreasuryAllocationTable
+                        invoices={openDocumentRows}
+                        onAllocationChange={(invoiceId, amount) => {
+                          setAllocationAmounts((current) => ({ ...current, [invoiceId]: amount }));
+                        }}
+                        maxTotalAllocation={receiptAmount}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        <FormattedMessage
+                          id="party-settlement-allocation-summary"
+                          defaultMessage="إجمالي التخصيص: {allocatedTotal} | المتبقي على الحساب: {remainingOnAccount}"
+                          values={{
+                            allocatedTotal: new Intl.NumberFormat(intl.locale, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            }).format(allocatedTotal),
+                            remainingOnAccount: new Intl.NumberFormat(intl.locale, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            }).format(remainingOnAccount)
+                          }}
+                        />
+                      </Typography>
+                    </Stack>
+                  ) : (
+                    <Alert severity="info">
+                      <FormattedMessage
+                        id="party-settlement-no-open-documents"
+                        defaultMessage="لا توجد مستندات مفتوحة للتخصيص. يمكنك تسجيل القبض على الحساب."
+                      />
+                    </Alert>
+                  )
+                ) : (
+                  <Alert severity="info">
+                    <FormattedMessage
+                      id="party-settlement-on-account-info"
+                      defaultMessage="سيتم تسجيل القبض على الحساب بدون تخصيص أي مستندات."
+                    />
+                  </Alert>
+                )}
+              </Stack>
+            )}
 
             <Controller
               name="treasuryAccountId"

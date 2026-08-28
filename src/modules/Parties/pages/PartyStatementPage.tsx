@@ -26,7 +26,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyAdjustmentsPanel from '../components/PartyAdjustmentsPanel';
 import PartySettlementDialog from '../components/PartySettlementDialog';
-import { useParty, usePartyStatement } from '../hooks/useParties';
+import { useParty, usePartyOpenDocuments, usePartyStatement } from '../hooks/useParties';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { getPartyAdjustmentEntryLabelId, isPartyAdjustmentEntryType } from '../utils/party-adjustments';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
@@ -236,6 +236,10 @@ export default function PartyStatementPage() {
   const [cashTransactionMode, setCashTransactionMode] = useState<'receipt' | 'payment' | null>(null);
 
   const { party, error: partyError, isLoading: isPartyLoading, mutate: mutateParty } = useParty(id);
+  const {
+    items: customerReceiptOpenDocuments,
+    mutate: mutateCustomerReceiptOpenDocuments
+  } = usePartyOpenDocuments(id, 'CustomerReceipt');
   const { statement, error: statementError, isLoading: isStatementLoading, mutate: mutateStatement } = usePartyStatement(id, {
     fromDate: dateFrom,
     toDate: dateTo,
@@ -294,7 +298,7 @@ export default function PartyStatementPage() {
     : [];
 
   const refreshPartyData = async () => {
-    await Promise.all([mutateParty(), mutateStatement()]);
+    await Promise.all([mutateParty(), mutateStatement(), mutateCustomerReceiptOpenDocuments()]);
   };
 
   const closeCashTransactionDialog = () => setCashTransactionMode(null);
@@ -616,6 +620,7 @@ export default function PartyStatementPage() {
           mode={cashTransactionMode ?? 'receipt'}
           partyId={id}
           partyName={resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
+          openDocuments={customerReceiptOpenDocuments}
           onClose={closeCashTransactionDialog}
           onSaved={async () => {
             await refreshPartyData();
