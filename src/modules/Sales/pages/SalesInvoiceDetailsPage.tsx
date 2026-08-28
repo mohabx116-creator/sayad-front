@@ -32,6 +32,7 @@ import { cancelInvoice, postInvoice } from '../api/salesApi';
 import { useSalesInvoice } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
 import PartySettlementDialog from 'modules/Parties/components/PartySettlementDialog';
+import { usePartyOpenDocuments } from 'modules/Parties/hooks/useParties';
 import {
   getInvoicePaymentMethodLabel,
   getInvoiceSettlementStatusLabel,
@@ -57,6 +58,11 @@ export default function SalesInvoiceDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { invoice, isLoading, error, mutate } = useSalesInvoice(id);
+  const {
+    items: customerReceiptOpenDocuments,
+    isLoading: isCustomerReceiptOpenDocumentsLoading,
+    mutate: mutateCustomerReceiptOpenDocuments
+  } = usePartyOpenDocuments(invoice?.customerId, 'CustomerReceipt');
   const [reason, setReason] = useState('');
   const [collectDialogOpen, setCollectDialogOpen] = useState(false);
   const customerControlAccountLabel = invoice?.customerControlAccountCode
@@ -78,8 +84,16 @@ export default function SalesInvoiceDetailsPage() {
   const paymentMethod = normalizeInvoicePaymentMethod(invoice?.paymentMethod) ?? 'Credit';
   const settlementStatus = normalizeInvoiceSettlementStatus(invoice?.settlementStatus) ?? 'Outstanding';
   const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, paymentMethod);
-  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, settlementStatus);
-  const isCreditOutstanding = invoice?.status === 'Posted' && paymentMethod === 'Credit' && settlementStatus === 'Outstanding';
+  const salesInvoiceOpenDocument =
+    customerReceiptOpenDocuments.find((openDocument) => openDocument.documentType === 'SalesInvoice' && openDocument.documentId === invoice?.id) ?? null;
+  const remainingReceivableAmount = salesInvoiceOpenDocument?.outstandingAmount ?? 0;
+  const effectiveSettlementStatus = isCustomerReceiptOpenDocumentsLoading
+    ? settlementStatus
+    : remainingReceivableAmount > 0
+      ? 'Outstanding'
+      : 'Settled';
+  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, effectiveSettlementStatus);
+  const isCreditOutstanding = invoice?.status === 'Posted' && paymentMethod === 'Credit' && remainingReceivableAmount > 0;
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -475,6 +489,7 @@ export default function SalesInvoiceDetailsPage() {
         ]}
         onClose={() => setCollectDialogOpen(false)}
         onSaved={async () => {
+          await mutateCustomerReceiptOpenDocuments();
           await mutate();
         }}
       />
