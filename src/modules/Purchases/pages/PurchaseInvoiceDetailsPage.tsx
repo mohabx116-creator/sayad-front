@@ -40,6 +40,7 @@ import {
   normalizeInvoicePaymentMethod,
   normalizeInvoiceSettlementStatus
 } from 'shared/utils/invoiceSettlement';
+import { getTreasurySettlementStatusLabel } from 'modules/Treasury/utils/treasury.labels';
 
 function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
@@ -124,12 +125,13 @@ export default function PurchaseInvoiceDetailsPage() {
       (openDocument) => openDocument.documentType === 'PurchaseInvoice' && openDocument.documentId === invoice.id
     ) ?? null;
   const remainingPayableAmount = purchaseInvoiceOpenDocument?.outstandingAmount ?? 0;
-  const effectiveSettlementStatus = isSupplierPaymentOpenDocumentsLoading
-    ? settlementStatus
-    : remainingPayableAmount > 0
-      ? 'Outstanding'
-      : 'Settled';
-  const settlementStatusLabel = getInvoiceSettlementStatusLabel(intl.locale, effectiveSettlementStatus);
+  const effectiveSettlementStatusLabel = isSupplierPaymentOpenDocumentsLoading
+    ? getInvoiceSettlementStatusLabel(intl.locale, settlementStatus)
+    : remainingPayableAmount <= 0
+      ? getInvoiceSettlementStatusLabel(intl.locale, 'Settled')
+      : remainingPayableAmount < invoice.grandTotal
+        ? getTreasurySettlementStatusLabel(invoice.grandTotal - remainingPayableAmount, remainingPayableAmount)
+        : getInvoiceSettlementStatusLabel(intl.locale, 'Outstanding');
   const isCreditOutstanding = invoice.status === 'Posted' && paymentMethod === 'Credit' && remainingPayableAmount > 0;
   const hasInvoiceRowVersion = Boolean(invoice.rowVersion.trim());
   const canPayInvoice = isCreditOutstanding && hasInvoiceRowVersion;
@@ -267,7 +269,12 @@ export default function PurchaseInvoiceDetailsPage() {
                     <InfoRow label={<FormattedMessage id="payment-method" defaultMessage="Payment Method" />}>{paymentMethodLabel}</InfoRow>
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <InfoRow label={<FormattedMessage id="settlement-status" defaultMessage="Settlement Status" />}>{settlementStatusLabel}</InfoRow>
+                    <InfoRow label={<FormattedMessage id="settlement-status" defaultMessage="Settlement Status" />}>{effectiveSettlementStatusLabel}</InfoRow>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <InfoRow label={<FormattedMessage id="remaining-payable-amount" defaultMessage="Remaining Payable Amount" />}>
+                      {isSupplierPaymentOpenDocumentsLoading ? '—' : remainingPayableAmount.toFixed(2)}
+                    </InfoRow>
                   </Grid>
                     <Grid item xs={12} md={4}>
                       <InfoRow label={<FormattedMessage id="treasury-account" defaultMessage="Treasury Account" />}>
