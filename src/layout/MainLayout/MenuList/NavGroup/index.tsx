@@ -7,6 +7,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
+import Collapse from '@mui/material/Collapse';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
@@ -28,7 +29,7 @@ import Transitions from 'ui-component/extended/Transitions';
 import { useGetMenuMaster } from 'api/menu';
 
 // assets
-import { IconChevronDown, IconChevronRight, IconMinusVertical } from '@tabler/icons-react';
+import { IconChevronDown, IconChevronRight, IconChevronUp, IconMinusVertical } from '@tabler/icons-react';
 
 // types
 import { NavItemType } from 'types';
@@ -123,6 +124,10 @@ export default function NavGroup({ item, lastItem, remItems, lastItemId, selecte
     setAnchorEl(null);
   };
 
+  const handleToggle = () => {
+    setSelectedID(isSelected ? '' : currentItem.id!);
+  };
+
   const Icon = currentItem?.icon!;
   const itemIcon = currentItem?.icon ? <Icon stroke={1.5} size="20px" /> : null;
 
@@ -173,50 +178,73 @@ export default function NavGroup({ item, lastItem, remItems, lastItemId, selecte
   const popperId = openMini ? `group-pop-${item.id}` : undefined;
   const isSelected = selectedID === currentItem.id;
 
+  // Handle single direct destination
+  const validChildren = currentItem.children?.filter((c) => c) || [];
+  const isSingleDirectDestination = validChildren.length === 1 && validChildren[0].type === 'item';
+
   return (
     <>
       {!isHorizontal ? (
         <>
-          <List
-            disablePadding={!drawerOpen}
-            subheader={
-              currentItem.title &&
-              drawerOpen && (
-                <Typography
-                  variant="caption"
-                  gutterBottom
-                  sx={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'text.heading',
-                    padding: 0.75,
-                    textTransform: 'capitalize',
-                    marginTop: 1.25
-                  }}
-                >
-                  <FormattedMessage id={currentItem.title} />
-                  {currentItem.caption && (
-                    <Typography
-                      gutterBottom
-                      sx={{
-                        display: 'block',
-                        fontSize: '0.6875rem',
-                        fontWeight: 500,
-                        color: 'text.secondary',
-                        textTransform: 'capitalize',
-                        lineHeight: 1.66
-                      }}
-                    >
-                      <FormattedMessage id={currentItem.caption} />
-                    </Typography>
-                  )}
-                </Typography>
-              )
-            }
-          >
-            {items}
-          </List>
+          {isSingleDirectDestination || !drawerOpen ? (
+            <List disablePadding={!drawerOpen} sx={{ py: 0 }}>
+              {items}
+            </List>
+          ) : (
+            <>
+              <ListItemButton
+                sx={{
+                  zIndex: 1201,
+                  borderRadius: `${borderRadius}px`,
+                  mb: 0.5,
+                  alignItems: 'center',
+                  ...(!drawerOpen ? { pl: 1.25 } : {}),
+                  ...(isSelected
+                    ? {
+                        bgcolor: 'secondary.light',
+                        '&:hover': { bgcolor: 'secondary.light' },
+                        color: 'secondary.main'
+                      }
+                    : {}),
+                  ...theme.applyStyles('dark', {
+                    ...(isSelected
+                      ? {
+                          bgcolor: 'secondary.dark',
+                          '&:hover': { bgcolor: 'secondary.dark' },
+                          color: 'secondary.light'
+                        }
+                      : {})
+                  })
+                }}
+                selected={isSelected}
+                onClick={handleToggle}
+              >
+                <Activity mode={itemIcon ? 'visible' : 'hidden'}>
+                  <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{itemIcon}</ListItemIcon>
+                </Activity>
+                {drawerOpen && (
+                  <ListItemText
+                    primary={
+                      <Typography variant={isSelected ? 'h5' : 'body1'} color="inherit" sx={{ fontWeight: isSelected ? 600 : 500 }}>
+                        <FormattedMessage id={currentItem.title} />
+                      </Typography>
+                    }
+                  />
+                )}
+                {drawerOpen &&
+                  (isSelected ? (
+                    <IconChevronUp stroke={1.5} size="16px" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+                  ) : (
+                    <IconChevronDown stroke={1.5} size="16px" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+                  ))}
+              </ListItemButton>
+              <Collapse in={drawerOpen && isSelected} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {items}
+                </List>
+              </Collapse>
+            </>
+          )}
 
           {/* group divider */}
           <Activity mode={drawerOpen ? 'visible' : 'hidden'}>
