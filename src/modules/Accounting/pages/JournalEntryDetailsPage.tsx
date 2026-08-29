@@ -319,7 +319,9 @@ export default function JournalEntryDetailsPage() {
                     </InfoRow>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <InfoRow label={<FormattedMessage id="source-document-number" />}>{sourceDocumentDisplayNumber}</InfoRow>
+                    <InfoRow label={<FormattedMessage id="receipt-payment.source-document-number" defaultMessage="Source Document" />}>
+                      {sourceDocumentDisplayNumber}
+                    </InfoRow>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <InfoRow label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />}>

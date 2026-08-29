@@ -180,7 +180,7 @@ export default function JournalEntriesListPage() {
                   <FormattedMessage id="source-document-type" />
                 </TableCell>
                 <TableCell>
-                  <FormattedMessage id="source-document-number" />
+                  <FormattedMessage id="receipt-payment.source-document-number" defaultMessage="Source Document" />
                 </TableCell>
                 <TableCell align="center">
                   <FormattedMessage id="actions" />
