@@ -6,6 +6,7 @@ import { styled } from '@mui/material/styles';
 // project imports
 import Customization from 'layout/Customization';
 import AppBar from 'ui-component/extended/AppBar';
+import { useRouteBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 // ==============================|| LAYOUTS - STRUCTURE ||============================== //
 
@@ -25,6 +26,7 @@ const HeaderWrapper = styled('div')(({ theme }) => ({
 // ==============================|| SIMPLE LAYOUT ||============================== //
 
 export default function SimpleLayout() {
+  useRouteBrowserTitle();
   return (
     <HeaderWrapper>
       <AppBar />

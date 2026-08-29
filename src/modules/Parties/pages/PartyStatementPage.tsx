@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
@@ -256,6 +257,7 @@ export default function PartyStatementPage() {
 
   const isLoading = isPartyLoading || isStatementLoading;
   const errorMessage = partyError || statementError;
+  useBrowserTitle(party ? [resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic), intl.formatMessage({ id: 'party-statement', defaultMessage: 'Party statement' })] : []);
   const partyTypeLabel = party ? getPartyTypeLabel(intl, party.isCustomer, party.isSupplier) : '';
   const currentBalanceLabel = statement ? getBalanceNatureLabel(intl, statement.closingBalanceNature) : '';
   const summaryLabels = party ? getStatementSummaryLabels(intl, party.isCustomer, party.isSupplier) : null;

@@ -1,0 +1,145 @@
+import { matchPath } from 'react-router-dom';
+
+import type { IntlShape } from 'react-intl';
+
+export const APP_BROWSER_TITLE = 'SAYAD ERP';
+
+export type BrowserTitlePart = string | null | undefined;
+
+type BrowserTitleRoute = {
+  path: string;
+  titleId: string;
+  defaultMessage: string;
+  end?: boolean;
+};
+
+const ROUTE_TITLES: BrowserTitleRoute[] = [
+  { path: '/', titleId: 'landing', defaultMessage: 'Landing', end: true },
+  { path: '/login', titleId: 'auth-login-title', defaultMessage: 'Sign in', end: true },
+  { path: '/dashboard', titleId: 'dashboard', defaultMessage: 'Dashboard', end: true },
+  { path: '/notifications', titleId: 'notifications-title', defaultMessage: 'Notifications', end: true },
+  { path: '/account/profile', titleId: 'account-profile-title', defaultMessage: 'Profile', end: true },
+  { path: '/account/change-password', titleId: 'change-password-title', defaultMessage: 'Change password', end: true },
+  { path: '/account/preferences', titleId: 'preferences-title', defaultMessage: 'Appearance & language', end: true },
+  { path: '/administration/users', titleId: 'system-users', defaultMessage: 'System Users', end: true },
+  { path: '/administration/users/:id', titleId: 'system-user-details', defaultMessage: 'System User Details', end: true },
+  { path: '/system', titleId: 'system-administration', defaultMessage: 'System Administration', end: true },
+  { path: '/system/users', titleId: 'system-users', defaultMessage: 'System Users', end: true },
+  { path: '/system/users/:id', titleId: 'system-user-details', defaultMessage: 'System User Details', end: true },
+  { path: '/system/roles', titleId: 'system-roles-permissions', defaultMessage: 'System Roles & Permissions', end: true },
+  { path: '/system/roles/:id', titleId: 'system-role-details', defaultMessage: 'System Role Details', end: true },
+  { path: '/system/permissions', titleId: 'system-permissions', defaultMessage: 'System Permissions', end: true },
+  { path: '/system/audit', titleId: 'system-audit-log', defaultMessage: 'Audit Log', end: true },
+  { path: '/system/maintenance', titleId: 'system-maintenance', defaultMessage: 'System Maintenance', end: true },
+  { path: '/system/danger-zone', titleId: 'system-danger-zone', defaultMessage: 'Danger Zone', end: true },
+  { path: '/parties', titleId: 'parties-list', defaultMessage: 'Customers & Suppliers', end: true },
+  { path: '/parties/new', titleId: 'create-party-title', defaultMessage: 'Create Party', end: true },
+  { path: '/parties/:id', titleId: 'party-details', defaultMessage: 'Party Details', end: true },
+  { path: '/parties/:id/edit', titleId: 'edit-party-title', defaultMessage: 'Edit Party', end: true },
+  { path: '/parties/:id/statement', titleId: 'party-statement', defaultMessage: 'Party statement', end: true },
+  { path: '/inventory/items', titleId: 'inventory-items', defaultMessage: 'Items', end: true },
+  { path: '/inventory/items/new', titleId: 'create-inventory-item-title', defaultMessage: 'Create Item', end: true },
+  { path: '/inventory/items/:id', titleId: 'inventory-item-details', defaultMessage: 'Item Details', end: true },
+  { path: '/inventory/items/:id/edit', titleId: 'edit-inventory-item-title', defaultMessage: 'Edit Item', end: true },
+  { path: '/inventory/items/:id/movements', titleId: 'inventory-item-movements', defaultMessage: 'Inventory Movements', end: true },
+  { path: '/inventory/categories', titleId: 'inventory-categories', defaultMessage: 'Categories', end: true },
+  { path: '/inventory/party-items', titleId: 'inventory-party-items', defaultMessage: 'Party Items', end: true },
+  { path: '/inventory/customer-materials/intakes', titleId: 'customer-material-intakes', defaultMessage: 'Customer Materials', end: true },
+  { path: '/inventory/customer-materials/intakes/new', titleId: 'create-customer-material-intake-title', defaultMessage: 'Create Customer Material Intake', end: true },
+  { path: '/inventory/customer-materials/intakes/:id', titleId: 'customer-material-intake-details', defaultMessage: 'Customer Material Intake Details', end: true },
+  { path: '/inventory/customer-materials/intakes/:id/edit', titleId: 'edit-customer-material-intake-title', defaultMessage: 'Edit Customer Material Intake', end: true },
+  { path: '/inventory/customer-materials/conversions', titleId: 'customer-material-conversions', defaultMessage: 'Conversions', end: true },
+  { path: '/inventory/customer-materials/conversions/new', titleId: 'create-customer-material-conversion-title', defaultMessage: 'Create Conversion', end: true },
+  { path: '/inventory/customer-materials/conversions/:id', titleId: 'customer-material-conversion-details', defaultMessage: 'Customer Material Conversion Details', end: true },
+  { path: '/inventory/customer-materials/conversions/:id/edit', titleId: 'edit-customer-material-conversion-title', defaultMessage: 'Edit Conversion', end: true },
+  { path: '/inventory/low-stock', titleId: 'inventory-low-stock', defaultMessage: 'Low stock items', end: true },
+  { path: '/inventory/reports/stock', titleId: 'inventory-stock-report', defaultMessage: 'Inventory Stock Report', end: true },
+  { path: '/inventory/valuation', titleId: 'inventory-valuation', defaultMessage: 'Inventory valuation', end: true },
+  { path: '/sales/invoices', titleId: 'sales-invoices', defaultMessage: 'Sales Invoices', end: true },
+  { path: '/sales/invoices/new', titleId: 'create-sales-invoice', defaultMessage: 'Create Sales Invoice', end: true },
+  { path: '/sales/invoices/report', titleId: 'sales-invoices-report', defaultMessage: 'Sales Invoices Report', end: true },
+  { path: '/sales/invoices/:id', titleId: 'sales-invoice-details', defaultMessage: 'Sales Invoice Details', end: true },
+  { path: '/sales/invoices/:id/edit', titleId: 'edit-sales-invoice-title', defaultMessage: 'Edit Sales Invoice', end: true },
+  { path: '/sales/returns', titleId: 'sales-returns', defaultMessage: 'Sales Returns', end: true },
+  { path: '/sales/returns/new', titleId: 'create-sales-return', defaultMessage: 'Create Sales Return', end: true },
+  { path: '/sales/returns/:id', titleId: 'sales-return-details', defaultMessage: 'Sales Return Details', end: true },
+  { path: '/sales/returns/:id/edit', titleId: 'edit-sales-return-title', defaultMessage: 'Edit Sales Return', end: true },
+  { path: '/purchases/invoices', titleId: 'purchase-invoices', defaultMessage: 'Purchase Invoices', end: true },
+  { path: '/purchases/invoices/new', titleId: 'create-purchase-invoice', defaultMessage: 'Create Purchase Invoice', end: true },
+  { path: '/purchases/invoices/report', titleId: 'purchase-invoices-report', defaultMessage: 'Purchase Invoices Report', end: true },
+  { path: '/purchases/invoices/:id', titleId: 'purchase-invoice-details', defaultMessage: 'Purchase Invoice Details', end: true },
+  { path: '/purchases/invoices/:id/edit', titleId: 'edit-purchase-invoice-title', defaultMessage: 'Edit Purchase Invoice', end: true },
+  { path: '/purchases/returns', titleId: 'purchase-returns', defaultMessage: 'Purchase Returns', end: true },
+  { path: '/purchases/returns/new', titleId: 'create-purchase-return', defaultMessage: 'Create Purchase Return', end: true },
+  { path: '/purchases/returns/:id', titleId: 'purchase-return-details', defaultMessage: 'Purchase Return Details', end: true },
+  { path: '/purchases/returns/:id/edit', titleId: 'edit-purchase-return-title', defaultMessage: 'Edit Purchase Return', end: true },
+  { path: '/treasury/accounts', titleId: 'treasury-accounts', defaultMessage: 'Treasury Accounts', end: true },
+  { path: '/treasury/accounts/new', titleId: 'create-treasury-account-title', defaultMessage: 'Create Treasury Account', end: true },
+  { path: '/treasury/accounts/:id', titleId: 'treasury-account-details', defaultMessage: 'Treasury Account Details', end: true },
+  { path: '/treasury/accounts/:id/edit', titleId: 'edit-treasury-account-title', defaultMessage: 'Edit Treasury Account', end: true },
+  { path: '/treasury/transfers', titleId: 'transfers', defaultMessage: 'Transfers', end: true },
+  { path: '/treasury/transfers/new', titleId: 'create-transfer-title', defaultMessage: 'Create Transfer', end: true },
+  { path: '/treasury/transfers/:id', titleId: 'transfer-details', defaultMessage: 'Transfer Details', end: true },
+  { path: '/treasury/transfers/:id/edit', titleId: 'edit-transfer-title', defaultMessage: 'Edit Transfer', end: true },
+  { path: '/treasury/statements', titleId: 'treasury-statements', defaultMessage: 'Treasury statements', end: true },
+  { path: '/accounting', titleId: 'money', defaultMessage: 'Finance', end: true },
+  { path: '/accounting/chart-of-accounts', titleId: 'chart-of-accounts', defaultMessage: 'Chart of Accounts', end: true },
+  { path: '/accounting/chart-of-accounts/new', titleId: 'create-account-title', defaultMessage: 'Create Account', end: true },
+  { path: '/accounting/chart-of-accounts/:id', titleId: 'account-details-title', defaultMessage: 'Account Details', end: true },
+  { path: '/accounting/chart-of-accounts/:id/edit', titleId: 'edit-account-title', defaultMessage: 'Edit Account', end: true },
+  { path: '/accounting/journal-entries', titleId: 'journal-entries', defaultMessage: 'Journal Entries', end: true },
+  { path: '/accounting/journal-entries/new', titleId: 'create-journal-entry-title', defaultMessage: 'Create Journal Entry', end: true },
+  { path: '/accounting/journal-entries/:id', titleId: 'journal-entry-details', defaultMessage: 'Journal Entry Details', end: true },
+  { path: '/accounting/journal-entries/:id/edit', titleId: 'edit-journal-entry-title', defaultMessage: 'Edit Journal Entry', end: true },
+  { path: '/accounting/reports/general-ledger', titleId: 'general-ledger-report', defaultMessage: 'General Ledger Report', end: true },
+  { path: '/accounting/reports/trial-balance', titleId: 'trial-balance', defaultMessage: 'Trial Balance', end: true },
+  { path: '/accounting/reports/income-statement', titleId: 'income-statement', defaultMessage: 'Income Statement', end: true },
+  { path: '/accounting/reports/balance-sheet', titleId: 'balance-sheet', defaultMessage: 'Balance Sheet', end: true },
+  { path: '/accounting/reports/cash-flow', titleId: 'cash-flow', defaultMessage: 'Cash Flow', end: true },
+  { path: '/accounting/reports/treasury-gl-reconciliation', titleId: 'treasury-gl-reconciliation-report', defaultMessage: 'Treasury to General Ledger Reconciliation', end: true },
+  { path: '/accounting/reports/inventory-gl-reconciliation', titleId: 'inventory-gl-reconciliation-report', defaultMessage: 'Inventory to General Ledger Reconciliation', end: true },
+  { path: '/accounting/reports/customer-receivables-aging', titleId: 'customer-receivables-aging', defaultMessage: 'Customer Receivables Aging', end: true },
+  { path: '/accounting/reports/supplier-payables-aging', titleId: 'supplier-payables-aging', defaultMessage: 'Supplier Payables Aging', end: true },
+  { path: '/accounting/reports/purchase-invoices', titleId: 'purchase-invoices-report', defaultMessage: 'Purchase Invoices Report', end: true },
+  { path: '/accounting/reports/receipts-payments', titleId: 'receipts-payments-report', defaultMessage: 'Receipts and Payments Report', end: true },
+  { path: '/accounting/reports/sales-customer-item-analysis', titleId: 'sales-customer-item-analysis-report', defaultMessage: 'Sales Customer Item Analysis Report', end: true },
+  { path: '/accounting/reports/sales-profitability', titleId: 'sales-profitability-report', defaultMessage: 'Sales Profitability Report', end: true },
+  { path: '/accounting/settings', titleId: 'accounting-settings', defaultMessage: 'Accounting settings', end: true },
+  { path: '/accounting/periods', titleId: 'accounting-periods', defaultMessage: 'Accounting periods', end: true },
+  { path: '/accounting/fiscal-years/:id/rollover', titleId: 'fiscal-year-rollover', defaultMessage: 'Fiscal year rollover', end: true },
+  { path: '/accounting/year-end-closing', titleId: 'year-end-closing', defaultMessage: 'Year-End Closing', end: true },
+  { path: '/administration/roles', titleId: 'roles', defaultMessage: 'Roles', end: true },
+  { path: '/administration/roles/:id', titleId: 'system-role-details', defaultMessage: 'System Role Details', end: true },
+  { path: '/expenses/list', titleId: 'expenses.list', defaultMessage: 'Expenses List', end: true },
+  { path: '/expenses/new', titleId: 'expenses.create-expense', defaultMessage: 'Create Expense', end: true },
+  { path: '/expenses/:id', titleId: 'expenses.details', defaultMessage: 'Expense Details', end: true },
+  { path: '/expenses/categories', titleId: 'expense-categories', defaultMessage: 'Expense Categories', end: true },
+  { path: '/expenses/accounts', titleId: 'expense-accounts', defaultMessage: 'Expense Accounts', end: true },
+  { path: '/labor/workers', titleId: 'workers', defaultMessage: 'Workers', end: true },
+  { path: '/labor/workers/salary-report', titleId: 'workers-salary-report', defaultMessage: 'Workers salary report', end: true },
+  { path: '/labor/workers/new', titleId: 'create-worker-title', defaultMessage: 'Create Worker', end: true },
+  { path: '/labor/workers/:id', titleId: 'worker-details-title', defaultMessage: 'Worker Details', end: true },
+  { path: '/labor/workers/:id/edit', titleId: 'edit-worker-title', defaultMessage: 'Edit Worker', end: true },
+  { path: '/labor/monthly-movements', titleId: 'monthly-movements', defaultMessage: 'Monthly movements', end: true },
+  { path: '/labor/monthly-movements/new', titleId: 'create-monthly-movement-title', defaultMessage: 'Create Monthly Movement', end: true },
+  { path: '/labor/monthly-movements/:id/edit', titleId: 'edit-monthly-movement-title', defaultMessage: 'Edit Monthly Movement', end: true },
+  { path: '/labor/operational-jobs', titleId: 'operational-jobs', defaultMessage: 'Operational jobs', end: true },
+  { path: '/labor/operational-jobs/new', titleId: 'create-operational-job-title', defaultMessage: 'Create Operational Job', end: true },
+  { path: '/labor/operational-jobs/:id', titleId: 'operational-job-details-title', defaultMessage: 'Operational Job Details', end: true },
+  { path: '/labor/operational-jobs/:id/edit', titleId: 'edit-operational-job-title', defaultMessage: 'Edit Operational Job', end: true },
+  { path: '/labor/operations', titleId: 'operations', defaultMessage: 'Operations', end: true },
+  { path: '/labor/operations/new', titleId: 'create-operation-title', defaultMessage: 'Create Operation', end: true },
+  { path: '/labor/operations/:id', titleId: 'operation-details-title', defaultMessage: 'Operation Details', end: true },
+  { path: '/inventory/customer-materials/intakes', titleId: 'customer-material-intakes', defaultMessage: 'Customer Materials', end: true },
+  { path: '/inventory/customer-materials/conversions', titleId: 'customer-material-conversions', defaultMessage: 'Conversions', end: true }
+];
+
+export function formatBrowserTitle(...parts: BrowserTitlePart[]) {
+  const cleaned = parts.map((part) => part?.trim()).filter((part): part is string => Boolean(part));
+  return cleaned.length > 0 ? `${cleaned.join(' | ')} | ${APP_BROWSER_TITLE}` : APP_BROWSER_TITLE;
+}
+
+export function resolveRouteBrowserTitle(pathname: string, intl: IntlShape) {
+  const match = ROUTE_TITLES.find((route) => matchPath({ path: route.path, end: route.end ?? true }, pathname));
+  return match ? intl.formatMessage({ id: match.titleId, defaultMessage: match.defaultMessage }) : undefined;
+}

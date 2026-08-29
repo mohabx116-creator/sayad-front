@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 import { FormattedMessage } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -37,6 +38,7 @@ export default function CustomerMaterialConversionDetailsPage() {
   const { conversion, isLoading, mutate } = useCustomerMaterialConversion(id);
   const [busy, setBusy] = useState(false);
   const conversionDisplayNumber = getDocumentDisplayNumber(conversion?.displayNumber, conversion?.number);
+  useBrowserTitle(conversion ? [conversionDisplayNumber] : []);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -78,8 +80,6 @@ export default function CustomerMaterialConversionDetailsPage() {
     if (!conversion) {
       return;
     }
-
-    document.title = conversionDisplayNumber;
   }, [conversion, conversionDisplayNumber]);
 
   if (isLoading || !conversion) {

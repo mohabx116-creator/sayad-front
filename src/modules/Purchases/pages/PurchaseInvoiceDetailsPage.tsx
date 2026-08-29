@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -42,6 +42,7 @@ import {
 } from 'shared/utils/invoiceSettlement';
 import { getTreasurySettlementStatusLabel } from 'modules/Treasury/utils/treasury.labels';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
@@ -116,14 +117,7 @@ export default function PurchaseInvoiceDetailsPage() {
   };
 
   const invoiceDisplayNumber = getDocumentDisplayNumber(invoice?.displayNumber, invoice?.number);
-
-  useEffect(() => {
-    if (!invoice) {
-      return;
-    }
-
-    document.title = `${invoiceDisplayNumber} - ${invoice.supplierNameArabic}`;
-  }, [invoiceDisplayNumber, invoice?.supplierNameArabic]);
+  useBrowserTitle(invoice ? [invoiceDisplayNumber] : []);
 
   if (isLoading) return <Loader />;
   if (error || !invoice) return <Typography color="error"><FormattedMessage id="purchase-load-error" /></Typography>;

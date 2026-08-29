@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -41,6 +41,7 @@ import {
   normalizeInvoiceSettlementStatus
 } from 'shared/utils/invoiceSettlement';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
@@ -87,6 +88,7 @@ export default function SalesInvoiceDetailsPage() {
   const paymentMethod = normalizeInvoicePaymentMethod(invoice?.paymentMethod) ?? 'Credit';
   const settlementStatus = normalizeInvoiceSettlementStatus(invoice?.settlementStatus) ?? 'Outstanding';
   const paymentMethodLabel = getInvoicePaymentMethodLabel(intl.locale, paymentMethod);
+  useBrowserTitle(invoice ? [invoiceDisplayNumber] : []);
   const salesInvoiceOpenDocument =
     customerReceiptOpenDocuments.find((openDocument) => openDocument.documentType === 'SalesInvoice' && openDocument.documentId === invoice?.id) ?? null;
   const remainingReceivableAmount = salesInvoiceOpenDocument?.outstandingAmount ?? 0;
@@ -116,14 +118,6 @@ export default function SalesInvoiceDetailsPage() {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
     }
   };
-
-  useEffect(() => {
-    if (!invoice) {
-      return;
-    }
-
-    document.title = `${invoiceDisplayNumber} - ${invoice.customerNameArabic}`;
-  }, [invoice, invoiceDisplayNumber]);
 
   if (isLoading) return <Loader />;
   if (error || !invoice) return <Typography variant="h6" color="error"><FormattedMessage id="not-found" defaultMessage="Not Found" /></Typography>;

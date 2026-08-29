@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 import { FormattedMessage } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -37,6 +38,7 @@ export default function CustomerMaterialIntakeDetailsPage() {
   const { intake, isLoading, mutate } = useCustomerMaterialIntake(id);
   const [busy, setBusy] = useState(false);
   const intakeDisplayNumber = getDocumentDisplayNumber(intake?.displayNumber, intake?.number);
+  useBrowserTitle(intake ? [intakeDisplayNumber] : []);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -78,8 +80,6 @@ export default function CustomerMaterialIntakeDetailsPage() {
     if (!intake) {
       return;
     }
-
-    document.title = intakeDisplayNumber;
   }, [intake, intakeDisplayNumber]);
 
   if (isLoading || !intake) {

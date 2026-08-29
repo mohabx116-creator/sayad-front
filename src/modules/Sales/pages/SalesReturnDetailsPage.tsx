@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -45,6 +45,7 @@ import { useSalesReturn } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 export default function SalesReturnDetailsPage() {
   const { id } = useParams();
@@ -60,6 +61,7 @@ export default function SalesReturnDetailsPage() {
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const salesReturnDisplayNumber = getDocumentDisplayNumber(salesReturn?.displayNumber, salesReturn?.number);
   const salesInvoiceDisplayNumber = getDocumentDisplayNumber(salesReturn?.salesInvoiceDisplayNumber, salesReturn?.salesInvoiceNumber);
+  useBrowserTitle(salesReturn ? [salesReturnDisplayNumber] : []);
   const customerControlAccountLabel = salesReturn?.customerControlAccountCode
     ? `${salesReturn.customerControlAccountCode}${salesReturn.customerControlAccountNameArabic ? ` - ${salesReturn.customerControlAccountNameArabic}` : ''}`
     : '—';
@@ -94,14 +96,6 @@ export default function SalesReturnDetailsPage() {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'sales-action-failed' }), 'error');
     }
   };
-
-  useEffect(() => {
-    if (!salesReturn) {
-      return;
-    }
-
-    document.title = `${salesReturnDisplayNumber} - ${salesInvoiceDisplayNumber}`;
-  }, [salesReturn, salesInvoiceDisplayNumber, salesReturnDisplayNumber]);
 
   if (isLoading) return <Loader />;
   if (error || !salesReturn)

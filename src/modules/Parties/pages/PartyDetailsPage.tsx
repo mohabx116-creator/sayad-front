@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 import { useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -47,6 +48,7 @@ export default function PartyDetailsPage() {
   };
 
   const closeCashTransactionDialog = () => setCashTransactionMode(null);
+  useBrowserTitle(party ? [resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)] : []);
 
   return (
     <>

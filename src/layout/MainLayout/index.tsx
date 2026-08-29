@@ -17,6 +17,7 @@ import HorizontalBar from './HorizontalBar';
 import MainContentStyled from './MainContentStyled';
 import Customization from '../Customization';
 import Loader from 'ui-component/Loader';
+import { useRouteBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 import { MenuOrientation } from 'config';
 import useConfig from 'hooks/useConfig';
@@ -25,6 +26,7 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 // ==============================|| MAIN LAYOUT ||============================== //
 
 export default function MainLayout() {
+  useRouteBrowserTitle();
   const theme = useTheme();
   const downMD = useMediaQuery(theme.breakpoints.down('md'));
 

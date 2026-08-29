@@ -34,6 +34,7 @@ import { useJournalEntry } from '../hooks/useJournalEntries';
 import { JOURNAL_ENTRY_PERMISSIONS, JOURNAL_ENTRY_STATUSES } from '../utils/journal-entry.constants';
 import { formatJournalEntrySourceType } from '../utils/journal-entry.format';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -128,6 +129,7 @@ export default function JournalEntryDetailsPage() {
   const description = formatLocalizedText(entry?.descriptionArabic, entry?.descriptionEnglish, intl.locale);
   const entryDisplayNumber = getDocumentDisplayNumber(entry?.displayNumber, entry?.number);
   const sourceDocumentDisplayNumber = getDocumentDisplayNumber(entry?.sourceDocumentDisplayNumber, entry?.sourceDocumentNumber);
+  useBrowserTitle(entry ? [entryDisplayNumber] : []);
 
   const handlePost = async () => {
     if (!id || !entry) {
@@ -203,13 +205,7 @@ export default function JournalEntryDetailsPage() {
     }
   };
 
-  useEffect(() => {
-    if (!entry) {
-      return;
-    }
 
-    document.title = `${entryDisplayNumber} - ${intl.formatMessage({ id: 'journal-entry-details', defaultMessage: 'Journal Entry Details' })}`;
-  }, [entry, entryDisplayNumber, intl]);
 
   if (isLoading || !entry) {
     return <Loader />;

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';

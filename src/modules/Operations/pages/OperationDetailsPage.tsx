@@ -1,3 +1,5 @@
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -31,6 +33,7 @@ export default function OperationDetailsPage() {
   const { id } = useParams();
   const intl = useIntl();
   const { operation, isLoading, error } = useOperation(id);
+  useBrowserTitle(operation ? [`${operation.operationalJobName} - ${operation.workerName}`] : []);
 
   if (isLoading) {
     return <Loader />;

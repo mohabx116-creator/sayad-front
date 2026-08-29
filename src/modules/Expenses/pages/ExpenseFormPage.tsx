@@ -36,7 +36,6 @@ export default function ExpenseFormPage() {
   const { items: accounts, isLoading: isAccountsLoading } = useTreasuryAccounts({ page: 1, pageSize: 100, status: 'Active' });
 
   useEffect(() => {
-    document.title = intl.formatMessage({ id: 'expenses.create-expense', defaultMessage: 'Create Expense' });
   }, [intl]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {

@@ -36,6 +36,7 @@ import { usePurchaseReturn } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 function formatCodeNameLabel(
   locale: string,
@@ -67,6 +68,7 @@ export default function PurchaseReturnDetailsPage() {
     purchaseReturn?.purchaseInvoiceDisplayNumber,
     purchaseReturn?.purchaseInvoiceNumber
   );
+  useBrowserTitle(purchaseReturn ? [purchaseReturnDisplayNumber] : []);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -86,8 +88,6 @@ export default function PurchaseReturnDetailsPage() {
     if (!purchaseReturn) {
       return;
     }
-
-    document.title = `${purchaseReturnDisplayNumber} - ${purchaseInvoiceDisplayNumber}`;
   }, [purchaseReturn, purchaseInvoiceDisplayNumber, purchaseReturnDisplayNumber]);
 
   if (isLoading) return <Loader />;

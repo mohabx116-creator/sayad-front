@@ -1,4 +1,6 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
 
@@ -26,6 +28,7 @@ import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import PageTitle from 'ui-component/PageTitle';
 import { hasPermission } from 'modules/Administration/utils/permission-utils';
+import { useIntl } from 'react-intl';
 
 import AccountingAccountActionDialog from '../components/AccountingAccountActionDialog';
 import AccountingAccountDeleteDialog from '../components/AccountingAccountDeleteDialog';
@@ -41,6 +44,8 @@ export default function AccountingAccountDetailsPage() {
   const { mutate: mutateGlobal } = useSWRConfig();
 
   const { account, isLoading, mutate } = useAccountingAccount(id);
+  const intl = useIntl();
+  useBrowserTitle(account ? [resolveLocalizedText(intl.locale, account.nameArabic, account.nameEnglish, account.nameArabic)] : []);
   const [pendingAction, setPendingAction] = useState<'activate' | 'deactivate' | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<{ code: string; rowVersion: string } | null>(null);

@@ -14,6 +14,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 import { useExpense } from '../hooks/useExpenses';
 import ExpenseStatusChip from '../components/ExpenseStatusChip';
@@ -39,13 +40,12 @@ export default function ExpenseDetailsPage() {
   const { id } = useParams();
   const { expense, isLoading, error } = useExpense(id);
   const expenseDisplayNumber = getDocumentDisplayNumber(expense?.displayNumber, expense?.expenseNumber);
+  useBrowserTitle(expense ? [expenseDisplayNumber] : []);
 
   useEffect(() => {
     if (!expense) {
       return;
     }
-
-    document.title = expenseDisplayNumber;
   }, [expense, expenseDisplayNumber]);
 
   if (isLoading) {

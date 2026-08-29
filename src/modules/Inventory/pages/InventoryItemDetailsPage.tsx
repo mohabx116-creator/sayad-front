@@ -1,4 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -101,6 +103,7 @@ export default function InventoryItemDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { item, isLoading, error, mutate: mutateItem } = useInventoryItem(id);
+  useBrowserTitle(item ? [resolveLocalizedText(intl.locale, item.nameArabic, item.nameEnglish, item.nameArabic)] : []);
   const { items: itemUnits, mutate: mutateUnits } = useInventoryItemUnits(id);
   const { openingStock, mutate: mutateOpeningStock } = useInventoryItemOpeningStock(id);
   const { items: movements, mutate: mutateMovements } = useItemMovements(id);

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -27,6 +29,7 @@ export default function OperationalJobDetailsPage() {
   const dispatch = useDispatch();
   const [isSaving, setIsSaving] = useState(false);
   const { operationalJob, error, isLoading, mutate } = useOperationalJob(id);
+  useBrowserTitle(operationalJob ? [operationalJob.name] : []);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));

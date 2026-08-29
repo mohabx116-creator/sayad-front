@@ -1,3 +1,5 @@
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -37,6 +39,7 @@ export default function WorkerDetailsPage() {
   const [viewSalaryId, setViewSalaryId] = useState<string | null>(null);
   const [paySalaryId, setPaySalaryId] = useState<string | null>(null);
   const { worker, error, isLoading, mutate: mutateWorker } = useWorker(id);
+  useBrowserTitle(worker ? [worker.name] : []);
   const { settings: salarySettings, mutate: mutateSalarySettings } = useWorkerSalarySettings(id);
   const { items: monthlySalaries, mutate: mutateMonthlySalaries } = useWorkerMonthlySalaries(id);
 

@@ -25,6 +25,7 @@ import { useTreasuryAccount, useTreasuryTransfer } from '../hooks/useTreasury';
 import { TREASURY_DOCUMENT_STATUS, TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import { refreshTreasuryViews } from '../utils/treasuryRefresh';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
+import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -49,6 +50,7 @@ export default function TreasuryTransferDetailsPage() {
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType }>({ open: false, action: 'post' });
   const [isProcessing, setIsProcessing] = useState(false);
   const transferDisplayNumber = getDocumentDisplayNumber(transfer?.displayNumber, transfer?.number);
+  useBrowserTitle(transfer ? [transferDisplayNumber] : []);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -96,8 +98,6 @@ export default function TreasuryTransferDetailsPage() {
     if (!transfer) {
       return;
     }
-
-    document.title = transferDisplayNumber;
   }, [transfer, transferDisplayNumber]);
 
   if (isLoading || !transfer) {
