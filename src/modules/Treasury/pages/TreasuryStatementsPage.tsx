@@ -185,17 +185,6 @@ export default function TreasuryStatementsPage() {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  setPage(1);
-                }}
-              >
-                <FormattedMessage id="apply-filters" defaultMessage="تطبيق الفلاتر" />
-              </Button>
-            </Grid>
           </Grid>
         </Box>
       </MainCard>
