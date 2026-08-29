@@ -1993,6 +1993,7 @@
   "transfer-out": "تحويل صادر",
   "receipt-reversal": "عكس قبض",
   "payment-reversal": "عكس دفع",
+  "reversed": "معكوس",
   "transfer-in-reversal": "عكس تحويل وارد",
   "transfer-out-reversal": "عكس تحويل صادر",
   "opening-balance-correction": "تصحيح رصيد افتتاحي",

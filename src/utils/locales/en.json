@@ -1990,6 +1990,7 @@
   "transfer-out": "Transfer Out",
   "receipt-reversal": "Receipt Reversal",
   "payment-reversal": "Payment Reversal",
+  "reversed": "Reversed",
   "transfer-in-reversal": "Transfer In Reversal",
   "transfer-out-reversal": "Transfer Out Reversal",
   "opening-balance-correction": "Opening Balance Correction",
