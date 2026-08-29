@@ -525,15 +525,16 @@ export default function PartyStatementPage() {
                               <Typography variant="body2">
                                 {resolveLocalizedText(intl.locale, entry.descriptionArabic, entry.descriptionEnglish, '-')}
                               </Typography>
-                              {entry.referenceNumber && (
+                              {(entry.referenceDisplayNumber || entry.referenceNumber) && (
                                 <Typography variant="caption" color="text.secondary" display="block" dir="ltr">
                                   {(() => {
                                     const referenceRoute = getStatementReferenceRoute(entry.referenceType, entry.referenceId);
+                                    const referenceNumber = entry.referenceDisplayNumber ?? entry.referenceNumber;
 
                                     if (!referenceRoute) {
                                       return (
                                         <>
-                                          Ref: {entry.referenceNumber}
+                                          Ref: {referenceNumber}
                                         </>
                                       );
                                     }
@@ -553,7 +554,7 @@ export default function PartyStatementPage() {
                                             }
                                           }}
                                         >
-                                          {entry.referenceNumber}
+                                          {referenceNumber}
                                         </Box>
                                       </>
                                     );

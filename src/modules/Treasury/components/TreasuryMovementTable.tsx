@@ -24,6 +24,7 @@ import {
 
 import type { TreasuryMovement } from '../types/treasury.types';
 import { formatTreasuryMoney } from '../utils/treasury.format';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 function getMovementPresentation(movementType: string) {
   switch (movementType.toLowerCase()) {
@@ -208,14 +209,21 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                 <TableRow key={row.id} hover sx={{ bgcolor: row.isReversal ? 'error.lighter' : 'inherit' }}>
                   <TableCell>{row.movementDate}</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>
-                    {row.referenceNumber ? (
-                      sourceRoute ? (
-                        <Button component={Link} to={sourceRoute} size="small" variant="text" sx={{ px: 0, minWidth: 0, textTransform: 'none', fontWeight: 600 }}>
-                          {row.referenceNumber}
-                        </Button>
-                      ) : (
-                        row.referenceNumber
-                      )
+                    {row.referenceNumber || row.sourceDocumentNumber ? (
+                      (() => {
+                        const displayNumber =
+                          row.sourceDocumentDisplayNumber ??
+                          row.referenceDisplayNumber ??
+                          getDocumentDisplayNumber(undefined, row.sourceDocumentNumber ?? row.referenceNumber);
+
+                        return sourceRoute ? (
+                          <Button component={Link} to={sourceRoute} size="small" variant="text" sx={{ px: 0, minWidth: 0, textTransform: 'none', fontWeight: 600 }}>
+                            {displayNumber}
+                          </Button>
+                        ) : (
+                          displayNumber
+                        );
+                      })()
                     ) : (
                       '-'
                     )}

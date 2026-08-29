@@ -26,6 +26,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import CodeNameLabel from 'shared/components/CodeNameLabel';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 import { useTreasuryAccounts, useTreasuryTransfers } from '../hooks/useTreasury';
 import { TREASURY_PERMISSIONS, TREASURY_LOOKUP_PAGE_SIZE } from '../utils/treasury.constants';
 import TreasuryStatusChip from '../components/TreasuryStatusChip';
@@ -148,7 +149,7 @@ export default function TreasuryTransfersListPage() {
               ) : (
                 items.map((transfer) => (
                   <TableRow key={transfer.id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{transfer.number}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{getDocumentDisplayNumber(transfer.displayNumber, transfer.number)}</TableCell>
                     <TableCell>{transfer.transferDate}</TableCell>
                     <TableCell>{transfer.fromAccountCode}</TableCell>
                     <TableCell>{transfer.toAccountCode}</TableCell>

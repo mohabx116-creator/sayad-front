@@ -141,6 +141,7 @@ export type SalesInvoice = {
   costOfGoodsSoldAccountId?: string | null;
   costOfGoodsSoldAccountCode?: string | null;
   costOfGoodsSoldAccountArabicName?: string | null;
+  displayNumber?: string | null;
 };
 
 export type SalesInvoiceListItem = {
@@ -165,6 +166,7 @@ export type SalesInvoiceListItem = {
   treasuryAccountId?: string | null;
   treasuryAccountCode?: string | null;
   treasuryAccountNameArabic?: string | null;
+  displayNumber?: string | null;
 };
 
 export type SalesReturn = {
@@ -207,6 +209,7 @@ export type SalesReturn = {
   costOfGoodsSoldAccountId?: string | null;
   costOfGoodsSoldAccountCode?: string | null;
   costOfGoodsSoldAccountArabicName?: string | null;
+  displayNumber?: string | null;
 };
 
 export type SalesReturnListItem = {
@@ -223,6 +226,7 @@ export type SalesReturnListItem = {
   rowVersion: string;
   isAccountingPosted?: boolean;
   accountingPostingStatus?: string;
+  displayNumber?: string | null;
 };
 
 export type SalesListParams = {
@@ -261,6 +265,7 @@ export type SalesInvoicesReportRow = {
   grandTotal: number;
   currencyCode: string;
   status: SalesDocumentStatus;
+  invoiceDisplayNumber?: string | null;
 };
 
 export type CurrencyTotal = {

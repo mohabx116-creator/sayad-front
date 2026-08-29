@@ -25,6 +25,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import MainCard from 'ui-component/cards/MainCard';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 import { useJournalEntries } from '../hooks/useJournalEntries';
 import JournalEntryStatusChip from '../components/JournalEntryStatusChip';
@@ -201,7 +202,7 @@ export default function JournalEntriesListPage() {
               ) : (
                 items.map((entry) => (
                   <TableRow key={entry.id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{entry.number}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{getDocumentDisplayNumber(entry.displayNumber, entry.number)}</TableCell>
                     <TableCell>{entry.entryDate}</TableCell>
                     <TableCell>{entry.descriptionArabic || entry.descriptionEnglish || '—'}</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>

@@ -12,6 +12,7 @@ import { IconFiles } from '@tabler/icons-react';
 
 import type { TreasuryAllocation } from '../types/treasury.types';
 import { getTreasurySourceDocumentLabel } from '../utils/treasury.labels';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 interface Props {
   allocations: TreasuryAllocation[];
@@ -48,7 +49,7 @@ export default function TreasuryAllocationSummaryTable({ allocations }: Props) {
               <TableCell>{getTreasurySourceDocumentLabel(allocation.sourceDocumentType)}</TableCell>
               <TableCell>
                 <Typography variant="body2" fontWeight={600} color="text.primary">
-                  {allocation.sourceDocumentNumber ?? '-'}
+                  {getDocumentDisplayNumber(undefined, allocation.sourceDocumentNumber)}
                 </Typography>
               </TableCell>
               <TableCell align="right">

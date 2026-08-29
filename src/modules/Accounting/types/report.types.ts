@@ -752,6 +752,9 @@ export type ReceiptsPaymentsReportRowDto = {
   amount: number;
   currencyCode: string;
   status: 'Draft' | 'Posted' | 'Cancelled' | string;
+  transactionDisplayNumber?: string | null;
+  relatedDocumentDisplayNumber?: string | null;
+  sourceDocumentDisplayNumber?: string | null;
 };
 
 export type ReceiptsPaymentsReportSummaryDto = {

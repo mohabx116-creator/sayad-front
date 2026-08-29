@@ -571,7 +571,7 @@ export default function ReceiptsPaymentsReportPage() {
                         return (
                           <TableRow hover key={`${row.transactionType}-${row.transactionId}`}>
                             <TableCell sx={{ pl: 3 }}>
-                              <Typography variant="subtitle2">{row.transactionNumber}</Typography>
+                              <Typography variant="subtitle2">{row.transactionDisplayNumber ?? row.transactionNumber}</Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2" dir="ltr">
@@ -608,12 +608,12 @@ export default function ReceiptsPaymentsReportPage() {
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2" noWrap sx={{ maxWidth: 160 }}>
-                                {row.relatedDocumentNumber || '-'}
+                                {row.relatedDocumentDisplayNumber || row.relatedDocumentNumber || '-'}
                               </Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2" noWrap sx={{ maxWidth: 160 }}>
-                                {row.sourceDocumentNumber || '-'}
+                                {row.sourceDocumentDisplayNumber || row.sourceDocumentNumber || '-'}
                               </Typography>
                             </TableCell>
                             <TableCell>

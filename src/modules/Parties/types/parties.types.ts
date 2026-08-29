@@ -35,6 +35,7 @@ export type PartyLedgerEntryDto = {
   creditAmount: number;
   runningBalance: number;
   runningBalanceNature: string;
+  referenceDisplayNumber?: string | null;
 };
 
 export type PartyAdjustmentType =
@@ -62,6 +63,7 @@ export type PartyAdjustmentDto = {
   reversedAtUtc: string | null;
   reversalAdjustmentId: string | null;
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type CreatePartyAdjustmentRequest = {
@@ -258,6 +260,7 @@ export type PartySettlementOpenDocumentDto = {
   documentTypeLabel: string;
   documentId: string;
   documentNumber: string;
+  documentDisplayNumber?: string | null;
   documentDate: string;
   documentAmount: number;
   allocatedAmount: number;

@@ -195,7 +195,7 @@ export default function PartyCashTransactionDialog({
     () =>
       settlementOpenDocuments.map((document) => ({
         invoiceId: document.documentId,
-        invoiceNumber: document.documentNumber,
+        invoiceNumber: document.documentDisplayNumber ?? document.documentNumber,
         invoiceDate: document.documentDate,
         grandTotal: document.documentAmount,
         allocatedAmount: allocationAmounts[document.documentId] ?? 0,

@@ -26,6 +26,7 @@ import { useCustomerMaterialConversions } from '../hooks/useCustomerMaterials';
 import CustomerMaterialsTabs from '../components/customer-materials/CustomerMaterialsTabs';
 import CustomerMaterialStatusChip from '../components/customer-materials/CustomerMaterialStatusChip';
 import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 export default function CustomerMaterialConversionsListPage() {
   const intl = useIntl();
@@ -155,7 +156,7 @@ export default function CustomerMaterialConversionsListPage() {
                 <TableBody>
                   {items.map((item) => (
                     <TableRow hover key={item.id}>
-                      <TableCell sx={{ fontWeight: 700 }}>{item.number}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{getDocumentDisplayNumber(item.displayNumber, item.number)}</TableCell>
                       <TableCell dir="ltr">{item.conversionDate}</TableCell>
                       <TableCell>{item.ownerPartyCode} - {item.ownerPartyNameArabic}</TableCell>
                       <TableCell align="right">{intl.formatNumber(item.totalInputBaseQuantity, { maximumFractionDigits: 4 })}</TableCell>

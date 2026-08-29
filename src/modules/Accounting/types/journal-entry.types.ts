@@ -91,6 +91,7 @@ export type JournalEntryDto = {
   createdAtUtc: string;
   updatedAtUtc: string | null;
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type JournalEntryListItemDto = {
@@ -120,6 +121,7 @@ export type JournalEntryListItemDto = {
   createdAtUtc: string;
   updatedAtUtc: string | null;
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type JournalEntryListParams = {

@@ -89,6 +89,7 @@ export type PurchaseInvoice = {
   inventoryAssetAccountCode?: string | null;
   inventoryAssetAccountArabicName?: string | null;
   inventoryAssetAccountEnglishName?: string | null;
+  displayNumber?: string | null;
   subtotal: number;
   lineDiscountTotal: number;
   headerDiscount: number;
@@ -138,6 +139,7 @@ export type PurchaseInvoiceListItem = {
   treasuryAccountCode?: string | null;
   treasuryAccountNameArabic?: string | null;
   treasuryAccountNameEnglish?: string | null;
+  displayNumber?: string | null;
 };
 
 export type PurchaseReturn = {
@@ -173,6 +175,7 @@ export type PurchaseReturn = {
   cancelledAtUtc?: string | null;
   cancellationReason?: string | null;
   rowVersion: string;
+  displayNumber?: string | null;
   lines: PurchaseLine[];
 };
 
@@ -192,6 +195,7 @@ export type PurchaseReturnListItem = {
   isAccountingPosted: boolean;
   accountingPostingStatus: string;
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type PurchaseListParams = {

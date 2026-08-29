@@ -32,6 +32,7 @@ import { useSalesInvoice, useSalesReturn, useSalesInvoices, useSalesReturnableLi
 import type { SalesReturnInput, SalesReturnLineInput } from '../types/sales.types';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 type EditableLine = SalesReturnLineInput & { itemLabel?: string; maxQuantity?: number };
 
@@ -326,7 +327,7 @@ export default function SalesReturnFormPage() {
                       </MenuItem>
                       {postedInvoices.map((invoice) => (
                         <MenuItem key={invoice.id} value={invoice.id}>
-                          {invoice.number} - {invoice.customerNameArabic}
+                          {getDocumentDisplayNumber(invoice.displayNumber, invoice.number)} - {invoice.customerNameArabic}
                         </MenuItem>
                       ))}
                     </TextField>

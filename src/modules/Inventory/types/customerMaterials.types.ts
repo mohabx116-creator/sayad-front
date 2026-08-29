@@ -46,6 +46,7 @@ export type CustomerMaterialIntakeListItemDto = {
   postedAtUtc?: string | null;
   cancelledAtUtc?: string | null;
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type CustomerMaterialIntakeLineDto = {
@@ -83,6 +84,7 @@ export type CustomerMaterialIntakeDto = {
   cancellationReason?: string | null;
   lines: CustomerMaterialIntakeLineDto[];
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type CustomerMaterialConversionListItemDto = {
@@ -102,6 +104,7 @@ export type CustomerMaterialConversionListItemDto = {
   postedAtUtc?: string | null;
   cancelledAtUtc?: string | null;
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type CustomerMaterialConversionInputLineDto = {
@@ -165,6 +168,7 @@ export type CustomerMaterialConversionDto = {
   inputLines: CustomerMaterialConversionInputLineDto[];
   outputLines: CustomerMaterialConversionOutputLineDto[];
   rowVersion: string;
+  displayNumber?: string | null;
 };
 
 export type CustomerMaterialIntakeRequest = {

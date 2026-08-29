@@ -31,6 +31,7 @@ import { useCustomerMaterialConversion, useCustomerMaterialIntake, useCustomerMa
 import CustomerMaterialsTabs from '../components/customer-materials/CustomerMaterialsTabs';
 import CustomerMaterialStatusChip from '../components/customer-materials/CustomerMaterialStatusChip';
 import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 import type {
   CustomerMaterialConversionInputLineInput,
   CustomerMaterialConversionOutputLineInput,
@@ -108,7 +109,7 @@ function ConversionInputRow({
             <MenuItem value=""><FormattedMessage id="select" defaultMessage="Select" /></MenuItem>
             {postedIntakes.map((intakeItem) => (
               <MenuItem key={intakeItem.id} value={intakeItem.id}>
-                {intakeItem.number} - {intakeItem.warehouseCode}
+                {getDocumentDisplayNumber(intakeItem.displayNumber, intakeItem.number)} - {intakeItem.warehouseCode}
               </MenuItem>
             ))}
           </TextField>
@@ -324,9 +325,9 @@ export default function CustomerMaterialConversionFormPage() {
             <FormattedMessage id={isEdit ? 'edit' : 'create'} defaultMessage={isEdit ? 'Edit' : 'Create'} /> <FormattedMessage id="customer-material-conversion" defaultMessage="Customer Material Conversion" />
           </Typography>
           {conversion?.number && (
-            <Typography variant="body2" color="text.secondary">
-              {conversion.number} <CustomerMaterialStatusChip status={status} />
-            </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {getDocumentDisplayNumber(conversion.displayNumber, conversion.number)} <CustomerMaterialStatusChip status={status} />
+              </Typography>
           )}
         </Box>
         <Button component={Link} to="/inventory/customer-materials/conversions" variant="outlined" color="inherit" startIcon={<IconArrowLeft size={18} />}>

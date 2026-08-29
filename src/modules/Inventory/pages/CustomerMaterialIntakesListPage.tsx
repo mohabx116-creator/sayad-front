@@ -4,10 +4,8 @@ import { Link } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import MenuItem from '@mui/material/MenuItem';
-import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -29,6 +27,7 @@ import { useCustomerMaterialIntakes } from '../hooks/useCustomerMaterials';
 import CustomerMaterialsTabs from '../components/customer-materials/CustomerMaterialsTabs';
 import CustomerMaterialStatusChip from '../components/customer-materials/CustomerMaterialStatusChip';
 import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 export default function CustomerMaterialIntakesListPage() {
   const intl = useIntl();
@@ -57,7 +56,7 @@ export default function CustomerMaterialIntakesListPage() {
     }),
     [customerId, dateFrom, dateTo, page, pageSize, search, status, warehouseId]
   );
-  const { items, meta, isLoading, error, mutate } = useCustomerMaterialIntakes(query);
+  const { items, meta, isLoading, error } = useCustomerMaterialIntakes(query);
 
   return (
     <Box>
@@ -171,7 +170,7 @@ export default function CustomerMaterialIntakesListPage() {
                 <TableBody>
                   {items.map((item) => (
                     <TableRow hover key={item.id}>
-                      <TableCell sx={{ fontWeight: 700 }}>{item.number}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{getDocumentDisplayNumber(item.displayNumber, item.number)}</TableCell>
                       <TableCell dir="ltr">{item.intakeDate}</TableCell>
                       <TableCell>{item.ownerPartyCode} - {item.ownerPartyNameArabic}</TableCell>
                       <TableCell>{item.warehouseCode} - {item.warehouseNameArabic}</TableCell>

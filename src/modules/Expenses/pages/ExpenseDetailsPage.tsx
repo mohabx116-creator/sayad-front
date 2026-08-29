@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -12,6 +13,7 @@ import { IconInfoCircle } from '@tabler/icons-react';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 import { useExpense } from '../hooks/useExpenses';
 import ExpenseStatusChip from '../components/ExpenseStatusChip';
@@ -36,6 +38,15 @@ const formatDateTime = (utc: string | null | undefined) => (utc ? dayjs(utc).for
 export default function ExpenseDetailsPage() {
   const { id } = useParams();
   const { expense, isLoading, error } = useExpense(id);
+  const expenseDisplayNumber = getDocumentDisplayNumber(expense?.displayNumber, expense?.expenseNumber);
+
+  useEffect(() => {
+    if (!expense) {
+      return;
+    }
+
+    document.title = expenseDisplayNumber;
+  }, [expense, expenseDisplayNumber]);
 
   if (isLoading) {
     return <Loader />;
@@ -65,12 +76,12 @@ export default function ExpenseDetailsPage() {
           title={false}
           divider={false}
           heading="expenses.details"
-          links={[{ title: 'expenses.list', to: '/expenses/list' }, { title: expense.expenseNumber }]}
+          links={[{ title: 'expenses.list', to: '/expenses/list' }, { title: expenseDisplayNumber }]}
           sx={{ mb: 0 }}
         />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mt: 1, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <PageTitle>{expense.expenseNumber}</PageTitle>
+            <PageTitle>{expenseDisplayNumber}</PageTitle>
             <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <ExpenseStatusChip status={expense.status} />
               <ExpenseAccountingStatusChip isAccountingPosted={expense.isAccountingPosted} accountingPostingStatus={expense.accountingPostingStatus} />

@@ -37,7 +37,6 @@ import { IconPlus, IconRefresh, IconSearch, IconFilter, IconDotsVertical } from 
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import HoverDataCard from 'ui-component/cards/HoverDataCard';
-import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import PurchaseAccountingStatusChip from '../components/PurchaseAccountingStatusChip';
@@ -46,6 +45,7 @@ import { usePurchaseInvoices } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
 import { useParties } from 'modules/Parties/hooks/useParties';
 import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 // Helper to get initials from supplier name
 const getInitials = (name: string) => {
@@ -265,7 +265,7 @@ export default function PurchaseInvoicesListPage() {
                        <TableRow hover key={invoice.id}>
                          <TableCell>
                            <Typography component={Link} to={`/purchases/invoices/${invoice.id}`} color="primary" sx={{ textDecoration: 'none', fontWeight: 600 }}>
-                             {invoice.number}
+                             {getDocumentDisplayNumber(invoice.displayNumber, invoice.number)}
                            </Typography>
                          </TableCell>
                          <TableCell>{invoice.supplierInvoiceNumber || '-'}</TableCell>

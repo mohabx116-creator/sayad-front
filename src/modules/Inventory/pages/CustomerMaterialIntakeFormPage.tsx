@@ -31,6 +31,7 @@ import { useCustomerMaterialIntake } from '../hooks/useCustomerMaterials';
 import CustomerMaterialsTabs from '../components/customer-materials/CustomerMaterialsTabs';
 import CustomerMaterialStatusChip from '../components/customer-materials/CustomerMaterialStatusChip';
 import { INVENTORY_PERMISSIONS } from '../utils/inventory.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 import type { CustomerMaterialIntakeLineInput, CustomerMaterialIntakeRequest } from '../types/customerMaterials.types';
 
 type IntakeLineState = CustomerMaterialIntakeLineInput;
@@ -152,9 +153,9 @@ export default function CustomerMaterialIntakeFormPage() {
             <FormattedMessage id={isEdit ? 'edit' : 'create'} defaultMessage={isEdit ? 'Edit' : 'Create'} /> <FormattedMessage id="customer-material-intake" defaultMessage="Customer Material Intake" />
           </Typography>
           {intake?.number && (
-            <Typography variant="body2" color="text.secondary">
-              {intake.number} <CustomerMaterialStatusChip status={status} />
-            </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {getDocumentDisplayNumber(intake.displayNumber, intake.number)} <CustomerMaterialStatusChip status={status} />
+              </Typography>
           )}
         </Box>
         <Stack direction="row" spacing={1}>

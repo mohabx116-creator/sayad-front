@@ -29,9 +29,9 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import DraftsIcon from '@mui/icons-material/Drafts';
 import HoverDataCard from 'ui-component/cards/HoverDataCard';
-import PageTitle from 'ui-component/PageTitle';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 import SalesAccountingStatusChip from '../components/SalesAccountingStatusChip';
 import SalesStatusChip from '../components/SalesStatusChip';
 import { useSalesInvoices } from '../hooks/useSales';
@@ -228,11 +228,11 @@ export default function SalesInvoicesListPage() {
                      </TableRow>
                    </TableHead>
                    <TableBody>
-                     {items.map((invoice) => (
+                      {items.map((invoice) => (
                        <TableRow hover key={invoice.id}>
                          <TableCell>
                            <Typography component={Link} to={`/sales/invoices/${invoice.id}`} color="primary" sx={{ textDecoration: 'none', fontWeight: 600 }}>
-                             {invoice.number}
+                             {getDocumentDisplayNumber(invoice.displayNumber, invoice.number)}
                            </Typography>
                          </TableCell>
                          <TableCell>{invoice.invoiceDate}</TableCell>

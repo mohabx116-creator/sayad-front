@@ -32,6 +32,7 @@ import { usePurchaseInvoice, usePurchaseReturn, usePurchaseInvoices } from '../h
 import type { PurchaseReturnInput, PurchaseReturnLineInput } from '../types/purchases.types';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 type EditableLine = PurchaseReturnLineInput & { itemLabel?: string; maxQuantity?: number };
 
@@ -224,7 +225,7 @@ export default function PurchaseReturnFormPage() {
                              <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
                              {postedInvoices.map((invoice) => (
                                <MenuItem key={invoice.id} value={invoice.id}>
-                                 {invoice.number} - {invoice.supplierNameArabic}
+                                 {getDocumentDisplayNumber(invoice.displayNumber, invoice.number)} - {invoice.supplierNameArabic}
                                </MenuItem>
                              ))}
                            </TextField>

@@ -20,6 +20,7 @@ export interface TreasuryEligibleInvoice {
   grandTotal: number;
   allocatedAmount: number;
   outstandingAmount: number;
+  invoiceDisplayNumber?: string | null;
 }
 
 export interface TreasuryPagedMeta {
@@ -223,6 +224,7 @@ export interface TreasuryTransfer {
   accountingPostingStatus: string;
   isAccountingPosted: boolean;
   rowVersion: string;
+  displayNumber?: string | null;
 }
 
 export interface TreasuryTransferListItem {
@@ -237,6 +239,7 @@ export interface TreasuryTransferListItem {
   isAccountingPosted: boolean;
   accountingPostingStatus: string;
   rowVersion: string;
+  displayNumber?: string | null;
 }
 
 export interface TreasuryTransferInput {
@@ -257,6 +260,8 @@ export interface TreasuryMovement {
   sourceDocumentType: string | null;
   sourceDocumentId: string | null;
   sourceDocumentNumber: string | null;
+  referenceDisplayNumber?: string | null;
+  sourceDocumentDisplayNumber?: string | null;
   partyId: string | null;
   partyCode: string | null;
   partyNameArabic: string | null;

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -41,6 +41,7 @@ import {
   normalizeInvoiceSettlementStatus
 } from 'shared/utils/invoiceSettlement';
 import { getTreasurySettlementStatusLabel } from 'modules/Treasury/utils/treasury.labels';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
@@ -114,6 +115,16 @@ export default function PurchaseInvoiceDetailsPage() {
     }
   };
 
+  const invoiceDisplayNumber = getDocumentDisplayNumber(invoice?.displayNumber, invoice?.number);
+
+  useEffect(() => {
+    if (!invoice) {
+      return;
+    }
+
+    document.title = `${invoiceDisplayNumber} - ${invoice.supplierNameArabic}`;
+  }, [invoiceDisplayNumber, invoice?.supplierNameArabic]);
+
   if (isLoading) return <Loader />;
   if (error || !invoice) return <Typography color="error"><FormattedMessage id="purchase-load-error" /></Typography>;
 
@@ -146,9 +157,9 @@ export default function PurchaseInvoiceDetailsPage() {
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
         <Box>
-          <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-invoice-details" links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }]} sx={{ mb: 0 }} />
+          <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-invoice-details" links={[{ title: 'purchases', to: '/purchases/invoices' }, { title: 'purchase-invoices', to: '/purchases/invoices' }, { title: invoiceDisplayNumber }]} sx={{ mb: 0 }} />
           <PageTitle>
-            {invoice.number} - {invoice.supplierNameArabic}
+            {invoiceDisplayNumber} - {invoice.supplierNameArabic}
           </PageTitle>
         </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
@@ -254,7 +265,7 @@ export default function PurchaseInvoiceDetailsPage() {
                       <FormattedMessage id="invoice-number" />
                     </Typography>
                     <Typography variant="body1" fontWeight={500}>
-                      {invoice.number}
+                      {invoiceDisplayNumber}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={4}>

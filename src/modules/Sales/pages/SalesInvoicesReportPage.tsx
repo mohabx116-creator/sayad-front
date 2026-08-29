@@ -38,6 +38,7 @@ import { useSalesInvoicesReport } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
 import { useParties } from 'modules/Parties/hooks/useParties';
 import { formatTreasuryMoney } from 'modules/Treasury/utils/treasury.format';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 // ----- helpers -----
 
@@ -368,7 +369,7 @@ export default function SalesInvoicesReportPage() {
                         return (
                           <TableRow hover key={row.invoiceId}>
                             <TableCell sx={{ pl: 3 }}>
-                              <Typography variant="subtitle2">{row.invoiceNumber}</Typography>
+                              <Typography variant="subtitle2">{getDocumentDisplayNumber(row.invoiceDisplayNumber, row.invoiceNumber)}</Typography>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2" dir="ltr">

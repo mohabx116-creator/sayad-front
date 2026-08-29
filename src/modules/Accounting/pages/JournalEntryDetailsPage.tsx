@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/GridLegacy';
@@ -26,7 +25,6 @@ import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import PageTitle from 'ui-component/PageTitle';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
-import { resolveLocalizedText } from 'shared/utils/localizedText';
 
 import JournalEntryCancelDialog from '../components/JournalEntryCancelDialog';
 import JournalEntryDeleteDialog from '../components/JournalEntryDeleteDialog';
@@ -35,6 +33,7 @@ import { cancelJournalEntry, deleteJournalEntry, postJournalEntry } from '../api
 import { useJournalEntry } from '../hooks/useJournalEntries';
 import { JOURNAL_ENTRY_PERMISSIONS, JOURNAL_ENTRY_STATUSES } from '../utils/journal-entry.constants';
 import { formatJournalEntrySourceType } from '../utils/journal-entry.format';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -132,6 +131,7 @@ export default function JournalEntryDetailsPage() {
   const canCancel = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.POSTED;
   const canDelete = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
   const description = formatLocalizedText(entry?.descriptionArabic, entry?.descriptionEnglish, intl.locale);
+  const entryDisplayNumber = getDocumentDisplayNumber(entry?.displayNumber, entry?.number);
 
   const handlePost = async () => {
     if (!id || !entry) {
@@ -190,6 +190,14 @@ export default function JournalEntryDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    if (!entry) {
+      return;
+    }
+
+    document.title = `${entryDisplayNumber} - ${intl.formatMessage({ id: 'journal-entry-details', defaultMessage: 'Journal Entry Details' })}`;
+  }, [entry, entryDisplayNumber, intl]);
+
   if (isLoading || !entry) {
     return <Loader />;
   }
@@ -209,7 +217,7 @@ export default function JournalEntryDetailsPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <PageTitle>
-              <FormattedMessage id="journal-entry-details" defaultMessage="تفاصيل القيد اليومي" />
+              {entryDisplayNumber}
             </PageTitle>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
               <JournalEntryStatusChip status={entry.status} />
@@ -268,7 +276,7 @@ export default function JournalEntryDetailsPage() {
               <Box sx={{ p: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <InfoRow label={<FormattedMessage id="journal-entry-number" defaultMessage="رقم القيد اليومي" />}>{entry.number}</InfoRow>
+                    <InfoRow label={<FormattedMessage id="journal-entry-number" defaultMessage="رقم القيد اليومي" />}>{entryDisplayNumber}</InfoRow>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <InfoRow label={<FormattedMessage id="date" />}>{entry.entryDate}</InfoRow>

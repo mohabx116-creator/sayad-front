@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -34,6 +34,7 @@ import { cancelReturn, postReturn } from '../api/salesApi';
 import { useSalesReturn } from '../hooks/useSales';
 import { SALES_PERMISSIONS } from '../utils/sales.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 export default function SalesReturnDetailsPage() {
   const { id } = useParams();
@@ -47,6 +48,7 @@ export default function SalesReturnDetailsPage() {
   } = usePartyOpenDocuments(salesReturn?.customerId, 'CustomerRefund');
   const [reason, setReason] = useState('');
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  const salesReturnDisplayNumber = getDocumentDisplayNumber(salesReturn?.displayNumber, salesReturn?.number);
   const customerControlAccountLabel = salesReturn?.customerControlAccountCode
     ? `${salesReturn.customerControlAccountCode}${salesReturn.customerControlAccountNameArabic ? ` - ${salesReturn.customerControlAccountNameArabic}` : ''}`
     : '—';
@@ -80,6 +82,14 @@ export default function SalesReturnDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    if (!salesReturn) {
+      return;
+    }
+
+    document.title = `${salesReturnDisplayNumber} - ${salesReturn.salesInvoiceNumber}`;
+  }, [salesReturn, salesReturnDisplayNumber]);
+
   if (isLoading) return <Loader />;
   if (error || !salesReturn) return <Typography color="error"><FormattedMessage id="sales-load-error" /></Typography>;
 
@@ -90,8 +100,8 @@ export default function SalesReturnDetailsPage() {
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
-           <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-return-details" links={[{ title: 'sales', to: '/sales/returns' }, { title: 'sales-returns', to: '/sales/returns' }]} sx={{ mb: 0 }} />
-           <PageTitle>{salesReturn.number} - {salesReturn.salesInvoiceNumber}</PageTitle>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-return-details" links={[{ title: 'sales', to: '/sales/returns' }, { title: 'sales-returns', to: '/sales/returns' }, { title: salesReturnDisplayNumber }]} sx={{ mb: 0 }} />
+           <PageTitle>{salesReturnDisplayNumber} - {salesReturn.salesInvoiceNumber}</PageTitle>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
@@ -165,7 +175,7 @@ export default function SalesReturnDetailsPage() {
                         </Grid>
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="return-number" /></Typography>
-                           <Typography variant="body1" fontWeight={500}>{salesReturn.number}</Typography>
+                           <Typography variant="body1" fontWeight={500}>{salesReturnDisplayNumber}</Typography>
                         </Grid>
                      </Grid>
                   </Box>

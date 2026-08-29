@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useMemo } from 'react';
+import { createContext, ReactNode, useEffect, useMemo, useRef } from 'react';
+import { useSWRConfig } from 'swr';
 
 // project imports
 import config from 'config';
@@ -18,7 +19,18 @@ export const ConfigContext = createContext<ConfigContextValue | undefined>(undef
 // ==============================|| CONFIG PROVIDER ||============================== //
 
 export function ConfigProvider({ children }: Props) {
+  const { mutate } = useSWRConfig();
   const { state, setState, setField, resetState } = useLocalStorage<ConfigStates>('berry-config-vite-ts', config);
+  const initialRender = useRef(true);
+
+  useEffect(() => {
+    if (initialRender.current) {
+      initialRender.current = false;
+      return;
+    }
+
+    void mutate(() => true);
+  }, [mutate, state.i18n]);
 
   const memoizedValue = useMemo(() => ({ state, setState, setField, resetState }), [state, setField, setState, resetState]);
 

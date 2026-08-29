@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -21,6 +21,7 @@ import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { cancelCustomerMaterialIntake, postCustomerMaterialIntake } from '../api/customerMaterialsApi';
@@ -35,6 +36,7 @@ export default function CustomerMaterialIntakeDetailsPage() {
   const dispatch = useDispatch();
   const { intake, isLoading, mutate } = useCustomerMaterialIntake(id);
   const [busy, setBusy] = useState(false);
+  const intakeDisplayNumber = getDocumentDisplayNumber(intake?.displayNumber, intake?.number);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -72,6 +74,14 @@ export default function CustomerMaterialIntakeDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    if (!intake) {
+      return;
+    }
+
+    document.title = intakeDisplayNumber;
+  }, [intake, intakeDisplayNumber]);
+
   if (isLoading || !intake) {
     return <Loader />;
   }
@@ -85,13 +95,13 @@ export default function CustomerMaterialIntakeDetailsPage() {
 
   return (
     <Box>
-      <Breadcrumbs custom heading="customer-material-intake" links={[{ title: 'inventory', to: '/inventory/items' }, { title: 'customer-materials', to: '/inventory/customer-materials/intakes' }, { title: intake.number }]} />
+      <Breadcrumbs custom heading="customer-material-intake" links={[{ title: 'inventory', to: '/inventory/items' }, { title: 'customer-materials', to: '/inventory/customer-materials/intakes' }, { title: intakeDisplayNumber }]} />
       <CustomerMaterialsTabs value="intakes" />
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <Box>
           <Typography variant="h3" fontWeight={800}>
-            {intake.number}
+            {intakeDisplayNumber}
           </Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="center" flexWrap="wrap">
             <CustomerMaterialStatusChip status={intake.status} />

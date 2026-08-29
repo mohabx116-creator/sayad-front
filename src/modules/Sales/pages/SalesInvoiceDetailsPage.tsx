@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -40,6 +40,7 @@ import {
   normalizeInvoicePaymentMethod,
   normalizeInvoiceSettlementStatus
 } from 'shared/utils/invoiceSettlement';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 function InfoRow({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
@@ -81,6 +82,7 @@ export default function SalesInvoiceDetailsPage() {
   const inventoryCostAccountingStatus = invoice?.inventoryCostAccountingStatus ?? '—';
   const recognizedInventoryCost = invoice?.recognizedInventoryCost ?? 0;
   const noInventoryMovement = invoice?.inventoryCostAccountingStatus === 'لا توجد حركة مخزون لهذا المستند';
+  const invoiceDisplayNumber = getDocumentDisplayNumber(invoice?.displayNumber, invoice?.number);
 
   const paymentMethod = normalizeInvoicePaymentMethod(invoice?.paymentMethod) ?? 'Credit';
   const settlementStatus = normalizeInvoiceSettlementStatus(invoice?.settlementStatus) ?? 'Outstanding';
@@ -115,6 +117,14 @@ export default function SalesInvoiceDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    if (!invoice) {
+      return;
+    }
+
+    document.title = `${invoiceDisplayNumber} - ${invoice.customerNameArabic}`;
+  }, [invoice, invoiceDisplayNumber]);
+
   if (isLoading) return <Loader />;
   if (error || !invoice) return <Typography variant="h6" color="error"><FormattedMessage id="not-found" defaultMessage="Not Found" /></Typography>;
 
@@ -129,8 +139,8 @@ export default function SalesInvoiceDetailsPage() {
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
-           <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-invoice-details" links={[{ title: 'sales', to: '/sales/invoices' }, { title: 'sales-invoices', to: '/sales/invoices' }]} sx={{ mb: 0 }} />
-           <PageTitle>{invoice.number} - {invoice.customerNameArabic}</PageTitle>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading="sales-invoice-details" links={[{ title: 'sales', to: '/sales/invoices' }, { title: 'sales-invoices', to: '/sales/invoices' }, { title: invoiceDisplayNumber }]} sx={{ mb: 0 }} />
+           <PageTitle>{invoiceDisplayNumber} - {invoice.customerNameArabic}</PageTitle>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
@@ -211,7 +221,7 @@ export default function SalesInvoiceDetailsPage() {
                         </Grid>
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="invoice-number" /></Typography>
-                           <Typography variant="body1" fontWeight={500}>{invoice.number}</Typography>
+                           <Typography variant="body1" fontWeight={500}>{invoiceDisplayNumber}</Typography>
                         </Grid>
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="customer-reference-number" /></Typography>

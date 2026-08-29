@@ -40,6 +40,8 @@ export interface ExpensePaymentSummaryDto {
   partyCode: string;
   partyNameArabic: string;
   partyNameEnglish?: string | null;
+  displayNumber?: string | null;
+  sourceDocumentDisplayNumber?: string | null;
 }
 
 export interface ExpenseListItemDto {
@@ -68,6 +70,7 @@ export interface ExpenseListItemDto {
   accountingPostingStatus: string;
   createdAtUtc: string;
   rowVersion: string;
+  displayNumber?: string | null;
 }
 
 export interface ExpenseDto {
@@ -114,6 +117,7 @@ export interface ExpenseDto {
   canPost: boolean;
   canCancel: boolean;
   rowVersion: string;
+  displayNumber?: string | null;
 }
 
 export interface ExpenseInput {

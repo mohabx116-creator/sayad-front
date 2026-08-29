@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -21,6 +21,7 @@ import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
 import { cancelCustomerMaterialConversion, postCustomerMaterialConversion } from '../api/customerMaterialsApi';
@@ -35,6 +36,7 @@ export default function CustomerMaterialConversionDetailsPage() {
   const dispatch = useDispatch();
   const { conversion, isLoading, mutate } = useCustomerMaterialConversion(id);
   const [busy, setBusy] = useState(false);
+  const conversionDisplayNumber = getDocumentDisplayNumber(conversion?.displayNumber, conversion?.number);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -72,6 +74,14 @@ export default function CustomerMaterialConversionDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    if (!conversion) {
+      return;
+    }
+
+    document.title = conversionDisplayNumber;
+  }, [conversion, conversionDisplayNumber]);
+
   if (isLoading || !conversion) {
     return <Loader />;
   }
@@ -85,13 +95,13 @@ export default function CustomerMaterialConversionDetailsPage() {
 
   return (
     <Box>
-      <Breadcrumbs custom heading="customer-material-conversion" links={[{ title: 'inventory', to: '/inventory/items' }, { title: 'customer-materials', to: '/inventory/customer-materials/intakes' }, { title: conversion.number }]} />
+      <Breadcrumbs custom heading="customer-material-conversion" links={[{ title: 'inventory', to: '/inventory/items' }, { title: 'customer-materials', to: '/inventory/customer-materials/intakes' }, { title: conversionDisplayNumber }]} />
       <CustomerMaterialsTabs value="conversions" />
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <Box>
           <Typography variant="h3" fontWeight={800}>
-            {conversion.number}
+            {conversionDisplayNumber}
           </Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="center" flexWrap="wrap">
             <CustomerMaterialStatusChip status={conversion.status} />

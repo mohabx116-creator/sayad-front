@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -24,6 +24,7 @@ import { cancelTreasuryTransfer, postTreasuryTransfer } from '../api/treasuryApi
 import { useTreasuryAccount, useTreasuryTransfer } from '../hooks/useTreasury';
 import { TREASURY_DOCUMENT_STATUS, TREASURY_PERMISSIONS } from '../utils/treasury.constants';
 import { refreshTreasuryViews } from '../utils/treasuryRefresh';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -47,6 +48,7 @@ export default function TreasuryTransferDetailsPage() {
   const { account: toAccount } = useTreasuryAccount(transfer?.toAccountId);
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: TreasuryActionType }>({ open: false, action: 'post' });
   const [isProcessing, setIsProcessing] = useState(false);
+  const transferDisplayNumber = getDocumentDisplayNumber(transfer?.displayNumber, transfer?.number);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -90,6 +92,14 @@ export default function TreasuryTransferDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    if (!transfer) {
+      return;
+    }
+
+    document.title = transferDisplayNumber;
+  }, [transfer, transferDisplayNumber]);
+
   if (isLoading || !transfer) {
     return <Loader />;
   }
@@ -101,7 +111,7 @@ export default function TreasuryTransferDetailsPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap', mt: 1 }}>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              <Typography variant="h3" fontWeight={700}>{transfer.number}</Typography>
+              <Typography variant="h3" fontWeight={700}>{transferDisplayNumber}</Typography>
               <TreasuryStatusChip status={transfer.status} />
               <Chip
                 variant="outlined"
@@ -155,7 +165,7 @@ export default function TreasuryTransferDetailsPage() {
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <InfoRow label={<FormattedMessage id="transfer-number" defaultMessage="رقم التحويل" />}>
-                    {transfer.number}
+                    {transferDisplayNumber}
                   </InfoRow>
                 </Grid>
                 <Grid item xs={12} sm={6}>

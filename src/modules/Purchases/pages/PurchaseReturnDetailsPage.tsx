@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams } from 'react-router-dom';
 
@@ -35,6 +35,7 @@ import { cancelReturn, postReturn } from '../api/purchasesApi';
 import { usePurchaseReturn } from '../hooks/usePurchases';
 import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
+import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
 function formatCodeNameLabel(locale: string, code: string | null | undefined, nameArabic: string | null | undefined, nameEnglish: string | null | undefined) {
   const resolvedName = resolveLocalizedText(locale, nameArabic, nameEnglish, '');
@@ -56,6 +57,7 @@ export default function PurchaseReturnDetailsPage() {
   } = usePartyOpenDocuments(purchaseReturn?.supplierId, 'SupplierReceipt');
   const [reason, setReason] = useState('');
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
+  const purchaseReturnDisplayNumber = getDocumentDisplayNumber(purchaseReturn?.displayNumber, purchaseReturn?.number);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -70,6 +72,14 @@ export default function PurchaseReturnDetailsPage() {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'purchase-action-failed' }), 'error');
     }
   };
+
+  useEffect(() => {
+    if (!purchaseReturn) {
+      return;
+    }
+
+    document.title = `${purchaseReturnDisplayNumber} - ${purchaseReturn.purchaseInvoiceNumber}`;
+  }, [purchaseReturn, purchaseReturnDisplayNumber]);
 
   if (isLoading) return <Loader />;
   if (error || !purchaseReturn) return <Typography color="error"><FormattedMessage id="purchase-load-error" /></Typography>;
@@ -89,8 +99,8 @@ export default function PurchaseReturnDetailsPage() {
     <Box>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
          <Box>
-           <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-return-details" links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }]} sx={{ mb: 0 }} />
-           <PageTitle>{purchaseReturn.number} - {purchaseReturn.purchaseInvoiceNumber}</PageTitle>
+           <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-return-details" links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }, { title: purchaseReturnDisplayNumber }]} sx={{ mb: 0 }} />
+           <PageTitle>{purchaseReturnDisplayNumber} - {purchaseReturn.purchaseInvoiceNumber}</PageTitle>
          </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
            <Box sx={{ mr: 1 }}>
@@ -164,7 +174,7 @@ export default function PurchaseReturnDetailsPage() {
                         </Grid>
                         <Grid item xs={12} md={4}>
                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="return-number" /></Typography>
-                           <Typography variant="body1" fontWeight={500}>{purchaseReturn.number}</Typography>
+                           <Typography variant="body1" fontWeight={500}>{purchaseReturnDisplayNumber}</Typography>
                         </Grid>
                      </Grid>
                   </Box>

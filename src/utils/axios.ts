@@ -1,7 +1,21 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosHeaders, AxiosRequestConfig } from 'axios';
 
 import { clearAccessToken, getAccessToken, refreshSession } from './auth-session';
 import { getHttpErrorMessage } from './http-error';
+
+function getRequestLocale() {
+  try {
+    const rawConfig = localStorage.getItem('berry-config-vite-ts');
+    if (!rawConfig) {
+      return 'en';
+    }
+
+    const parsed = JSON.parse(rawConfig) as { i18n?: string } | null;
+    return parsed?.i18n === 'ar' ? 'ar' : 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 const axiosServices = axios.create({
   baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:5000/',
@@ -11,9 +25,14 @@ const axiosServices = axios.create({
 axiosServices.interceptors.request.use(
   async (config) => {
     const accessToken = getAccessToken();
+    const headers = new AxiosHeaders(config.headers as any);
+
     if (accessToken) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
+      headers.set('Authorization', `Bearer ${accessToken}`);
     }
+
+    headers.set('Accept-Language', getRequestLocale());
+    config.headers = headers;
 
     return config;
   },
@@ -33,10 +52,10 @@ axiosServices.interceptors.response.use(
 
       try {
         const session = await refreshSession();
-        originalRequest.headers = {
-          ...(originalRequest.headers ?? {}),
-          Authorization: `Bearer ${session.accessToken}`
-        };
+        const headers = new AxiosHeaders(originalRequest.headers as any);
+        headers.set('Authorization', `Bearer ${session.accessToken}`);
+        headers.set('Accept-Language', getRequestLocale());
+        originalRequest.headers = headers;
         return axiosServices(originalRequest);
       } catch {
         clearAccessToken();
