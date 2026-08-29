@@ -103,11 +103,7 @@ type StatementSummaryLabels = {
   currentBalance: string;
 };
 
-function getStatementSummaryLabels(
-  intl: ReturnType<typeof useIntl>,
-  isCustomer: boolean,
-  isSupplier: boolean
-): StatementSummaryLabels {
+function getStatementSummaryLabels(intl: ReturnType<typeof useIntl>, isCustomer: boolean, isSupplier: boolean): StatementSummaryLabels {
   if (isCustomer && isSupplier) {
     return {
       openingBalance: intl.formatMessage({ id: 'parties.statement.opening-balance' }),
@@ -236,11 +232,13 @@ export default function PartyStatementPage() {
   const [cashTransactionMode, setCashTransactionMode] = useState<'receipt' | 'payment' | null>(null);
 
   const { party, error: partyError, isLoading: isPartyLoading, mutate: mutateParty } = useParty(id);
+  const { items: customerReceiptOpenDocuments, mutate: mutateCustomerReceiptOpenDocuments } = usePartyOpenDocuments(id, 'CustomerReceipt');
   const {
-    items: customerReceiptOpenDocuments,
-    mutate: mutateCustomerReceiptOpenDocuments
-  } = usePartyOpenDocuments(id, 'CustomerReceipt');
-  const { statement, error: statementError, isLoading: isStatementLoading, mutate: mutateStatement } = usePartyStatement(id, {
+    statement,
+    error: statementError,
+    isLoading: isStatementLoading,
+    mutate: mutateStatement
+  } = usePartyStatement(id, {
     fromDate: dateFrom,
     toDate: dateTo,
     page,
@@ -262,40 +260,41 @@ export default function PartyStatementPage() {
   const currentBalanceLabel = statement ? getBalanceNatureLabel(intl, statement.closingBalanceNature) : '';
   const summaryLabels = party ? getStatementSummaryLabels(intl, party.isCustomer, party.isSupplier) : null;
   const summaryCardOrder = party ? getStatementSummaryCardOrder(party.isCustomer, party.isSupplier) : [];
-  const summaryCards = party && statement
-    ? summaryCardOrder.map((cardKey) => {
-        switch (cardKey) {
-          case 'openingBalance':
-            return {
-              key: cardKey,
-              label: summaryLabels?.openingBalance ?? 'opening-balance',
-              amount: statement.openingBalance.amount,
-              helper: getBalanceNatureLabel(intl, statement.openingBalance.balanceNature)
-            };
-          case 'debitTotal':
-            return {
-              key: cardKey,
-              label: summaryLabels?.debitTotal ?? 'parties.statement.total-debit',
-              amount: statement.debitTotal,
-              helper: intl.formatMessage({ id: 'parties.statement.debit-against-party' })
-            };
-          case 'creditTotal':
-            return {
-              key: cardKey,
-              label: summaryLabels?.creditTotal ?? 'parties.statement.total-credit',
-              amount: statement.creditTotal,
-              helper: intl.formatMessage({ id: 'parties.statement.credit-for-party' })
-            };
-          case 'currentBalance':
-            return {
-              key: cardKey,
-              label: summaryLabels?.currentBalance ?? 'parties.statement.closing-balance',
-              amount: statement.closingBalance,
-              helper: currentBalanceLabel
-            };
-        }
-      })
-    : [];
+  const summaryCards =
+    party && statement
+      ? summaryCardOrder.map((cardKey) => {
+          switch (cardKey) {
+            case 'openingBalance':
+              return {
+                key: cardKey,
+                label: summaryLabels?.openingBalance ?? 'opening-balance',
+                amount: statement.openingBalance.amount,
+                helper: getBalanceNatureLabel(intl, statement.openingBalance.balanceNature)
+              };
+            case 'debitTotal':
+              return {
+                key: cardKey,
+                label: summaryLabels?.debitTotal ?? 'parties.statement.total-debit',
+                amount: statement.debitTotal,
+                helper: intl.formatMessage({ id: 'parties.statement.debit-against-party' })
+              };
+            case 'creditTotal':
+              return {
+                key: cardKey,
+                label: summaryLabels?.creditTotal ?? 'parties.statement.total-credit',
+                amount: statement.creditTotal,
+                helper: intl.formatMessage({ id: 'parties.statement.credit-for-party' })
+              };
+            case 'currentBalance':
+              return {
+                key: cardKey,
+                label: summaryLabels?.currentBalance ?? 'parties.statement.closing-balance',
+                amount: statement.closingBalance,
+                helper: currentBalanceLabel
+              };
+          }
+        })
+      : [];
 
   const refreshPartyData = async () => {
     await Promise.all([mutateParty(), mutateStatement(), mutateCustomerReceiptOpenDocuments()]);
@@ -353,7 +352,12 @@ export default function PartyStatementPage() {
           <Stack spacing={3}>
             <Card variant="outlined" sx={{ borderRadius: 2, p: 2 }}>
               <Stack spacing={2}>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                <Stack
+                  direction={{ xs: 'column', md: 'row' }}
+                  spacing={2}
+                  justifyContent="space-between"
+                  alignItems={{ xs: 'flex-start', md: 'center' }}
+                >
                   <Box>
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
                       {resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
@@ -515,7 +519,11 @@ export default function PartyStatementPage() {
                       </TableHead>
                       <TableBody>
                         {statement.entries.map((entry) => (
-                          <TableRow key={entry.id} hover sx={isPartyAdjustmentEntryType(entry.entryType) ? { bgcolor: 'action.hover' } : undefined}>
+                          <TableRow
+                            key={entry.id}
+                            hover
+                            sx={isPartyAdjustmentEntryType(entry.entryType) ? { bgcolor: 'action.hover' } : undefined}
+                          >
                             <TableCell dir="ltr">
                               <Typography variant="body2">
                                 <BidiIsolatedDate value={formatStatementRangeDate(intl.locale, entry.entryDate)} />
@@ -532,11 +540,7 @@ export default function PartyStatementPage() {
                                     const referenceNumber = entry.referenceDisplayNumber ?? entry.referenceNumber;
 
                                     if (!referenceRoute) {
-                                      return (
-                                        <>
-                                          Ref: {referenceNumber}
-                                        </>
-                                      );
+                                      return <>Ref: {referenceNumber}</>;
                                     }
 
                                     return (
@@ -563,7 +567,11 @@ export default function PartyStatementPage() {
                               )}
                               {isPartyAdjustmentEntryType(entry.entryType) && (
                                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
-                                  <Chip size="small" variant="outlined" label={<FormattedMessage id={getPartyAdjustmentEntryLabelId(entry.entryType)} />} />
+                                  <Chip
+                                    size="small"
+                                    variant="outlined"
+                                    label={<FormattedMessage id={getPartyAdjustmentEntryLabelId(entry.entryType)} />}
+                                  />
                                 </Stack>
                               )}
                               <Typography variant="caption" color="text.secondary" display="block">

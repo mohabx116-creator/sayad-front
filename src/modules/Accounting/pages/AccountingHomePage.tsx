@@ -5,7 +5,6 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
 import Grid from '@mui/material/GridLegacy';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -58,20 +57,29 @@ export default function AccountingHomePage() {
   const today = dayjs().format('YYYY-MM-DD');
   const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
 
-  const { summary: treasurySummary, isLoading: isTreasuryLoading, error: treasuryError } = useTreasuryDashboardSummary(
-    startOfMonth,
-    today
-  );
+  const { summary: treasurySummary, isLoading: isTreasuryLoading, error: treasuryError } = useTreasuryDashboardSummary(startOfMonth, today);
 
-  const { report: customerReport, isLoading: isCustomerLoading, error: customerError } = useCustomerReceivablesAgingReport({
+  const {
+    report: customerReport,
+    isLoading: isCustomerLoading,
+    error: customerError
+  } = useCustomerReceivablesAgingReport({
     asOfDate: today
   });
 
-  const { report: supplierReport, isLoading: isSupplierLoading, error: supplierError } = useSupplierPayablesAgingReport({
+  const {
+    report: supplierReport,
+    isLoading: isSupplierLoading,
+    error: supplierError
+  } = useSupplierPayablesAgingReport({
     asOfDate: today
   });
 
-  const { report: incomeReport, isLoading: isIncomeLoading, error: incomeError } = useIncomeStatementReport({
+  const {
+    report: incomeReport,
+    isLoading: isIncomeLoading,
+    error: incomeError
+  } = useIncomeStatementReport({
     fromDate: startOfMonth,
     toDate: today
   });
@@ -145,7 +153,7 @@ export default function AccountingHomePage() {
               />
             ) : (
               <ReportCard
-                primary={renderCurrencies(s => s.totalCurrentBalance)}
+                primary={renderCurrencies((s) => s.totalCurrentBalance)}
                 secondary={intl.formatMessage({ id: 'how-much-do-we-have', defaultMessage: 'How much do we have?' })}
                 iconPrimary={IconWallet}
                 color="primary.main"
@@ -165,7 +173,7 @@ export default function AccountingHomePage() {
               />
             ) : (
               <ReportCard
-                primary={renderCurrencies(s => s.periodReceipts)}
+                primary={renderCurrencies((s) => s.periodReceipts)}
                 secondary={`${intl.formatMessage({ id: 'how-much-came-in', defaultMessage: 'How much came in?' })} (${intl.formatMessage({ id: 'this-month', defaultMessage: 'This month' })})`}
                 iconPrimary={IconArrowDownLeft}
                 color="success.main"
@@ -185,7 +193,7 @@ export default function AccountingHomePage() {
               />
             ) : (
               <ReportCard
-                primary={renderCurrencies(s => s.periodPayments)}
+                primary={renderCurrencies((s) => s.periodPayments)}
                 secondary={`${intl.formatMessage({ id: 'how-much-went-out', defaultMessage: 'How much went out?' })} (${intl.formatMessage({ id: 'this-month', defaultMessage: 'This month' })})`}
                 iconPrimary={IconArrowUpRight}
                 color="error.main"
@@ -305,13 +313,10 @@ export default function AccountingHomePage() {
                   recentMovements.slice(0, 5).map((mov, index) => (
                     <ListItem key={mov.id} divider={index < Math.min(recentMovements.length - 1, 4)} sx={{ px: 0 }}>
                       <ListItemText
-                        primary={locale === 'ar' ? mov.descriptionArabic : (mov.descriptionEnglish || mov.descriptionArabic)}
+                        primary={locale === 'ar' ? mov.descriptionArabic : mov.descriptionEnglish || mov.descriptionArabic}
                         secondary={formatDate(locale, mov.movementDate)}
                       />
-                      <Typography
-                        variant="subtitle1"
-                        color={mov.debitAmount > 0 ? 'success.main' : 'error.main'}
-                      >
+                      <Typography variant="subtitle1" color={mov.debitAmount > 0 ? 'success.main' : 'error.main'}>
                         {mov.debitAmount > 0 ? '+' : '-'} {formatAmount(locale, mov.debitAmount > 0 ? mov.debitAmount : mov.creditAmount)}
                       </Typography>
                     </ListItem>

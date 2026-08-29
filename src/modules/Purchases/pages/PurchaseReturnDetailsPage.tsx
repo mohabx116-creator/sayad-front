@@ -37,7 +37,12 @@ import { PURCHASES_PERMISSIONS } from '../utils/purchases.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 
-function formatCodeNameLabel(locale: string, code: string | null | undefined, nameArabic: string | null | undefined, nameEnglish: string | null | undefined) {
+function formatCodeNameLabel(
+  locale: string,
+  code: string | null | undefined,
+  nameArabic: string | null | undefined,
+  nameEnglish: string | null | undefined
+) {
   const resolvedName = resolveLocalizedText(locale, nameArabic, nameEnglish, '');
   if (code) {
     return resolvedName ? `${code} - ${resolvedName}` : code;
@@ -51,13 +56,17 @@ export default function PurchaseReturnDetailsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
   const { purchaseReturn, isLoading, error, mutate } = usePurchaseReturn(id);
-  const {
-    items: supplierReceiptOpenDocuments,
-    mutate: mutateSupplierReceiptOpenDocuments
-  } = usePartyOpenDocuments(purchaseReturn?.supplierId, 'SupplierReceipt');
+  const { items: supplierReceiptOpenDocuments, mutate: mutateSupplierReceiptOpenDocuments } = usePartyOpenDocuments(
+    purchaseReturn?.supplierId,
+    'SupplierReceipt'
+  );
   const [reason, setReason] = useState('');
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const purchaseReturnDisplayNumber = getDocumentDisplayNumber(purchaseReturn?.displayNumber, purchaseReturn?.number);
+  const purchaseInvoiceDisplayNumber = getDocumentDisplayNumber(
+    purchaseReturn?.purchaseInvoiceDisplayNumber,
+    purchaseReturn?.purchaseInvoiceNumber
+  );
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -78,11 +87,16 @@ export default function PurchaseReturnDetailsPage() {
       return;
     }
 
-    document.title = `${purchaseReturnDisplayNumber} - ${purchaseReturn.purchaseInvoiceNumber}`;
-  }, [purchaseReturn, purchaseReturnDisplayNumber]);
+    document.title = `${purchaseReturnDisplayNumber} - ${purchaseInvoiceDisplayNumber}`;
+  }, [purchaseReturn, purchaseInvoiceDisplayNumber, purchaseReturnDisplayNumber]);
 
   if (isLoading) return <Loader />;
-  if (error || !purchaseReturn) return <Typography color="error"><FormattedMessage id="purchase-load-error" /></Typography>;
+  if (error || !purchaseReturn)
+    return (
+      <Typography color="error">
+        <FormattedMessage id="purchase-load-error" />
+      </Typography>
+    );
 
   const purchaseReturnOpenDocument =
     supplierReceiptOpenDocuments.find(
@@ -97,271 +111,386 @@ export default function PurchaseReturnDetailsPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-end' }, justifyContent: 'space-between', mb: 3, gap: 2 }}>
-         <Box>
-           <Breadcrumbs custom card={false} title={false} divider={false} heading="purchase-return-details" links={[{ title: 'purchases', to: '/purchases/returns' }, { title: 'purchase-returns', to: '/purchases/returns' }, { title: purchaseReturnDisplayNumber }]} sx={{ mb: 0 }} />
-           <PageTitle>{purchaseReturnDisplayNumber} - {purchaseReturn.purchaseInvoiceNumber}</PageTitle>
-         </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'flex-end' },
+          justifyContent: 'space-between',
+          mb: 3,
+          gap: 2
+        }}
+      >
+        <Box>
+          <Breadcrumbs
+            custom
+            card={false}
+            title={false}
+            divider={false}
+            heading="purchase-return-details"
+            links={[
+              { title: 'purchases', to: '/purchases/returns' },
+              { title: 'purchase-returns', to: '/purchases/returns' },
+              { title: purchaseReturnDisplayNumber }
+            ]}
+            sx={{ mb: 0 }}
+          />
+          <PageTitle>
+            {purchaseReturnDisplayNumber} - {purchaseInvoiceDisplayNumber}
+          </PageTitle>
+        </Box>
         <Stack direction="row" spacing={1.5} alignItems="center">
-           <Box sx={{ mr: 1 }}>
-              <PurchaseStatusChip status={purchaseReturn.status} />
-           </Box>
-           <PurchaseAccountingStatusChip
-             isAccountingPosted={purchaseReturn.isAccountingPosted}
-             accountingPostingStatus={purchaseReturn.accountingPostingStatus}
-           />
-           
-           <Button component={Link} to="/purchases/returns" variant="outlined" color="inherit" sx={{ borderRadius: 2 }} startIcon={<IconArrowLeft size={18} />}>
-              <FormattedMessage id="back" />
-           </Button>
+          <Box sx={{ mr: 1 }}>
+            <PurchaseStatusChip status={purchaseReturn.status} />
+          </Box>
+          <PurchaseAccountingStatusChip
+            isAccountingPosted={purchaseReturn.isAccountingPosted}
+            accountingPostingStatus={purchaseReturn.accountingPostingStatus}
+          />
 
-           <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsUpdate}>
-             {purchaseReturn.status === 'Draft' && (
-                <Button component={Link} to={`/purchases/returns/${purchaseReturn.id}/edit`} variant="outlined" color="primary" sx={{ borderRadius: 2 }} startIcon={<IconEdit size={18} />}>
-                   <FormattedMessage id="edit" />
-                </Button>
-             )}
-           </PermissionGuard>
+          <Button
+            component={Link}
+            to="/purchases/returns"
+            variant="outlined"
+            color="inherit"
+            sx={{ borderRadius: 2 }}
+            startIcon={<IconArrowLeft size={18} />}
+          >
+            <FormattedMessage id="back" />
+          </Button>
 
-           <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsPost}>
-             {purchaseReturn.status === 'Draft' && (
-                <Button variant="contained" color="primary" onClick={() => runAction(() => postReturn(purchaseReturn.id, purchaseReturn.rowVersion))} sx={{ borderRadius: 2, boxShadow: 2 }} startIcon={<IconSend size={18} />}>
-                   <FormattedMessage id="post" />
-                </Button>
-             )}
-           </PermissionGuard>
+          <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsUpdate}>
+            {purchaseReturn.status === 'Draft' && (
+              <Button
+                component={Link}
+                to={`/purchases/returns/${purchaseReturn.id}/edit`}
+                variant="outlined"
+                color="primary"
+                sx={{ borderRadius: 2 }}
+                startIcon={<IconEdit size={18} />}
+              >
+                <FormattedMessage id="edit" />
+              </Button>
+            )}
+          </PermissionGuard>
 
-           <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]}>
-             {canReceiveSupplierReceipt && (
-               <Button
-                 variant="contained"
-                 color="success"
-                 onClick={() => setReceiptDialogOpen(true)}
-                 sx={{ borderRadius: 2 }}
-                 startIcon={<IconArrowLeft size={18} />}
-               >
-                 <FormattedMessage id="purchase-return-receipt" defaultMessage="Receive from Supplier" />
-               </Button>
-             )}
-           </PermissionGuard>
+          <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsPost}>
+            {purchaseReturn.status === 'Draft' && (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => runAction(() => postReturn(purchaseReturn.id, purchaseReturn.rowVersion))}
+                sx={{ borderRadius: 2, boxShadow: 2 }}
+                startIcon={<IconSend size={18} />}
+              >
+                <FormattedMessage id="post" />
+              </Button>
+            )}
+          </PermissionGuard>
+
+          <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]}>
+            {canReceiveSupplierReceipt && (
+              <Button
+                variant="contained"
+                color="success"
+                onClick={() => setReceiptDialogOpen(true)}
+                sx={{ borderRadius: 2 }}
+                startIcon={<IconArrowLeft size={18} />}
+              >
+                <FormattedMessage id="purchase-return-receipt" defaultMessage="Receive from Supplier" />
+              </Button>
+            )}
+          </PermissionGuard>
         </Stack>
       </Box>
 
       {purchaseReturn.status === 'Cancelled' && (
-         <Alert severity="error" sx={{ mb: 3, borderRadius: 2, border: '1px solid', borderColor: 'error.light' }}>
-            <Typography variant="subtitle1" fontWeight={600} gutterBottom><FormattedMessage id="return-cancelled" /></Typography>
-            <Typography variant="body2">{purchaseReturn.cancellationReason || <FormattedMessage id="no-cancel-reason" />}</Typography>
-         </Alert>
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2, border: '1px solid', borderColor: 'error.light' }}>
+          <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+            <FormattedMessage id="return-cancelled" />
+          </Typography>
+          <Typography variant="body2">{purchaseReturn.cancellationReason || <FormattedMessage id="no-cancel-reason" />}</Typography>
+        </Alert>
       )}
 
       <Grid container spacing={3}>
-         <Grid item xs={12} lg={8}>
-            <Stack spacing={3}>
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconInfoCircle color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="basic-information" /></Typography>
-                     </Box>
-                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={4}>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="purchase-invoice" /></Typography>
-                           <Typography variant="body1" fontWeight={500}>{purchaseReturn.purchaseInvoiceNumber}</Typography>
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="return-date" /></Typography>
-                           <Typography variant="body1" fontWeight={500}>{purchaseReturn.returnDate}</Typography>
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom><FormattedMessage id="return-number" /></Typography>
-                           <Typography variant="body1" fontWeight={500}>{purchaseReturnDisplayNumber}</Typography>
-                        </Grid>
-                     </Grid>
-                  </Box>
-               </MainCard>
+        <Grid item xs={12} lg={8}>
+          <Stack spacing={3}>
+            <MainCard sx={cardSx} content={false}>
+              <Box sx={{ p: 3 }}>
+                <Box sx={headerSx}>
+                  <IconInfoCircle color="var(--mui-palette-primary-main)" />
+                  <Typography variant="h4">
+                    <FormattedMessage id="basic-information" />
+                  </Typography>
+                </Box>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      <FormattedMessage id="purchase-invoice" />
+                    </Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                      {purchaseInvoiceDisplayNumber}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      <FormattedMessage id="return-date" />
+                    </Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                      {purchaseReturn.returnDate}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      <FormattedMessage id="return-number" />
+                    </Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                      {purchaseReturnDisplayNumber}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            </MainCard>
 
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconBox color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="return-lines" /></Typography>
-                     </Box>
-                     <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                        <Table size="small" sx={{ minWidth: 900 }}>
-                          <TableHead sx={{ bgcolor: 'grey.50' }}>
-                            <TableRow>
-                              <TableCell align="center" width={40}>#</TableCell>
-                              <TableCell sx={{ minWidth: 200 }}><FormattedMessage id="item" /></TableCell>
-                              <TableCell sx={{ minWidth: 100 }}><FormattedMessage id="unit" /></TableCell>
-                              <TableCell sx={{ minWidth: 100 }}><FormattedMessage id="quantity" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="unit-cost" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="discount" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="tax" /></TableCell>
-                              <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="line-total" /></TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {purchaseReturn.lines.map((line, index) => (
-                               <TableRow key={line.id} hover>
-                                 <TableCell align="center">{index + 1}</TableCell>
-                                 <TableCell>{line.itemCode} - {line.itemNameArabic}</TableCell>
-                                 <TableCell>{line.unitCode}</TableCell>
-                                 <TableCell>{line.quantity}</TableCell>
-                                 <TableCell>{line.unitCost.toFixed(2)}</TableCell>
-                                 <TableCell>{line.discountAmount.toFixed(2)}</TableCell>
-                                 <TableCell>{line.taxAmount.toFixed(2)}</TableCell>
-                                 <TableCell><Typography fontWeight={600}>{line.lineTotal.toFixed(2)}</Typography></TableCell>
-                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                     </TableContainer>
-                  </Box>
-               </MainCard>
+            <MainCard sx={cardSx} content={false}>
+              <Box sx={{ p: 3 }}>
+                <Box sx={headerSx}>
+                  <IconBox color="var(--mui-palette-primary-main)" />
+                  <Typography variant="h4">
+                    <FormattedMessage id="return-lines" />
+                  </Typography>
+                </Box>
+                <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+                  <Table size="small" sx={{ minWidth: 900 }}>
+                    <TableHead sx={{ bgcolor: 'grey.50' }}>
+                      <TableRow>
+                        <TableCell align="center" width={40}>
+                          #
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 200 }}>
+                          <FormattedMessage id="item" />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 100 }}>
+                          <FormattedMessage id="unit" />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 100 }}>
+                          <FormattedMessage id="quantity" />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 120 }}>
+                          <FormattedMessage id="unit-cost" />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 120 }}>
+                          <FormattedMessage id="discount" />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 120 }}>
+                          <FormattedMessage id="tax" />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 120 }}>
+                          <FormattedMessage id="line-total" />
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {purchaseReturn.lines.map((line, index) => (
+                        <TableRow key={line.id} hover>
+                          <TableCell align="center">{index + 1}</TableCell>
+                          <TableCell>
+                            {line.itemCode} - {line.itemNameArabic}
+                          </TableCell>
+                          <TableCell>{line.unitCode}</TableCell>
+                          <TableCell>{line.quantity}</TableCell>
+                          <TableCell>{line.unitCost.toFixed(2)}</TableCell>
+                          <TableCell>{line.discountAmount.toFixed(2)}</TableCell>
+                          <TableCell>{line.taxAmount.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Typography fontWeight={600}>{line.lineTotal.toFixed(2)}</Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </MainCard>
 
-               <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsCancel}>
-                 {purchaseReturn.status === 'Posted' && (
-                   <MainCard sx={{ ...cardSx, borderColor: 'error.light' }} content={false}>
-                     <Box sx={{ p: 3 }}>
-                        <Box sx={{ ...headerSx, borderColor: 'error.light' }}>
-                           <IconX color="var(--mui-palette-error-main)" />
-                           <Typography variant="h4" color="error.main"><FormattedMessage id="cancel-document" /></Typography>
-                        </Box>
-                        <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} alignItems="flex-start">
-                           <TextField fullWidth size="small" label={<FormattedMessage id="cancel-reason" />} value={reason} onChange={(event) => setReason(event.target.value)} />
-                           <Button
-                             variant="outlined"
-                             color="error"
-                             sx={{ borderRadius: 2, whiteSpace: 'nowrap', minHeight: 40 }}
-                             onClick={() => runAction(() => cancelReturn(purchaseReturn.id, { reason, rowVersion: purchaseReturn.rowVersion }))}
-                           >
-                             <FormattedMessage id="cancel" />
-                           </Button>
-                        </Stack>
-                     </Box>
-                   </MainCard>
-                 )}
-               </PermissionGuard>
-            </Stack>
-         </Grid>
-
-         <Grid item xs={12} lg={4}>
-            <Stack spacing={3}>
-               <MainCard sx={cardSx} content={false}>
+            <PermissionGuard permission={PURCHASES_PERMISSIONS.returnsCancel}>
+              {purchaseReturn.status === 'Posted' && (
+                <MainCard sx={{ ...cardSx, borderColor: 'error.light' }} content={false}>
                   <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconCalculator color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="totals-summary" /></Typography>
-                     </Box>
-                     <Stack spacing={2}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="subtotal" /></Typography>
-                           <Typography fontWeight={600}>{purchaseReturn.subtotal.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="total-discount" /></Typography>
-                           <Typography fontWeight={600} color="error.main">- {(purchaseReturn.discountTotal || 0).toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography><FormattedMessage id="total-tax" /></Typography>
-                           <Typography fontWeight={600}>{(purchaseReturn.taxTotal || 0).toFixed(2)}</Typography>
-                        </Box>
-                        <Divider sx={{ my: 1 }} />
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <Typography variant="h3"><FormattedMessage id="grand-total" /></Typography>
-                           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, color: 'primary.main' }}>
-                              <Typography variant="h3" fontWeight={700}>{purchaseReturn.grandTotal.toFixed(2)}</Typography>
-                              <Typography variant="body2" color="text.secondary"><FormattedMessage id="currency" /></Typography>
-                           </Box>
-                        </Box>
-                     </Stack>
+                    <Box sx={{ ...headerSx, borderColor: 'error.light' }}>
+                      <IconX color="var(--mui-palette-error-main)" />
+                      <Typography variant="h4" color="error.main">
+                        <FormattedMessage id="cancel-document" />
+                      </Typography>
+                    </Box>
+                    <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} alignItems="flex-start">
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label={<FormattedMessage id="cancel-reason" />}
+                        value={reason}
+                        onChange={(event) => setReason(event.target.value)}
+                      />
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        sx={{ borderRadius: 2, whiteSpace: 'nowrap', minHeight: 40 }}
+                        onClick={() => runAction(() => cancelReturn(purchaseReturn.id, { reason, rowVersion: purchaseReturn.rowVersion }))}
+                      >
+                        <FormattedMessage id="cancel" />
+                      </Button>
+                    </Stack>
                   </Box>
-               </MainCard>
+                </MainCard>
+              )}
+            </PermissionGuard>
+          </Stack>
+        </Grid>
 
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconNotes color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4"><FormattedMessage id="return-notes" /></Typography>
-                     </Box>
-                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: purchaseReturn.notes ? 'text.primary' : 'text.disabled' }}>
-                        {purchaseReturn.notes || '-'}
-                     </Typography>
+        <Grid item xs={12} lg={4}>
+          <Stack spacing={3}>
+            <MainCard sx={cardSx} content={false}>
+              <Box sx={{ p: 3 }}>
+                <Box sx={headerSx}>
+                  <IconCalculator color="var(--mui-palette-primary-main)" />
+                  <Typography variant="h4">
+                    <FormattedMessage id="totals-summary" />
+                  </Typography>
+                </Box>
+                <Stack spacing={2}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography>
+                      <FormattedMessage id="subtotal" />
+                    </Typography>
+                    <Typography fontWeight={600}>{purchaseReturn.subtotal.toFixed(2)}</Typography>
                   </Box>
-               </MainCard>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography>
+                      <FormattedMessage id="total-discount" />
+                    </Typography>
+                    <Typography fontWeight={600} color="error.main">
+                      - {(purchaseReturn.discountTotal || 0).toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography>
+                      <FormattedMessage id="total-tax" />
+                    </Typography>
+                    <Typography fontWeight={600}>{(purchaseReturn.taxTotal || 0).toFixed(2)}</Typography>
+                  </Box>
+                  <Divider sx={{ my: 1 }} />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h3">
+                      <FormattedMessage id="grand-total" />
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, color: 'primary.main' }}>
+                      <Typography variant="h3" fontWeight={700}>
+                        {purchaseReturn.grandTotal.toFixed(2)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        <FormattedMessage id="currency" />
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+              </Box>
+            </MainCard>
 
-               <MainCard sx={cardSx} content={false}>
-                  <Box sx={{ p: 3 }}>
-                     <Box sx={headerSx}>
-                        <IconInfoCircle color="var(--mui-palette-primary-main)" />
-                        <Typography variant="h4">الترحيل المحاسبي</Typography>
-                     </Box>
-                     <Stack spacing={2}>
-                        <Box>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              حالة الترحيل
-                           </Typography>
-                           <PurchaseAccountingStatusChip
-                             isAccountingPosted={purchaseReturn.isAccountingPosted}
-                             accountingPostingStatus={purchaseReturn.accountingPostingStatus}
-                           />
-                        </Box>
-                        <Box>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              القيد المحاسبي
-                           </Typography>
-                           {purchaseReturn.accountingJournalEntryId ? (
-                             <Button component={Link} to={`/accounting/journal-entries/${purchaseReturn.accountingJournalEntryId}`} variant="outlined" size="small" sx={{ borderRadius: 2 }}>
-                                {purchaseReturn.accountingEntryNumber || purchaseReturn.accountingJournalEntryId}
-                             </Button>
-                           ) : (
-                             <Typography variant="body2" color="text.secondary">{purchaseReturn.accountingPostingStatus}</Typography>
-                           )}
-                        </Box>
-                        <Box>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              حساب الموردين
-                           </Typography>
-                           <Typography variant="body2" fontWeight={600}>
-                              {formatCodeNameLabel(
-                                intl.locale,
-                                purchaseReturn.supplierControlAccountCode,
-                                purchaseReturn.supplierControlAccountArabicName,
-                                purchaseReturn.supplierControlAccountEnglishName
-                              )}
-                           </Typography>
-                        </Box>
-                        <Box>
-                           <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              حساب المخزون
-                           </Typography>
-                           <Typography variant="body2" fontWeight={600}>
-                              {formatCodeNameLabel(
-                                intl.locale,
-                                purchaseReturn.inventoryAssetAccountCode,
-                                purchaseReturn.inventoryAssetAccountArabicName,
-                                purchaseReturn.inventoryAssetAccountEnglishName
-                              )}
-                           </Typography>
-                        </Box>
-                     </Stack>
+            <MainCard sx={cardSx} content={false}>
+              <Box sx={{ p: 3 }}>
+                <Box sx={headerSx}>
+                  <IconNotes color="var(--mui-palette-primary-main)" />
+                  <Typography variant="h4">
+                    <FormattedMessage id="return-notes" />
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: purchaseReturn.notes ? 'text.primary' : 'text.disabled' }}>
+                  {purchaseReturn.notes || '-'}
+                </Typography>
+              </Box>
+            </MainCard>
+
+            <MainCard sx={cardSx} content={false}>
+              <Box sx={{ p: 3 }}>
+                <Box sx={headerSx}>
+                  <IconInfoCircle color="var(--mui-palette-primary-main)" />
+                  <Typography variant="h4">الترحيل المحاسبي</Typography>
+                </Box>
+                <Stack spacing={2}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      حالة الترحيل
+                    </Typography>
+                    <PurchaseAccountingStatusChip
+                      isAccountingPosted={purchaseReturn.isAccountingPosted}
+                      accountingPostingStatus={purchaseReturn.accountingPostingStatus}
+                    />
                   </Box>
-               </MainCard>
-            </Stack>
-         </Grid>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      القيد المحاسبي
+                    </Typography>
+                    {purchaseReturn.accountingJournalEntryId ? (
+                      <Button
+                        component={Link}
+                        to={`/accounting/journal-entries/${purchaseReturn.accountingJournalEntryId}`}
+                        variant="outlined"
+                        size="small"
+                        sx={{ borderRadius: 2 }}
+                      >
+                        {purchaseReturn.accountingEntryNumber || purchaseReturn.accountingJournalEntryId}
+                      </Button>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        {purchaseReturn.accountingPostingStatus}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      حساب الموردين
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {formatCodeNameLabel(
+                        intl.locale,
+                        purchaseReturn.supplierControlAccountCode,
+                        purchaseReturn.supplierControlAccountArabicName,
+                        purchaseReturn.supplierControlAccountEnglishName
+                      )}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                      حساب المخزون
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {formatCodeNameLabel(
+                        intl.locale,
+                        purchaseReturn.inventoryAssetAccountCode,
+                        purchaseReturn.inventoryAssetAccountArabicName,
+                        purchaseReturn.inventoryAssetAccountEnglishName
+                      )}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
+            </MainCard>
+          </Stack>
+        </Grid>
       </Grid>
 
       {purchaseReturn.status === 'Posted' && (
-          <PartySettlementDialog
-            open={receiptDialogOpen}
-            mode="receipt"
-            settlementDirection="SupplierReceipt"
-            partyId={purchaseReturn.supplierId}
-            partyName={purchaseReturn.supplierNameArabic}
-            settlementAmount={remainingReceivableAmount}
-            settlementReferenceNumber={purchaseReturn.number}
-            settlementDescriptionArabic={intl.formatMessage(
-              { id: 'purchase-return-receipt-description', defaultMessage: 'Receipt for purchase return {number}' },
+        <PartySettlementDialog
+          open={receiptDialogOpen}
+          mode="receipt"
+          settlementDirection="SupplierReceipt"
+          partyId={purchaseReturn.supplierId}
+          partyName={purchaseReturn.supplierNameArabic}
+          settlementAmount={remainingReceivableAmount}
+          settlementReferenceNumber={purchaseReturn.number}
+          settlementDescriptionArabic={intl.formatMessage(
+            { id: 'purchase-return-receipt-description', defaultMessage: 'Receipt for purchase return {number}' },
             { number: purchaseReturn.number }
           )}
           settlementDescriptionEnglish={intl.formatMessage(
@@ -385,6 +514,6 @@ export default function PurchaseReturnDetailsPage() {
           }}
         />
       )}
-      </Box>
+    </Box>
   );
 }

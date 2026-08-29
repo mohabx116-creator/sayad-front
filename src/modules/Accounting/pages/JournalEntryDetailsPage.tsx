@@ -38,7 +38,13 @@ import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <Box>
-      <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        display="block"
+        fontWeight={600}
+        sx={{ mb: 0.25, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}
+      >
         {label}
       </Typography>
       <Typography variant="body2" fontWeight={500}>
@@ -68,20 +74,9 @@ function getLocalizedAccountName(
   },
   locale: string
 ): string {
-  const arabic =
-    line.accountNameArabic?.trim() ||
-    line.accountArabicName?.trim() ||
-    line.nameArabic?.trim() ||
-    '';
-  const english =
-    line.accountNameEnglish?.trim() ||
-    line.accountEnglishName?.trim() ||
-    line.nameEnglish?.trim() ||
-    '';
-  const existing =
-    line.accountName?.trim() ||
-    line.name?.trim() ||
-    '';
+  const arabic = line.accountNameArabic?.trim() || line.accountArabicName?.trim() || line.nameArabic?.trim() || '';
+  const english = line.accountNameEnglish?.trim() || line.accountEnglishName?.trim() || line.nameEnglish?.trim() || '';
+  const existing = line.accountName?.trim() || line.name?.trim() || '';
   const isArabicLocale = locale.toLowerCase().startsWith('ar');
 
   return isArabicLocale ? arabic || english || existing || '' : english || arabic || existing || '';
@@ -132,6 +127,7 @@ export default function JournalEntryDetailsPage() {
   const canDelete = canMutate && entry?.status === JOURNAL_ENTRY_STATUSES.DRAFT;
   const description = formatLocalizedText(entry?.descriptionArabic, entry?.descriptionEnglish, intl.locale);
   const entryDisplayNumber = getDocumentDisplayNumber(entry?.displayNumber, entry?.number);
+  const sourceDocumentDisplayNumber = getDocumentDisplayNumber(entry?.sourceDocumentDisplayNumber, entry?.sourceDocumentNumber);
 
   const handlePost = async () => {
     if (!id || !entry) {
@@ -145,7 +141,12 @@ export default function JournalEntryDetailsPage() {
       await mutate();
       await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }), 'error');
+      notify(
+        error instanceof Error
+          ? error.message
+          : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }),
+        'error'
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -163,7 +164,12 @@ export default function JournalEntryDetailsPage() {
       await mutate();
       await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }), 'error');
+      notify(
+        error instanceof Error
+          ? error.message
+          : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }),
+        'error'
+      );
     } finally {
       setIsProcessing(false);
       setCancelOpen(false);
@@ -180,10 +186,17 @@ export default function JournalEntryDetailsPage() {
       await deleteJournalEntry(id, entry.rowVersion);
       notify(intl.formatMessage({ id: 'journal-entry-deleted-successfully', defaultMessage: 'تم حذف القيد اليومي بنجاح.' }));
       await mutate(undefined, { revalidate: false });
-      await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/accounting/') && key !== `/api/accounting/journal-entries/${id}`);
+      await mutateGlobal(
+        (key) => typeof key === 'string' && key.startsWith('/api/accounting/') && key !== `/api/accounting/journal-entries/${id}`
+      );
       navigate('/accounting/journal-entries', { replace: true });
     } catch (error) {
-      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }), 'error');
+      notify(
+        error instanceof Error
+          ? error.message
+          : intl.formatMessage({ id: 'journal-entry-action-failed', defaultMessage: 'تعذر تنفيذ عملية القيد اليومي.' }),
+        'error'
+      );
     } finally {
       setIsProcessing(false);
       setDeleteOpen(false);
@@ -216,12 +229,12 @@ export default function JournalEntryDetailsPage() {
       <Stack spacing={3}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
-            <PageTitle>
-              {entryDisplayNumber}
-            </PageTitle>
+            <PageTitle>{entryDisplayNumber}</PageTitle>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
               <JournalEntryStatusChip status={entry.status} />
-              {entry.isSystemGenerated && <Chip size="small" color="info" label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />} />}
+              {entry.isSystemGenerated && (
+                <Chip size="small" color="info" label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />} />
+              )}
               <Chip size="small" variant="outlined" label={formatJournalEntrySourceType(entry.sourceType, intl.locale)} />
               {entry.reversalJournalEntryNumber && entry.reversesJournalEntryId && (
                 <Button component={Link} to={`/accounting/journal-entries/${entry.reversesJournalEntryId}`} size="small" variant="outlined">
@@ -231,12 +244,23 @@ export default function JournalEntryDetailsPage() {
             </Stack>
           </Box>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            <Button component={Link} to="/accounting/journal-entries" variant="outlined" color="inherit" startIcon={<IconArrowLeft size={18} />}>
+            <Button
+              component={Link}
+              to="/accounting/journal-entries"
+              variant="outlined"
+              color="inherit"
+              startIcon={<IconArrowLeft size={18} />}
+            >
               <FormattedMessage id="back" />
             </Button>
             {canEdit && (
               <PermissionGuard permission={JOURNAL_ENTRY_PERMISSIONS.update}>
-                <Button component={Link} to={`/accounting/journal-entries/${entry.id}/edit`} variant="outlined" startIcon={<IconEdit size={18} />}>
+                <Button
+                  component={Link}
+                  to={`/accounting/journal-entries/${entry.id}/edit`}
+                  variant="outlined"
+                  startIcon={<IconEdit size={18} />}
+                >
                   <FormattedMessage id="edit" />
                 </Button>
               </PermissionGuard>
@@ -250,7 +274,13 @@ export default function JournalEntryDetailsPage() {
             )}
             {canCancel && (
               <PermissionGuard permission={JOURNAL_ENTRY_PERMISSIONS.cancel}>
-                <Button variant="outlined" color="error" onClick={() => setCancelOpen(true)} startIcon={<IconX size={18} />} disabled={isProcessing}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => setCancelOpen(true)}
+                  startIcon={<IconX size={18} />}
+                  disabled={isProcessing}
+                >
                   <FormattedMessage id="cancel-document" defaultMessage="إلغاء المستند" />
                 </Button>
               </PermissionGuard>
@@ -276,13 +306,20 @@ export default function JournalEntryDetailsPage() {
               <Box sx={{ p: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <InfoRow label={<FormattedMessage id="journal-entry-number" defaultMessage="رقم القيد اليومي" />}>{entryDisplayNumber}</InfoRow>
+                    <InfoRow label={<FormattedMessage id="journal-entry-number" defaultMessage="رقم القيد اليومي" />}>
+                      {entryDisplayNumber}
+                    </InfoRow>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <InfoRow label={<FormattedMessage id="date" />}>{entry.entryDate}</InfoRow>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <InfoRow label={<FormattedMessage id="source-document-type" />}>{formatJournalEntrySourceType(entry.sourceType, intl.locale)}</InfoRow>
+                    <InfoRow label={<FormattedMessage id="source-document-type" />}>
+                      {formatJournalEntrySourceType(entry.sourceType, intl.locale)}
+                    </InfoRow>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <InfoRow label={<FormattedMessage id="source-document-number" />}>{sourceDocumentDisplayNumber}</InfoRow>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <InfoRow label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />}>
@@ -346,14 +383,28 @@ export default function JournalEntryDetailsPage() {
               </Box>
               <Box sx={{ p: 3 }}>
                 <Stack spacing={2}>
-                  <InfoRow label={<FormattedMessage id="total-debit" defaultMessage="إجمالي المدين" />}>{entry.totalDebit.toFixed(2)}</InfoRow>
-                  <InfoRow label={<FormattedMessage id="total-credit" defaultMessage="إجمالي الدائن" />}>{entry.totalCredit.toFixed(2)}</InfoRow>
+                  <InfoRow label={<FormattedMessage id="total-debit" defaultMessage="إجمالي المدين" />}>
+                    {entry.totalDebit.toFixed(2)}
+                  </InfoRow>
+                  <InfoRow label={<FormattedMessage id="total-credit" defaultMessage="إجمالي الدائن" />}>
+                    {entry.totalCredit.toFixed(2)}
+                  </InfoRow>
                   <Divider />
                   <InfoRow label={<FormattedMessage id="created-date" defaultMessage="تاريخ الإنشاء" />}>{entry.createdAtUtc}</InfoRow>
-                  {entry.updatedAtUtc && <InfoRow label={<FormattedMessage id="updated-at" defaultMessage="تاريخ التعديل" />}>{entry.updatedAtUtc}</InfoRow>}
-                  {entry.postedAtUtc && <InfoRow label={<FormattedMessage id="posted-at" defaultMessage="تاريخ الترحيل" />}>{entry.postedAtUtc}</InfoRow>}
-                  {entry.cancelledAtUtc && <InfoRow label={<FormattedMessage id="cancelled-at" defaultMessage="تاريخ الإلغاء" />}>{entry.cancelledAtUtc}</InfoRow>}
-                  {entry.cancellationReason && <InfoRow label={<FormattedMessage id="cancellation-reason" defaultMessage="سبب الإلغاء" />}>{entry.cancellationReason}</InfoRow>}
+                  {entry.updatedAtUtc && (
+                    <InfoRow label={<FormattedMessage id="updated-at" defaultMessage="تاريخ التعديل" />}>{entry.updatedAtUtc}</InfoRow>
+                  )}
+                  {entry.postedAtUtc && (
+                    <InfoRow label={<FormattedMessage id="posted-at" defaultMessage="تاريخ الترحيل" />}>{entry.postedAtUtc}</InfoRow>
+                  )}
+                  {entry.cancelledAtUtc && (
+                    <InfoRow label={<FormattedMessage id="cancelled-at" defaultMessage="تاريخ الإلغاء" />}>{entry.cancelledAtUtc}</InfoRow>
+                  )}
+                  {entry.cancellationReason && (
+                    <InfoRow label={<FormattedMessage id="cancellation-reason" defaultMessage="سبب الإلغاء" />}>
+                      {entry.cancellationReason}
+                    </InfoRow>
+                  )}
                 </Stack>
               </Box>
             </MainCard>
@@ -361,8 +412,18 @@ export default function JournalEntryDetailsPage() {
         </Grid>
       </Stack>
 
-      <JournalEntryCancelDialog open={cancelOpen} isProcessing={isProcessing} onClose={() => setCancelOpen(false)} onConfirm={handleCancel} />
-      <JournalEntryDeleteDialog open={deleteOpen} isProcessing={isProcessing} onClose={() => setDeleteOpen(false)} onConfirm={handleDelete} />
+      <JournalEntryCancelDialog
+        open={cancelOpen}
+        isProcessing={isProcessing}
+        onClose={() => setCancelOpen(false)}
+        onConfirm={handleCancel}
+      />
+      <JournalEntryDeleteDialog
+        open={deleteOpen}
+        isProcessing={isProcessing}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+      />
     </Box>
   );
 }

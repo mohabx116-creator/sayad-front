@@ -147,6 +147,7 @@ export type PurchaseReturn = {
   number: string;
   purchaseInvoiceId: string;
   purchaseInvoiceNumber: string;
+  purchaseInvoiceDisplayNumber?: string | null;
   supplierId: string;
   supplierCode: string;
   supplierNameArabic: string;
@@ -184,6 +185,7 @@ export type PurchaseReturnListItem = {
   number: string;
   returnDate: string;
   purchaseInvoiceNumber: string;
+  purchaseInvoiceDisplayNumber?: string | null;
   supplierCode: string;
   supplierNameArabic: string;
   supplierNameEnglish?: string | null;

@@ -85,6 +85,8 @@ export type JournalEntryDto = {
   postedAtUtc: string | null;
   cancelledAtUtc: string | null;
   cancellationReason: string | null;
+  sourceDocumentNumber: string | null;
+  sourceDocumentDisplayNumber?: string | null;
   reversesJournalEntryId: string | null;
   reversalJournalEntryNumber: string | null;
   lines: JournalEntryLineDto[];
@@ -116,6 +118,8 @@ export type JournalEntryListItemDto = {
   totalDebit: number;
   totalCredit: number;
   linesCount: number;
+  sourceDocumentNumber: string | null;
+  sourceDocumentDisplayNumber?: string | null;
   reversesJournalEntryId: string | null;
   reversalJournalEntryNumber: string | null;
   createdAtUtc: string;

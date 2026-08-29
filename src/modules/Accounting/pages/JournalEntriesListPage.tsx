@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
@@ -51,7 +51,11 @@ export default function JournalEntriesListPage() {
 
   return (
     <Box>
-      <Breadcrumbs custom heading="journal-entries" links={[{ title: 'general-ledger', to: '/accounting' }, { title: 'journal-entries' }]} />
+      <Breadcrumbs
+        custom
+        heading="journal-entries"
+        links={[{ title: 'general-ledger', to: '/accounting' }, { title: 'journal-entries' }]}
+      />
       <Stack spacing={3}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
           <Box>
@@ -59,7 +63,10 @@ export default function JournalEntriesListPage() {
               <FormattedMessage id="journal-entries" defaultMessage="Journal Entries" />
             </PageTitle>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              <FormattedMessage id="journal-entries-description" defaultMessage="Review and manage manual general ledger journal entries." />
+              <FormattedMessage
+                id="journal-entries-description"
+                defaultMessage="Review and manage manual general ledger journal entries."
+              />
             </Typography>
           </Box>
           <PermissionGuard permission={JOURNAL_ENTRY_PERMISSIONS.create}>
@@ -172,6 +179,9 @@ export default function JournalEntriesListPage() {
                 <TableCell>
                   <FormattedMessage id="source-document-type" />
                 </TableCell>
+                <TableCell>
+                  <FormattedMessage id="source-document-number" />
+                </TableCell>
                 <TableCell align="center">
                   <FormattedMessage id="actions" />
                 </TableCell>
@@ -181,19 +191,38 @@ export default function JournalEntriesListPage() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, index) => (
                   <TableRow key={index}>
-                    <TableCell><Skeleton width={90} /></TableCell>
-                    <TableCell><Skeleton width={90} /></TableCell>
-                    <TableCell><Skeleton width={180} /></TableCell>
-                    <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
-                    <TableCell align="right"><Skeleton width={80} sx={{ ml: 'auto' }} /></TableCell>
-                    <TableCell><Skeleton width={80} /></TableCell>
-                    <TableCell><Skeleton width={120} /></TableCell>
-                    <TableCell align="center"><Skeleton width={64} sx={{ mx: 'auto' }} /></TableCell>
+                    <TableCell>
+                      <Skeleton width={90} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={90} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={180} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Skeleton width={80} sx={{ ml: 'auto' }} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Skeleton width={80} sx={{ ml: 'auto' }} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={80} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={120} />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={120} />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Skeleton width={64} sx={{ mx: 'auto' }} />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       <FormattedMessage id="journal-entries-empty" defaultMessage="No journal entries found." />
                     </Typography>
@@ -204,7 +233,7 @@ export default function JournalEntriesListPage() {
                   <TableRow key={entry.id} hover>
                     <TableCell sx={{ fontWeight: 600 }}>{getDocumentDisplayNumber(entry.displayNumber, entry.number)}</TableCell>
                     <TableCell>{entry.entryDate}</TableCell>
-                    <TableCell>{entry.descriptionArabic || entry.descriptionEnglish || '—'}</TableCell>
+                    <TableCell>{entry.descriptionArabic || entry.descriptionEnglish || 'â€”'}</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>
                       {entry.totalDebit.toFixed(2)}
                     </TableCell>
@@ -220,14 +249,20 @@ export default function JournalEntriesListPage() {
                           <Chip
                             size="small"
                             color="info"
-                            label={<FormattedMessage id="system-generated-entry" defaultMessage="قيد تلقائي" />}
+                            label={<FormattedMessage id="system-generated-entry" defaultMessage="Ù‚ÙŠØ¯ ØªÙ„Ù‚Ø§Ø¦ÙŠ" />}
                           />
                         )}
                         <Typography variant="body2">{formatJournalEntrySourceType(entry.sourceType, intl.locale)}</Typography>
                       </Stack>
                     </TableCell>
+                    <TableCell>{getDocumentDisplayNumber(entry.sourceDocumentDisplayNumber, entry.sourceDocumentNumber)}</TableCell>
                     <TableCell align="center">
-                      <Button component={Link} to={`/accounting/journal-entries/${entry.id}`} size="small" startIcon={<IconEye size={16} />}>
+                      <Button
+                        component={Link}
+                        to={`/accounting/journal-entries/${entry.id}`}
+                        size="small"
+                        startIcon={<IconEye size={16} />}
+                      >
                         <FormattedMessage id="details" />
                       </Button>
                     </TableCell>

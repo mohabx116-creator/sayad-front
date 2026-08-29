@@ -38,8 +38,6 @@ export type SalesReturnLineInput = {
   notes?: string | null;
 };
 
-
-
 export type SalesReturnableLine = {
   salesInvoiceLineId: string;
   itemId: string;
@@ -83,8 +81,6 @@ export type SalesLine = {
   lineTotal: number;
   notes?: string | null;
 };
-
-
 
 export type SalesReturnLine = SalesLine & {
   salesInvoiceLineId: string;
@@ -174,6 +170,7 @@ export type SalesReturn = {
   number: string;
   salesInvoiceId: string;
   salesInvoiceNumber: string;
+  salesInvoiceDisplayNumber?: string | null;
   customerId: string;
   customerCode: string;
   customerNameArabic: string;
@@ -217,6 +214,7 @@ export type SalesReturnListItem = {
   number: string;
   returnDate: string;
   salesInvoiceNumber: string;
+  salesInvoiceDisplayNumber?: string | null;
   customerCode: string;
   customerNameArabic: string;
   customerNameEnglish?: string | null;
