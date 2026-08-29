@@ -134,9 +134,18 @@ const ROUTE_TITLES: BrowserTitleRoute[] = [
   { path: '/inventory/customer-materials/conversions', titleId: 'customer-material-conversions', defaultMessage: 'Conversions', end: true }
 ];
 
+const FSI = '\u2068'; // First Strong Isolate
+const LRI = '\u2066'; // Left-to-Right Isolate
+const PDI = '\u2069'; // Pop Directional Isolate
+
 export function formatBrowserTitle(...parts: BrowserTitlePart[]) {
   const cleaned = parts.map((part) => part?.trim()).filter((part): part is string => Boolean(part));
-  return cleaned.length > 0 ? `${cleaned.join(' | ')} | ${APP_BROWSER_TITLE}` : APP_BROWSER_TITLE;
+  if (cleaned.length === 0) return APP_BROWSER_TITLE;
+
+  const isolatedParts = cleaned.map((part) => `${FSI}${part}${PDI}`);
+  const isolatedSuffix = `${LRI}${APP_BROWSER_TITLE}${PDI}`;
+
+  return `${isolatedParts.join(' | ')} | ${isolatedSuffix}`;
 }
 
 export function resolveRouteBrowserTitle(pathname: string, intl: IntlShape) {
