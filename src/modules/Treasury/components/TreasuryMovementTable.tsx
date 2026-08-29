@@ -14,13 +14,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
-import {
-  IconArrowDownLeft,
-  IconArrowUpRight,
-  IconArrowsLeftRight,
-  IconRefresh,
-  IconWallet
-} from '@tabler/icons-react';
+import { IconArrowDownLeft, IconArrowUpRight, IconArrowsLeftRight, IconRefresh, IconWallet } from '@tabler/icons-react';
 
 import type { TreasuryMovement } from '../types/treasury.types';
 import { formatTreasuryMoney } from '../utils/treasury.format';
@@ -29,27 +23,27 @@ import { getDocumentDisplayNumber } from 'shared/utils/documentDisplay';
 function getMovementPresentation(movementType: string) {
   switch (movementType.toLowerCase()) {
     case 'openingbalance':
-      return { label: 'Opening Balance', icon: <IconWallet size={14} />, color: 'primary' as const };
+      return { label: <FormattedMessage id="opening-balance" defaultMessage="Opening Balance" />, icon: <IconWallet size={14} />, color: 'primary' as const };
     case 'receipt':
-      return { label: 'Receipt', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
+      return { label: <FormattedMessage id="receipt" defaultMessage="Receipt" />, icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
     case 'manualcashin':
-      return { label: 'Cash In', icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
+      return { label: <FormattedMessage id="cash-in" defaultMessage="Cash In" />, icon: <IconArrowDownLeft size={14} />, color: 'success' as const };
     case 'receiptreversal':
-      return { label: 'Receipt Reversal', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: <FormattedMessage id="receipt-reversal" defaultMessage="Receipt Reversal" />, icon: <IconRefresh size={14} />, color: 'error' as const };
     case 'payment':
-      return { label: 'Payment', icon: <IconArrowUpRight size={14} />, color: 'error' as const };
+      return { label: <FormattedMessage id="payment" defaultMessage="Payment" />, icon: <IconArrowUpRight size={14} />, color: 'error' as const };
     case 'manualcashout':
-      return { label: 'Cash Out', icon: <IconArrowUpRight size={14} />, color: 'error' as const };
+      return { label: <FormattedMessage id="cash-out" defaultMessage="Cash Out" />, icon: <IconArrowUpRight size={14} />, color: 'error' as const };
     case 'paymentreversal':
-      return { label: 'Payment Reversal', icon: <IconRefresh size={14} />, color: 'success' as const };
+      return { label: <FormattedMessage id="payment-reversal" defaultMessage="Payment Reversal" />, icon: <IconRefresh size={14} />, color: 'success' as const };
     case 'transferin':
-      return { label: 'Transfer In', icon: <IconArrowsLeftRight size={14} />, color: 'info' as const };
+      return { label: <FormattedMessage id="transfer-in" defaultMessage="Transfer In" />, icon: <IconArrowsLeftRight size={14} />, color: 'info' as const };
     case 'transferout':
-      return { label: 'Transfer Out', icon: <IconArrowsLeftRight size={14} />, color: 'warning' as const };
+      return { label: <FormattedMessage id="transfer-out" defaultMessage="Transfer Out" />, icon: <IconArrowsLeftRight size={14} />, color: 'warning' as const };
     case 'transferreversalin':
-      return { label: 'Transfer In Reversal', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: <FormattedMessage id="transfer-in-reversal" defaultMessage="Transfer In Reversal" />, icon: <IconRefresh size={14} />, color: 'error' as const };
     case 'transferreversalout':
-      return { label: 'Transfer Out Reversal', icon: <IconRefresh size={14} />, color: 'error' as const };
+      return { label: <FormattedMessage id="transfer-out-reversal" defaultMessage="Transfer Out Reversal" />, icon: <IconRefresh size={14} />, color: 'error' as const };
     default:
       return { label: movementType, icon: <IconArrowsLeftRight size={14} />, color: 'default' as const };
   }
@@ -60,32 +54,32 @@ function getReferenceLabel(referenceType: string, movementType: string) {
   const normalizedMovementType = movementType.toLowerCase();
 
   if (normalizedMovementType === 'manualcashin') {
-    return 'Cash In';
+    return <FormattedMessage id="cash-in" defaultMessage="Cash In" />;
   }
 
   if (normalizedMovementType === 'manualcashout') {
-    return 'Cash Out';
+    return <FormattedMessage id="cash-out" defaultMessage="Cash Out" />;
   }
 
   switch (normalizedReferenceType) {
     case 'openingbalance':
-      return 'Opening Balance';
+      return <FormattedMessage id="opening-balance" defaultMessage="Opening Balance" />;
     case 'openingbalancecorrection':
-      return 'Opening Balance Correction';
+      return <FormattedMessage id="opening-balance-correction" defaultMessage="Opening Balance Correction" />;
     case 'manualmovement':
-      return 'Manual Movement';
+      return <FormattedMessage id="manual-movement" defaultMessage="Manual Movement" />;
     case 'receiptvoucher':
-      return 'Receipt Voucher';
+      return <FormattedMessage id="receipt-voucher" defaultMessage="Receipt Voucher" />;
     case 'receiptvouchercancellation':
-      return 'Receipt Voucher Cancellation';
+      return <FormattedMessage id="receipt-voucher-cancellation" defaultMessage="Receipt Voucher Cancellation" />;
     case 'paymentvoucher':
-      return 'Payment Voucher';
+      return <FormattedMessage id="payment-voucher" defaultMessage="Payment Voucher" />;
     case 'paymentvouchercancellation':
-      return 'Payment Voucher Cancellation';
+      return <FormattedMessage id="payment-voucher-cancellation" defaultMessage="Payment Voucher Cancellation" />;
     case 'transfervoucher':
-      return 'Transfer Voucher';
+      return <FormattedMessage id="transfer-voucher" defaultMessage="Transfer Voucher" />;
     case 'transfervouchercancellation':
-      return 'Transfer Voucher Cancellation';
+      return <FormattedMessage id="transfer-voucher-cancellation" defaultMessage="Transfer Voucher Cancellation" />;
     default:
       return referenceType;
   }
@@ -95,41 +89,41 @@ function getReferencePresentation(movement: TreasuryMovement) {
   const sourceType = movement.sourceDocumentType?.toLowerCase();
 
   if (movement.movementType.toLowerCase() === 'manualcashin') {
-    return { label: 'Cash In', route: null };
+    return { label: <FormattedMessage id="cash-in" defaultMessage="Cash In" />, route: null };
   }
 
   if (movement.movementType.toLowerCase() === 'manualcashout') {
-    return { label: 'Cash Out', route: null };
+    return { label: <FormattedMessage id="cash-out" defaultMessage="Cash Out" />, route: null };
   }
 
   if (sourceType === 'expense' && movement.sourceDocumentId) {
-    return { label: 'Expense', route: `/expenses/${movement.sourceDocumentId}` };
+    return { label: <FormattedMessage id="expense" defaultMessage="Expense" />, route: `/expenses/${movement.sourceDocumentId}` };
   }
 
   if (sourceType === 'salesinvoice' && movement.sourceDocumentId) {
-    return { label: 'Sales Invoice', route: `/sales/invoices/${movement.sourceDocumentId}` };
+    return { label: <FormattedMessage id="sales-invoice" defaultMessage="Sales Invoice" />, route: `/sales/invoices/${movement.sourceDocumentId}` };
   }
 
   if (sourceType === 'purchaseinvoice' && movement.sourceDocumentId) {
-    return { label: 'Purchase Invoice', route: `/purchases/invoices/${movement.sourceDocumentId}` };
+    return { label: <FormattedMessage id="purchase-invoice" defaultMessage="Purchase Invoice" />, route: `/purchases/invoices/${movement.sourceDocumentId}` };
   }
 
   switch (movement.referenceType.toLowerCase()) {
     case 'receiptvoucher':
     case 'receiptvouchercancellation':
-      return { label: 'Receipt Voucher', route: null };
+      return { label: <FormattedMessage id="receipt-voucher" defaultMessage="Receipt Voucher" />, route: null };
     case 'paymentvoucher':
     case 'paymentvouchercancellation':
-      return { label: 'Payment Voucher', route: null };
+      return { label: <FormattedMessage id="payment-voucher" defaultMessage="Payment Voucher" />, route: null };
     case 'transfervoucher':
     case 'transfervouchercancellation':
-      return { label: 'Transfer Voucher', route: movement.referenceId ? `/treasury/transfers/${movement.referenceId}` : null };
+      return { label: <FormattedMessage id="transfer-voucher" defaultMessage="Transfer Voucher" />, route: movement.referenceId ? `/treasury/transfers/${movement.referenceId}` : null };
     case 'openingbalance':
-      return { label: 'Opening Balance', route: null };
+      return { label: <FormattedMessage id="opening-balance" defaultMessage="Opening Balance" />, route: null };
     case 'openingbalancecorrection':
-      return { label: 'Opening Balance Correction', route: null };
+      return { label: <FormattedMessage id="opening-balance-correction" defaultMessage="Opening Balance Correction" />, route: null };
     case 'manualmovement':
-      return { label: 'Manual Movement', route: null };
+      return { label: <FormattedMessage id="manual-movement" defaultMessage="Manual Movement" />, route: null };
     default:
       return { label: getReferenceLabel(movement.referenceType, movement.movementType), route: null };
   }
@@ -189,13 +183,15 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
           <TableHead sx={{ bgcolor: 'grey.50' }}>
             <TableRow>
               <TableCell><FormattedMessage id="date" defaultMessage="Date" /></TableCell>
-              <TableCell><FormattedMessage id="movement-number" defaultMessage="Movement Number" /></TableCell>
+              <TableCell><FormattedMessage id="receipt-payment.number" defaultMessage="Movement Number" /></TableCell>
               <TableCell><FormattedMessage id="movement-type" defaultMessage="Movement Type" /></TableCell>
-              <TableCell><FormattedMessage id="related-document" defaultMessage="Related Document" /></TableCell>
+              <TableCell><FormattedMessage id="receipt-payment.related-document-number" defaultMessage="Related Document" /></TableCell>
               <TableCell><FormattedMessage id="description" defaultMessage="Description" /></TableCell>
               <TableCell align="right"><FormattedMessage id="inbound" defaultMessage="Inbound" /></TableCell>
               <TableCell align="right"><FormattedMessage id="outbound" defaultMessage="Outbound" /></TableCell>
-              <TableCell align="right"><FormattedMessage id="running-balance" defaultMessage="Running Balance" /></TableCell>
+              <TableCell align="right">
+                <FormattedMessage id="running-balance" defaultMessage="Running Balance" />
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -209,24 +205,28 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                 <TableRow key={row.id} hover sx={{ bgcolor: row.isReversal ? 'error.lighter' : 'inherit' }}>
                   <TableCell>{row.movementDate}</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>
-                    {row.referenceNumber || row.sourceDocumentNumber ? (
-                      (() => {
-                        const displayNumber =
-                          row.sourceDocumentDisplayNumber ??
-                          row.referenceDisplayNumber ??
-                          getDocumentDisplayNumber(undefined, row.sourceDocumentNumber ?? row.referenceNumber);
+                    {row.referenceNumber || row.sourceDocumentNumber
+                      ? (() => {
+                          const displayNumber =
+                            row.sourceDocumentDisplayNumber ??
+                            row.referenceDisplayNumber ??
+                            getDocumentDisplayNumber(undefined, row.sourceDocumentNumber ?? row.referenceNumber);
 
-                        return sourceRoute ? (
-                          <Button component={Link} to={sourceRoute} size="small" variant="text" sx={{ px: 0, minWidth: 0, textTransform: 'none', fontWeight: 600 }}>
-                            {displayNumber}
-                          </Button>
-                        ) : (
-                          displayNumber
-                        );
-                      })()
-                    ) : (
-                      '-'
-                    )}
+                          return sourceRoute ? (
+                            <Button
+                              component={Link}
+                              to={sourceRoute}
+                              size="small"
+                              variant="text"
+                              sx={{ px: 0, minWidth: 0, textTransform: 'none', fontWeight: 600 }}
+                            >
+                              {displayNumber}
+                            </Button>
+                          ) : (
+                            displayNumber
+                          );
+                        })()
+                      : '-'}
                   </TableCell>
                   <TableCell>
                     <Chip size="small" variant="outlined" color={movement.color} icon={movement.icon} label={movement.label} />
@@ -264,7 +264,13 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
                         {formatTreasuryMoney(row.balanceAfter, currencyCode)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {row.balanceNature === 'Debit' ? 'Debit' : row.balanceNature === 'Credit' ? 'Credit' : 'Settled'}
+                        {row.balanceNature === 'Debit' ? (
+                          <FormattedMessage id="debit" defaultMessage="Debit" />
+                        ) : row.balanceNature === 'Credit' ? (
+                          <FormattedMessage id="credit" defaultMessage="Credit" />
+                        ) : (
+                          <FormattedMessage id="settled" defaultMessage="Settled" />
+                        )}
                       </Typography>
                     </Stack>
                   </TableCell>
@@ -277,13 +283,7 @@ export default function TreasuryMovementTable({ movements, page, totalPages, onP
 
       {totalPages > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, value) => onPageChange?.(value)}
-            color="primary"
-            disabled={isLoading}
-          />
+          <Pagination count={totalPages} page={page} onChange={(_, value) => onPageChange?.(value)} color="primary" disabled={isLoading} />
         </Box>
       )}
     </Box>
