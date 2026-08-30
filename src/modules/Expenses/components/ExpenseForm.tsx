@@ -41,7 +41,7 @@ export default function ExpenseForm({ isLoading, isSaving, form, setForm, catego
   return (
     <Box component="form" noValidate onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={9} xl={9}>
           <Card sx={{ p: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
             <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
               <FormattedMessage id="expenses.create-expense" defaultMessage="Create Expense" />
@@ -130,10 +130,10 @@ export default function ExpenseForm({ isLoading, isSaving, form, setForm, catego
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3} xl={3}>
           <Card sx={{ p: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
             <Typography variant="h4" fontWeight={700} sx={{ mb: 3 }}>
-              <FormattedMessage id="summary" defaultMessage="Summary" />
+              <FormattedMessage id="operation-summary-section" defaultMessage="Summary" />
             </Typography>
 
             <Box sx={{ mb: 3 }}>

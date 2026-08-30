@@ -98,7 +98,7 @@ export default function ExpenseDetailsPage() {
       </Box>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={9} xl={9}>
           <Card sx={{ p: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
               <IconInfoCircle color="var(--mui-palette-primary-main)" size={24} />
@@ -108,10 +108,10 @@ export default function ExpenseDetailsPage() {
             </Box>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <DetailItem label={<FormattedMessage id="date" defaultMessage="Date" />} value={expense.expenseDate} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <DetailItem
                   label={<FormattedMessage id="expenses.expense-type" defaultMessage="Expense Type" />}
                   value={
@@ -122,7 +122,7 @@ export default function ExpenseDetailsPage() {
                   }
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <DetailItem
                   label={<FormattedMessage id="expenses.cashbox" defaultMessage="Cashbox" />}
                   value={
@@ -133,13 +133,26 @@ export default function ExpenseDetailsPage() {
                   }
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailItem label={<FormattedMessage id="expenses.amount" defaultMessage="Amount" />} value={formatTreasuryMoney(expense.amount)} />
+              <Grid item xs={12} sm={6} md={4}>
+                <Box sx={{ mb: 2, bgcolor: 'primary.light', p: 1.5, borderRadius: 2 }}>
+                  <Typography variant="body2" color="primary.main" fontWeight={600} sx={{ mb: 0.5 }}>
+                    <FormattedMessage id="expenses.amount" defaultMessage="Amount" />
+                  </Typography>
+                  <Typography variant="h5" color="primary.dark" fontWeight={700}>
+                    {formatTreasuryMoney(expense.amount)}
+                  </Typography>
+                </Box>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <DetailItem
                   label={<FormattedMessage id="expenses.paid-to" defaultMessage="Paid To" />}
                   value={expense.paidToName || expense.beneficiaryPartyNameArabic || '-'}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <DetailItem
+                  label={<FormattedMessage id="expenses.treasury-reference" defaultMessage="Treasury Reference" />}
+                  value={expense.treasuryPayment?.number || expense.treasuryPaymentId || '-'}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -148,20 +161,14 @@ export default function ExpenseDetailsPage() {
               <Grid item xs={12}>
                 <DetailItem label={<FormattedMessage id="expenses.notes" defaultMessage="Notes" />} value={expense.notes} />
               </Grid>
-              <Grid item xs={12}>
-                <DetailItem
-                  label={<FormattedMessage id="expenses.treasury-reference" defaultMessage="Treasury Reference" />}
-                  value={expense.treasuryPayment?.number || expense.treasuryPaymentId || '-'}
-                />
-              </Grid>
             </Grid>
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3} xl={3}>
           <Card sx={{ p: 3, border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderRadius: 3 }}>
             <Typography variant="h4" fontWeight={700} sx={{ mb: 3 }}>
-              <FormattedMessage id="summary" defaultMessage="Summary" />
+              <FormattedMessage id="operation-summary-section" defaultMessage="Summary" />
             </Typography>
 
             <DetailItem label={<FormattedMessage id="created-at" defaultMessage="Created At" />} value={formatDateTime(expense.createdAtUtc)} />
