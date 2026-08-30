@@ -28,6 +28,8 @@ import { IconEye, IconPlus, IconSettings } from '@tabler/icons-react';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import PageTitle from 'ui-component/PageTitle';
 import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
+import ExpenseStatusChip from '../components/ExpenseStatusChip';
+import ExpenseAccountingStatusChip from '../components/ExpenseAccountingStatusChip';
 
 import { useExpenses, useExpenseCategories } from '../hooks/useExpenses';
 import type { ExpensesListParams } from '../types/expense.types';
@@ -47,14 +49,9 @@ export default function ExpensesListPage() {
 
   const { items, meta, isLoading, error, mutate } = useExpenses(params);
   const { items: categories } = useExpenseCategories({ page: 1, pageSize: 100, isActive: true });
-  const { items: accounts } = useTreasuryAccounts({ page: 1, pageSize: 100, status: 'Active' });
+  useTreasuryAccounts({ page: 1, pageSize: 100, status: 'Active' });
 
   const applyFilters = () => setParams({ ...filters, page: 1, pageSize: params.pageSize });
-  const clearFilters = () => {
-    const empty = { page: 1, pageSize: params.pageSize, search: '', expenseCategoryId: '', treasuryAccountId: '', dateFrom: '', dateTo: '' };
-    setFilters(empty);
-    setParams(empty);
-  };
 
   return (
     <Box>
@@ -101,15 +98,15 @@ export default function ExpensesListPage() {
           </Grid>
           <Grid item xs={12} md={2}>
             <TextField
-              select
               size="small"
+              select
               fullWidth
               label={<FormattedMessage id="status" defaultMessage="Status" />}
               value={filters.status || ''}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             >
               <MenuItem value=""><FormattedMessage id="all" defaultMessage="All" /></MenuItem>
-              <MenuItem value="Posted"><FormattedMessage id="expenses.status.recorded" defaultMessage="Recorded" /></MenuItem>
+              <MenuItem value="Posted"><FormattedMessage id="expenses.status.posted" defaultMessage="Posted" /></MenuItem>
               <MenuItem value="Cancelled"><FormattedMessage id="expenses.status.cancelled" defaultMessage="Cancelled" /></MenuItem>
             </TextField>
           </Grid>
@@ -195,22 +192,13 @@ export default function ExpensesListPage() {
                     </TableCell>
                     <TableCell>{row.paidToName || '-'}</TableCell>
                     <TableCell align="center">
-                      <Box
-                        sx={{
-                          display: 'inline-block',
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 1,
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          bgcolor: row.status === 'Cancelled' ? 'error.light' : 'success.light',
-                          color: row.status === 'Cancelled' ? 'error.dark' : 'success.dark'
-                        }}
-                      >
-                        {row.status === 'Cancelled' ? (
-                          <FormattedMessage id="expenses.status.cancelled" defaultMessage="Cancelled" />
-                        ) : (
-                          <FormattedMessage id="expenses.status.recorded" defaultMessage="Recorded" />
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        <ExpenseStatusChip status={row.status} />
+                        {row.status === 'Posted' && (
+                          <ExpenseAccountingStatusChip
+                            isAccountingPosted={row.isAccountingPosted}
+                            accountingPostingStatus={row.accountingPostingStatus}
+                          />
                         )}
                       </Box>
                     </TableCell>
