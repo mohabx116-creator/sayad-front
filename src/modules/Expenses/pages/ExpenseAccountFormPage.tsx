@@ -39,7 +39,7 @@ function toFormValues(account?: ReturnType<typeof useAccountingAccount>['account
     isPosting: true,
     isActive: account?.isActive ?? true,
     isSystem: false,
-    cashFlowActivityType: null as any,
+    cashFlowActivityType: account?.cashFlowActivityType ?? CASH_FLOW_ACTIVITY_TYPES.UNCLASSIFIED,
     description: account?.description ?? '',
     rowVersion: account?.rowVersion
   };
@@ -55,7 +55,7 @@ function toRequest(values: AccountingAccountFormValues): AccountingAccountInput 
     isPosting: true,
     isActive: values.isActive,
     isSystem: false,
-    cashFlowActivityType: null as any,
+    cashFlowActivityType: values.cashFlowActivityType,
     description: values.description || null
   };
 }
@@ -68,6 +68,7 @@ export default function ExpenseAccountFormPage() {
   const isEdit = Boolean(id);
 
   const { account, isLoading } = useAccountingAccount(id);
+
   const form = useForm<AccountingAccountFormValues>({
     resolver: zodResolver(isEdit ? updateAccountingAccountSchema : createAccountingAccountSchema),
     defaultValues: toFormValues()
@@ -142,7 +143,14 @@ export default function ExpenseAccountFormPage() {
                   name="code"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <TextField {...field} fullWidth label={<FormattedMessage id="account-code" defaultMessage="كود الحساب" />} error={!!fieldState.error} helperText={fieldState.error?.message} required />
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label={<FormattedMessage id="account-code" defaultMessage="كود الحساب" />}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                      required
+                    />
                   )}
                 />
               </Grid>
@@ -151,7 +159,14 @@ export default function ExpenseAccountFormPage() {
                   name="nameArabic"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <TextField {...field} fullWidth label={<FormattedMessage id="name-arabic" />} error={!!fieldState.error} helperText={fieldState.error?.message} required />
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label={<FormattedMessage id="name-arabic" />}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                      required
+                    />
                   )}
                 />
               </Grid>
@@ -160,7 +175,14 @@ export default function ExpenseAccountFormPage() {
                   name="nameEnglish"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <TextField {...field} value={field.value ?? ''} fullWidth label={<FormattedMessage id="name-english" />} error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    <TextField
+                      {...field}
+                      value={field.value ?? ''}
+                      fullWidth
+                      label={<FormattedMessage id="name-english" />}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
                   )}
                 />
               </Grid>
@@ -193,7 +215,16 @@ export default function ExpenseAccountFormPage() {
                   name="description"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <TextField {...field} value={field.value ?? ''} fullWidth multiline minRows={3} label={<FormattedMessage id="description" />} error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    <TextField
+                      {...field}
+                      value={field.value ?? ''}
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      label={<FormattedMessage id="description" />}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
                   )}
                 />
               </Grid>
