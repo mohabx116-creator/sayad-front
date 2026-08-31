@@ -9,6 +9,7 @@ import Chip from '@mui/material/Chip';
 import List from '@mui/material/List';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
+import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
@@ -121,8 +122,10 @@ export default function NotificationsPage() {
     state: { i18n }
   } = useConfig();
   const [status, setStatus] = useState<NotificationStatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
 
-  const { items, meta, isLoading, error, mutate } = useNotifications({ page: 1, pageSize: 20, status }, true);
+  const { items, meta, isLoading, error, mutate } = useNotifications({ page, pageSize, status }, true);
   const { count: unreadCount, mutate: mutateUnreadCount } = useUnreadNotificationCount(true);
 
   const statusOptions = useMemo(
@@ -146,6 +149,11 @@ export default function NotificationsPage() {
   const handleMarkAllRead = async () => {
     await markAllNotificationsRead();
     await Promise.all([mutate(), mutateUnreadCount()]);
+  };
+
+  const handleChangeStatus = (nextStatus: NotificationStatusFilter) => {
+    setStatus(nextStatus);
+    setPage(1);
   };
 
   const title = intl.formatMessage({ id: 'notifications.page-title' });
@@ -193,7 +201,7 @@ export default function NotificationsPage() {
                   label={option.label}
                   clickable
                   color={status === option.value ? 'primary' : 'default'}
-                  onClick={() => setStatus(option.value)}
+                  onClick={() => handleChangeStatus(option.value)}
                   sx={{ fontWeight: 700 }}
                 />
               ))}
@@ -245,6 +253,17 @@ export default function NotificationsPage() {
                   </Box>
                 ))}
               </List>
+              {meta.totalPages > 1 && (
+                <Stack direction="row" justifyContent="center" sx={{ mt: 3 }}>
+                  <Pagination
+                    count={meta.totalPages}
+                    page={page}
+                    onChange={(_, nextPage) => setPage(nextPage)}
+                    color="primary"
+                    shape="rounded"
+                  />
+                </Stack>
+              )}
             </Box>
           )}
         </Card>
