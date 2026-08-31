@@ -7,7 +7,8 @@ import type {
   WorkerOperationDto,
   WorkerOperationListItemDto,
   WorkerOperationListParams,
-  WorkerOperationRequest
+  WorkerOperationRequest,
+  UpdateWorkerOperationRequest
 } from '../types/operations.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
@@ -47,4 +48,12 @@ export function getOperation(id: string) {
 
 export function createOperation(request: WorkerOperationRequest) {
   return unwrap(axiosServices.post<ApiResponse<WorkerOperationDto>>('/api/labor/operations', request));
+}
+
+export function updateOperation(id: string, request: UpdateWorkerOperationRequest) {
+  return unwrap(axiosServices.put<ApiResponse<WorkerOperationDto>>(`/api/labor/operations/${id}`, request));
+}
+
+export function deleteOperation(id: string, rowVersion: string) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/labor/operations/${id}`, { data: { rowVersion } }));
 }

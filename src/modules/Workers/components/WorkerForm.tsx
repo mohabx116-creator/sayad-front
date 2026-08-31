@@ -17,8 +17,12 @@ import Typography from '@mui/material/Typography';
 import { IconDeviceFloppy, IconUser, IconWallet } from '@tabler/icons-react';
 
 import { createWorkerSchema, updateWorkerSchema } from '../schemas/worker.schema';
-import type { CreateWorkerRequest, UpdateWorkerRequest, WorkerDto, WorkerListItemDto } from '../types/workers.types';
+import type { CreateWorkerRequest, UpdateWorkerRequest, WorkerDto } from '../types/workers.types';
 import type { OperationalJobOption } from '../types/workers.types';
+import {
+  WORKER_MEAL_ALLOWANCE_OPTIONS,
+  WORKER_OVERTIME_CALCULATION_OPTIONS
+} from '../utils/workers.constants';
 
 const numberInputSx = {
   '& input[type=number]': {
@@ -77,6 +81,22 @@ export const emptyWorkerValues: WorkerFormValues = {
   wageNotes: ''
 };
 
+function calculateMealAllowance(mealAllowanceType: string, mealAllowanceValue: string, monthlyDaysBasis: string) {
+  const allowanceType = Number(mealAllowanceType || 0);
+  const allowanceValue = Number(mealAllowanceValue || 0);
+  const basisDays = Number(monthlyDaysBasis || 0);
+
+  if (allowanceType === 1) {
+    return allowanceValue;
+  }
+
+  if (allowanceType === 2) {
+    return allowanceValue * Math.max(0, basisDays);
+  }
+
+  return 0;
+}
+
 export function toWorkerFormValues(worker: WorkerDto): WorkerFormValues {
   return {
     code: worker.code,
@@ -88,9 +108,9 @@ export function toWorkerFormValues(worker: WorkerDto): WorkerFormValues {
     isActive: worker.isActive,
     wageEffectiveFrom: worker.currentWageProfile?.effectiveFrom ?? new Date().toISOString().slice(0, 10),
     dailyWage: worker.currentWageProfile?.dailyWage == null ? '' : worker.currentWageProfile.dailyWage.toFixed(2),
-    monthlyDaysBasis: '26',
-    mealAllowanceType: '0',
-    mealAllowanceValue: '0',
+    monthlyDaysBasis: worker.currentWageProfile?.monthlyDaysBasis?.toString() ?? '26',
+    mealAllowanceType: worker.currentWageProfile?.mealAllowanceType?.toString() ?? '0',
+    mealAllowanceValue: worker.currentWageProfile?.mealAllowanceValue == null ? '0' : worker.currentWageProfile.mealAllowanceValue.toFixed(2),
     overtimeCalculationType: worker.currentWageProfile?.overtimeCalculationType?.toString() ?? '0',
     overtimeRate: worker.currentWageProfile?.overtimeRate == null ? '0' : worker.currentWageProfile.overtimeRate.toFixed(4),
     wageNotes: worker.currentWageProfile?.notes ?? '',
@@ -101,23 +121,23 @@ export function toWorkerFormValues(worker: WorkerDto): WorkerFormValues {
 
 function toRequestPayload(values: WorkerFormValues): CreateWorkerRequest {
   return {
-    code: values.code.trim() || null,
-    name: values.name.trim(),
-    mobileNumber: values.mobileNumber.trim() || null,
-    address: values.address.trim() || null,
-    operationalJobId: values.operationalJobId || null,
-    notes: values.notes.trim() || null,
-    isActive: values.isActive,
-    wageProfile: {
-      effectiveFrom: values.wageEffectiveFrom,
-      dailyWage: Number(values.dailyWage || 0),
-      monthlyDaysBasis: 26,
-      mealAllowanceType: 0,
-      mealAllowanceValue: 0,
-      overtimeCalculationType: Number(values.overtimeCalculationType),
-      overtimeRate: Number(values.overtimeRate || 0),
-      notes: values.wageNotes.trim() || null,
-      rowVersion: values.wageRowVersion ?? null
+      code: values.code.trim() || null,
+      name: values.name.trim(),
+      mobileNumber: values.mobileNumber.trim() || null,
+      address: values.address.trim() || null,
+      operationalJobId: values.operationalJobId || null,
+      notes: values.notes.trim() || null,
+      isActive: values.isActive,
+      wageProfile: {
+        effectiveFrom: values.wageEffectiveFrom,
+        dailyWage: Number(values.dailyWage || 0),
+        monthlyDaysBasis: Number(values.monthlyDaysBasis || 0),
+        mealAllowanceType: Number(values.mealAllowanceType || 0),
+        mealAllowanceValue: Number(values.mealAllowanceValue || 0),
+        overtimeCalculationType: Number(values.overtimeCalculationType),
+        overtimeRate: Number(values.overtimeRate || 0),
+        notes: values.wageNotes.trim() || null,
+        rowVersion: values.wageRowVersion ?? null
     }
   };
 }
@@ -155,7 +175,11 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
     resolver: workerResolver(mode),
     values: initialValues
   });
-  const expectedMonthlySalary = Number(form.watch('dailyWage') || 0) * 26;
+  const dailyWage = Number(form.watch('dailyWage') || 0);
+  const monthlyDaysBasis = form.watch('monthlyDaysBasis');
+  const mealAllowanceType = form.watch('mealAllowanceType');
+  const mealAllowanceValue = form.watch('mealAllowanceValue');
+  const expectedMonthlySalary = dailyWage * Number(monthlyDaysBasis || 0) + calculateMealAllowance(mealAllowanceType, mealAllowanceValue, monthlyDaysBasis);
 
   useEffect(() => {
     form.reset(initialValues);
@@ -287,6 +311,107 @@ export default function WorkerForm({ mode, initialValues, operationalJobs, isSav
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                   inputProps={{ min: 0, step: '0.01', dir: 'ltr', inputMode: 'decimal' }}
+                  sx={numberInputSx}
+                onChange={(event) => field.onChange(event.target.value)}
+              />
+            )}
+          />
+        </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="monthlyDaysBasis"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="number"
+                  label={<FormattedMessage id="worker-monthly-days-basis" />}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                  inputProps={{ min: 1, max: 31, dir: 'ltr', inputMode: 'numeric' }}
+                  sx={numberInputSx}
+                  onChange={(event) => field.onChange(event.target.value)}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="mealAllowanceType"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <TextField
+                  {...field}
+                  select
+                  fullWidth
+                  label={<FormattedMessage id="worker-meal-allowance" />}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                >
+                  {WORKER_MEAL_ALLOWANCE_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      <FormattedMessage id={option.labelId} />
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="mealAllowanceValue"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="number"
+                  label={<FormattedMessage id="meal-allowance-value" />}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                  inputProps={{ min: 0, step: '0.01', dir: 'ltr', inputMode: 'decimal' }}
+                  sx={numberInputSx}
+                  onChange={(event) => field.onChange(event.target.value)}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="overtimeCalculationType"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <TextField
+                  {...field}
+                  select
+                  fullWidth
+                  label={<FormattedMessage id="overtime-calculation-type" />}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                >
+                  {WORKER_OVERTIME_CALCULATION_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      <FormattedMessage id={option.labelId} />
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="overtimeRate"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="number"
+                  label={<FormattedMessage id="overtime-rate" />}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                  inputProps={{ min: 0, step: '0.0001', dir: 'ltr', inputMode: 'decimal' }}
                   sx={numberInputSx}
                   onChange={(event) => field.onChange(event.target.value)}
                 />

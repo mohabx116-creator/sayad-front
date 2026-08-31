@@ -164,6 +164,7 @@ function MonthlySalarySummary({
   values: MonthlySalaryFormValues;
 }) {
   const dailyWage = salarySettings.dailyWage;
+  const mealAllowance = salarySettings.mealAllowance;
   const calculatedDays = Number(values.calculatedDays || 26);
   const absenceDays = Number(values.absenceDays || 0);
   const normalOvertime = parseMoney(values.normalOvertimeAmount);
@@ -174,7 +175,7 @@ function MonthlySalarySummary({
   const absenceDeduction = dailyWage * absenceDays;
   const additions = normalOvertime + nightOvertime + bonus;
   const deductions = absenceDeduction + deductionRows;
-  const netSalary = baseSalary + additions - deductions;
+  const netSalary = baseSalary + mealAllowance + additions - deductions;
 
   return (
     <Stack spacing={1}>
@@ -187,6 +188,9 @@ function MonthlySalarySummary({
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flexWrap="wrap">
         <Typography variant="body2" color="text.secondary">
           <FormattedMessage id="payroll-basic-wage" />: {baseSalary.toFixed(2)}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          <FormattedMessage id="worker-meal-allowance" />: {mealAllowance.toFixed(2)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           <FormattedMessage id="total-additions" />: {additions.toFixed(2)}
@@ -587,6 +591,9 @@ function PaySalaryFormContent({
           {readOnlyField(intl.formatMessage({ id: 'payment-amount' }), paymentAmount.toFixed(2))}
         </Grid>
         <Grid item xs={12} md={4}>
+          {readOnlyField(intl.formatMessage({ id: 'worker-meal-allowance' }), salary.mealAllowanceSnapshot.toFixed(2))}
+        </Grid>
+        <Grid item xs={12} md={4}>
           <Controller
             name="treasuryAccountId"
             control={form.control}
@@ -730,6 +737,10 @@ function MonthlySalaryViewContent({
         <Grid item xs={12} md={3}>
           <Typography variant="body2" color="text.secondary"><FormattedMessage id="payroll-basic-wage" /></Typography>
           <Typography variant="h6" dir="ltr">{salary.baseSalary.toFixed(2)}</Typography>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-meal-allowance" /></Typography>
+          <Typography variant="h6" dir="ltr">{salary.mealAllowanceSnapshot.toFixed(2)}</Typography>
         </Grid>
         <Grid item xs={12} md={3}>
           <Typography variant="body2" color="text.secondary"><FormattedMessage id="total-additions" /></Typography>

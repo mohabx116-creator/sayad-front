@@ -1,5 +1,4 @@
 import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
-import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -28,6 +27,18 @@ import WorkerStatusChip from '../components/WorkerStatusChip';
 import { useWorker, useWorkerMonthlySalaries, useWorkerSalarySettings } from '../hooks/useWorkers';
 import { WORKERS_PERMISSIONS } from '../utils/workers.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
+
+function calculateMealAllowance(mealAllowanceType: number, mealAllowanceValue: number, monthlyDaysBasis: number) {
+  if (mealAllowanceType === 1) {
+    return mealAllowanceValue;
+  }
+
+  if (mealAllowanceType === 2) {
+    return mealAllowanceValue * Math.max(0, monthlyDaysBasis);
+  }
+
+  return 0;
+}
 
 export default function WorkerDetailsPage() {
   const { id } = useParams();
@@ -72,7 +83,13 @@ export default function WorkerDetailsPage() {
           operationalJobName: worker.operationalJobName,
           dailyWage: worker.currentWageProfile.dailyWage,
           mealAllowance: worker.currentWageProfile.mealAllowanceValue,
-          expectedMonthlySalary: worker.currentWageProfile.dailyWage * 26,
+          expectedMonthlySalary:
+            worker.currentWageProfile.dailyWage * worker.currentWageProfile.monthlyDaysBasis +
+            calculateMealAllowance(
+              worker.currentWageProfile.mealAllowanceType,
+              worker.currentWageProfile.mealAllowanceValue,
+              worker.currentWageProfile.monthlyDaysBasis
+            ),
           effectiveFrom: worker.currentWageProfile.effectiveFrom,
           updatedAtUtc: worker.currentWageProfile.updatedAtUtc,
           rowVersion: worker.currentWageProfile.rowVersion
@@ -220,6 +237,14 @@ export default function WorkerDetailsPage() {
               <Grid item xs={12} md={4}>
                 <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-daily-wage" /></Typography>
                 <Typography variant="h5" dir="ltr">{currentSalarySettings.dailyWage.toFixed(2)}</Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-monthly-days-basis" /></Typography>
+                <Typography variant="h5" dir="ltr">{worker.currentWageProfile?.monthlyDaysBasis ?? '-'}</Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="body2" color="text.secondary"><FormattedMessage id="worker-meal-allowance" /></Typography>
+                <Typography variant="h5" dir="ltr">{currentSalarySettings.mealAllowance.toFixed(2)}</Typography>
               </Grid>
 
               <Grid item xs={12} md={4}>

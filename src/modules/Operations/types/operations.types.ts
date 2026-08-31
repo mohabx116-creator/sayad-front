@@ -1,4 +1,4 @@
-import type { WorkerListItemDto, ListMeta } from 'modules/Workers/types/workers.types';
+import type { WorkerListItemDto } from 'modules/Workers/types/workers.types';
 
 export type WorkerOperationListItemDto = {
   id: string;
@@ -16,7 +16,9 @@ export type WorkerOperationListItemDto = {
   clientRequestId: string | null;
 };
 
-export type WorkerOperationDto = WorkerOperationListItemDto;
+export type WorkerOperationDto = WorkerOperationListItemDto & {
+  rowVersion: string;
+};
 
 export type WorkerOperationListParams = {
   page?: number;
@@ -36,6 +38,10 @@ export type WorkerOperationRequest = {
   completedQuantity: number;
   notes?: string | null;
   clientRequestId?: string | null;
+};
+
+export type UpdateWorkerOperationRequest = WorkerOperationRequest & {
+  rowVersion: string;
 };
 
 export type WorkerOperationWorkerOption = WorkerListItemDto;

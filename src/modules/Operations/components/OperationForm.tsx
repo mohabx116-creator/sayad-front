@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import type { Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,13 +14,14 @@ import Typography from '@mui/material/Typography';
 import { IconDeviceFloppy, IconPackage, IconUser } from '@tabler/icons-react';
 
 import { createWorkerOperationSchema } from '../schemas/operation.schema';
-import type { WorkerOperationWorkerOption } from '../types/operations.types';
+import type { WorkerOperationDto, WorkerOperationRequest, WorkerOperationWorkerOption, UpdateWorkerOperationRequest } from '../types/operations.types';
 
 export type OperationFormValues = {
   operationDate: string;
   workerId: string;
   completedQuantity: string;
   notes: string;
+  rowVersion?: string;
 };
 
 type OperationFormProps = {
@@ -35,15 +36,37 @@ export const emptyOperationValues: OperationFormValues = {
   operationDate: new Date().toISOString().slice(0, 10),
   workerId: '',
   completedQuantity: '',
-  notes: ''
+  notes: '',
+  rowVersion: ''
 };
 
 export function cleanCreateOperation(values: OperationFormValues) {
-  return {
+  const request: WorkerOperationRequest = {
     workerId: values.workerId,
     operationDate: values.operationDate,
     completedQuantity: Number(values.completedQuantity),
     notes: values.notes.trim() ? values.notes.trim() : null
+  };
+  return request;
+}
+
+export function toOperationFormValues(operation: WorkerOperationDto): OperationFormValues {
+  return {
+    operationDate: operation.operationDate,
+    workerId: operation.workerId,
+    completedQuantity: operation.completedQuantity.toString(),
+    notes: operation.notes ?? '',
+    rowVersion: operation.rowVersion
+  };
+}
+
+export function cleanUpdateOperation(values: OperationFormValues): UpdateWorkerOperationRequest {
+  return {
+    workerId: values.workerId,
+    operationDate: values.operationDate,
+    completedQuantity: Number(values.completedQuantity),
+    notes: values.notes.trim() ? values.notes.trim() : null,
+    rowVersion: values.rowVersion ?? ''
   };
 }
 
@@ -56,6 +79,10 @@ export default function OperationForm({ initialValues, workers, isSaving = false
     resolver: operationResolver(),
     values: initialValues
   });
+
+  useEffect(() => {
+    form.register('rowVersion');
+  }, [form]);
 
   const workerId = form.watch('workerId');
   const selectedWorker = useMemo(() => workers.find((worker) => worker.id === workerId) ?? null, [workers, workerId]);

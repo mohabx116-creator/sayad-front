@@ -1,6 +1,5 @@
 import { lazy } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
 
 // project imports
 import MainLayout from 'layout/MainLayout';
@@ -53,7 +52,7 @@ const OperationalJobEditPage = Loadable(lazy(() => import('modules/OperationalJo
 const OperationsListPage = Loadable(lazy(() => import('modules/Operations/pages/OperationsListPage')));
 const OperationCreatePage = Loadable(lazy(() => import('modules/Operations/pages/OperationCreatePage')));
 const OperationDetailsPage = Loadable(lazy(() => import('modules/Operations/pages/OperationDetailsPage')));
-const TreasuryHomePage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryHomePage')));
+const OperationEditPage = Loadable(lazy(() => import('modules/Operations/pages/OperationEditPage')));
 const TreasuryAccountsListPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountsListPage')));
 const TreasuryAccountDetailsPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountDetailsPage')));
 const TreasuryAccountFormPage = Loadable(lazy(() => import('modules/Treasury/pages/TreasuryAccountFormPage')));
@@ -127,11 +126,6 @@ const SystemPermissionsPage = Loadable(lazy(() => import('modules/System/pages/S
 const SystemAuditPage = Loadable(lazy(() => import('modules/System/pages/SystemAuditPage')));
 const SystemMaintenancePage = Loadable(lazy(() => import('modules/System/pages/SystemMaintenancePage')));
 const SystemDangerZonePage = Loadable(lazy(() => import('modules/System/pages/SystemDangerZonePage')));
-
-function OperationEditRedirect() {
-  const { id } = useParams();
-  return <Navigate to={id ? `/labor/operations/${id}` : '/labor/operations'} replace />;
-}
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -300,7 +294,14 @@ const MainRoutes = {
         </PermissionRouteGuard>
       )
     },
-    { path: '/labor/operations/:id/edit', element: <OperationEditRedirect /> },
+    {
+      path: '/labor/operations/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={OPERATIONS_PERMISSIONS.edit}>
+          <OperationEditPage />
+        </PermissionRouteGuard>
+      )
+    },
     {
       path: '/treasury/accounts',
       element: (

@@ -10,5 +10,6 @@ export const createWorkerOperationSchema = z.object({
       const parsed = Number(value);
       return Number.isFinite(parsed) && parsed > 0;
     }, 'Completed quantity must be greater than 0'),
-  notes: z.string().max(1000).optional().or(z.literal(''))
+  notes: z.string().max(1000).optional().or(z.literal('')),
+  rowVersion: z.string().optional()
 });

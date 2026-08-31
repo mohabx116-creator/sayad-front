@@ -1,6 +1,8 @@
 export const OPERATIONS_PERMISSIONS = {
   view: 'labor.operations.view',
-  create: 'labor.operations.create'
+  create: 'labor.operations.create',
+  edit: 'labor.operations.edit',
+  delete: 'labor.operations.delete'
 } as const;
 
 export const OPERATIONS_VIEW_PERMISSIONS = [OPERATIONS_PERMISSIONS.view] as const;

@@ -1,20 +1,25 @@
+import { useState } from 'react';
 import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
-import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { IconArrowLeft, IconFileText } from '@tabler/icons-react';
+import { IconArrowLeft, IconEdit, IconFileText, IconTrash } from '@tabler/icons-react';
 
+import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { useDispatch } from 'store';
+import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
+import { deleteOperation } from '../api/operationsApi';
 import { useOperation } from '../hooks/useOperations';
 import { formatOperationDate, formatOperationDateTime } from '../utils/operations.format';
+import { OPERATIONS_PERMISSIONS } from '../utils/operations.constants';
 
 function DetailItem({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
   return (
@@ -31,9 +36,42 @@ function DetailItem({ label, value }: { label: React.ReactNode; value: React.Rea
 
 export default function OperationDetailsPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const intl = useIntl();
-  const { operation, isLoading, error } = useOperation(id);
+  const dispatch = useDispatch();
+  const [isSaving, setIsSaving] = useState(false);
+  const { operation, isLoading, error, mutate } = useOperation(id);
   useBrowserTitle(operation ? [`${operation.operationalJobName} - ${operation.workerName}`] : []);
+
+  const notify = (message: string, severity: 'success' | 'error' = 'success') => {
+    dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
+  };
+
+  const runAction = async (action: () => Promise<unknown>, refresh = true) => {
+    try {
+      setIsSaving(true);
+      await action();
+      if (refresh) {
+        await mutate();
+      }
+      notify(intl.formatMessage({ id: 'operation-action-success' }));
+    } catch (actionError) {
+      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'operation-action-failed' }), 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!operation || !window.confirm(intl.formatMessage({ id: 'operation-delete-confirm' }, { code: operation.workerCode }))) {
+      return;
+    }
+
+    await runAction(async () => {
+      await deleteOperation(operation.id, operation.rowVersion);
+      navigate('/labor/operations', { replace: true });
+    }, false);
+  };
 
   if (isLoading) {
     return <Loader />;
@@ -66,6 +104,16 @@ export default function OperationDetailsPage() {
               <Button component={Link} to="/labor/operations" variant="outlined" color="inherit" startIcon={<IconArrowLeft size={18} />}>
                 <FormattedMessage id="back" />
               </Button>
+              <PermissionGuard permission={OPERATIONS_PERMISSIONS.edit}>
+                <Button component={Link} to={`/labor/operations/${operation.id}/edit`} variant="outlined" startIcon={<IconEdit size={18} />}>
+                  <FormattedMessage id="edit" />
+                </Button>
+              </PermissionGuard>
+              <PermissionGuard permission={OPERATIONS_PERMISSIONS.delete}>
+                <Button color="error" variant="outlined" disabled={isSaving} onClick={handleDelete} startIcon={<IconTrash size={18} />}>
+                  <FormattedMessage id="delete" />
+                </Button>
+              </PermissionGuard>
             </Stack>
           }
         >

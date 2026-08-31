@@ -35,6 +35,18 @@ import WorkerStatusChip from '../components/WorkerStatusChip';
 import { useWorkers } from '../hooks/useWorkers';
 import { WORKERS_PAGE_SIZE, WORKERS_PERMISSIONS } from '../utils/workers.constants';
 
+function calculateMealAllowance(mealAllowanceType: number, mealAllowanceValue: number, monthlyDaysBasis: number) {
+  if (mealAllowanceType === 1) {
+    return mealAllowanceValue;
+  }
+
+  if (mealAllowanceType === 2) {
+    return mealAllowanceValue * Math.max(0, monthlyDaysBasis);
+  }
+
+  return 0;
+}
+
 const sortOptions = [
   { value: 'code', labelId: 'worker-sort-code' },
   { value: 'name', labelId: 'worker-sort-name' },
@@ -245,7 +257,18 @@ export default function WorkersListPage() {
                       <TableCell dir="ltr">{worker.mobileNumber ?? '-'}</TableCell>
                       <TableCell>{worker.operationalJobName}</TableCell>
                       <TableCell dir="ltr">{worker.currentWageProfile ? worker.currentWageProfile.dailyWage.toFixed(2) : '-'}</TableCell>
-                      <TableCell dir="ltr">{worker.currentWageProfile ? (Math.round((worker.currentWageProfile.dailyWage * 26) / 100) * 100).toFixed(2) : '-'}</TableCell>
+                      <TableCell dir="ltr">
+                        {worker.currentWageProfile
+                          ? (
+                              worker.currentWageProfile.dailyWage * worker.currentWageProfile.monthlyDaysBasis +
+                              calculateMealAllowance(
+                                worker.currentWageProfile.mealAllowanceType,
+                                worker.currentWageProfile.mealAllowanceValue,
+                                worker.currentWageProfile.monthlyDaysBasis
+                              )
+                            ).toFixed(2)
+                          : '-'}
+                      </TableCell>
                       <TableCell><WorkerStatusChip isActive={worker.isActive} /></TableCell>
                       <TableCell align="center">
                         <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap">
