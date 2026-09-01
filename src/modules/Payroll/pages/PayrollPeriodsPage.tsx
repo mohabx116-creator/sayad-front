@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
+import LoadingButton from '@mui/lab/LoadingButton';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -25,15 +26,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import {
-  IconCheck,
-  IconEye,
-  IconPencil,
-  IconPlus,
-  IconRefresh,
-  IconSearch,
-  IconTrash
-} from '@tabler/icons-react';
+import { IconCalculator, IconCheck, IconEye, IconPencil, IconPlus, IconRefresh, IconSearch, IconTrash } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -43,13 +36,15 @@ import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 
 import {
-  confirmPayrollPeriod,
+  calculatePayrollPeriod,
   createPayrollPeriod,
   deletePayrollPeriod,
+  confirmPayrollPeriod,
+  recalculatePayrollPeriod,
   updatePayrollPeriod
 } from '../api/payrollApi';
 import { usePayrollPeriod, usePayrollPeriods } from '../hooks/usePayroll';
-import { PAYROLL_PAGE_SIZE, PAYROLL_PERMISSIONS } from '../utils/payroll.constants';
+import { PAYROLL_PAGE_SIZE, PAYROLL_PERIOD_STATUS, PAYROLL_PERMISSIONS } from '../utils/payroll.constants';
 import type { PayrollPeriodFormValues, PayrollPeriodListItemDto, PayrollStatementDto } from '../types/payroll.types';
 
 type PayrollFilters = {
@@ -175,8 +170,14 @@ export default function PayrollPeriodsPage() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
   const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
 
-  const { items: periods, meta, isLoading, mutate: refreshPeriods } = usePayrollPeriods({
+  const {
+    items: periods,
+    meta,
+    isLoading,
+    mutate: refreshPeriods
+  } = usePayrollPeriods({
     page: filters.page + 1,
     pageSize: filters.pageSize,
     search: filters.search || undefined,
@@ -186,7 +187,11 @@ export default function PayrollPeriodsPage() {
     sortDirection: filters.sortDirection
   });
 
-  const { period: selectedPeriod, isLoading: selectedPeriodLoading, mutate: refreshSelectedPeriod } = usePayrollPeriod(selectedPeriodId ?? undefined);
+  const {
+    period: selectedPeriod,
+    isLoading: selectedPeriodLoading,
+    mutate: refreshSelectedPeriod
+  } = usePayrollPeriod(selectedPeriodId ?? undefined);
 
   useEffect(() => {
     if (!selectedPeriodId && periods.length > 0) {
@@ -251,7 +256,10 @@ export default function PayrollPeriodsPage() {
       await refreshSelectedPeriod();
       notify(t(intl.locale, 'تم إنشاء مسير الرواتب بنجاح.', 'Payroll period created successfully.'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : t(intl.locale, 'تعذر إنشاء مسير الرواتب.', 'Unable to create payroll period.'), 'error');
+      notify(
+        error instanceof Error ? error.message : t(intl.locale, 'تعذر إنشاء مسير الرواتب.', 'Unable to create payroll period.'),
+        'error'
+      );
     } finally {
       setBusy(false);
     }
@@ -276,6 +284,40 @@ export default function PayrollPeriodsPage() {
     }
   }
 
+  async function handleRecalculatePeriod() {
+    if (!selectedPeriod) {
+      return;
+    }
+
+    const currentStatus = selectedPeriod.status;
+    setIsRecalculating(true);
+    try {
+      if (currentStatus === PAYROLL_PERIOD_STATUS.Calculated) {
+        await recalculatePayrollPeriod(selectedPeriod.id);
+      } else {
+        await calculatePayrollPeriod(selectedPeriod.id);
+      }
+      await refreshPeriods();
+      await refreshSelectedPeriod();
+      notify(
+        t(
+          intl.locale,
+          currentStatus === PAYROLL_PERIOD_STATUS.Calculated ? 'تمت إعادة حساب مسير الرواتب بنجاح.' : 'تم حساب مسير الرواتب بنجاح.',
+          currentStatus === PAYROLL_PERIOD_STATUS.Calculated
+            ? 'Payroll period recalculated successfully.'
+            : 'Payroll period calculated successfully.'
+        )
+      );
+    } catch (error) {
+      notify(
+        error instanceof Error ? error.message : t(intl.locale, 'تعذر إعادة حساب مسير الرواتب.', 'Unable to recalculate payroll period.'),
+        'error'
+      );
+    } finally {
+      setIsRecalculating(false);
+    }
+  }
+
   async function handleConfirmPeriod() {
     if (!selectedPeriod) {
       return;
@@ -288,7 +330,10 @@ export default function PayrollPeriodsPage() {
       await refreshSelectedPeriod();
       notify(t(intl.locale, 'تم تأكيد مسير الرواتب بنجاح.', 'Payroll period confirmed successfully.'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : t(intl.locale, 'تعذر تأكيد مسير الرواتب.', 'Unable to confirm payroll period.'), 'error');
+      notify(
+        error instanceof Error ? error.message : t(intl.locale, 'تعذر تأكيد مسير الرواتب.', 'Unable to confirm payroll period.'),
+        'error'
+      );
     } finally {
       setBusy(false);
     }
@@ -319,7 +364,10 @@ export default function PayrollPeriodsPage() {
       setSelectedStatementId(null);
       notify(t(intl.locale, 'تم حذف مسير الرواتب بنجاح.', 'Payroll period deleted successfully.'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : t(intl.locale, 'تعذر حذف مسير الرواتب.', 'Unable to delete payroll period.'), 'error');
+      notify(
+        error instanceof Error ? error.message : t(intl.locale, 'تعذر حذف مسير الرواتب.', 'Unable to delete payroll period.'),
+        'error'
+      );
     } finally {
       setBusy(false);
     }
@@ -327,6 +375,10 @@ export default function PayrollPeriodsPage() {
 
   const periodRows = periods;
   const statementRows = selectedPeriod?.statements ?? [];
+  const canCalculatePeriod =
+    selectedPeriod != null &&
+    (selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft || selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated);
+  const canConfirmPeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft;
 
   return (
     <MainCard content={false}>
@@ -363,7 +415,12 @@ export default function PayrollPeriodsPage() {
 
         <Card sx={{ p: 2.25, mb: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <Stack spacing={2}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }} justifyContent="space-between">
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={1.5}
+              alignItems={{ xs: 'stretch', md: 'center' }}
+              justifyContent="space-between"
+            >
               <Stack direction="row" spacing={1.5} flexWrap="wrap" alignItems="center">
                 <TextField
                   size="small"
@@ -407,11 +464,7 @@ export default function PayrollPeriodsPage() {
               </Stack>
 
               <PermissionGuard permission={PAYROLL_PERMISSIONS.create}>
-                <Button
-                  variant="contained"
-                  startIcon={<IconPlus size={16} />}
-                  onClick={() => setIsCreateOpen(true)}
-                >
+                <Button variant="contained" startIcon={<IconPlus size={16} />} onClick={() => setIsCreateOpen(true)}>
                   {t(intl.locale, 'إنشاء فترة جديدة', 'Create payroll period')}
                 </Button>
               </PermissionGuard>
@@ -470,7 +523,11 @@ export default function PayrollPeriodsPage() {
                                 </Stack>
                               </TableCell>
                               <TableCell>
-                                <Chip size="small" color={getPeriodStatusColor(period.status)} label={getPeriodStatusLabel(intl.locale, period.status)} />
+                                <Chip
+                                  size="small"
+                                  color={getPeriodStatusColor(period.status)}
+                                  label={getPeriodStatusLabel(intl.locale, period.status)}
+                                />
                               </TableCell>
                               <TableCell align="right">{formatCurrency(intl.locale, period.totalNetWage)}</TableCell>
                               <TableCell align="right" onClick={(event) => event.stopPropagation()}>
@@ -509,7 +566,11 @@ export default function PayrollPeriodsPage() {
 
           <Grid item xs={12} lg={7}>
             <MainCard
-              title={selectedPeriod ? formatMonthLabel(intl.locale, selectedPeriod.year, selectedPeriod.month) : t(intl.locale, 'تفاصيل الفترة', 'Period details')}
+              title={
+                selectedPeriod
+                  ? formatMonthLabel(intl.locale, selectedPeriod.year, selectedPeriod.month)
+                  : t(intl.locale, 'تفاصيل الفترة', 'Period details')
+              }
               content={false}
               secondary={
                 <Stack direction="row" spacing={0.5}>
@@ -519,10 +580,28 @@ export default function PayrollPeriodsPage() {
                       variant="outlined"
                       startIcon={<IconPencil size={16} />}
                       onClick={() => setIsEditOpen(true)}
-                      disabled={!selectedPeriod || selectedPeriod.status !== 1 || busy}
+                      disabled={!selectedPeriod || selectedPeriod.status !== 1 || busy || isRecalculating}
                     >
                       {t(intl.locale, 'تعديل', 'Edit')}
                     </Button>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
+                    <LoadingButton
+                      size="small"
+                      variant="contained"
+                      color="success"
+                      loading={isRecalculating}
+                      loadingPosition="start"
+                      startIcon={<IconCalculator size={16} />}
+                      onClick={handleRecalculatePeriod}
+                      disabled={!canCalculatePeriod || busy || isRecalculating}
+                    >
+                      {t(
+                        intl.locale,
+                        selectedPeriod?.status === PAYROLL_PERIOD_STATUS.Calculated ? 'إعادة حساب المسير' : 'حساب المسير',
+                        selectedPeriod?.status === PAYROLL_PERIOD_STATUS.Calculated ? 'Recalculate payroll' : 'Calculate payroll'
+                      )}
+                    </LoadingButton>
                   </PermissionGuard>
                   <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
                     <Button
@@ -531,7 +610,7 @@ export default function PayrollPeriodsPage() {
                       color="success"
                       startIcon={<IconCheck size={16} />}
                       onClick={handleConfirmPeriod}
-                      disabled={!selectedPeriod || selectedPeriod.status !== 1 || busy}
+                      disabled={!canConfirmPeriod || busy || isRecalculating}
                     >
                       {t(intl.locale, 'تأكيد', 'Confirm')}
                     </Button>
@@ -557,12 +636,19 @@ export default function PayrollPeriodsPage() {
                 </Box>
               ) : !selectedPeriod ? (
                 <Box sx={{ p: 3 }}>
-                  <Alert severity="info">{t(intl.locale, 'اختر فترة رواتب لعرض تفاصيلها.', 'Select a payroll period to view details.')}</Alert>
+                  <Alert severity="info">
+                    {t(intl.locale, 'اختر فترة رواتب لعرض تفاصيلها.', 'Select a payroll period to view details.')}
+                  </Alert>
                 </Box>
               ) : (
                 <Box sx={{ p: 2.25 }}>
                   <Stack spacing={2.25}>
-                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                    <Stack
+                      direction={{ xs: 'column', md: 'row' }}
+                      spacing={1.5}
+                      justifyContent="space-between"
+                      alignItems={{ xs: 'flex-start', md: 'center' }}
+                    >
                       <Stack spacing={0.75}>
                         <Typography variant="h5" fontWeight={800}>
                           {formatMonthLabel(intl.locale, selectedPeriod.year, selectedPeriod.month)}
@@ -570,7 +656,11 @@ export default function PayrollPeriodsPage() {
                         <Stack direction="row" spacing={1} flexWrap="wrap">
                           <Chip size="small" label={`${selectedPeriod.year}`} variant="outlined" />
                           <Chip size="small" label={`${selectedPeriod.month}`} variant="outlined" />
-                          <Chip size="small" color={getPeriodStatusColor(selectedPeriod.status)} label={getPeriodStatusLabel(intl.locale, selectedPeriod.status)} />
+                          <Chip
+                            size="small"
+                            color={getPeriodStatusColor(selectedPeriod.status)}
+                            label={getPeriodStatusLabel(intl.locale, selectedPeriod.status)}
+                          />
                         </Stack>
                       </Stack>
 
@@ -578,12 +668,7 @@ export default function PayrollPeriodsPage() {
                         <Button size="small" variant="text" onClick={() => setIsCreateOpen(true)} startIcon={<IconPlus size={16} />}>
                           {t(intl.locale, 'جديد', 'New')}
                         </Button>
-                        <Button
-                          size="small"
-                          variant="text"
-                          onClick={() => refreshSelectedPeriod()}
-                          startIcon={<IconRefresh size={16} />}
-                        >
+                        <Button size="small" variant="text" onClick={() => refreshSelectedPeriod()} startIcon={<IconRefresh size={16} />}>
                           {t(intl.locale, 'تحديث', 'Refresh')}
                         </Button>
                       </Stack>
@@ -594,13 +679,22 @@ export default function PayrollPeriodsPage() {
                         <SummaryCard label={t(intl.locale, 'العمال', 'Workers')} value={selectedPeriod.workerCount} />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3}>
-                        <SummaryCard label={t(intl.locale, 'الأجر الأساسي', 'Basic wage')} value={formatCurrency(intl.locale, selectedPeriod.totalBasicWage)} />
+                        <SummaryCard
+                          label={t(intl.locale, 'الأجر الأساسي', 'Basic wage')}
+                          value={formatCurrency(intl.locale, selectedPeriod.totalBasicWage)}
+                        />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3}>
-                        <SummaryCard label={t(intl.locale, 'إجمالي الخصومات', 'Total deductions')} value={formatCurrency(intl.locale, selectedPeriod.totalDeductions)} />
+                        <SummaryCard
+                          label={t(intl.locale, 'إجمالي الخصومات', 'Total deductions')}
+                          value={formatCurrency(intl.locale, selectedPeriod.totalDeductions)}
+                        />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3}>
-                        <SummaryCard label={t(intl.locale, 'صافي الأجر', 'Net wage')} value={formatCurrency(intl.locale, selectedPeriod.totalNetWage)} />
+                        <SummaryCard
+                          label={t(intl.locale, 'صافي الأجر', 'Net wage')}
+                          value={formatCurrency(intl.locale, selectedPeriod.totalNetWage)}
+                        />
                       </Grid>
                     </Grid>
 
@@ -656,7 +750,11 @@ export default function PayrollPeriodsPage() {
                                 <TableCell align="right">{formatCurrency(intl.locale, deductionsTotal(statement))}</TableCell>
                                 <TableCell align="right">{formatCurrency(intl.locale, statement.netWage)}</TableCell>
                                 <TableCell>
-                                  <Chip size="small" label={getPeriodStatusLabel(intl.locale, selectedPeriod.status)} color={getPeriodStatusColor(selectedPeriod.status)} />
+                                  <Chip
+                                    size="small"
+                                    label={getPeriodStatusLabel(intl.locale, selectedPeriod.status)}
+                                    color={getPeriodStatusColor(selectedPeriod.status)}
+                                  />
                                 </TableCell>
                                 <TableCell align="right" onClick={(event) => event.stopPropagation()}>
                                   <IconButton size="small" onClick={() => setSelectedStatementId(statement.id)}>
@@ -683,21 +781,37 @@ export default function PayrollPeriodsPage() {
                               </Typography>
                             </Box>
                             <Stack direction="row" spacing={1} flexWrap="wrap">
-                              <Chip size="small" variant="outlined" label={`${t(intl.locale, 'الأجر اليومي', 'Daily wage')}: ${formatCurrency(intl.locale, selectedStatement.dailyWageSnapshot)}`} />
-                              <Chip size="small" variant="outlined" label={`${t(intl.locale, 'صافي الأجر', 'Net wage')}: ${formatCurrency(intl.locale, selectedStatement.netWage)}`} />
+                              <Chip
+                                size="small"
+                                variant="outlined"
+                                label={`${t(intl.locale, 'الأجر اليومي', 'Daily wage')}: ${formatCurrency(intl.locale, selectedStatement.dailyWageSnapshot)}`}
+                              />
+                              <Chip
+                                size="small"
+                                variant="outlined"
+                                label={`${t(intl.locale, 'صافي الأجر', 'Net wage')}: ${formatCurrency(intl.locale, selectedStatement.netWage)}`}
+                              />
                             </Stack>
                           </Stack>
 
                           <Grid container spacing={1.5}>
-
                             <Grid item xs={12} sm={6} md={3}>
-                              <SummaryCard label={t(intl.locale, 'الإضافي', 'Overtime')} value={formatCurrency(intl.locale, selectedStatement.overtimeAmount)} />
+                              <SummaryCard
+                                label={t(intl.locale, 'الإضافي', 'Overtime')}
+                                value={formatCurrency(intl.locale, selectedStatement.overtimeAmount)}
+                              />
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
-                              <SummaryCard label={t(intl.locale, 'ليلي', 'Night work')} value={formatCurrency(intl.locale, selectedStatement.nightWorkAmount)} />
+                              <SummaryCard
+                                label={t(intl.locale, 'ليلي', 'Night work')}
+                                value={formatCurrency(intl.locale, selectedStatement.nightWorkAmount)}
+                              />
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
-                              <SummaryCard label={t(intl.locale, 'مكافآت', 'Bonuses')} value={formatCurrency(intl.locale, selectedStatement.bonusAmount)} />
+                              <SummaryCard
+                                label={t(intl.locale, 'مكافآت', 'Bonuses')}
+                                value={formatCurrency(intl.locale, selectedStatement.bonusAmount)}
+                              />
                             </Grid>
                           </Grid>
 
@@ -718,7 +832,9 @@ export default function PayrollPeriodsPage() {
                                 {selectedStatement.movements.filter((movement) => movement.effectSnapshot === 2).length === 0 ? (
                                   <TableRow>
                                     <TableCell colSpan={4}>
-                                      <Alert severity="info">{t(intl.locale, 'لا توجد خصومات داخل هذا الكشف.', 'No deductions in this statement.')}</Alert>
+                                      <Alert severity="info">
+                                        {t(intl.locale, 'لا توجد خصومات داخل هذا الكشف.', 'No deductions in this statement.')}
+                                      </Alert>
                                     </TableCell>
                                   </TableRow>
                                 ) : (
