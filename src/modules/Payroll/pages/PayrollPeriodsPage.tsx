@@ -36,6 +36,7 @@ import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 
 import {
+  approvePayrollPeriod,
   calculatePayrollPeriod,
   createPayrollPeriod,
   deletePayrollPeriod,
@@ -171,6 +172,7 @@ export default function PayrollPeriodsPage() {
   const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
 
   const {
     items: periods,
@@ -339,6 +341,30 @@ export default function PayrollPeriodsPage() {
     }
   }
 
+  async function handleApprovePeriod() {
+    if (!selectedPeriod) {
+      return;
+    }
+
+    setIsApproving(true);
+    try {
+      await approvePayrollPeriod(selectedPeriod.id, {
+        rowVersion: selectedPeriod.rowVersion,
+        approvalNotes: null
+      });
+      await refreshPeriods();
+      await refreshSelectedPeriod();
+      notify(t(intl.locale, 'تم اعتماد مسير الرواتب بنجاح.', 'Payroll period approved successfully.'));
+    } catch (error) {
+      notify(
+        error instanceof Error ? error.message : t(intl.locale, 'تعذر اعتماد مسير الرواتب.', 'Unable to approve payroll period.'),
+        'error'
+      );
+    } finally {
+      setIsApproving(false);
+    }
+  }
+
   async function handleDeletePeriod() {
     if (!selectedPeriod) {
       return;
@@ -378,6 +404,7 @@ export default function PayrollPeriodsPage() {
   const canCalculatePeriod =
     selectedPeriod != null &&
     (selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft || selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated);
+  const canApprovePeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated;
   const canConfirmPeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft;
 
   return (
@@ -601,6 +628,20 @@ export default function PayrollPeriodsPage() {
                         selectedPeriod?.status === PAYROLL_PERIOD_STATUS.Calculated ? 'إعادة حساب المسير' : 'حساب المسير',
                         selectedPeriod?.status === PAYROLL_PERIOD_STATUS.Calculated ? 'Recalculate payroll' : 'Calculate payroll'
                       )}
+                    </LoadingButton>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PAYROLL_PERMISSIONS.approve}>
+                    <LoadingButton
+                      size="small"
+                      variant="contained"
+                      color="info"
+                      loading={isApproving}
+                      loadingPosition="start"
+                      startIcon={<IconCheck size={16} />}
+                      onClick={handleApprovePeriod}
+                      disabled={!canApprovePeriod || busy || isRecalculating || isApproving}
+                    >
+                      {t(intl.locale, 'اعتماد المسير', 'Approve payroll')}
                     </LoadingButton>
                   </PermissionGuard>
                   <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
