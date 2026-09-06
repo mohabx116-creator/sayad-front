@@ -65,6 +65,26 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+export function getAuditRecordValue(record: Record<string, unknown>, key: string): unknown {
+  if (Object.hasOwn(record, key)) {
+    return record[key];
+  }
+
+  const requestedKey = key.toLowerCase();
+  const actualKey = Object.keys(record).find((entryKey) => entryKey.toLowerCase() === requestedKey);
+  return actualKey ? record[actualKey] : undefined;
+}
+
+export function getAuditRecordValueByKeys(record: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    if (Object.hasOwn(record, key)) {
+      return record[key];
+    }
+  }
+
+  return undefined;
+}
+
 export function localizeAuditAction(action: string, intl: IntlShape): string {
   const messageId = toMessageId(action, ACTION_MESSAGE_IDS);
   if (!messageId) {

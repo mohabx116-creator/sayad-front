@@ -31,6 +31,7 @@ import type { SystemAuditLogDto } from '../types/system.types';
 import {
   formatAuditKey,
   formatAuditValue,
+  getAuditRecordValueByKeys,
   isRecord,
   localizeAuditAction,
   localizeAuditEntity,
@@ -121,6 +122,12 @@ export default function SystemAuditPage() {
   const selectedLogOldValues = useMemo(() => parseAuditJson(selectedLogOldValuesJson), [selectedLogOldValuesJson]);
   const selectedLogNewValues = useMemo(() => parseAuditJson(selectedLogNewValuesJson), [selectedLogNewValuesJson]);
   const isPayrollReopen = selectedLog?.action === 'PayrollPeriodReopened';
+  const reopenFromStatus = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['fromStatus', 'FromStatus']) : null;
+  const reopenOldStatus = isRecord(selectedLogOldValues) ? getAuditRecordValueByKeys(selectedLogOldValues, ['status', 'Status']) : null;
+  const reopenPreviousStatus = reopenFromStatus ?? reopenOldStatus;
+  const reopenNewStatus = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['toStatus', 'ToStatus']) : null;
+  const reopenReason = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['reason', 'Reason']) : null;
+  const reopenedByUserId = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['reopenedByUserId', 'ReopenedByUserId']) : null;
 
   if (isLoading) return <Loader />;
 
@@ -338,25 +345,19 @@ export default function SystemAuditPage() {
                     <Stack spacing={1.5}>
                       <DetailRow
                         label={intl.formatMessage({ id: 'audit-log.reopen.previous-status' })}
-                        value={localizePayrollStatus(
-                          typeof selectedLogOldValues.Status === 'string' ? selectedLogOldValues.Status : null,
-                          intl
-                        )}
+                        value={localizePayrollStatus(typeof reopenPreviousStatus === 'string' ? reopenPreviousStatus : null, intl)}
                       />
                       <DetailRow
                         label={intl.formatMessage({ id: 'audit-log.reopen.new-status' })}
-                        value={localizePayrollStatus(
-                          typeof selectedLogNewValues.ToStatus === 'string' ? selectedLogNewValues.ToStatus : null,
-                          intl
-                        )}
+                        value={localizePayrollStatus(typeof reopenNewStatus === 'string' ? reopenNewStatus : null, intl)}
                       />
                       <DetailRow
                         label={intl.formatMessage({ id: 'audit-log.reopen.reason' })}
-                        value={typeof selectedLogNewValues.Reason === 'string' ? selectedLogNewValues.Reason : '-'}
+                        value={typeof reopenReason === 'string' ? reopenReason : '-'}
                       />
                       <DetailRow
                         label={intl.formatMessage({ id: 'audit-log.reopen.reopened-by' })}
-                        value={selectedLog.actorName ?? selectedLog.actorEmail ?? formatAuditValue('ReopenedByUserId', selectedLogNewValues.ReopenedByUserId, intl)}
+                        value={selectedLog.actorName ?? selectedLog.actorEmail ?? formatAuditValue('ReopenedByUserId', reopenedByUserId, intl)}
                       />
                     </Stack>
                   </Box>
