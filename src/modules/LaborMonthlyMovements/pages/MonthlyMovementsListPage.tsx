@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
+import { mutate as globalMutate } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
@@ -28,19 +28,10 @@ import { useWorkers } from 'modules/Workers/hooks/useWorkers';
 import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import { approveMonthlyMovement, deleteMonthlyMovement, rejectMonthlyMovement } from '../api/monthlyMovementsApi';
+import { approveMonthlyMovement, deleteMonthlyMovement, getMonthlyMovement, rejectMonthlyMovement } from '../api/monthlyMovementsApi';
 import MonthlyMovementStatusChip from '../components/MonthlyMovementStatusChip';
 import { useMonthlyMovements } from '../hooks/useMonthlyMovements';
 import { MONTHLY_MOVEMENT_STATUS_OPTIONS, MONTHLY_MOVEMENT_TYPE_OPTIONS, MONTHLY_MOVEMENTS_PAGE_SIZE, MONTHLY_MOVEMENTS_PERMISSIONS } from '../utils/monthlyMovements.constants';
-
-const sortOptions = [
-  { value: 'movementDate', labelId: 'monthly-movement-sort-date' },
-  { value: 'worker', labelId: 'monthly-movement-sort-worker' },
-  { value: 'movementType', labelId: 'monthly-movement-sort-type' },
-  { value: 'status', labelId: 'monthly-movement-sort-status' },
-  { value: 'amount', labelId: 'monthly-movement-sort-amount' },
-  { value: 'createdAtUtc', labelId: 'monthly-movement-sort-created-at' }
-] as const;
 
 function getMonthOptions() {
   return Array.from({ length: 12 }, (_, index) => index + 1);
@@ -63,8 +54,8 @@ export default function MonthlyMovementsListPage() {
   const [status, setStatus] = useState('');
   const [month, setMonth] = useState(String(today.getMonth() + 1));
   const [year, setYear] = useState(String(today.getFullYear()));
-  const [sortBy, setSortBy] = useState('movementDate');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortBy] = useState('movementDate');
+  const [sortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { items: workers } = useWorkers({ page: 1, pageSize: 100, sortBy: 'name', sortDirection: 'asc' });
   const { items, meta, isLoading, error, mutate } = useMonthlyMovements({
@@ -89,10 +80,31 @@ export default function MonthlyMovementsListPage() {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
+  const refreshMonthlyMovementCaches = async () => {
+    await Promise.all([
+      mutate(),
+      globalMutate(
+        (key) => typeof key === 'string' && key.startsWith('/api/labor/monthly-movements'),
+        undefined,
+        { revalidate: true }
+      )
+    ]);
+  };
+
+  const approveWithFreshRowVersion = async (movementId: string) => {
+    const freshMovement = await getMonthlyMovement(movementId);
+    return approveMonthlyMovement(movementId, freshMovement.rowVersion);
+  };
+
+  const rejectWithFreshRowVersion = async (movementId: string, reason: string) => {
+    const freshMovement = await getMonthlyMovement(movementId);
+    return rejectMonthlyMovement(movementId, freshMovement.rowVersion, reason);
+  };
+
   const runAction = async (action: () => Promise<unknown>) => {
     try {
       await action();
-      await mutate();
+      await refreshMonthlyMovementCaches();
       notify(intl.formatMessage({ id: 'monthly-movements-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'monthly-movements-action-failed' }), 'error');
@@ -105,7 +117,7 @@ export default function MonthlyMovementsListPage() {
       return;
     }
 
-    await runAction(() => rejectMonthlyMovement(movement.id, movement.rowVersion, reason.trim()));
+    await runAction(() => rejectWithFreshRowVersion(movement.id, reason.trim()));
   };
 
   const handleDelete = async (movement: typeof items[number]) => {
@@ -312,7 +324,7 @@ export default function MonthlyMovementsListPage() {
                             <IconButton
                               size="small"
                               disabled={movement.status !== 1}
-                              onClick={() => runAction(() => approveMonthlyMovement(movement.id, movement.rowVersion))}
+                              onClick={() => runAction(() => approveWithFreshRowVersion(movement.id))}
                             >
                               <IconThumbUp size={18} />
                             </IconButton>

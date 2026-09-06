@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { mutate as globalMutate } from 'swr';
 
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -14,7 +15,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import { useWorkers } from 'modules/Workers/hooks/useWorkers';
-import { approveMonthlyMovement, deleteMonthlyMovement, rejectMonthlyMovement, updateMonthlyMovement } from '../api/monthlyMovementsApi';
+import { approveMonthlyMovement, deleteMonthlyMovement, getMonthlyMovement, rejectMonthlyMovement, updateMonthlyMovement } from '../api/monthlyMovementsApi';
 import MonthlyMovementForm, { cleanUpdateMonthlyMovement, toMonthlyMovementFormValues } from '../components/MonthlyMovementForm';
 import MonthlyMovementStatusChip from '../components/MonthlyMovementStatusChip';
 import { useMonthlyMovement } from '../hooks/useMonthlyMovements';
@@ -35,6 +36,27 @@ export default function MonthlyMovementEditPage() {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
 
+  const refreshMonthlyMovementCaches = async () => {
+    await Promise.all([
+      mutate(),
+      globalMutate(
+        (key) => typeof key === 'string' && key.startsWith('/api/labor/monthly-movements'),
+        undefined,
+        { revalidate: true }
+      )
+    ]);
+  };
+
+  const approveWithFreshRowVersion = async (movementId: string) => {
+    const freshMovement = await getMonthlyMovement(movementId);
+    return approveMonthlyMovement(movementId, freshMovement.rowVersion);
+  };
+
+  const rejectWithFreshRowVersion = async (movementId: string, reason: string) => {
+    const freshMovement = await getMonthlyMovement(movementId);
+    return rejectMonthlyMovement(movementId, freshMovement.rowVersion, reason);
+  };
+
   const save = async (values: MonthlyMovementFormValues) => {
     if (!id) return;
     try {
@@ -53,6 +75,7 @@ export default function MonthlyMovementEditPage() {
     try {
       setIsActioning(true);
       await action();
+      await refreshMonthlyMovementCaches();
       notify(intl.formatMessage({ id: 'monthly-movements-action-success' }));
       navigate('/labor/monthly-movements');
     } catch (actionError) {
@@ -72,7 +95,7 @@ export default function MonthlyMovementEditPage() {
       return;
     }
 
-    await runAction(() => rejectMonthlyMovement(id, movement.rowVersion, reason.trim()));
+    await runAction(() => rejectWithFreshRowVersion(id, reason.trim()));
   };
 
   const handleDelete = async () => {
@@ -114,7 +137,7 @@ export default function MonthlyMovementEditPage() {
                   variant="contained"
                   color="success"
                   disabled={isSaving || isActioning}
-                  onClick={() => runAction(() => approveMonthlyMovement(movement.id, movement.rowVersion))}
+                  onClick={() => runAction(() => approveWithFreshRowVersion(movement.id))}
                   startIcon={<IconPlayerPlay size={18} />}
                 >
                   <FormattedMessage id="approve" />
