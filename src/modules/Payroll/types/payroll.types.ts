@@ -140,6 +140,11 @@ export type PayrollPeriodApprovalRequest = {
   approvalNotes?: string | null;
 };
 
+export type PayrollPeriodReopenRequest = {
+  rowVersion: string;
+  reason: string;
+};
+
 export type PayrollPeriodPaymentRequest = {
   rowVersion: string;
   treasuryAccountId: string;

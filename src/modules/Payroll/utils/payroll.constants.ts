@@ -3,6 +3,7 @@ export const PAYROLL_PERMISSIONS = {
   create: 'payroll.periods.create',
   calculate: 'payroll.periods.calculate',
   approve: 'payroll.periods.approve',
+  reopen: 'payroll.periods.reopen',
   pay: 'payroll.periods.pay',
   delete: 'payroll.periods.delete'
 } as const;

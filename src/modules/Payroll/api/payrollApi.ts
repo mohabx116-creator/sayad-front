@@ -10,6 +10,7 @@ import type {
   PayrollPeriodListParams,
   PayrollListMeta,
   PayrollPeriodPaymentRequest,
+  PayrollPeriodReopenRequest,
   PayrollPeriodUpdateInput
 } from '../types/payroll.types';
 
@@ -70,6 +71,10 @@ export function recalculatePayrollPeriod(id: string) {
 
 export function approvePayrollPeriod(id: string, request: PayrollPeriodApprovalRequest) {
   return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/approve`, request));
+}
+
+export function reopenPayrollPeriod(id: string, request: PayrollPeriodReopenRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/reopen`, request));
 }
 
 export function payPayrollPeriod(id: string, request: PayrollPeriodPaymentRequest) {

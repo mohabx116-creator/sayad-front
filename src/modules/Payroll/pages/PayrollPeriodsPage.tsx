@@ -26,10 +26,12 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { IconCalculator, IconCheck, IconEye, IconPencil, IconPlus, IconRefresh, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconCalculator, IconCheck, IconEye, IconPencil, IconPlus, IconRefresh, IconRotateClockwise2, IconSearch, IconTrash } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
+import useAuth from 'hooks/useAuth';
+import { hasPermission } from 'modules/Administration/utils/permission-utils';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
@@ -41,7 +43,9 @@ import {
   createPayrollPeriod,
   deletePayrollPeriod,
   confirmPayrollPeriod,
+  getPayrollPeriod,
   recalculatePayrollPeriod,
+  reopenPayrollPeriod,
   updatePayrollPeriod
 } from '../api/payrollApi';
 import { usePayrollPeriod, usePayrollPeriods } from '../hooks/usePayroll';
@@ -155,6 +159,7 @@ function deductionsTotal(statement: PayrollStatementDto) {
 export default function PayrollPeriodsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
+  const { user } = useAuth();
   const [filters, setFilters] = useState<PayrollFilters>({
     page: 0,
     pageSize: PAYROLL_PAGE_SIZE,
@@ -173,6 +178,9 @@ export default function PayrollPeriodsPage() {
   const [busy, setBusy] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isReopenOpen, setIsReopenOpen] = useState(false);
+  const [reopenReason, setReopenReason] = useState('');
+  const [isReopening, setIsReopening] = useState(false);
 
   const {
     items: periods,
@@ -365,6 +373,35 @@ export default function PayrollPeriodsPage() {
     }
   }
 
+  async function handleReopenPeriod() {
+    if (!selectedPeriod) {
+      return;
+    }
+
+    const reason = reopenReason.trim();
+    if (!reason) {
+      return;
+    }
+
+    setIsReopening(true);
+    try {
+      const freshPeriod = await getPayrollPeriod(selectedPeriod.id);
+      await reopenPayrollPeriod(selectedPeriod.id, {
+        rowVersion: freshPeriod.rowVersion,
+        reason
+      });
+      setIsReopenOpen(false);
+      setReopenReason('');
+      await refreshPeriods();
+      await refreshSelectedPeriod();
+      notify(t(intl.locale, 'ØªÙ… Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ù…Ø³ÙŠØ± Ø§Ù„Ø±ÙˆØ§ØªØ¨ Ø¨Ù†Ø¬Ø§Ø­.', 'Payroll period reopened successfully.'));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : t(intl.locale, 'ØªØ¹Ø°Ø± Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ù…Ø³ÙŠØ± Ø§Ù„Ø±ÙˆØ§ØªØ¨.', 'Unable to reopen payroll period.'), 'error');
+    } finally {
+      setIsReopening(false);
+    }
+  }
+
   async function handleDeletePeriod() {
     if (!selectedPeriod) {
       return;
@@ -406,6 +443,8 @@ export default function PayrollPeriodsPage() {
     (selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft || selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated);
   const canApprovePeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated;
   const canConfirmPeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft;
+  const canReopenPeriod =
+    selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved && hasPermission(user, PAYROLL_PERMISSIONS.reopen);
 
   return (
     <MainCard content={false}>
@@ -644,6 +683,18 @@ export default function PayrollPeriodsPage() {
                       {t(intl.locale, 'اعتماد المسير', 'Approve payroll')}
                     </LoadingButton>
                   </PermissionGuard>
+                  {canReopenPeriod && (
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="warning"
+                      startIcon={<IconRotateClockwise2 size={16} />}
+                      onClick={() => setIsReopenOpen(true)}
+                      disabled={busy || isRecalculating || isReopening}
+                    >
+                      {t(intl.locale, 'إعادة فتح المسير', 'Reopen payroll')}
+                    </Button>
+                  )}
                   <PermissionGuard permission={PAYROLL_PERMISSIONS.calculate}>
                     <Button
                       size="small"
@@ -937,6 +988,49 @@ export default function PayrollPeriodsPage() {
           <Button variant="contained" onClick={handleCreatePeriod} disabled={busy}>
             {t(intl.locale, 'إنشاء', 'Create')}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isReopenOpen} onClose={() => setIsReopenOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>{t(intl.locale, 'إعادة فتح مسير الرواتب', 'Reopen payroll period')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Alert severity="warning">
+              {t(
+                intl.locale,
+                'سيتم إرجاع المسير من معتمد إلى محسوب دون إعادة احتسابه. لن يتم السماح بهذه العملية إذا وُجد دفع نشط.',
+                'This will move the payroll period from approved back to calculated without recalculation. The action is blocked if an active payment exists.'
+              )}
+            </Alert>
+            <TextField
+              label={t(intl.locale, 'سبب إعادة الفتح', 'Reason for reopening')}
+              value={reopenReason}
+              onChange={(event) => setReopenReason(event.target.value)}
+              fullWidth
+              required
+              multiline
+              minRows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setIsReopenOpen(false);
+              setReopenReason('');
+            }}
+          >
+            {t(intl.locale, 'إلغاء', 'Cancel')}
+          </Button>
+          <LoadingButton
+            variant="contained"
+            color="warning"
+            loading={isReopening}
+            onClick={handleReopenPeriod}
+            disabled={!reopenReason.trim()}
+          >
+            {t(intl.locale, 'إعادة فتح', 'Reopen')}
+          </LoadingButton>
         </DialogActions>
       </Dialog>
 
