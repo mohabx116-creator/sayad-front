@@ -1,7 +1,12 @@
 import type { IntlShape } from 'react-intl';
 
 const ACTION_MESSAGE_IDS: Record<string, string> = {
+  PayrollPeriodApproved: 'audit-log.action.payroll-period-approved',
+  PayrollPeriodRecalculated: 'audit-log.action.payroll-period-recalculated',
   PayrollPeriodReopened: 'audit-log.action.payroll-period-reopened',
+  PayrollStatementsPaid: 'audit-log.action.payroll-statements-paid',
+  PayrollPaymentRecordReversed: 'audit-log.action.payroll-payment-record-reversed',
+  PayrollPaymentReversed: 'audit-log.action.payroll-payment-reversed',
   WorkerMonthlyMovementApproved: 'audit-log.action.worker-monthly-movement-approved',
   WorkerMonthlyMovementCreated: 'audit-log.action.worker-monthly-movement-created',
   WorkerCreated: 'audit-log.action.worker-created',
@@ -18,6 +23,7 @@ const ACTION_MESSAGE_IDS: Record<string, string> = {
 
 const ENTITY_MESSAGE_IDS: Record<string, string> = {
   PayrollPeriod: 'audit-log.entity.payroll-period',
+  PayrollPayment: 'audit-log.entity.payroll-payment',
   WorkerMonthlyMovement: 'audit-log.entity.worker-monthly-movement',
   Worker: 'audit-log.entity.worker',
   Role: 'audit-log.entity.role',

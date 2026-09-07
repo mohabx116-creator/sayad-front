@@ -41,7 +41,7 @@ import {
 
 const DRAWER_WIDTH = 620;
 
-function DetailRow({ label, value }: { label: string; value: ReactNode }) {
+function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <Stack spacing={0.5}>
       <Typography variant="caption" color="text.secondary">
@@ -106,6 +106,284 @@ function renderStructuredDetails(value: unknown, intl: IntlShape) {
   );
 }
 
+type AuditField = {
+  labelId: string;
+  value: ReactNode;
+};
+
+function renderAuditFields(fields: AuditField[]) {
+  return (
+    <Stack spacing={1.25}>
+      {fields.map((field) => (
+        <DetailRow key={field.labelId} label={<FormattedMessage id={field.labelId} />} value={field.value} />
+      ))}
+    </Stack>
+  );
+}
+
+function renderAuditSection(titleId: string, fields: AuditField[]) {
+  return (
+    <Box>
+      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+        <FormattedMessage id={titleId} />
+      </Typography>
+      {renderAuditFields(fields)}
+    </Box>
+  );
+}
+
+function renderComparisonSection(titleId: string, beforeFields: AuditField[], afterFields: AuditField[]) {
+  return (
+    <Box>
+      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+        <FormattedMessage id={titleId} />
+      </Typography>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            <FormattedMessage id="audit-log.before" />
+          </Typography>
+          {renderAuditFields(beforeFields)}
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            <FormattedMessage id="audit-log.after" />
+          </Typography>
+          {renderAuditFields(afterFields)}
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
+
+function buildPayrollAuditSpecialSections(
+  selectedLog: SystemAuditLogDto | null,
+  selectedLogOldValues: unknown,
+  selectedLogNewValues: unknown,
+  intl: IntlShape
+) {
+  if (!selectedLog || !isRecord(selectedLogOldValues) || !isRecord(selectedLogNewValues)) {
+    return [];
+  }
+
+  const actorIdentity = selectedLog.actorName ?? selectedLog.actorEmail ?? null;
+  const paymentId = selectedLog.entityId ?? getAuditRecordValueByKeys(selectedLogNewValues, ['id', 'Id']);
+  const payrollPeriodId =
+    getAuditRecordValueByKeys(selectedLogNewValues, ['payrollPeriodId', 'PayrollPeriodId']) ??
+    getAuditRecordValueByKeys(selectedLogOldValues, ['payrollPeriodId', 'PayrollPeriodId']);
+
+  const sections: ReactNode[] = [];
+
+  if (selectedLog.action === 'PayrollPeriodApproved') {
+    const previousStatus = getAuditRecordValueByKeys(selectedLogNewValues, ['fromStatus', 'FromStatus']);
+    const newStatus = getAuditRecordValueByKeys(selectedLogNewValues, ['toStatus', 'ToStatus']);
+    const approvedByUserId = getAuditRecordValueByKeys(selectedLogNewValues, ['approvedByUserId', 'ApprovedByUserId']);
+    const approvalNotes = getAuditRecordValueByKeys(selectedLogNewValues, ['approvalNotes', 'ApprovalNotes']);
+    const approvedAtUtc = getAuditRecordValueByKeys(selectedLogNewValues, ['approvedAtUtc', 'ApprovedAtUtc']);
+    const workerCount = getAuditRecordValueByKeys(selectedLogNewValues, ['workerCount', 'WorkerCount']);
+    const totalGrossWage = getAuditRecordValueByKeys(selectedLogNewValues, ['totalGrossWage', 'TotalGrossWage']);
+    const totalDeductions = getAuditRecordValueByKeys(selectedLogNewValues, ['totalDeductions', 'TotalDeductions']);
+    const totalNetWage = getAuditRecordValueByKeys(selectedLogNewValues, ['totalNetWage', 'TotalNetWage']);
+
+    sections.push(
+      renderAuditSection('audit-log.payroll.approval-summary', [
+        {
+          labelId: 'audit-log.payroll.previous-status',
+          value: localizePayrollStatus(typeof previousStatus === 'string' ? previousStatus : null, intl)
+        },
+        {
+          labelId: 'audit-log.payroll.new-status',
+          value: localizePayrollStatus(typeof newStatus === 'string' ? newStatus : null, intl)
+        },
+        {
+          labelId: 'audit-log.payroll.approved-by',
+          value: actorIdentity ?? formatAuditValue('ApprovedByUserId', approvedByUserId, intl)
+        },
+        { labelId: 'audit-log.payroll.approved-at', value: formatAuditValue('ApprovedAtUtc', approvedAtUtc, intl) },
+        {
+          labelId: 'audit-log.payroll.approval-notes',
+          value: typeof approvalNotes === 'string' && approvalNotes.trim() ? approvalNotes : '-'
+        },
+        { labelId: 'audit-log.payroll.worker-count', value: formatAuditValue('WorkerCount', workerCount, intl) },
+        { labelId: 'audit-log.payroll.total-gross-wage', value: formatAuditValue('TotalGrossWage', totalGrossWage, intl) },
+        { labelId: 'audit-log.payroll.total-deductions', value: formatAuditValue('TotalDeductions', totalDeductions, intl) },
+        { labelId: 'audit-log.payroll.net-wage', value: formatAuditValue('TotalNetWage', totalNetWage, intl) }
+      ])
+    );
+  }
+
+  if (selectedLog.action === 'PayrollPeriodRecalculated') {
+    const oldWorkerCount = getAuditRecordValueByKeys(selectedLogOldValues, ['workerCount', 'WorkerCount']);
+    const oldTotalGrossWage = getAuditRecordValueByKeys(selectedLogOldValues, ['totalGrossWage', 'TotalGrossWage']);
+    const oldTotalDeductions = getAuditRecordValueByKeys(selectedLogOldValues, ['totalDeductions', 'TotalDeductions']);
+    const oldTotalNetWage = getAuditRecordValueByKeys(selectedLogOldValues, ['totalNetWage', 'TotalNetWage']);
+    const newWorkerCount = getAuditRecordValueByKeys(selectedLogNewValues, ['workerCount', 'WorkerCount']);
+    const newTotalGrossWage = getAuditRecordValueByKeys(selectedLogNewValues, ['totalGrossWage', 'TotalGrossWage']);
+    const newTotalDeductions = getAuditRecordValueByKeys(selectedLogNewValues, ['totalDeductions', 'TotalDeductions']);
+    const newTotalNetWage = getAuditRecordValueByKeys(selectedLogNewValues, ['totalNetWage', 'TotalNetWage']);
+    const calculatedByUserId = getAuditRecordValueByKeys(selectedLogNewValues, ['calculatedByUserId', 'CalculatedByUserId']);
+
+    sections.push(
+      renderComparisonSection(
+        'audit-log.payroll.recalculation-summary',
+        [
+          { labelId: 'audit-log.payroll.worker-count', value: formatAuditValue('WorkerCount', oldWorkerCount, intl) },
+          { labelId: 'audit-log.payroll.total-gross-wage', value: formatAuditValue('TotalGrossWage', oldTotalGrossWage, intl) },
+          { labelId: 'audit-log.payroll.total-deductions', value: formatAuditValue('TotalDeductions', oldTotalDeductions, intl) },
+          { labelId: 'audit-log.payroll.net-wage', value: formatAuditValue('TotalNetWage', oldTotalNetWage, intl) }
+        ],
+        [
+          { labelId: 'audit-log.payroll.worker-count', value: formatAuditValue('WorkerCount', newWorkerCount, intl) },
+          { labelId: 'audit-log.payroll.total-gross-wage', value: formatAuditValue('TotalGrossWage', newTotalGrossWage, intl) },
+          { labelId: 'audit-log.payroll.total-deductions', value: formatAuditValue('TotalDeductions', newTotalDeductions, intl) },
+          { labelId: 'audit-log.payroll.net-wage', value: formatAuditValue('TotalNetWage', newTotalNetWage, intl) },
+          {
+            labelId: 'audit-log.payroll.recalculated-by',
+            value: actorIdentity ?? formatAuditValue('CalculatedByUserId', calculatedByUserId, intl)
+          }
+        ]
+      )
+    );
+  }
+
+  if (selectedLog.action === 'PayrollStatementsPaid') {
+    const selectedCount = getAuditRecordValueByKeys(selectedLogOldValues, ['selectedCount', 'SelectedCount']);
+    const totalAmount = getAuditRecordValueByKeys(selectedLogOldValues, ['totalAmount', 'TotalAmount']);
+    const paymentReferenceNumber = getAuditRecordValueByKeys(selectedLogNewValues, ['paymentNumber', 'PaymentNumber']);
+    const treasuryAccountId = getAuditRecordValueByKeys(selectedLogNewValues, ['treasuryAccountId', 'TreasuryAccountId']);
+    const treasuryTransactionId = getAuditRecordValueByKeys(selectedLogNewValues, ['treasuryTransactionId', 'TreasuryTransactionId']);
+    const journalEntryId = getAuditRecordValueByKeys(selectedLogNewValues, ['journalEntryId', 'JournalEntryId']);
+    const postingKey = getAuditRecordValueByKeys(selectedLogNewValues, ['postingKey', 'PostingKey']);
+    const resultingStatus = getAuditRecordValueByKeys(selectedLogOldValues, ['status', 'Status']);
+
+    sections.push(
+      renderAuditSection('audit-log.payroll.payment-summary', [
+        { labelId: 'audit-log.payroll.payment-id', value: formatAuditValue('PaymentId', paymentId, intl) },
+        {
+          labelId: 'audit-log.payroll.payment-reference-number',
+          value: paymentReferenceNumber ? formatAuditValue('PaymentNumber', paymentReferenceNumber, intl) : '-'
+        },
+        {
+          labelId: 'audit-log.payroll.treasury-account',
+          value: treasuryAccountId ? formatAuditValue('TreasuryAccountId', treasuryAccountId, intl) : '-'
+        },
+        {
+          labelId: 'audit-log.payroll.treasury-transaction',
+          value: treasuryTransactionId ? formatAuditValue('TreasuryTransactionId', treasuryTransactionId, intl) : '-'
+        },
+        { labelId: 'audit-log.payroll.journal-entry', value: journalEntryId ? formatAuditValue('JournalEntryId', journalEntryId, intl) : '-' },
+        { labelId: 'audit-log.payroll.posting-key', value: postingKey ? formatAuditValue('PostingKey', postingKey, intl) : '-' },
+        { labelId: 'audit-log.payroll.selected-statement-count', value: formatAuditValue('SelectedCount', selectedCount, intl) },
+        { labelId: 'audit-log.payroll.total-amount', value: formatAuditValue('TotalAmount', totalAmount, intl) },
+        {
+          labelId: 'audit-log.payroll.resulting-status',
+          value: localizePayrollStatus(typeof resultingStatus === 'string' ? resultingStatus : null, intl)
+        }
+      ])
+    );
+  }
+
+  if (selectedLog.action === 'PayrollPaymentRecordReversed' || selectedLog.action === 'PayrollPaymentReversed') {
+    const previousStatus = getAuditRecordValueByKeys(selectedLogOldValues, ['oldStatus', 'OldStatus']);
+    const resultingStatus = getAuditRecordValueByKeys(selectedLogNewValues, ['newStatus', 'NewStatus', 'status', 'Status']);
+    const reason = getAuditRecordValueByKeys(selectedLogNewValues, ['reason', 'Reason']);
+    const reversedAtUtc = getAuditRecordValueByKeys(selectedLogNewValues, ['reversedAtUtc', 'ReversedAtUtc']);
+    const reversedByUserId = getAuditRecordValueByKeys(selectedLogNewValues, ['reversedByUserId', 'ReversedByUserId']);
+    const reversalTreasuryTransactionId = getAuditRecordValueByKeys(selectedLogNewValues, ['reversalTreasuryTransactionId', 'ReversalTreasuryTransactionId']);
+    const reversalJournalEntryId = getAuditRecordValueByKeys(selectedLogNewValues, ['reversalJournalEntryId', 'ReversalJournalEntryId']);
+    const amount = getAuditRecordValueByKeys(selectedLogOldValues, ['amount', 'Amount']);
+    const treasuryAccountId = getAuditRecordValueByKeys(selectedLogOldValues, ['treasuryAccountId', 'TreasuryAccountId']);
+    const treasuryTransactionId = getAuditRecordValueByKeys(selectedLogOldValues, ['treasuryTransactionId', 'TreasuryTransactionId']);
+    const journalEntryId = getAuditRecordValueByKeys(selectedLogOldValues, ['journalEntryId', 'JournalEntryId']);
+    const postingKey = getAuditRecordValueByKeys(selectedLogOldValues, ['postingKey', 'PostingKey']);
+
+    const reversalFields: AuditField[] = [
+      { labelId: 'audit-log.payroll.payment-id', value: formatAuditValue('PaymentId', paymentId, intl) },
+      { labelId: 'audit-log.payroll.payroll-period-id', value: formatAuditValue('PayrollPeriodId', payrollPeriodId, intl) },
+      { labelId: 'audit-log.payroll.reversal-amount', value: formatAuditValue('Amount', amount, intl) }
+    ];
+
+    if (typeof previousStatus === 'string') {
+      reversalFields.push({
+        labelId: 'audit-log.payroll.previous-status',
+        value: localizePayrollStatus(previousStatus, intl)
+      });
+    }
+
+    if (typeof resultingStatus === 'string') {
+      reversalFields.push({
+        labelId: 'audit-log.payroll.resulting-status',
+        value: localizePayrollStatus(resultingStatus, intl)
+      });
+    }
+
+    reversalFields.push(
+      {
+        labelId: 'audit-log.payroll.reversal-reason',
+        value: typeof reason === 'string' && reason.trim() ? reason : '-'
+      },
+      {
+        labelId: 'audit-log.payroll.reversed-by',
+        value: actorIdentity ?? formatAuditValue('ReversedByUserId', reversedByUserId, intl)
+      },
+      { labelId: 'audit-log.payroll.reversed-at', value: formatAuditValue('ReversedAtUtc', reversedAtUtc, intl) },
+      {
+        labelId: 'audit-log.payroll.treasury-reference-id',
+        value: formatAuditValue('TreasuryReferenceId', reversalTreasuryTransactionId ?? treasuryTransactionId, intl)
+      },
+      {
+        labelId: 'audit-log.payroll.journal-reference-id',
+        value: formatAuditValue('JournalReferenceId', reversalJournalEntryId ?? journalEntryId, intl)
+      },
+      {
+        labelId: 'audit-log.payroll.treasury-account',
+        value: treasuryAccountId ? formatAuditValue('TreasuryAccountId', treasuryAccountId, intl) : '-'
+      }
+    );
+
+    if (typeof postingKey === 'string' && postingKey.trim()) {
+      reversalFields.push({
+        labelId: 'audit-log.payroll.posting-key',
+        value: formatAuditValue('PostingKey', postingKey, intl)
+      });
+    }
+
+    sections.push(renderAuditSection('audit-log.payroll.reversal-summary', reversalFields));
+  }
+
+  if (selectedLog.action === 'PayrollPeriodReopened') {
+    const reopenFromStatus = getAuditRecordValueByKeys(selectedLogNewValues, ['fromStatus', 'FromStatus']);
+    const reopenOldStatus = getAuditRecordValueByKeys(selectedLogOldValues, ['status', 'Status']);
+    const reopenPreviousStatus = reopenFromStatus ?? reopenOldStatus;
+    const reopenNewStatus = getAuditRecordValueByKeys(selectedLogNewValues, ['toStatus', 'ToStatus']);
+    const reopenReason = getAuditRecordValueByKeys(selectedLogNewValues, ['reason', 'Reason']);
+    const reopenedByUserId = getAuditRecordValueByKeys(selectedLogNewValues, ['reopenedByUserId', 'ReopenedByUserId']);
+
+    sections.push(
+      renderAuditSection('audit-log.reopen-summary', [
+        {
+          labelId: 'audit-log.reopen.previous-status',
+          value: localizePayrollStatus(typeof reopenPreviousStatus === 'string' ? reopenPreviousStatus : null, intl)
+        },
+        {
+          labelId: 'audit-log.reopen.new-status',
+          value: localizePayrollStatus(typeof reopenNewStatus === 'string' ? reopenNewStatus : null, intl)
+        },
+        {
+          labelId: 'audit-log.reopen.reason',
+          value: typeof reopenReason === 'string' && reopenReason.trim() ? reopenReason : '-'
+        },
+        {
+          labelId: 'audit-log.reopen.reopened-by',
+          value: actorIdentity ?? formatAuditValue('ReopenedByUserId', reopenedByUserId, intl)
+        }
+      ])
+    );
+  }
+
+  return sections;
+}
+
 export default function SystemAuditPage() {
   const intl = useIntl();
   const [page, setPage] = useState(0);
@@ -121,13 +399,10 @@ export default function SystemAuditPage() {
   const selectedLogNewValuesJson = selectedLog?.newValuesJson;
   const selectedLogOldValues = useMemo(() => parseAuditJson(selectedLogOldValuesJson), [selectedLogOldValuesJson]);
   const selectedLogNewValues = useMemo(() => parseAuditJson(selectedLogNewValuesJson), [selectedLogNewValuesJson]);
-  const isPayrollReopen = selectedLog?.action === 'PayrollPeriodReopened';
-  const reopenFromStatus = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['fromStatus', 'FromStatus']) : null;
-  const reopenOldStatus = isRecord(selectedLogOldValues) ? getAuditRecordValueByKeys(selectedLogOldValues, ['status', 'Status']) : null;
-  const reopenPreviousStatus = reopenFromStatus ?? reopenOldStatus;
-  const reopenNewStatus = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['toStatus', 'ToStatus']) : null;
-  const reopenReason = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['reason', 'Reason']) : null;
-  const reopenedByUserId = isRecord(selectedLogNewValues) ? getAuditRecordValueByKeys(selectedLogNewValues, ['reopenedByUserId', 'ReopenedByUserId']) : null;
+  const payrollSpecialSections = useMemo(
+    () => buildPayrollAuditSpecialSections(selectedLog, selectedLogOldValues, selectedLogNewValues, intl),
+    [intl, selectedLog, selectedLogOldValues, selectedLogNewValues]
+  );
 
   if (isLoading) return <Loader />;
 
@@ -172,6 +447,7 @@ export default function SystemAuditPage() {
             <MenuItem value="SystemOwner">{localizeAuditEntity('SystemOwner', intl)}</MenuItem>
             <MenuItem value="Worker">{localizeAuditEntity('Worker', intl)}</MenuItem>
             <MenuItem value="PayrollPeriod">{localizeAuditEntity('PayrollPeriod', intl)}</MenuItem>
+            <MenuItem value="PayrollPayment">{localizeAuditEntity('PayrollPayment', intl)}</MenuItem>
             <MenuItem value="WorkerMonthlyMovement">{localizeAuditEntity('WorkerMonthlyMovement', intl)}</MenuItem>
             <MenuItem value="OperationalJob">{localizeAuditEntity('OperationalJob', intl)}</MenuItem>
           </TextField>
@@ -189,7 +465,12 @@ export default function SystemAuditPage() {
             <MenuItem value="">
               <FormattedMessage id="all" />
             </MenuItem>
+            <MenuItem value="PayrollPeriodApproved">{localizeAuditAction('PayrollPeriodApproved', intl)}</MenuItem>
+            <MenuItem value="PayrollPeriodRecalculated">{localizeAuditAction('PayrollPeriodRecalculated', intl)}</MenuItem>
             <MenuItem value="PayrollPeriodReopened">{localizeAuditAction('PayrollPeriodReopened', intl)}</MenuItem>
+            <MenuItem value="PayrollStatementsPaid">{localizeAuditAction('PayrollStatementsPaid', intl)}</MenuItem>
+            <MenuItem value="PayrollPaymentRecordReversed">{localizeAuditAction('PayrollPaymentRecordReversed', intl)}</MenuItem>
+            <MenuItem value="PayrollPaymentReversed">{localizeAuditAction('PayrollPaymentReversed', intl)}</MenuItem>
             <MenuItem value="WorkerMonthlyMovementApproved">{localizeAuditAction('WorkerMonthlyMovementApproved', intl)}</MenuItem>
             <MenuItem value="WorkerMonthlyMovementCreated">{localizeAuditAction('WorkerMonthlyMovementCreated', intl)}</MenuItem>
             <MenuItem value="WorkerCreated">{localizeAuditAction('WorkerCreated', intl)}</MenuItem>
@@ -337,31 +618,7 @@ export default function SystemAuditPage() {
                   <DetailRow label={intl.formatMessage({ id: 'date' })} value={new Date(selectedLog.createdAtUtc).toLocaleString()} />
                 </Stack>
 
-                {isPayrollReopen && isRecord(selectedLogOldValues) && isRecord(selectedLogNewValues) && (
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                      <FormattedMessage id="audit-log.reopen-summary" />
-                    </Typography>
-                    <Stack spacing={1.5}>
-                      <DetailRow
-                        label={intl.formatMessage({ id: 'audit-log.reopen.previous-status' })}
-                        value={localizePayrollStatus(typeof reopenPreviousStatus === 'string' ? reopenPreviousStatus : null, intl)}
-                      />
-                      <DetailRow
-                        label={intl.formatMessage({ id: 'audit-log.reopen.new-status' })}
-                        value={localizePayrollStatus(typeof reopenNewStatus === 'string' ? reopenNewStatus : null, intl)}
-                      />
-                      <DetailRow
-                        label={intl.formatMessage({ id: 'audit-log.reopen.reason' })}
-                        value={typeof reopenReason === 'string' ? reopenReason : '-'}
-                      />
-                      <DetailRow
-                        label={intl.formatMessage({ id: 'audit-log.reopen.reopened-by' })}
-                        value={selectedLog.actorName ?? selectedLog.actorEmail ?? formatAuditValue('ReopenedByUserId', reopenedByUserId, intl)}
-                      />
-                    </Stack>
-                  </Box>
-                )}
+                {payrollSpecialSections.length > 0 && <Stack spacing={2.5}>{payrollSpecialSections}</Stack>}
 
                 <Divider />
 
