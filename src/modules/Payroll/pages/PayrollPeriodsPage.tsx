@@ -242,6 +242,7 @@ export default function PayrollPeriodsPage() {
   const [reverseTarget, setReverseTarget] = useState<PayrollPaymentListItemDto | null>(null);
   const [reverseReason, setReverseReason] = useState('');
   const [isReversing, setIsReversing] = useState(false);
+  const [reverseError, setReverseError] = useState<string | null>(null);
 
   const {
     items: periods,
@@ -303,6 +304,7 @@ export default function PayrollPeriodsPage() {
     setPayNotes('');
     setReverseTarget(null);
     setReverseReason('');
+    setReverseError(null);
   }, [selectedPeriod]);
 
   const summary = useMemo(() => {
@@ -362,8 +364,8 @@ export default function PayrollPeriodsPage() {
       openSnackbar({
         open: true,
         message,
-        variant,
-        alert: { color: variant }
+        variant: 'alert',
+        severity: variant
       })
     );
   }
@@ -609,6 +611,7 @@ export default function PayrollPeriodsPage() {
     }
 
     setIsReversing(true);
+    setReverseError(null);
     try {
       const freshPayment = await getPayrollPayment(reverseTarget.paymentId);
       await reversePayrollPayment(reverseTarget.paymentId, {
@@ -620,7 +623,9 @@ export default function PayrollPeriodsPage() {
       await refreshPayrollPaymentViews();
       notify(t(intl.locale, 'تم عكس دفعة الرواتب بنجاح.', 'Payroll payment reversed successfully.'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : t(intl.locale, 'تعذر عكس دفعة الرواتب.', 'Unable to reverse payroll payment.'), 'error');
+      const errorMessage = error instanceof Error && error.message ? error.message : t(intl.locale, 'تعذر عكس دفعة الرواتب.', 'Unable to reverse payroll payment.');
+      setReverseError(errorMessage);
+      notify(errorMessage, 'error');
     } finally {
       setIsReversing(false);
     }
@@ -1163,8 +1168,8 @@ export default function PayrollPeriodsPage() {
                                     <TableCell>
                                       <Chip
                                         size="small"
-                                        color={getPaymentStatusColor(payment.status)}
-                                        label={getPaymentStatusLabel(intl.locale, payment.status)}
+                                        color={getPaymentStatusColor(payment.reversedAtUtc ? 'reversed' : payment.status)}
+                                        label={getPaymentStatusLabel(intl.locale, payment.reversedAtUtc ? 'reversed' : payment.status)}
                                       />
                                     </TableCell>
                                     <TableCell>{payment.treasuryTransactionId || payment.journalEntryId || '-'}</TableCell>
@@ -1177,7 +1182,10 @@ export default function PayrollPeriodsPage() {
                                             color="warning"
                                             variant="outlined"
                                             startIcon={<IconRotateClockwise2 size={16} />}
-                                            onClick={() => setReverseTarget(payment)}
+                                            onClick={() => {
+                                              setReverseTarget(payment);
+                                              setReverseError(null);
+                                            }}
                                             disabled={isReversing}
                                           >
                                             {t(intl.locale, 'عكس الدفعة', 'Reverse')}
@@ -1492,6 +1500,7 @@ export default function PayrollPeriodsPage() {
         <DialogTitle>{t(intl.locale, 'عكس دفعة الرواتب', 'Reverse payroll payment')}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
+            {reverseError && <Alert severity="error">{reverseError}</Alert>}
             <Alert severity="warning">
               {t(intl.locale, 'سيتم عكس هذه الدفعة فقط، وستبقى في سجل المدفوعات.', 'Only this payment will be reversed, and it will remain visible in payment history.')}
             </Alert>
@@ -1511,6 +1520,7 @@ export default function PayrollPeriodsPage() {
             onClick={() => {
               setReverseTarget(null);
               setReverseReason('');
+              setReverseError(null);
             }}
             disabled={isReversing}
           >
