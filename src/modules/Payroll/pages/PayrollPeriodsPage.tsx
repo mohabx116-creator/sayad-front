@@ -577,7 +577,7 @@ export default function PayrollPeriodsPage() {
   }
 
   async function handlePayStatements() {
-    if (!selectedPeriod || selectedPayStatements.length === 0 || !payTreasuryAccountId || hasInsufficientTreasuryBalance) {
+    if (!selectedPeriod || (!payAllUnpaid && selectedPayStatements.length === 0) || !payTreasuryAccountId || hasInsufficientTreasuryBalance) {
       return;
     }
 
@@ -1489,7 +1489,7 @@ export default function PayrollPeriodsPage() {
             variant="contained"
             loading={isPaying}
             onClick={handlePayStatements}
-            disabled={!payTreasuryAccountId || selectedPayStatements.length === 0 || !payPaymentDate || hasInsufficientTreasuryBalance}
+            disabled={!payTreasuryAccountId || (!payAllUnpaid && selectedPayStatements.length === 0) || !payPaymentDate || hasInsufficientTreasuryBalance}
           >
             {t(intl.locale, 'دفع', 'Pay')}
           </LoadingButton>
