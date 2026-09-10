@@ -3,7 +3,15 @@ import useSWR from 'swr';
 
 import { fetcher } from 'utils/axios';
 import type { ApiResponse } from 'types/api';
-import type { PayrollPeriodDetailDto, PayrollPeriodListItemDto, PayrollPeriodListParams, PayrollListMeta } from '../types/payroll.types';
+import { getPayrollPayment } from '../api/payrollApi';
+import type {
+  PayrollPaymentDetailDto,
+  PayrollPaymentListItemDto,
+  PayrollPeriodDetailDto,
+  PayrollPeriodListItemDto,
+  PayrollPeriodListParams,
+  PayrollListMeta
+} from '../types/payroll.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams();
@@ -35,4 +43,26 @@ export function usePayrollPeriod(id?: string) {
   });
 
   return useMemo(() => ({ period: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function usePayrollPeriodPayments(id?: string) {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PayrollPaymentListItemDto[]>>(
+    id ? `/api/payroll/periods/${id}/payments` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+
+  return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function usePayrollPaymentDetails(paymentIds: string[]) {
+  const sortedPaymentIds = useMemo(() => [...paymentIds].sort(), [paymentIds]);
+  const key = sortedPaymentIds.length > 0 ? ['payroll-payment-details', ...sortedPaymentIds] : null;
+  const { data, error, isLoading, mutate } = useSWR<PayrollPaymentDetailDto[]>(
+    key,
+    ([, ...ids]: string[]) => Promise.all(ids.map((id) => getPayrollPayment(id))),
+    { revalidateOnFocus: false }
+  );
+
+  return useMemo(() => ({ paymentDetails: data ?? [], error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }

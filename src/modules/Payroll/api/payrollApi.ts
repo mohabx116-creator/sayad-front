@@ -9,9 +9,13 @@ import type {
   PayrollPeriodListItemDto,
   PayrollPeriodListParams,
   PayrollListMeta,
+  PayrollPaymentDetailDto,
+  PayrollPaymentListItemDto,
   PayrollPeriodPaymentRequest,
   PayrollPeriodReopenRequest,
-  PayrollPeriodUpdateInput
+  PayrollPeriodUpdateInput,
+  PayPayrollStatementsRequest,
+  ReversePayrollPaymentRequest
 } from '../types/payroll.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
@@ -79,6 +83,22 @@ export function reopenPayrollPeriod(id: string, request: PayrollPeriodReopenRequ
 
 export function payPayrollPeriod(id: string, request: PayrollPeriodPaymentRequest) {
   return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/pay`, request));
+}
+
+export function payPayrollStatements(id: string, request: PayPayrollStatementsRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PayrollPeriodDetailDto>>(`/api/payroll/periods/${id}/pay-statements`, request));
+}
+
+export function getPayrollPeriodPayments(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<PayrollPaymentListItemDto[]>>(`/api/payroll/periods/${id}/payments`));
+}
+
+export function getPayrollPayment(id: string) {
+  return unwrap(axiosServices.get<ApiResponse<PayrollPaymentDetailDto>>(`/api/payroll/payments/${id}`));
+}
+
+export function reversePayrollPayment(id: string, request: ReversePayrollPaymentRequest) {
+  return unwrap(axiosServices.post<ApiResponse<PayrollPaymentDetailDto>>(`/api/payroll/payments/${id}/reverse`, request));
 }
 
 export function deletePayrollPeriod(id: string, rowVersion: string) {

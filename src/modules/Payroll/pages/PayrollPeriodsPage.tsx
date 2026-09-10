@@ -5,6 +5,7 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Dialog from '@mui/material/Dialog';
@@ -26,13 +27,26 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { IconCalculator, IconCheck, IconEye, IconPencil, IconPlus, IconRefresh, IconRotateClockwise2, IconSearch, IconTrash } from '@tabler/icons-react';
+import {
+  IconCalculator,
+  IconCashBanknote,
+  IconCheck,
+  IconEye,
+  IconPencil,
+  IconPlus,
+  IconRefresh,
+  IconRotateClockwise2,
+  IconSearch,
+  IconTrash
+} from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import useAuth from 'hooks/useAuth';
 import { hasPermission } from 'modules/Administration/utils/permission-utils';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
+import { useTreasuryAccounts } from 'modules/Treasury/hooks/useTreasury';
+import { TREASURY_LOOKUP_PAGE_SIZE } from 'modules/Treasury/utils/treasury.constants';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
@@ -43,14 +57,17 @@ import {
   createPayrollPeriod,
   deletePayrollPeriod,
   confirmPayrollPeriod,
+  getPayrollPayment,
   getPayrollPeriod,
+  payPayrollStatements,
   recalculatePayrollPeriod,
   reopenPayrollPeriod,
+  reversePayrollPayment,
   updatePayrollPeriod
 } from '../api/payrollApi';
-import { usePayrollPeriod, usePayrollPeriods } from '../hooks/usePayroll';
+import { usePayrollPaymentDetails, usePayrollPeriod, usePayrollPeriodPayments, usePayrollPeriods } from '../hooks/usePayroll';
 import { PAYROLL_PAGE_SIZE, PAYROLL_PERIOD_STATUS, PAYROLL_PERMISSIONS } from '../utils/payroll.constants';
-import type { PayrollPeriodFormValues, PayrollPeriodListItemDto, PayrollStatementDto } from '../types/payroll.types';
+import type { PayrollPaymentListItemDto, PayrollPeriodFormValues, PayrollPeriodListItemDto, PayrollStatementDto } from '../types/payroll.types';
 
 type PayrollFilters = {
   page: number;
@@ -156,6 +173,40 @@ function deductionsTotal(statement: PayrollStatementDto) {
   return statement.absenceDeduction + statement.otherDeductionAmount;
 }
 
+function isPaymentActive(payment: PayrollPaymentListItemDto) {
+  return payment.status.toLowerCase() === 'active' && !payment.reversedAtUtc;
+}
+
+function isStatementPayable(statement: PayrollStatementDto) {
+  return statement.netWage > 0 && !statement.hasNegativeNetWage;
+}
+
+function getPaymentStatusLabel(locale: string, status: string) {
+  switch (status.toLowerCase()) {
+    case 'active':
+      return t(locale, 'مدفوعة', 'Paid');
+    case 'reversed':
+      return t(locale, 'معكوسة', 'Reversed');
+    case 'legacyunreconciled':
+      return t(locale, 'تحتاج تسوية', 'Needs reconciliation');
+    default:
+      return status;
+  }
+}
+
+function getPaymentStatusColor(status: string) {
+  switch (status.toLowerCase()) {
+    case 'active':
+      return 'success' as const;
+    case 'reversed':
+      return 'warning' as const;
+    case 'legacyunreconciled':
+      return 'error' as const;
+    default:
+      return 'default' as const;
+  }
+}
+
 export default function PayrollPeriodsPage() {
   const intl = useIntl();
   const dispatch = useDispatch();
@@ -181,6 +232,16 @@ export default function PayrollPeriodsPage() {
   const [isReopenOpen, setIsReopenOpen] = useState(false);
   const [reopenReason, setReopenReason] = useState('');
   const [isReopening, setIsReopening] = useState(false);
+  const [isPayOpen, setIsPayOpen] = useState(false);
+  const [payStatementIds, setPayStatementIds] = useState<string[]>([]);
+  const [payAllUnpaid, setPayAllUnpaid] = useState(true);
+  const [payTreasuryAccountId, setPayTreasuryAccountId] = useState('');
+  const [payPaymentDate, setPayPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [payNotes, setPayNotes] = useState('');
+  const [isPaying, setIsPaying] = useState(false);
+  const [reverseTarget, setReverseTarget] = useState<PayrollPaymentListItemDto | null>(null);
+  const [reverseReason, setReverseReason] = useState('');
+  const [isReversing, setIsReversing] = useState(false);
 
   const {
     items: periods,
@@ -202,6 +263,24 @@ export default function PayrollPeriodsPage() {
     isLoading: selectedPeriodLoading,
     mutate: refreshSelectedPeriod
   } = usePayrollPeriod(selectedPeriodId ?? undefined);
+  const {
+    items: paymentHistory,
+    isLoading: paymentHistoryLoading,
+    error: paymentHistoryError,
+    mutate: refreshPaymentHistory
+  } = usePayrollPeriodPayments(selectedPeriodId ?? undefined);
+  const activePaymentIds = useMemo(() => paymentHistory.filter(isPaymentActive).map((payment) => payment.paymentId), [paymentHistory]);
+  const {
+    paymentDetails: activePaymentDetails,
+    isLoading: paymentDetailsLoading,
+    error: paymentDetailsError,
+    mutate: refreshPaymentDetails
+  } = usePayrollPaymentDetails(activePaymentIds);
+  const { items: treasuryAccounts, isLoading: treasuryAccountsLoading } = useTreasuryAccounts({
+    page: 1,
+    pageSize: TREASURY_LOOKUP_PAGE_SIZE,
+    isActive: true
+  });
 
   useEffect(() => {
     if (!selectedPeriodId && periods.length > 0) {
@@ -217,6 +296,13 @@ export default function PayrollPeriodsPage() {
   useEffect(() => {
     setSelectedStatementId(selectedPeriod?.statements[0]?.id ?? null);
     setEditNotes(selectedPeriod?.notes ?? '');
+    setIsPayOpen(false);
+    setPayStatementIds([]);
+    setPayAllUnpaid(true);
+    setPayTreasuryAccountId('');
+    setPayNotes('');
+    setReverseTarget(null);
+    setReverseReason('');
   }, [selectedPeriod]);
 
   const summary = useMemo(() => {
@@ -227,13 +313,44 @@ export default function PayrollPeriodsPage() {
     return { draftPeriods, confirmedPeriods, netTotal };
   }, [periods]);
 
+  const statementRows = useMemo(() => selectedPeriod?.statements ?? [], [selectedPeriod]);
+
   const selectedStatement = useMemo(() => {
     if (!selectedPeriod) {
       return null;
     }
 
-    return selectedPeriod.statements.find((statement) => statement.id === selectedStatementId) ?? selectedPeriod.statements[0] ?? null;
-  }, [selectedPeriod, selectedStatementId]);
+    return statementRows.find((statement) => statement.id === selectedStatementId) ?? statementRows[0] ?? null;
+  }, [selectedPeriod, selectedStatementId, statementRows]);
+
+  const paidStatementIds = useMemo(() => {
+    const ids = new Set<string>();
+    activePaymentDetails.forEach((payment) => {
+      payment.lines.forEach((line) => {
+        if (line.isActive) {
+          ids.add(line.statementId);
+        }
+      });
+    });
+    return ids;
+  }, [activePaymentDetails]);
+
+  const paymentStateReady = activePaymentIds.length === 0 || (!paymentDetailsLoading && !paymentDetailsError);
+  const unpaidPayableStatements = useMemo(
+    () => statementRows.filter((statement) => isStatementPayable(statement) && !paidStatementIds.has(statement.id)),
+    [paidStatementIds, statementRows]
+  );
+  const selectedPayStatements = useMemo(
+    () =>
+      payAllUnpaid
+        ? unpaidPayableStatements
+        : unpaidPayableStatements.filter((statement) => payStatementIds.includes(statement.id)),
+    [payAllUnpaid, payStatementIds, unpaidPayableStatements]
+  );
+  const payTotalAmount = selectedPayStatements.reduce((sum, statement) => sum + statement.netWage, 0);
+  const selectedTreasuryAccount = treasuryAccounts.find((account) => account.id === payTreasuryAccountId) ?? null;
+  const hasInsufficientTreasuryBalance =
+    selectedTreasuryAccount != null && !selectedTreasuryAccount.allowNegativeBalance && selectedTreasuryAccount.balance < payTotalAmount;
 
   const filteredYearOptions = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -436,8 +553,80 @@ export default function PayrollPeriodsPage() {
     }
   }
 
+  function openPayDialog() {
+    setPayAllUnpaid(true);
+    setPayStatementIds([]);
+    setPayPaymentDate(new Date().toISOString().slice(0, 10));
+    setPayNotes('');
+    setIsPayOpen(true);
+  }
+
+  function togglePayStatement(statementId: string) {
+    setPayStatementIds((current) =>
+      current.includes(statementId) ? current.filter((id) => id !== statementId) : [...current, statementId]
+    );
+  }
+
+  async function refreshPayrollPaymentViews() {
+    await refreshPeriods();
+    await refreshSelectedPeriod();
+    await refreshPaymentHistory();
+    await refreshPaymentDetails();
+  }
+
+  async function handlePayStatements() {
+    if (!selectedPeriod || selectedPayStatements.length === 0 || !payTreasuryAccountId || hasInsufficientTreasuryBalance) {
+      return;
+    }
+
+    setIsPaying(true);
+    try {
+      const freshPeriod = await getPayrollPeriod(selectedPeriod.id);
+      await payPayrollStatements(freshPeriod.id, {
+        rowVersion: freshPeriod.rowVersion,
+        treasuryAccountId: payTreasuryAccountId,
+        paymentDate: payPaymentDate,
+        notes: payNotes.trim() || null,
+        statementIds: payAllUnpaid ? null : selectedPayStatements.map((statement) => statement.id),
+        payAllUnpaid
+      });
+      setIsPayOpen(false);
+      setPayStatementIds([]);
+      setPayAllUnpaid(true);
+      setPayNotes('');
+      await refreshPayrollPaymentViews();
+      notify(t(intl.locale, 'تم دفع كشوف الرواتب المحددة بنجاح.', 'Selected payroll statements paid successfully.'));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : t(intl.locale, 'تعذر دفع كشوف الرواتب.', 'Unable to pay payroll statements.'), 'error');
+    } finally {
+      setIsPaying(false);
+    }
+  }
+
+  async function handleReversePayment() {
+    if (!reverseTarget || !reverseReason.trim()) {
+      return;
+    }
+
+    setIsReversing(true);
+    try {
+      const freshPayment = await getPayrollPayment(reverseTarget.paymentId);
+      await reversePayrollPayment(reverseTarget.paymentId, {
+        rowVersion: freshPayment.rowVersion,
+        reason: reverseReason.trim()
+      });
+      setReverseTarget(null);
+      setReverseReason('');
+      await refreshPayrollPaymentViews();
+      notify(t(intl.locale, 'تم عكس دفعة الرواتب بنجاح.', 'Payroll payment reversed successfully.'));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : t(intl.locale, 'تعذر عكس دفعة الرواتب.', 'Unable to reverse payroll payment.'), 'error');
+    } finally {
+      setIsReversing(false);
+    }
+  }
+
   const periodRows = periods;
-  const statementRows = selectedPeriod?.statements ?? [];
   const canCalculatePeriod =
     selectedPeriod != null &&
     (selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft || selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated);
@@ -445,6 +634,18 @@ export default function PayrollPeriodsPage() {
   const canConfirmPeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft;
   const canReopenPeriod =
     selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved && hasPermission(user, PAYROLL_PERMISSIONS.reopen);
+  const canPayPeriod =
+    selectedPeriod != null &&
+    selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved &&
+    unpaidPayableStatements.length > 0 &&
+    paymentStateReady &&
+    !paymentHistoryError &&
+    hasPermission(user, PAYROLL_PERMISSIONS.pay);
+  const shouldRenderPayAction =
+    selectedPeriod != null &&
+    selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved &&
+    hasPermission(user, PAYROLL_PERMISSIONS.pay) &&
+    (paymentHistoryLoading || paymentDetailsLoading || canPayPeriod);
 
   return (
     <MainCard content={false}>
@@ -683,6 +884,22 @@ export default function PayrollPeriodsPage() {
                       {t(intl.locale, 'اعتماد المسير', 'Approve payroll')}
                     </LoadingButton>
                   </PermissionGuard>
+                  {shouldRenderPayAction && (
+                    <PermissionGuard permission={PAYROLL_PERMISSIONS.pay}>
+                      <LoadingButton
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        loading={paymentHistoryLoading || paymentDetailsLoading}
+                        loadingPosition="start"
+                        startIcon={<IconCashBanknote size={16} />}
+                        onClick={openPayDialog}
+                        disabled={!canPayPeriod || busy || isPaying}
+                      >
+                        {t(intl.locale, 'دفع الرواتب', 'Pay payroll')}
+                      </LoadingButton>
+                    </PermissionGuard>
+                  )}
                   {canReopenPeriod && (
                     <Button
                       size="small"
@@ -788,6 +1005,18 @@ export default function PayrollPeriodsPage() {
                           value={formatCurrency(intl.locale, selectedPeriod.totalNetWage)}
                         />
                       </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <SummaryCard
+                          label={t(intl.locale, 'المدفوع', 'Paid')}
+                          value={formatCurrency(intl.locale, selectedPeriod.paidAmount)}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <SummaryCard
+                          label={t(intl.locale, 'المتبقي', 'Outstanding')}
+                          value={formatCurrency(intl.locale, selectedPeriod.outstandingAmount)}
+                        />
+                      </Grid>
                     </Grid>
 
                     <Card sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -844,8 +1073,24 @@ export default function PayrollPeriodsPage() {
                                 <TableCell>
                                   <Chip
                                     size="small"
-                                    label={getPeriodStatusLabel(intl.locale, selectedPeriod.status)}
-                                    color={getPeriodStatusColor(selectedPeriod.status)}
+                                    label={
+                                      !paymentStateReady
+                                        ? t(intl.locale, 'جار تحميل الدفع', 'Loading payment')
+                                        : paidStatementIds.has(statement.id)
+                                          ? t(intl.locale, 'مدفوع', 'Paid')
+                                          : isStatementPayable(statement)
+                                            ? t(intl.locale, 'غير مدفوع', 'Unpaid')
+                                            : t(intl.locale, 'غير مستحق', 'Not payable')
+                                    }
+                                    color={
+                                      !paymentStateReady
+                                        ? 'default'
+                                        : paidStatementIds.has(statement.id)
+                                          ? 'success'
+                                          : isStatementPayable(statement)
+                                            ? 'warning'
+                                            : 'default'
+                                    }
                                   />
                                 </TableCell>
                                 <TableCell align="right" onClick={(event) => event.stopPropagation()}>
@@ -858,6 +1103,95 @@ export default function PayrollPeriodsPage() {
                           </TableBody>
                         </Table>
                       </TableContainer>
+                    </Box>
+
+                    <Box>
+                      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
+                        <Typography variant="h6" fontWeight={800}>
+                          {t(intl.locale, 'دفعات الرواتب', 'Payroll payments')}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t(intl.locale, 'كل دفعة تغطي كشفاً كاملاً أو أكثر.', 'Each payment covers one or more full statements.')}
+                        </Typography>
+                      </Stack>
+                      {paymentHistoryError || paymentDetailsError ? (
+                        <Alert severity="error">
+                          {t(intl.locale, 'تعذر تحميل حالة دفعات الرواتب، لذلك تم تعطيل الدفع مؤقتاً.', 'Unable to load payroll payment state, so payment is temporarily disabled.')}
+                        </Alert>
+                      ) : paymentHistoryLoading ? (
+                        <Box sx={{ py: 2 }}>
+                          <Loader />
+                        </Box>
+                      ) : (
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>{t(intl.locale, 'تاريخ الدفع', 'Payment date')}</TableCell>
+                                <TableCell align="right">{t(intl.locale, 'المبلغ', 'Amount')}</TableCell>
+                                <TableCell>{t(intl.locale, 'الخزينة', 'Treasury')}</TableCell>
+                                <TableCell align="right">{t(intl.locale, 'الكشوف', 'Statements')}</TableCell>
+                                <TableCell>{t(intl.locale, 'الحالة', 'Status')}</TableCell>
+                                <TableCell>{t(intl.locale, 'المرجع', 'Reference')}</TableCell>
+                                <TableCell>{t(intl.locale, 'سبب العكس', 'Reversal reason')}</TableCell>
+                                <TableCell align="right">{t(intl.locale, 'الإجراءات', 'Actions')}</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {paymentHistory.length === 0 ? (
+                                <TableRow>
+                                  <TableCell colSpan={8}>
+                                    <Alert severity="info">
+                                      {t(intl.locale, 'لا توجد دفعات لهذا المسير بعد.', 'No payments for this payroll period yet.')}
+                                    </Alert>
+                                  </TableCell>
+                                </TableRow>
+                              ) : (
+                                paymentHistory.map((payment) => (
+                                  <TableRow key={payment.paymentId}>
+                                    <TableCell>{payment.paymentDate}</TableCell>
+                                    <TableCell align="right">{formatCurrency(intl.locale, payment.totalAmount)}</TableCell>
+                                    <TableCell>
+                                      <Stack spacing={0.25}>
+                                        <Typography variant="body2">{payment.treasuryAccountNameArabic}</Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                          {payment.treasuryAccountCode}
+                                        </Typography>
+                                      </Stack>
+                                    </TableCell>
+                                    <TableCell align="right">{payment.statementCount}</TableCell>
+                                    <TableCell>
+                                      <Chip
+                                        size="small"
+                                        color={getPaymentStatusColor(payment.status)}
+                                        label={getPaymentStatusLabel(intl.locale, payment.status)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>{payment.treasuryTransactionId || payment.journalEntryId || '-'}</TableCell>
+                                    <TableCell>{payment.reversalReason || '-'}</TableCell>
+                                    <TableCell align="right">
+                                      {isPaymentActive(payment) && (
+                                        <PermissionGuard permission={PAYROLL_PERMISSIONS.pay}>
+                                          <Button
+                                            size="small"
+                                            color="warning"
+                                            variant="outlined"
+                                            startIcon={<IconRotateClockwise2 size={16} />}
+                                            onClick={() => setReverseTarget(payment)}
+                                            disabled={isReversing}
+                                          >
+                                            {t(intl.locale, 'عكس الدفعة', 'Reverse')}
+                                          </Button>
+                                        </PermissionGuard>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              )}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      )}
                     </Box>
 
                     {selectedStatement && (
@@ -1030,6 +1364,160 @@ export default function PayrollPeriodsPage() {
             disabled={!reopenReason.trim()}
           >
             {t(intl.locale, 'إعادة فتح', 'Reopen')}
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isPayOpen} onClose={() => setIsPayOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>{t(intl.locale, 'دفع كشوف الرواتب', 'Pay payroll statements')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Alert severity="info">
+              {t(intl.locale, 'يتم دفع كل كشف بالكامل. الدفع الجزئي هنا يعني اختيار بعض الكشوف فقط.', 'Each statement is paid in full. Partial payment here means selecting a subset of statements.')}
+            </Alert>
+            <Select
+              displayEmpty
+              value={payTreasuryAccountId}
+              onChange={(event) => setPayTreasuryAccountId(String(event.target.value))}
+              fullWidth
+              disabled={treasuryAccountsLoading || isPaying}
+            >
+              <MenuItem value="">{t(intl.locale, 'اختر حساب الخزينة', 'Select treasury account')}</MenuItem>
+              {treasuryAccounts.map((account) => (
+                <MenuItem key={account.id} value={account.id}>
+                  {account.code} - {account.nameArabic} ({formatCurrency(intl.locale, account.balance)})
+                </MenuItem>
+              ))}
+            </Select>
+            <TextField
+              type="date"
+              label={t(intl.locale, 'تاريخ الدفع', 'Payment date')}
+              value={payPaymentDate}
+              onChange={(event) => setPayPaymentDate(event.target.value)}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label={t(intl.locale, 'ملاحظات', 'Notes')}
+              value={payNotes}
+              onChange={(event) => setPayNotes(event.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1}>
+              <Button
+                variant={payAllUnpaid ? 'contained' : 'outlined'}
+                onClick={() => {
+                  setPayAllUnpaid(true);
+                  setPayStatementIds([]);
+                }}
+                disabled={isPaying}
+              >
+                {t(intl.locale, 'دفع جميع غير المدفوع', 'Pay all unpaid')}
+              </Button>
+              <Button variant={!payAllUnpaid ? 'contained' : 'outlined'} onClick={() => setPayAllUnpaid(false)} disabled={isPaying}>
+                {t(intl.locale, 'اختيار كشوف محددة', 'Select statements')}
+              </Button>
+            </Stack>
+            <TableContainer sx={{ maxHeight: 320 }}>
+              <Table stickyHeader size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding="checkbox" />
+                    <TableCell>{t(intl.locale, 'العامل', 'Worker')}</TableCell>
+                    <TableCell align="right">{t(intl.locale, 'الصافي', 'Net')}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {unpaidPayableStatements.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3}>
+                        <Alert severity="info">{t(intl.locale, 'لا توجد كشوف مستحقة غير مدفوعة.', 'There are no unpaid payable statements.')}</Alert>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    unpaidPayableStatements.map((statement) => (
+                      <TableRow key={statement.id} hover>
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            checked={payAllUnpaid || payStatementIds.includes(statement.id)}
+                            onChange={() => togglePayStatement(statement.id)}
+                            disabled={payAllUnpaid || isPaying}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Stack spacing={0.25}>
+                            <Typography fontWeight={700}>{statement.workerNameSnapshot}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {statement.workerCodeSnapshot}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell align="right">{formatCurrency(intl.locale, statement.netWage)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
+              <Typography variant="subtitle1" fontWeight={800}>
+                {t(intl.locale, 'إجمالي الدفع', 'Payment total')}: {formatCurrency(intl.locale, payTotalAmount)}
+              </Typography>
+              {hasInsufficientTreasuryBalance && (
+                <Typography color="error" variant="body2">
+                  {t(intl.locale, 'رصيد حساب الخزينة غير كافٍ.', 'Treasury account balance is insufficient.')}
+                </Typography>
+              )}
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsPayOpen(false)} disabled={isPaying}>
+            {t(intl.locale, 'إلغاء', 'Cancel')}
+          </Button>
+          <LoadingButton
+            variant="contained"
+            loading={isPaying}
+            onClick={handlePayStatements}
+            disabled={!payTreasuryAccountId || selectedPayStatements.length === 0 || !payPaymentDate || hasInsufficientTreasuryBalance}
+          >
+            {t(intl.locale, 'دفع', 'Pay')}
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={reverseTarget != null} onClose={() => setReverseTarget(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{t(intl.locale, 'عكس دفعة الرواتب', 'Reverse payroll payment')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Alert severity="warning">
+              {t(intl.locale, 'سيتم عكس هذه الدفعة فقط، وستبقى في سجل المدفوعات.', 'Only this payment will be reversed, and it will remain visible in payment history.')}
+            </Alert>
+            <TextField
+              label={t(intl.locale, 'سبب العكس', 'Reversal reason')}
+              value={reverseReason}
+              onChange={(event) => setReverseReason(event.target.value)}
+              fullWidth
+              required
+              multiline
+              minRows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setReverseTarget(null);
+              setReverseReason('');
+            }}
+            disabled={isReversing}
+          >
+            {t(intl.locale, 'إلغاء', 'Cancel')}
+          </Button>
+          <LoadingButton color="warning" variant="contained" loading={isReversing} onClick={handleReversePayment} disabled={!reverseReason.trim()}>
+            {t(intl.locale, 'عكس الدفعة', 'Reverse')}
           </LoadingButton>
         </DialogActions>
       </Dialog>

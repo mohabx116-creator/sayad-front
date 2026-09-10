@@ -28,6 +28,11 @@ export type PayrollPeriodListItemDto = {
   totalGrossWage: number;
   totalDeductions: number;
   totalNetWage: number;
+  paymentStatus: string;
+  requiresPaymentReconciliation: boolean;
+  paidAmount: number;
+  outstandingAmount: number;
+  activePaymentCount: number;
   createdAtUtc: string;
   updatedAtUtc: string | null;
   rowVersion: string;
@@ -108,11 +113,49 @@ export type PayrollPeriodPaymentDto = {
   journalEntryId: string;
   journalEntryNumber: string;
   postingKey: string;
+  reversedAtUtc: string | null;
+  reversedByUserId: string | null;
+  reversedByDisplayName: string | null;
+  reversalReason: string | null;
+  reversalJournalEntryId: string | null;
+  reversalJournalEntryNumber: string | null;
+  rowVersion: string;
 };
 
 export type PayrollPeriodDetailDto = PayrollPeriodListItemDto & {
   payment: PayrollPeriodPaymentDto | null;
   statements: PayrollStatementDto[];
+};
+
+export type PayrollPaymentListItemDto = {
+  paymentId: string;
+  payrollPeriodId: string;
+  paymentDate: string;
+  totalAmount: number;
+  treasuryAccountId: string;
+  treasuryAccountCode: string;
+  treasuryAccountNameArabic: string;
+  status: string;
+  statementCount: number;
+  journalEntryId: string | null;
+  treasuryTransactionId: string | null;
+  reversedAtUtc: string | null;
+  reversalReason: string | null;
+  rowVersion: string;
+};
+
+export type PayrollPaymentLineDto = {
+  lineId: string;
+  statementId: string;
+  workerId: string;
+  workerCode: string;
+  workerName: string;
+  amount: number;
+  isActive: boolean;
+};
+
+export type PayrollPaymentDetailDto = PayrollPaymentListItemDto & {
+  lines: PayrollPaymentLineDto[];
 };
 
 export type PayrollPeriodSummaryDto = {
@@ -150,6 +193,20 @@ export type PayrollPeriodPaymentRequest = {
   treasuryAccountId: string;
   paymentDate: string;
   notes?: string | null;
+};
+
+export type PayPayrollStatementsRequest = {
+  rowVersion: string;
+  treasuryAccountId: string;
+  paymentDate: string;
+  notes?: string | null;
+  statementIds?: string[] | null;
+  payAllUnpaid: boolean;
+};
+
+export type ReversePayrollPaymentRequest = {
+  rowVersion: string;
+  reason: string;
 };
 
 export type PayrollPeriodUpdateInput = {
