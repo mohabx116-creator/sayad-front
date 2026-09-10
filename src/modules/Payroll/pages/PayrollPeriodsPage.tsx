@@ -513,9 +513,20 @@ export default function PayrollPeriodsPage() {
       setReopenReason('');
       await refreshPeriods();
       await refreshSelectedPeriod();
-      notify(t(intl.locale, 'ØªÙ… Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ù…Ø³ÙŠØ± Ø§Ù„Ø±ÙˆØ§ØªØ¨ Ø¨Ù†Ø¬Ø§Ø­.', 'Payroll period reopened successfully.'));
+      notify(t(intl.locale, 'تم إعادة فتح مسير الرواتب بنجاح.', 'Payroll period reopened successfully.'));
     } catch (error) {
-      notify(error instanceof Error ? error.message : t(intl.locale, 'ØªØ¹Ø°Ø± Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ù…Ø³ÙŠØ± Ø§Ù„Ø±ÙˆØ§ØªØ¨.', 'Unable to reopen payroll period.'), 'error');
+      const rawMessage = error instanceof Error ? error.message : '';
+      let message = rawMessage;
+      if (rawMessage === 'Payroll period contains active canonical payment records and cannot be reopened.') {
+        message = t(
+          intl.locale,
+          'لا يمكن إعادة فتح مسير الرواتب لوجود دفعات رواتب نشطة مرتبطة به.',
+          'Payroll period contains active canonical payment records and cannot be reopened.'
+        );
+      } else if (!message) {
+        message = t(intl.locale, 'تعذر إعادة فتح مسير الرواتب.', 'Unable to reopen payroll period.');
+      }
+      notify(message, 'error');
     } finally {
       setIsReopening(false);
     }
@@ -638,7 +649,10 @@ export default function PayrollPeriodsPage() {
   const canApprovePeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Calculated;
   const canConfirmPeriod = selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Draft;
   const canReopenPeriod =
-    selectedPeriod != null && selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved && hasPermission(user, PAYROLL_PERMISSIONS.reopen);
+    selectedPeriod != null &&
+    selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved &&
+    hasPermission(user, PAYROLL_PERMISSIONS.reopen) &&
+    selectedPeriod.activePaymentCount === 0;
   const canPayPeriod =
     selectedPeriod != null &&
     selectedPeriod.status === PAYROLL_PERIOD_STATUS.Approved &&
