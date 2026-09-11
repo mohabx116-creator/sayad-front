@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
-import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSWRConfig } from 'swr';
@@ -14,7 +12,6 @@ import Typography from '@mui/material/Typography';
 
 import { IconArrowLeft, IconCheck, IconEdit, IconMinus, IconPlus, IconX } from '@tabler/icons-react';
 
-import useAuth from 'hooks/useAuth';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
@@ -55,7 +52,6 @@ export default function TreasuryAccountDetailsPage() {
   const navigate = useNavigate();
   const intl = useIntl();
   const dispatch = useDispatch();
-  const { user } = useAuth();
   const { mutate: mutateTreasury } = useSWRConfig();
 
   const { account, isLoading, mutate } = useTreasuryAccount(id);
@@ -112,7 +108,9 @@ export default function TreasuryAccountDetailsPage() {
         transactionDate: value.transactionDate,
         amount: value.amount,
         reason: value.reason,
-        notes: value.notes
+        notes: value.notes,
+        counterAccountingAccountId: value.counterAccountingAccountId,
+        operationId: value.operationId
       };
 
       if (cashDialog.mode === 'in') {
@@ -329,6 +327,7 @@ export default function TreasuryAccountDetailsPage() {
         open={cashDialog.open}
         mode={cashDialog.mode}
         accountName={account.nameArabic}
+        treasuryAccountingAccountId={account.accountingAccountId}
         isSubmitting={isProcessing}
         onClose={() => setCashDialog({ open: false, mode: cashDialog.mode })}
         onSubmit={handleCashSubmit}

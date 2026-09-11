@@ -175,6 +175,8 @@ export interface TreasuryCashMovementInput {
   amount: number;
   reason: string;
   notes: string | null;
+  counterAccountingAccountId: string;
+  operationId: string;
 }
 
 export interface TreasuryAllocation {
