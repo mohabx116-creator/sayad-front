@@ -249,16 +249,19 @@ function buildPayrollAuditSpecialSections(
   if (selectedLog.action === 'PayrollStatementsPaid') {
     const selectedCount = getAuditRecordValueByKeys(selectedLogOldValues, ['selectedCount', 'SelectedCount']);
     const totalAmount = getAuditRecordValueByKeys(selectedLogOldValues, ['totalAmount', 'TotalAmount']);
+    const canonicalPaymentId = getAuditRecordValueByKeys(selectedLogNewValues, ['id', 'Id']) ?? paymentId;
     const paymentReferenceNumber = getAuditRecordValueByKeys(selectedLogNewValues, ['paymentNumber', 'PaymentNumber']);
     const treasuryAccountId = getAuditRecordValueByKeys(selectedLogNewValues, ['treasuryAccountId', 'TreasuryAccountId']);
     const treasuryTransactionId = getAuditRecordValueByKeys(selectedLogNewValues, ['treasuryTransactionId', 'TreasuryTransactionId']);
     const journalEntryId = getAuditRecordValueByKeys(selectedLogNewValues, ['journalEntryId', 'JournalEntryId']);
     const postingKey = getAuditRecordValueByKeys(selectedLogNewValues, ['postingKey', 'PostingKey']);
-    const resultingStatus = getAuditRecordValueByKeys(selectedLogOldValues, ['status', 'Status']);
+    const resultingStatus =
+      getAuditRecordValueByKeys(selectedLogNewValues, ['status', 'Status', 'paymentStatus', 'PaymentStatus']) ??
+      getAuditRecordValueByKeys(selectedLogOldValues, ['status', 'Status']);
 
     sections.push(
       renderAuditSection('audit-log.payroll.payment-summary', [
-        { labelId: 'audit-log.payroll.payment-id', value: formatAuditValue('PaymentId', paymentId, intl) },
+        { labelId: 'audit-log.payroll.payment-id', value: formatAuditValue('PaymentId', canonicalPaymentId, intl) },
         {
           labelId: 'audit-log.payroll.payment-reference-number',
           value: paymentReferenceNumber ? formatAuditValue('PaymentNumber', paymentReferenceNumber, intl) : '-'
@@ -277,7 +280,7 @@ function buildPayrollAuditSpecialSections(
         { labelId: 'audit-log.payroll.total-amount', value: formatAuditValue('TotalAmount', totalAmount, intl) },
         {
           labelId: 'audit-log.payroll.resulting-status',
-          value: localizePayrollStatus(typeof resultingStatus === 'string' ? resultingStatus : null, intl)
+          value: localizePayrollStatus(resultingStatus as string | number | null | undefined, intl)
         }
       ])
     );

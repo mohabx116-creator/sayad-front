@@ -36,7 +36,13 @@ const PAYROLL_STATUS_MESSAGE_IDS: Record<string, string> = {
   draft: 'payroll-period-status-draft',
   calculated: 'payroll-period-status-calculated',
   approved: 'payroll-period-status-approved',
-  paid: 'payroll-period-status-paid'
+  paid: 'payroll-period-status-paid',
+  partiallypaid: 'payroll-period-status-approved',
+  unpaid: 'payroll-period-status-approved',
+  '1': 'payroll-period-status-draft',
+  '2': 'payroll-period-status-calculated',
+  '3': 'payroll-period-status-approved',
+  '4': 'payroll-period-status-paid'
 };
 
 function toMessageId(key: string, map: Record<string, string>) {
@@ -109,14 +115,15 @@ export function localizeAuditEntity(entity: string, intl: IntlShape): string {
   return intl.formatMessage({ id: messageId });
 }
 
-export function localizePayrollStatus(status: string | null | undefined, intl: IntlShape): string {
-  if (!status) {
+export function localizePayrollStatus(status: string | number | null | undefined, intl: IntlShape): string {
+  if (status == null || status === '') {
     return 'Unknown';
   }
 
-  const messageId = PAYROLL_STATUS_MESSAGE_IDS[status.toLowerCase()];
+  const strStatus = String(status).toLowerCase();
+  const messageId = PAYROLL_STATUS_MESSAGE_IDS[strStatus];
   if (!messageId) {
-    return humanizeAuditCode(status);
+    return humanizeAuditCode(strStatus);
   }
 
   return intl.formatMessage({ id: messageId });
@@ -127,12 +134,19 @@ export function formatAuditValue(key: string, value: unknown, intl: IntlShape): 
     return '-';
   }
 
-  if (typeof value === 'string') {
-    const normalizedKey = key.toLowerCase();
-    if (normalizedKey === 'status' || normalizedKey === 'fromstatus' || normalizedKey === 'tostatus' || normalizedKey.endsWith('status')) {
-      return localizePayrollStatus(value, intl);
-    }
+  const normalizedKey = key.toLowerCase();
+  if (
+    normalizedKey === 'status' ||
+    normalizedKey === 'fromstatus' ||
+    normalizedKey === 'tostatus' ||
+    normalizedKey === 'oldstatus' ||
+    normalizedKey === 'newstatus' ||
+    normalizedKey.endsWith('status')
+  ) {
+    return localizePayrollStatus(value as string | number, intl);
+  }
 
+  if (typeof value === 'string') {
     if (normalizedKey.includes('date') || normalizedKey.includes('atutc')) {
       const parsed = Date.parse(value);
       if (!Number.isNaN(parsed)) {
