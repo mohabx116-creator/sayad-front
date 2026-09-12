@@ -17,9 +17,6 @@ import 'assets/scss/style.scss';
 // yet-another-react-lightbox
 import 'yet-another-react-lightbox/styles.css';
 
-// map
-import 'maplibre-gl/dist/maplibre-gl.css';
-import 'maplibre-react-components/style.css';
 
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';

@@ -6,9 +6,6 @@
 @use 'slick-carousel/slick/slick.css';
 @use 'slick-carousel/slick/slick-theme.css';
 
-@use 'maplibre-gl/dist/maplibre-gl.css';
-@use 'maplibre-react-components/style.css';
-
 @import 'react-responsive-carousel/lib/styles/carousel.min.css';
 @include meta.load-css('yet-another-react-lightbox.scss');
 @include meta.load-css('scrollbar.scss');
@@ -17,27 +14,6 @@
 
 * {
   -webkit-tap-highlight-color: transparent !important;
-}
-
-// ==============================|| MAPLIBRE GL ||============================== //
-
-.maplibregl-popup-content {
-  border-radius: 12px !important;
-  padding: 0 !important;
-}
-
-.maplibregl-popup-tip {
-  margin-top: -1px !important;
-}
-
-html[data-color-scheme='dark'] {
-  .maplibregl-popup-tip {
-    border-top-color: var(--palette-background-paper) !important;
-  }
-}
-
-html[data-color-scheme='dark'] .maplibregl-popup-anchor-top .maplibregl-popup-tip {
-  border-bottom-color: var(--palette-background-paper) !important;
 }
 
 // ==============================|| LIGHT BOX ||============================== //
