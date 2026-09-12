@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -28,7 +27,6 @@ export default function ExpenseLifecycleActions({ expense, onSuccess }: Props) {
   const [isProcessing, setIsProcessing] = useState(false);
   const dispatch = useDispatch();
   const intl = useIntl();
-  const navigate = useNavigate();
 
   const { account, isLoading: isAccountLoading } = useTreasuryAccount(isPostOpen ? expense.treasuryAccountId : undefined);
 

@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
-import { IconAlertTriangle, IconCircleCheck, IconTable } from '@tabler/icons-react';
+import { IconCircleCheck } from '@tabler/icons-react';
 
 export interface ImportSuccessStateProps {
   totalRows: number;

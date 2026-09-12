@@ -11,19 +11,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 
-import {
-  IconAlertCircle,
-  IconArrowLeft,
-  IconArrowRight,
-  IconBuildingWarehouse,
-  IconClock,
-  IconFileInvoice,
-  IconInfoCircle,
-  IconReceiptTax,
-  IconScale,
-  IconTruckDelivery,
-  IconUsers
-} from '@tabler/icons-react';
+import { IconArrowLeft, IconArrowRight, IconBuildingWarehouse, IconFileInvoice, IconInfoCircle, IconScale, IconTruckDelivery, IconUsers } from '@tabler/icons-react';
 
 import { useCustomerReceivablesAgingReport, useSupplierPayablesAgingReport } from 'modules/Accounting/hooks/useAccountingReports';
 import { formatTreasuryMoney } from '../utils/treasury.format';

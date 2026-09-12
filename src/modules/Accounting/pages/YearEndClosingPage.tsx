@@ -23,7 +23,6 @@ import useAuth from 'hooks/useAuth';
 import { hasPermission } from 'modules/Administration/utils/permission-utils';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import MainCard from 'ui-component/cards/MainCard';
 import PageTitle from 'ui-component/PageTitle';
 
 import { closeFiscalYear, reopenFiscalYear } from '../api/fiscalYearClosingApi';

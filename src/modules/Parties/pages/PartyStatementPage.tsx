@@ -251,13 +251,14 @@ export default function PartyStatementPage() {
     setPage(1);
   }, [dateFrom, dateTo, movementType]);
 
+  useBrowserTitle(party ? [resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic), intl.formatMessage({ id: 'party-statement', defaultMessage: 'Party statement' })] : []);
+
   if (!id) {
     return <Navigate to="/parties" replace />;
   }
 
   const isLoading = isPartyLoading || isStatementLoading;
   const errorMessage = partyError || statementError;
-  useBrowserTitle(party ? [resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic), intl.formatMessage({ id: 'party-statement', defaultMessage: 'Party statement' })] : []);
   const partyTypeLabel = party ? getPartyTypeLabel(intl, party.isCustomer, party.isSupplier) : '';
   const currentBalanceLabel = statement ? getBalanceNatureLabel(intl, statement.closingBalanceNature) : '';
   const summaryLabels = party ? getStatementSummaryLabels(intl, party.isCustomer, party.isSupplier) : null;

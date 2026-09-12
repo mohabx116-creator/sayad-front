@@ -17,7 +17,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
-import { IconEdit, IconPlus, IconPower, IconToggleLeft, IconToggleRight, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconPlus, IconToggleLeft, IconToggleRight, IconTrash } from '@tabler/icons-react';
 import { FormattedMessage } from 'react-intl';
 
 import useAuth from 'hooks/useAuth';
@@ -25,7 +25,6 @@ import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
-import MainCard from 'ui-component/cards/MainCard';
 import PageTitle from 'ui-component/PageTitle';
 import { hasPermission } from 'modules/Administration/utils/permission-utils';
 import { useIntl } from 'react-intl';

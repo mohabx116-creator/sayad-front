@@ -18,7 +18,7 @@ import Typography from '@mui/material/Typography';
 
 import { reversePartyAdjustment } from '../api/partiesApi';
 import type { PartyAdjustmentDto } from '../types/parties.types';
-import { getPartyAdjustmentStatusLabelId, getPartyAdjustmentTypeLabelId } from '../utils/party-adjustments';
+import { getPartyAdjustmentTypeLabelId } from '../utils/party-adjustments';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 

@@ -35,17 +35,6 @@ function unwrapPaged<T>(request: Promise<AxiosResponse<ApiResponse<T[]>>>): Prom
   }));
 }
 
-function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
-  const search = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      search.set(key, String(value));
-    }
-  });
-
-  return search.toString();
-}
-
 function normalizePageSize(pageSize?: number, max = JOURNAL_ENTRY_ACCOUNT_LOOKUP_PAGE_SIZE) {
   if (pageSize == null || Number.isNaN(pageSize)) {
     return undefined;

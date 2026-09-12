@@ -10,7 +10,7 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { IconChevronDown, IconChevronRight, IconEdit, IconEye, IconPlus, IconPower, IconToggleLeft, IconToggleRight, IconTrash } from '@tabler/icons-react';
+import { IconChevronDown, IconChevronRight, IconEdit, IconEye, IconPlus, IconToggleLeft, IconToggleRight, IconTrash } from '@tabler/icons-react';
 import { FormattedMessage } from 'react-intl';
 
 import type { AccountingAccountTreeNodeDto } from '../types/accounting.types';

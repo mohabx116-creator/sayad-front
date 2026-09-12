@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { useBrowserTitle } from 'shared/hooks/useBrowserTitle';
-import { resolveLocalizedText } from 'shared/utils/localizedText';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/GridLegacy';

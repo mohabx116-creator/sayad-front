@@ -8,7 +8,6 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/GridLegacy';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -45,15 +44,6 @@ type LookupOption = {
   nameArabic: string;
   nameEnglish?: string | null;
 };
-
-function formatDate(value: string | null | undefined, locale: string) {
-  if (!value) {
-    return '-';
-  }
-
-  const date = new Date(`${value}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(locale);
-}
 
 function getInitials(name: string) {
   if (!name) {

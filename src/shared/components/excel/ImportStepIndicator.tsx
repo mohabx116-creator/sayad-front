@@ -3,7 +3,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
-import { IconAlertTriangle, IconCheck, IconEye, IconFileUpload, IconSparkles } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCheck, IconEye, IconFileUpload } from '@tabler/icons-react';
 
 export type ImportStep = 1 | 2 | 3 | 4;
 

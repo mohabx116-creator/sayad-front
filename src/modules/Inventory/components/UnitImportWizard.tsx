@@ -18,7 +18,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
-import { IconCheck, IconScale, IconUpload, IconX } from '@tabler/icons-react';
+import { IconScale, IconUpload, IconX } from '@tabler/icons-react';
 
 import {
   ExcelUploadArea,

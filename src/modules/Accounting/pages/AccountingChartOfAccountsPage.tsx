@@ -21,7 +21,6 @@ import useAuth from 'hooks/useAuth';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
-import Loader from 'ui-component/Loader';
 import MainCard from 'ui-component/cards/MainCard';
 import PageTitle from 'ui-component/PageTitle';
 import { hasPermission } from 'modules/Administration/utils/permission-utils';
@@ -32,7 +31,7 @@ import AccountingAccountTree from '../components/AccountingAccountTree';
 import { activateAccountingAccount, deactivateAccountingAccount, deleteAccountingAccount } from '../api/accountingApi';
 import { useAccountingAccountTree } from '../hooks/useAccounting';
 import type { AccountingAccountTreeNodeDto, AccountingAccountTreeParams } from '../types/accounting.types';
-import { ACCOUNTING_ACCOUNT_TYPES, ACCOUNTING_PERMISSIONS, ACCOUNTING_VIEW_PERMISSIONS } from '../utils/accounting.constants';
+import { ACCOUNTING_ACCOUNT_TYPES, ACCOUNTING_PERMISSIONS } from '../utils/accounting.constants';
 import { formatAccountingAccountType } from '../utils/accounting.format';
 
 export default function AccountingChartOfAccountsPage() {

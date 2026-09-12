@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
@@ -29,7 +29,6 @@ import PageTitle from 'ui-component/PageTitle';
 import { createFiscalYearRollover, rollbackFiscalYearRollover } from '../api/fiscalYearRolloverApi';
 import { useFiscalYearRolloverHistory, useFiscalYearRolloverPreview } from '../hooks/useFiscalYearRollover';
 import { ACCOUNTING_PERMISSIONS } from '../utils/accounting.constants';
-import type { FiscalYearRolloverHistoryItemDto } from '../types/fiscal-year-rollover.types';
 
 function getDisplayLabel(locale: string, labelArabic: string, labelEnglish: string | null) {
   return locale.toLowerCase().startsWith('ar') ? labelArabic : labelEnglish ?? labelArabic;
@@ -45,10 +44,6 @@ function formatDate(locale: string, value: string) {
 
 function getStatusColor(status: string) {
   return status === 'Completed' ? 'success' : 'warning';
-}
-
-function getLatestHistory(items: FiscalYearRolloverHistoryItemDto[]) {
-  return items[0] ?? null;
 }
 
 export default function FiscalYearRolloverPage() {
@@ -68,7 +63,6 @@ export default function FiscalYearRolloverPage() {
 
   const canRollOver = hasPermission(user, ACCOUNTING_PERMISSIONS.fiscalYearsRollOver);
   const canRollback = hasPermission(user, ACCOUNTING_PERMISSIONS.fiscalYearsRollback);
-  const latestHistory = useMemo(() => getLatestHistory(history), [history]);
   const isLoading = previewLoading || historyLoading;
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {

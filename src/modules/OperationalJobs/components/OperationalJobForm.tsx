@@ -11,8 +11,7 @@ import Grid from '@mui/material/GridLegacy';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import { IconDeviceFloppy, IconBriefcase } from '@tabler/icons-react';
+import { IconDeviceFloppy } from '@tabler/icons-react';
 
 import { createOperationalJobSchema, updateOperationalJobSchema } from '../schemas/operationalJob.schema';
 import type { OperationalJobRequest, UpdateOperationalJobRequest } from '../types/operationalJobs.types';

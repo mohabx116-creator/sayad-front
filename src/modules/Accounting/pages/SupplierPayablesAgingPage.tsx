@@ -64,10 +64,6 @@ function buildSupplierUrl(supplierId: string) {
   return `/parties/${supplierId}`;
 }
 
-function buildSupplierStatementUrl(supplierId: string, asOfDate: string) {
-  return `/parties/${supplierId}/statement?asOfDate=${encodeURIComponent(asOfDate)}`;
-}
-
 function buildSupplierAgingUrl(params: { supplierId: string; asOfDate: string }) {
   return `/accounting/reports/supplier-payables-aging?supplierId=${encodeURIComponent(params.supplierId)}&asOfDate=${encodeURIComponent(params.asOfDate)}`;
 }

@@ -22,7 +22,6 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import {
-  IconDownload,
   IconEdit,
   IconEye,
   IconPackage,
@@ -31,8 +30,7 @@ import {
   IconReportAnalytics,
   IconSearch,
   IconToggleLeft,
-  IconToggleRight,
-  IconUpload
+  IconToggleRight
 } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
