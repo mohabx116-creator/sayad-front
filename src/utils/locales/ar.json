@@ -1094,6 +1094,8 @@
   "optional": "اختياري",
   "reset-filters": "إعادة تعيين الفلاتر",
   "treasury": "الخزينة",
+  "treasury.counter-accounting-account": "الحساب المحاسبي المقابل",
+  "treasury.counter-accounting-account-help": "اختر حساب الأستاذ العام المقابل لهذه الحركة النقدية اليدوية.",
   "treasury-dashboard": "لوحة الخزينة",
   "treasury-accounts": "حسابات الخزينة",
   "receipts": "سندات القبض",

@@ -1090,6 +1090,8 @@
   "optional": "Optional",
   "reset-filters": "Reset filters",
   "treasury": "Treasury",
+  "treasury.counter-accounting-account": "Counter Accounting Account",
+  "treasury.counter-accounting-account-help": "Select the GL account that offsets this manual treasury movement.",
   "treasury-dashboard": "Treasury Dashboard",
   "treasury-accounts": "Treasury Accounts",
   "receipts": "Receipts",
