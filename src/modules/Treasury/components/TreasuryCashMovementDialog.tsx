@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -59,6 +59,9 @@ export default function TreasuryCashMovementDialog({
     isPosting: true
   });
   const counterAccountingAccounts = accountingAccounts.filter((account) => account.id !== treasuryAccountingAccountId);
+
+  const intl = useIntl();
+  const isArabic = intl.locale.startsWith('ar');
 
   useEffect(() => {
     if (!open) {
@@ -123,11 +126,16 @@ export default function TreasuryCashMovementDialog({
                 />
               }
             >
-              {counterAccountingAccounts.map((account) => (
-                <MenuItem key={account.id} value={account.id}>
-                  {account.code} - {account.nameArabic}
-                </MenuItem>
-              ))}
+              {counterAccountingAccounts.map((account) => {
+                const localizedName = isArabic ? account.nameArabic?.trim() : account.nameEnglish?.trim();
+                const label = localizedName ? `${account.code} - ${localizedName}` : account.code;
+
+                return (
+                  <MenuItem key={account.id} value={account.id}>
+                    {label}
+                  </MenuItem>
+                );
+              })}
             </TextField>
           </Grid>
           <Grid item xs={12}>
