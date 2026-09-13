@@ -20,6 +20,7 @@ import SystemOwnerRouteGuard from 'modules/System/components/SystemOwnerRouteGua
 import { ACCOUNTING_PERMISSIONS } from 'modules/Accounting/utils/accounting.constants';
 import { PAYROLL_PERMISSIONS } from 'modules/Payroll/utils/payroll.constants';
 import { MONTHLY_MOVEMENTS_PERMISSIONS } from 'modules/LaborMonthlyMovements/utils/monthlyMovements.constants';
+import { MANUFACTURING_PERMISSIONS } from 'modules/Manufacturing/utils/manufacturing.constants';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -127,6 +128,18 @@ const SystemPermissionsPage = Loadable(lazy(() => import('modules/System/pages/S
 const SystemAuditPage = Loadable(lazy(() => import('modules/System/pages/SystemAuditPage')));
 const SystemMaintenancePage = Loadable(lazy(() => import('modules/System/pages/SystemMaintenancePage')));
 const SystemDangerZonePage = Loadable(lazy(() => import('modules/System/pages/SystemDangerZonePage')));
+const BillsOfMaterialsListPage = Loadable(lazy(() => import('modules/Manufacturing/pages/BillsOfMaterialsListPage')));
+const BillOfMaterialsFormPage = Loadable(lazy(() => import('modules/Manufacturing/pages/BillOfMaterialsFormPage')));
+const BillOfMaterialsDetailsPage = Loadable(lazy(() => import('modules/Manufacturing/pages/BillOfMaterialsDetailsPage')));
+const ProductionOrdersListPage = Loadable(lazy(() => import('modules/Manufacturing/pages/ProductionOrdersListPage')));
+const ProductionOrderFormPage = Loadable(lazy(() => import('modules/Manufacturing/pages/ProductionOrderFormPage')));
+const ProductionOrderDetailsPage = Loadable(lazy(() => import('modules/Manufacturing/pages/ProductionOrderDetailsPage')));
+const WorkCentersListPage = Loadable(lazy(() => import('modules/Manufacturing/pages/WorkCentersListPage')));
+const WorkCenterFormPage = Loadable(lazy(() => import('modules/Manufacturing/pages/WorkCenterFormPage')));
+const ManufacturingDashboardPage = Loadable(lazy(() => import('modules/Manufacturing/reports/pages/ManufacturingDashboardPage')));
+const WipReportPage = Loadable(lazy(() => import('modules/Manufacturing/reports/pages/WipReportPage')));
+const ProductionCostAnalysisPage = Loadable(lazy(() => import('modules/Manufacturing/reports/pages/ProductionCostAnalysisPage')));
+const ProductionCostVariancePage = Loadable(lazy(() => import('modules/Manufacturing/reports/pages/ProductionCostVariancePage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -1096,6 +1109,126 @@ const MainRoutes = {
       element: (
         <PermissionRouteGuard permission={ADMINISTRATION_PERMISSIONS.rolesView}>
           <RoleDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/boms',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.bomsView}>
+          <BillsOfMaterialsListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/boms/create',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.bomsCreate}>
+          <BillOfMaterialsFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/boms/:id',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.bomsView}>
+          <BillOfMaterialsDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/boms/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.bomsUpdate}>
+          <BillOfMaterialsFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/orders',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.ordersView}>
+          <ProductionOrdersListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/orders/create',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.ordersCreate}>
+          <ProductionOrderFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/orders/:id',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.ordersView}>
+          <ProductionOrderDetailsPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/orders/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.ordersUpdate}>
+          <ProductionOrderFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/work-centers',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.workCentersView}>
+          <WorkCentersListPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/work-centers/create',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.workCentersCreate}>
+          <WorkCenterFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/work-centers/:id/edit',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.workCentersUpdate}>
+          <WorkCenterFormPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/dashboard',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.dashboardView}>
+          <ManufacturingDashboardPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/reports/wip',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.reportsView}>
+          <WipReportPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/reports/cost-analysis',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.reportsView}>
+          <ProductionCostAnalysisPage />
+        </PermissionRouteGuard>
+      )
+    },
+    {
+      path: '/manufacturing/reports/cost-variance',
+      element: (
+        <PermissionRouteGuard permission={MANUFACTURING_PERMISSIONS.reportsView}>
+          <ProductionCostVariancePage />
         </PermissionRouteGuard>
       )
     }

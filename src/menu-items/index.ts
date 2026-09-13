@@ -9,12 +9,13 @@ import settings from './settings';
 import inventory from './inventory';
 import purchases from './purchases';
 import sales from './sales';
+import manufacturing from './manufacturing';
 import { NavItemType } from 'types';
 
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems: { items: NavItemType[] } = {
-  items: [dashboard, parties, labor, treasury, accounting, expenses, settings, sales, purchases, inventory, administration]
+  items: [dashboard, parties, labor, treasury, accounting, expenses, settings, sales, purchases, inventory, manufacturing, administration]
 };
 
 export default menuItems;
