@@ -414,7 +414,6 @@
   "system-roles-permissions": "System Roles & Permissions",
   "system-permissions": "System Permissions",
   "audit": "Audit",
-  "settings": "Settings",
   "system-audit-log": "Audit Log",
   "audit-log.details-title": "Audit log details",
   "audit-log.no-structured-details": "No structured details available.",
@@ -2127,5 +2126,8 @@
   "production-operation-status.Planned": "Planned",
   "production-operation-status.InProgress": "In Progress",
   "production-operation-status.Completed": "Completed",
-  "production-operation-status.Cancelled": "Cancelled"
+  "production-operation-status.Cancelled": "Cancelled",
+  "remaining-payable-amount": "Remaining Payable Amount",
+  "purchase-return-receipt": "Receive from Supplier",
+  "purchase-return-receipt-description": "Receipt for purchase return {number}"
 }
