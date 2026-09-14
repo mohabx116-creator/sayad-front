@@ -2,7 +2,7 @@ import useSWR from 'swr';
 import { manufacturingReportsApi } from '../api/manufacturingReportsApi';
 
 export function useManufacturingDashboard() {
-  const { data, error, isLoading, mutate } = useSWR('/manufacturing/reports/dashboard', () =>
+  const { data, error, isLoading, mutate } = useSWR('/api/manufacturing/reports/dashboard', () =>
     manufacturingReportsApi.getDashboard()
   );
 
@@ -15,7 +15,7 @@ export function useManufacturingDashboard() {
 }
 
 export function useManufacturingWipReport() {
-  const { data, error, isLoading, mutate } = useSWR('/manufacturing/reports/wip', () =>
+  const { data, error, isLoading, mutate } = useSWR('/api/manufacturing/reports/wip', () =>
     manufacturingReportsApi.getWipReport()
   );
 
@@ -28,7 +28,7 @@ export function useManufacturingWipReport() {
 }
 
 export function useProductionCostAnalysis(params?: { dateFrom?: string; dateTo?: string; finishedGoodItemId?: string }) {
-  const key = ['/manufacturing/reports/cost-analysis', params?.dateFrom, params?.dateTo, params?.finishedGoodItemId];
+  const key = ['/api/manufacturing/reports/cost-analysis', params?.dateFrom, params?.dateTo, params?.finishedGoodItemId];
   const { data, error, isLoading, mutate } = useSWR(key, () =>
     manufacturingReportsApi.getCostAnalysis(params)
   );
@@ -42,7 +42,7 @@ export function useProductionCostAnalysis(params?: { dateFrom?: string; dateTo?:
 }
 
 export function useManufacturingCostVariance(params?: { dateFrom?: string; dateTo?: string; finishedGoodItemId?: string }) {
-  const key = ['/manufacturing/reports/cost-variance', params?.dateFrom, params?.dateTo, params?.finishedGoodItemId];
+  const key = ['/api/manufacturing/reports/cost-variance', params?.dateFrom, params?.dateTo, params?.finishedGoodItemId];
   const { data, error, isLoading, mutate } = useSWR(key, () =>
     manufacturingReportsApi.getCostVariance(params)
   );

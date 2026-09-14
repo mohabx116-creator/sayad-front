@@ -38,8 +38,8 @@ import { useWorkCenters } from '../hooks/useManufacturing';
 import type { WorkCenterListDto } from '../types/manufacturing.types';
 import { MANUFACTURING_PERMISSIONS } from '../utils/manufacturing.constants';
 
-function formatMoney(value: number) {
-  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function formatMoney(value: number | undefined | null) {
+  return (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export default function WorkCentersListPage() {
@@ -202,7 +202,7 @@ export default function WorkCentersListPage() {
                     <TableCell>{workCenter.name}</TableCell>
                     <TableCell align="right">{formatMoney(workCenter.laborRatePerHour)}</TableCell>
                     <TableCell align="right">{formatMoney(workCenter.machineRatePerHour)}</TableCell>
-                    <TableCell align="right">{workCenter.capacityMinutesPerDay.toLocaleString()}</TableCell>
+                    <TableCell align="right">{(workCenter.capacityMinutesPerDay ?? 0).toLocaleString()}</TableCell>
                     <TableCell align="center"><WorkCenterStatusChip isActive={workCenter.isActive} /></TableCell>
                     <TableCell align="center">
                       <PermissionGuard permission={MANUFACTURING_PERMISSIONS.workCentersUpdate}>

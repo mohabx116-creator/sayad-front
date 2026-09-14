@@ -2,15 +2,21 @@ import { useIntl } from 'react-intl';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import { ManufacturingWipReportItemDto } from '../types/manufacturingReports.types';
+import ProductionOrderStatusChip from '../../components/ProductionOrderStatusChip';
+import type { ProductionStatus } from '../../types/manufacturing.types';
 
 interface Props {
   data?: ManufacturingWipReportItemDto[];
 }
 
+const money = (value: number | undefined | null) =>
+  (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const ownershipKey = (value: string | undefined | null) => `production-ownership.${value ?? 'Unknown'}`;
+
 const WipTable = ({ data }: Props) => {
   const intl = useIntl();
-
-  if (!data) return null;
+  const rows = data ?? [];
 
   return (
     <MainCard title={intl.formatMessage({ id: 'wip-report-details', defaultMessage: 'WIP Report Details' })} content={false}>
@@ -29,21 +35,27 @@ const WipTable = ({ data }: Props) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((row, index) => (
-              <TableRow key={index}>
+            {rows.map((row, index) => (
+              <TableRow key={index} hover>
                 <TableCell>{row.orderNumber}</TableCell>
-                <TableCell>{row.finishedProductNameArabic} ({row.finishedProductCode})</TableCell>
-                <TableCell>{row.status}</TableCell>
-                <TableCell>{row.ownershipType}</TableCell>
-                <TableCell align="right">{row.materialCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                <TableCell align="right">{row.laborCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                <TableCell align="right">{row.overheadCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                <TableCell align="right">{row.totalWip.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                <TableCell>
+                  {row.finishedProductNameArabic} ({row.finishedProductCode})
+                </TableCell>
+                <TableCell>
+                  <ProductionOrderStatusChip status={row.status as ProductionStatus} />
+                </TableCell>
+                <TableCell>
+                  {intl.formatMessage({ id: ownershipKey(row.ownershipType), defaultMessage: row.ownershipType || '-' })}
+                </TableCell>
+                <TableCell align="right">{money(row.materialCost)}</TableCell>
+                <TableCell align="right">{money(row.laborCost)}</TableCell>
+                <TableCell align="right">{money(row.overheadCost)}</TableCell>
+                <TableCell align="right">{money(row.totalWip)}</TableCell>
               </TableRow>
             ))}
-            {data.length === 0 && (
+            {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={8} align="center" sx={{ py: 3, color: 'text.secondary' }}>
                   {intl.formatMessage({ id: 'no-data-available', defaultMessage: 'No data available' })}
                 </TableCell>
               </TableRow>

@@ -33,12 +33,12 @@ type ProductionOperationsTabProps = {
   onChanged?: () => Promise<void> | void;
 };
 
-function formatNumber(value: number) {
-  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function formatNumber(value: number | undefined | null) {
+  return (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function formatMinutes(value: number) {
-  return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+function formatMinutes(value: number | undefined | null) {
+  return (value ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
 function statusColor(status: ProductionOperationStatus) {

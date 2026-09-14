@@ -128,7 +128,7 @@ export default function ProductionOrdersListPage() {
               </MenuItem>
               {PRODUCTION_ORDER_STATUSES.map((s) => (
                 <MenuItem key={s} value={s}>
-                  {s}
+                  {intl.formatMessage({ id: `production-order-status.${s}`, defaultMessage: s })}
                 </MenuItem>
               ))}
             </TextField>
@@ -241,7 +241,7 @@ export default function ProductionOrdersListPage() {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight={600}>
-                          {order.plannedQuantity.toLocaleString()}
+                          {(order.plannedQuantity ?? 0).toLocaleString()}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
@@ -250,7 +250,7 @@ export default function ProductionOrdersListPage() {
                           fontWeight={600}
                           color={progressPct >= 100 ? 'success.main' : progressPct > 0 ? 'secondary.main' : 'text.secondary'}
                         >
-                          {order.producedQuantity.toLocaleString()}
+                          {(order.producedQuantity ?? 0).toLocaleString()}
                           <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
                             ({progressPct}%)
                           </Typography>
@@ -268,7 +268,10 @@ export default function ProductionOrdersListPage() {
                       </TableCell>
                       <TableCell align="center">
                         <Typography variant="body2" color="text.secondary">
-                          {order.productionType}
+                          {intl.formatMessage({
+                            id: `production-ownership.${order.productionType}`,
+                            defaultMessage: order.productionType
+                          })}
                         </Typography>
                       </TableCell>
                       <TableCell align="center">

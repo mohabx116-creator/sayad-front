@@ -14,9 +14,9 @@ const CostBreakdownChart = ({ data }: Props) => {
 
   if (!data || data.length === 0) return null;
 
-  const totalMaterial = data.reduce((acc, curr) => acc + curr.materialCost, 0);
-  const totalLabor = data.reduce((acc, curr) => acc + curr.laborCost, 0);
-  const totalOverhead = data.reduce((acc, curr) => acc + curr.overheadCost, 0);
+  const totalMaterial = data.reduce((acc, curr) => acc + (curr.materialCost ?? 0), 0);
+  const totalLabor = data.reduce((acc, curr) => acc + (curr.laborCost ?? 0), 0);
+  const totalOverhead = data.reduce((acc, curr) => acc + (curr.overheadCost ?? 0), 0);
 
   const series = [totalMaterial, totalLabor, totalOverhead];
   
@@ -36,8 +36,9 @@ const CostBreakdownChart = ({ data }: Props) => {
     },
     dataLabels: {
       enabled: true,
-      formatter: (val: number, opts: any) => {
-        return opts.w.globals.seriesTotals[opts.seriesIndex].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      formatter: (_: number, opts: any) => {
+        const val = opts.w?.globals?.seriesTotals?.[opts.seriesIndex];
+        return (val ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
     }
   };

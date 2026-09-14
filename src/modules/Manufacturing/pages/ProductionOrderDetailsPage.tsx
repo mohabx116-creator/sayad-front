@@ -85,12 +85,12 @@ function InfoField({ label, children }: { label: React.ReactNode; children: Reac
 
 // ==============================|| COST ROW COMPONENT ||============================== //
 
-function CostRow({ label, value, isBold }: { label: React.ReactNode; value: number; isBold?: boolean }) {
+function CostRow({ label, value, isBold }: { label: React.ReactNode; value: number | undefined | null; isBold?: boolean }) {
   return (
     <TableRow>
       <TableCell sx={{ fontWeight: isBold ? 700 : 400 }}>{label}</TableCell>
       <TableCell align="right" sx={{ fontWeight: isBold ? 700 : 400 }}>
-        {value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {(value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </TableCell>
     </TableRow>
   );
@@ -292,7 +292,15 @@ export default function ProductionOrderDetailsPage() {
             <PageTitle>{order.number}</PageTitle>
             <ProductionOrderStatusChip status={order.status} />
             {order.productionType !== 'Company' && (
-              <Chip size="small" label={order.productionType} color="warning" variant="outlined" />
+              <Chip
+                size="small"
+                label={intl.formatMessage({
+                  id: `production-ownership.${order.productionType}`,
+                  defaultMessage: order.productionType
+                })}
+                color="warning"
+                variant="outlined"
+              />
             )}
           </Stack>
 
@@ -436,7 +444,10 @@ export default function ProductionOrderDetailsPage() {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <InfoField label={<FormattedMessage id="production-type" defaultMessage="Production Type" />}>
-                  {order.productionType}
+                  {intl.formatMessage({
+                    id: `production-ownership.${order.productionType}`,
+                    defaultMessage: order.productionType
+                  })}
                   {order.ownerPartyNameArabic && (
                     <Typography variant="caption" color="text.secondary" display="block">
                       {order.ownerPartyCode && `[${order.ownerPartyCode}]`} {order.ownerPartyNameArabic}
@@ -530,7 +541,7 @@ export default function ProductionOrderDetailsPage() {
                   <FormattedMessage id="produced-qty" defaultMessage="Produced" />
                 </Typography>
                 <Typography variant="body1" fontWeight={700}>
-                  {order.producedQuantity.toLocaleString()} / {order.plannedQuantity.toLocaleString()}
+                  {(order.producedQuantity ?? 0).toLocaleString()} / {(order.plannedQuantity ?? 0).toLocaleString()}
                   {' '}({progressPct}%)
                 </Typography>
               </Stack>
@@ -542,7 +553,7 @@ export default function ProductionOrderDetailsPage() {
               />
               {order.scrapQuantity > 0 && (
                 <Typography variant="caption" color="text.secondary">
-                  <FormattedMessage id="scrap-qty" defaultMessage="Scrap" />: {order.scrapQuantity.toLocaleString()}
+                  <FormattedMessage id="scrap-qty" defaultMessage="Scrap" />: {(order.scrapQuantity ?? 0).toLocaleString()}
                 </Typography>
               )}
             </Stack>
@@ -778,7 +789,7 @@ export default function ProductionOrderDetailsPage() {
               value={receiveQty}
               onChange={(e) => { setReceiveQty(e.target.value); setReceiveQtyError(''); }}
               error={Boolean(receiveQtyError)}
-              helperText={receiveQtyError || `${intl.formatMessage({ id: 'remaining', defaultMessage: 'Remaining' })}: ${Math.max(0, order.plannedQuantity - order.producedQuantity).toLocaleString()}`}
+              helperText={receiveQtyError || `${intl.formatMessage({ id: 'remaining', defaultMessage: 'Remaining' })}: ${(Math.max(0, (order.plannedQuantity ?? 0) - (order.producedQuantity ?? 0)) ?? 0).toLocaleString()}`}
               inputProps={{ min: 0.001, step: 'any' }}
             />
             <TextField

@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
+import Alert from '@mui/material/Alert';
+import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -8,93 +11,150 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
+import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import MainCard from 'ui-component/cards/MainCard';
+import PageTitle from 'ui-component/PageTitle';
+
 import CostVarianceCard from '../components/CostVarianceCard';
 import VarianceBarChart from '../components/VarianceBarChart';
 import VarianceTable from '../components/VarianceTable';
 import { useManufacturingCostVariance } from '../hooks/useManufacturingReports';
+import { useInventoryItems } from 'modules/Inventory/hooks/useInventory';
+import { resolveLocalizedText } from 'shared/utils/localizedText';
+import type { ItemDto } from 'modules/Inventory/types/inventory.types';
 
 export default function ProductionCostVariancePage() {
-  const [filters, setFilters] = useState({ dateFrom: '', dateTo: '', finishedGoodItemId: '' });
-  const params = {
-    dateFrom: filters.dateFrom || undefined,
-    dateTo: filters.dateTo || undefined,
-    finishedGoodItemId: filters.finishedGoodItemId || undefined
-  };
+  const intl = useIntl();
+
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [selectedItem, setSelectedItem] = useState<ItemDto | null>(null);
+
+  const { items: allItems, isLoading: isItemsLoading } = useInventoryItems({ page: 1, pageSize: 500 });
+
+  const params = useMemo(
+    () => ({
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      finishedGoodItemId: selectedItem?.id || undefined
+    }),
+    [dateFrom, dateTo, selectedItem]
+  );
+
   const { varianceReport, isLoading, error } = useManufacturingCostVariance(params);
 
+  const handleReset = () => {
+    setDateFrom('');
+    setDateTo('');
+    setSelectedItem(null);
+  };
+
+  const rows = varianceReport ?? [];
+
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1}>
-          <Typography variant="h3">Cost Variance</Typography>
-        </Stack>
-      </Grid>
+    <Box>
+      <Breadcrumbs
+        custom
+        heading="production-cost-variance"
+        links={[
+          { title: 'manufacturing', to: '/manufacturing' },
+          { title: 'manufacturing-reports', to: '/manufacturing/reports/cost-variance' },
+          { title: 'production-cost-variance' }
+        ]}
+      />
+      <Stack spacing={3}>
+        <Box>
+          <PageTitle>
+            <FormattedMessage id="production-cost-variance" defaultMessage="Production Cost Variance" />
+          </PageTitle>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <FormattedMessage
+              id="production-cost-variance-description"
+              defaultMessage="Compare planned BOM and routing costs against actual posted receipts and issues."
+            />
+          </Typography>
+        </Box>
 
-      <Grid item xs={12}>
         <MainCard>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'flex-end' }}>
-            <TextField
-              fullWidth
-              size="small"
-              type="date"
-              label="Date From"
-              value={filters.dateFrom}
-              onChange={(event) => setFilters((current) => ({ ...current, dateFrom: event.target.value }))}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              type="date"
-              label="Date To"
-              value={filters.dateTo}
-              onChange={(event) => setFilters((current) => ({ ...current, dateTo: event.target.value }))}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label="Finished Good Item ID"
-              value={filters.finishedGoodItemId}
-              onChange={(event) => setFilters((current) => ({ ...current, finishedGoodItemId: event.target.value }))}
-            />
-            <Button variant="outlined" color="secondary" onClick={() => setFilters({ dateFrom: '', dateTo: '', finishedGoodItemId: '' })}>
-              Reset
-            </Button>
-          </Stack>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                size="small"
+                type="date"
+                label={intl.formatMessage({ id: 'date-from', defaultMessage: 'Date From' })}
+                value={dateFrom}
+                onChange={(event) => setDateFrom(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                size="small"
+                type="date"
+                label={intl.formatMessage({ id: 'date-to', defaultMessage: 'Date To' })}
+                value={dateTo}
+                onChange={(event) => setDateTo(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={8} md={4}>
+              <Autocomplete
+                size="small"
+                options={allItems}
+                getOptionLabel={(option) =>
+                  `[${option.code}] ${resolveLocalizedText(intl.locale, option.nameArabic, option.nameEnglish)}`
+                }
+                value={selectedItem}
+                onChange={(_, newValue) => setSelectedItem(newValue)}
+                loading={isItemsLoading}
+                renderInput={(fieldParams) => (
+                  <TextField
+                    {...fieldParams}
+                    label={intl.formatMessage({ id: 'finished-good-filter', defaultMessage: 'Finished Good Item' })}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4} md={2}>
+              <Button fullWidth variant="outlined" color="secondary" onClick={handleReset}>
+                <FormattedMessage id="reset" defaultMessage="Reset" />
+              </Button>
+            </Grid>
+          </Grid>
         </MainCard>
-      </Grid>
 
-      {isLoading && (
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+        {error && (
+          <Alert severity="error">
+            {error instanceof Error
+              ? error.message
+              : intl.formatMessage({ id: 'error-loading-variance', defaultMessage: 'Error loading cost variance data.' })}
+          </Alert>
+        )}
+
+        {isLoading && !varianceReport && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
             <CircularProgress />
           </Box>
-        </Grid>
-      )}
+        )}
 
-      {error && !isLoading && (
-        <Grid item xs={12}>
-          <MainCard>
-            <Typography color="error">Error loading cost variance data.</Typography>
-          </MainCard>
-        </Grid>
-      )}
-
-      {!isLoading && !error && (
-        <>
-          <Grid item xs={12}>
-            <CostVarianceCard data={varianceReport} />
-          </Grid>
-          <Grid item xs={12} md={5}>
-            <VarianceBarChart data={varianceReport} />
-          </Grid>
-          <Grid item xs={12} md={7}>
-            <VarianceTable data={varianceReport} />
-          </Grid>
-        </>
-      )}
-    </Grid>
+        {!isLoading && !error && (
+          <>
+            <CostVarianceCard data={rows} />
+            <Grid container spacing={3}>
+              {rows.length > 0 && (
+                <Grid item xs={12} md={5}>
+                  <VarianceBarChart data={rows} />
+                </Grid>
+              )}
+              <Grid item xs={12} md={rows.length > 0 ? 7 : 12}>
+                <VarianceTable data={rows} />
+              </Grid>
+            </Grid>
+          </>
+        )}
+      </Stack>
+    </Box>
   );
 }

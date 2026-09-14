@@ -1,6 +1,5 @@
 import Grid from '@mui/material/GridLegacy';
 import { useIntl } from 'react-intl';
-import MainCard from 'ui-component/cards/MainCard';
 import HoverDataCard from 'ui-component/cards/HoverDataCard';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import FactoryIcon from '@mui/icons-material/Factory';
@@ -24,7 +23,7 @@ const ManufacturingKpiCards = ({ data }: Props) => {
         <HoverDataCard
           title={intl.formatMessage({ id: 'active-orders', defaultMessage: 'Active Orders' })}
           iconPrimary={ListAltIcon}
-          primary={data.activeOrdersCount}
+          primary={data.activeOrdersCount ?? 0}
           secondary={intl.formatMessage({ id: 'total-active', defaultMessage: 'Total Active' })}
           color="primary.main"
         />
@@ -33,7 +32,7 @@ const ManufacturingKpiCards = ({ data }: Props) => {
         <HoverDataCard
           title={intl.formatMessage({ id: 'released-orders', defaultMessage: 'Released Orders' })}
           iconPrimary={FactoryIcon}
-          primary={data.releasedOrdersCount}
+          primary={data.releasedOrdersCount ?? 0}
           secondary={intl.formatMessage({ id: 'ready-to-start', defaultMessage: 'Ready to Start' })}
           color="info.main"
         />
@@ -42,7 +41,7 @@ const ManufacturingKpiCards = ({ data }: Props) => {
         <HoverDataCard
           title={intl.formatMessage({ id: 'in-progress-orders', defaultMessage: 'In Progress Orders' })}
           iconPrimary={SettingsIcon}
-          primary={data.inProgressOrdersCount}
+          primary={data.inProgressOrdersCount ?? 0}
           secondary={intl.formatMessage({ id: 'currently-running', defaultMessage: 'Currently Running' })}
           color="warning.main"
         />
@@ -51,7 +50,7 @@ const ManufacturingKpiCards = ({ data }: Props) => {
         <HoverDataCard
           title={intl.formatMessage({ id: 'completed-today', defaultMessage: 'Completed Today' })}
           iconPrimary={CheckCircleIcon}
-          primary={data.completedTodayCount}
+          primary={data.completedTodayCount ?? 0}
           secondary={intl.formatMessage({ id: 'today', defaultMessage: 'Today' })}
           color="success.main"
         />
@@ -60,7 +59,7 @@ const ManufacturingKpiCards = ({ data }: Props) => {
         <HoverDataCard
           title={intl.formatMessage({ id: 'wip-value', defaultMessage: 'WIP Value' })}
           iconPrimary={AttachMoneyIcon}
-          primary={data.totalWipValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          primary={(data.totalWipValue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           secondary={intl.formatMessage({ id: 'work-in-progress', defaultMessage: 'Work in Progress' })}
           color="error.main"
         />
@@ -69,7 +68,7 @@ const ManufacturingKpiCards = ({ data }: Props) => {
         <HoverDataCard
           title={intl.formatMessage({ id: 'monthly-production-cost', defaultMessage: 'Monthly Cost' })}
           iconPrimary={AttachMoneyIcon}
-          primary={data.currentMonthProductionCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          primary={(data.currentMonthProductionCost ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           secondary={intl.formatMessage({ id: 'this-month', defaultMessage: 'This Month' })}
           color="secondary.main"
         />

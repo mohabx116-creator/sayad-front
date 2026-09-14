@@ -234,7 +234,7 @@ export default function BillsOfMaterialsListPage() {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight={600}>
-                          {bom.batchSize.toLocaleString()} {bom.baseUnitCode}
+                          {(bom.batchSize ?? 0).toLocaleString()} {bom.baseUnitCode}
                         </Typography>
                       </TableCell>
                       <TableCell align="center">

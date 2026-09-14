@@ -460,7 +460,7 @@ export default function ProductionOrderFormPage() {
                 >
                   {PRODUCTION_OWNERSHIP_TYPES.map((t) => (
                     <MenuItem key={t} value={t}>
-                      {t}
+                      {intl.formatMessage({ id: `production-ownership.${t}`, defaultMessage: t })}
                     </MenuItem>
                   ))}
                 </TextField>

@@ -100,7 +100,7 @@ const ProductionOrderTimeline = ({ productionOrderId }: ProductionOrderTimelineP
     return (
       <Box sx={{ p: 2 }}>
         <Typography color="error">
-          {formatMessage({ id: 'Error loading timeline' })}
+          {formatMessage({ id: 'manufacturing.timeline.errorLoading' })}
         </Typography>
       </Box>
     );
@@ -110,7 +110,7 @@ const ProductionOrderTimeline = ({ productionOrderId }: ProductionOrderTimelineP
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="textSecondary">
-          {formatMessage({ id: 'No timeline activities found' })}
+          {formatMessage({ id: 'manufacturing.timeline.noActivities' })}
         </Typography>
       </Box>
     );
@@ -119,7 +119,7 @@ const ProductionOrderTimeline = ({ productionOrderId }: ProductionOrderTimelineP
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>
-        {formatMessage({ id: 'Activity Timeline' })}
+        {formatMessage({ id: 'manufacturing.timeline.title' })}
       </Typography>
       <Timeline position="alternate">
         {timelineData.map((activity: ProductionOrderActivityDto, index: number) => {
@@ -148,21 +148,21 @@ const ProductionOrderTimeline = ({ productionOrderId }: ProductionOrderTimelineP
 
               <TimelineContent sx={{ py: '12px', px: 2 }}>
                 <Typography variant="h6" component="span" color={color}>
-                  {formatMessage({ id: activity.activityType })}
+                  {formatMessage({ id: `production-activity-type.${activity.activityType}` })}
                 </Typography>
                 <Typography variant="body2">{activity.description}</Typography>
                 
                 <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Chip
                     size="small"
-                    label={`${formatMessage({ id: 'By' })}: ${activity.userName || activity.userId}`}
+                    label={`${formatMessage({ id: 'manufacturing.timeline.by' })}: ${activity.userName || activity.userId}`}
                     variant="outlined"
                   />
                   {activity.referenceType && activity.referenceId && (
                     <Chip
                       size="small"
                       color="secondary"
-                      label={`${formatMessage({ id: 'Ref' })}: ${activity.referenceType}`}
+                      label={`${formatMessage({ id: 'manufacturing.timeline.ref' })}: ${activity.referenceType}`}
                       variant="outlined"
                     />
                   )}
@@ -177,4 +177,3 @@ const ProductionOrderTimeline = ({ productionOrderId }: ProductionOrderTimelineP
 };
 
 export default ProductionOrderTimeline;
-

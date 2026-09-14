@@ -241,7 +241,7 @@ export default function BillOfMaterialsDetailsPage() {
 
               <Grid item xs={12} sm={6} md={3}>
                 <InfoField label={<FormattedMessage id="batch-size" defaultMessage="Batch Size" />}>
-                  {bom.batchSize.toLocaleString()} {bom.baseUnitCode} ({bom.baseUnitNameArabic})
+                  {(bom.batchSize ?? 0).toLocaleString()} {bom.baseUnitCode} ({bom.baseUnitNameArabic})
                 </InfoField>
               </Grid>
 
@@ -338,7 +338,7 @@ export default function BillOfMaterialsDetailsPage() {
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="body2" fontWeight={600}>
-                            {line.quantity.toLocaleString()}
+                            {(line.quantity ?? 0).toLocaleString()}
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
@@ -346,7 +346,7 @@ export default function BillOfMaterialsDetailsPage() {
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="body2" fontWeight={600} color="secondary.main">
-                            {line.baseQuantity.toLocaleString()}
+                            {(line.baseQuantity ?? 0).toLocaleString()}
                           </Typography>
                         </TableCell>
                         <TableCell>{line.notes || '-'}</TableCell>
