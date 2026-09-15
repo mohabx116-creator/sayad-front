@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -22,7 +23,7 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { IconSearch, IconPlus, IconUserShield, IconDeviceFloppy, IconRotateClockwise2, IconEdit } from '@tabler/icons-react';
+import { IconSearch, IconPlus, IconUserShield, IconDeviceFloppy, IconRotateClockwise2, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
@@ -31,7 +32,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import PermissionGuard from '../components/PermissionGuard';
 import PermissionMatrix from '../components/PermissionMatrix';
-import { assignRolePermissions, createRole, updateRole } from '../api/administrationApi';
+import { assignRolePermissions, createRole, deleteRole, updateRole } from '../api/administrationApi';
 import { usePermissions, useRoles } from '../hooks/useAdministration';
 import { createRoleSchema, updateRoleSchema } from '../schemas/role.schema';
 import type { CreateRoleRequest, RoleDto, UpdateRoleRequest } from '../types/administration.types';
@@ -47,6 +48,7 @@ export default function RolesListPage() {
   const dispatch = useDispatch();
   const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<RoleDialogState>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RoleDto | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
 
   // Matrix state
@@ -121,6 +123,31 @@ export default function RolesListPage() {
     setDialog(null);
     mutate();
     notify(intl.formatMessage({ id: 'administration-action-success' }));
+  };
+
+  const isProtectedRole = (role: RoleDto) => role.isSystem || role.normalizedName === 'SYSTEM ADMINISTRATOR';
+
+  const handleDeleteRole = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      await deleteRole(deleteTarget.id);
+      setDeleteTarget(null);
+      if (selectedRoleId === deleteTarget.id) {
+        setSelectedRoleId(null);
+      }
+      await mutate();
+      notify(intl.formatMessage({ id: 'role-deleted-successfully' }));
+    } catch (err) {
+      const rawMessage = err instanceof Error ? err.message : intl.formatMessage({ id: 'administration-action-failed' });
+      const assignmentCount = rawMessage.match(/because\s+(\d+)\s+users/i)?.[1];
+      notify(
+        assignmentCount
+          ? intl.formatMessage({ id: 'role-has-assigned-users' }, { count: Number(assignmentCount) })
+          : rawMessage,
+        'error'
+      );
+    }
   };
 
   return (
@@ -243,11 +270,24 @@ export default function RolesListPage() {
                     sx={{ mb: 1 }}
                     secondaryAction={
                       isSelected && (
-                        <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesUpdate}>
-                          <IconButton edge="end" size="small" onClick={() => setDialog({ mode: 'edit', role })}>
-                            <IconEdit size={16} />
-                          </IconButton>
-                        </PermissionGuard>
+                        <Stack direction="row" spacing={0.5}>
+                          <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesUpdate}>
+                            <IconButton edge="end" size="small" onClick={() => setDialog({ mode: 'edit', role })}>
+                              <IconEdit size={16} />
+                            </IconButton>
+                          </PermissionGuard>
+                          <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.rolesDelete}>
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              color="error"
+                              disabled={isProtectedRole(role)}
+                              onClick={() => setDeleteTarget(role)}
+                            >
+                              <IconTrash size={16} />
+                            </IconButton>
+                          </PermissionGuard>
+                        </Stack>
                       )
                     }
                   >
@@ -280,6 +320,30 @@ export default function RolesListPage() {
       </Grid>
 
       <RoleDialog dialog={dialog} onClose={() => setDialog(null)} onSaved={handleRoleSaved} />
+
+      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>
+          <FormattedMessage id="confirm-delete-role" />
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage id="confirm-delete-role-description" values={{ role: deleteTarget?.name ?? '' }} />
+            </Typography>
+            <Alert severity="warning">
+              <FormattedMessage id="permanent-deletion-warning" />
+            </Alert>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)} color="inherit">
+            <FormattedMessage id="cancel" />
+          </Button>
+          <Button color="error" variant="contained" onClick={handleDeleteRole} startIcon={<IconTrash size={18} />}>
+            <FormattedMessage id="delete-role" />
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

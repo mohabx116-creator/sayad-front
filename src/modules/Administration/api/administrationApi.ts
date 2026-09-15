@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import { AxiosResponse, isAxiosError } from 'axios';
 
 import axiosServices from 'utils/axios';
 import type { ApiResponse } from 'types/api';
@@ -18,14 +18,23 @@ import type {
 import { getAdministrationApiBasePath } from '../utils/administration-scope';
 
 function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> {
-  return request.then((response) => {
-    const payload = response.data;
-    if (!payload.success || payload.data == null) {
-      throw new Error(payload.message || payload.errors[0] || 'Request failed');
-    }
+  return request
+    .then((response) => {
+      const payload = response.data;
+      if (!payload.success || payload.data == null) {
+        throw new Error(payload.message || payload.errors[0] || 'Request failed');
+      }
 
-    return payload.data;
-  });
+      return payload.data;
+    })
+    .catch((error) => {
+      if (isAxiosError<ApiResponse<unknown>>(error)) {
+        const payload = error.response?.data;
+        throw new Error(payload?.message || payload?.errors?.[0] || error.message || 'Request failed');
+      }
+
+      throw error;
+    });
 }
 
 export function unwrapList<T>(response: ApiResponse<T[]>): { items: T[]; meta: ListMeta } {
@@ -77,6 +86,10 @@ export function createRole(request: CreateRoleRequest) {
 
 export function updateRole(id: string, request: UpdateRoleRequest) {
   return unwrap(axiosServices.put<ApiResponse<RoleDto>>(`${getAdministrationApiBasePath()}/roles/${id}`, request));
+}
+
+export function deleteRole(id: string) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`${getAdministrationApiBasePath()}/roles/${id}`));
 }
 
 export function activateRole(id: string) {

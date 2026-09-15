@@ -8,12 +8,14 @@ export const ADMINISTRATION_PERMISSIONS = {
   usersUnlock: 'administration.users.unlock',
   usersResetPassword: 'administration.users.reset-password',
   usersAssignRoles: 'administration.users.assign-roles',
+  usersDelete: 'administration.users.delete',
   rolesView: 'administration.roles.view',
   rolesCreate: 'administration.roles.create',
   rolesUpdate: 'administration.roles.update',
   rolesActivate: 'administration.roles.activate',
   rolesDeactivate: 'administration.roles.deactivate',
   rolesAssignPermissions: 'administration.roles.assign-permissions',
+  rolesDelete: 'administration.roles.delete',
   permissionsView: 'administration.permissions.view'
 } as const;
 

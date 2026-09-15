@@ -31,9 +31,10 @@ import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { IconDotsVertical, IconSearch, IconFilter, IconDownload, IconUserPlus } from '@tabler/icons-react';
+import { IconDotsVertical, IconSearch, IconFilter, IconDownload, IconUserPlus, IconTrash } from '@tabler/icons-react';
 
 import { Link, useLocation } from 'react-router-dom';
+import useAuth from 'hooks/useAuth';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
 import MainCard from 'ui-component/cards/MainCard';
@@ -45,7 +46,7 @@ import RoleSelector from '../components/RoleSelector';
 import UserLockChip from '../components/UserLockChip';
 import UserStatusChip from '../components/UserStatusChip';
 import UserManagementModal from '../components/UserManagementModal';
-import { createRole, createUser, lockUser, resetUserPassword, unlockUser } from '../api/administrationApi';
+import { createRole, createUser, deleteUser, lockUser, resetUserPassword, unlockUser } from '../api/administrationApi';
 import { usePermissions, useRoles, useUsers } from '../hooks/useAdministration';
 import { createRoleSchema } from '../schemas/role.schema';
 import { buildCreateUserSchema } from '../schemas/user.schema';
@@ -61,6 +62,7 @@ const roleColors = ['primary', 'secondary', 'success', 'warning', 'info', 'error
 
 export default function UsersListPage() {
   const intl = useIntl();
+  const { user: currentUser } = useAuth();
   const { pathname } = useLocation();
   const routeBase = getAdministrationRouteBase(pathname);
   const scope = getAdministrationScope(pathname);
@@ -75,6 +77,7 @@ export default function UsersListPage() {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
 
   const [dialog, setDialog] = useState<UserDialogState>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserDto | null>(null);
 
   // Action menu state
   const [actionAnchorEl, setActionAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
@@ -115,6 +118,19 @@ export default function UsersListPage() {
 
   const handleActionClose = (userId: string) => {
     setActionAnchorEl({ ...actionAnchorEl, [userId]: null });
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      await deleteUser(deleteTarget.id);
+      setDeleteTarget(null);
+      await mutate();
+      notify(intl.formatMessage({ id: 'user-deleted-successfully' }));
+    } catch (actionError) {
+      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'administration-action-failed' }), 'error');
+    }
   };
 
   const getInitials = (name: string) => {
@@ -356,6 +372,20 @@ export default function UsersListPage() {
                           <FormattedMessage id={user.isLocked ? 'unlock' : 'lock'} />
                         </MenuItem>
                       </PermissionGuard>
+                      <PermissionGuard permission={ADMINISTRATION_PERMISSIONS.usersDelete}>
+                        <MenuItem
+                          disabled={user.isSystemOwner || user.id === currentUser?.id}
+                          onClick={() => {
+                            handleActionClose(user.id);
+                            setDeleteTarget(user);
+                          }}
+                        >
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <IconTrash size={16} />
+                            <FormattedMessage id="delete-user" />
+                          </Stack>
+                        </MenuItem>
+                      </PermissionGuard>
                     </Menu>
                   </TableCell>
                 </TableRow>
@@ -406,6 +436,33 @@ export default function UsersListPage() {
           }}
         />
       )}
+
+      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>
+          <FormattedMessage id="confirm-delete-user" />
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              <FormattedMessage
+                id="confirm-delete-user-description"
+                values={{ name: deleteTarget?.displayName ?? deleteTarget?.email ?? '' }}
+              />
+            </Typography>
+            <Alert severity="warning">
+              <FormattedMessage id="permanent-deletion-warning" />
+            </Alert>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeleteTarget(null)} color="inherit">
+            <FormattedMessage id="cancel" />
+          </Button>
+          <Button color="error" variant="contained" onClick={confirmDeleteUser} startIcon={<IconTrash size={18} />}>
+            <FormattedMessage id="delete-user" />
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

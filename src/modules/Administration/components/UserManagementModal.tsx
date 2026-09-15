@@ -33,6 +33,7 @@ import { activateUser, assignUserRoles, deactivateUser, deleteUser, updateUser }
 import { updateUserSchema } from '../schemas/user.schema';
 import type { UpdateUserRequest, UserDto } from '../types/administration.types';
 import { ADMINISTRATION_PERMISSIONS } from '../utils/administration.constants';
+import { hasPermission } from '../utils/permission-utils';
 
 type UserManagementModalProps = {
   user: UserDto | null;
@@ -153,7 +154,9 @@ export default function UserManagementModal({ user, roles, onClose, onSaved }: U
     );
   };
 
-  const canDeleteUser = Boolean(currentUser?.isSystemOwner && !activeUser.isSystemOwner && activeUser.id !== currentUser.id);
+  const canDeleteUser = Boolean(
+    hasPermission(currentUser, ADMINISTRATION_PERMISSIONS.usersDelete) && !activeUser.isSystemOwner && activeUser.id !== currentUser?.id
+  );
 
   const handleDelete = () => {
     setDeleteConfirmOpen(false);
@@ -356,6 +359,9 @@ export default function UserManagementModal({ user, roles, onClose, onSaved }: U
           <Typography variant="body2" color="text.secondary">
             <FormattedMessage id="confirm-delete-user-description" values={{ name: activeUser.displayName }} />
           </Typography>
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            <FormattedMessage id="permanent-deletion-warning" />
+          </Alert>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDeleteConfirmOpen(false)} color="inherit" disabled={isSaving}>
