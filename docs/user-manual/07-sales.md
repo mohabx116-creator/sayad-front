@@ -63,8 +63,11 @@
    * **الغرض:** عرض الأرباح بناءً على تكلفة المخزون المعتمدة.
    * **الصلاحيات المطلوبة:** `accounting.reports.view`
    * **صورة توضيحية:** ![Sales Profitability Placeholder](SAL-REPORT-PROFITABILITY-001)
-
-*(ملاحظة: تقرير فواتير المبيعات Sales Invoices Report متاح في الـ BACKEND ONLY ولم يتم توفيره كشاشة مستقلة للمستخدم حتى الآن).*
+3. **تقرير فواتير المبيعات (Sales Invoices Report)**
+   * **الوصف:** يعرض قائمة فواتير المبيعات مع إمكانية الفلترة.
+   * **المسار:** `/sales/reports/invoices`
+   * **الصلاحية المطلوبة:** `sales.invoices.view`
+   * **لقطة الشاشة:** ![Sales Invoices Report](RPT-SALES-INVOICES-001)
 
 ---
 

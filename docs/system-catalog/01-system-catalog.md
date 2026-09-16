@@ -11,9 +11,9 @@
 
 ## 2. كتالوج التقارير ولوحات التحكم (Report & Dashboard Census)
 
-* إجمالي القطع التحليلية والتقارير: 18
-* تقارير واجهة المستخدم: 12 (General Ledger, Trial Balance, Income Statement, Balance Sheet, Cash Flow, Customer Receivables Aging, Supplier Payables Aging, Purchase Invoices Report, Receipts & Payments, Sales Customer Item Analysis, Sales Profitability, Worker Salary Report)
-* شاشات التحليل والمطابقة: 2 (Treasury GL Reconciliation, Inventory GL Reconciliation)
+* إجمالي القطع التحليلية والتقارير: 20
+* تقارير واجهة المستخدم: 12 (General Ledger, Trial Balance, Income Statement, Balance Sheet, Cash Flow, Customer Receivables Aging, Supplier Payables Aging, Purchase Invoices Report, Receipts & Payments, Sales Profitability, Sales Invoices Report, Worker Salary Report)
+* شاشات التحليل والمطابقة: 3 (Treasury GL Reconciliation, Inventory GL Reconciliation, Sales Customer Item Analysis)
 * تقارير في الـ Backend فقط: 2 (Manufacturing Cost Analysis, Manufacturing WIP)
 * لوحات تحكم للمستخدم: 2 (System Dashboard, Dashboard Default)
 * لوحات تحكم Placeholders: 1 (Manufacturing Dashboard)
