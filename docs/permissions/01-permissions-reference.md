@@ -2,12 +2,26 @@
 
 ## 1. Authoritative Permission Census
 
-Total persisted permissions: 182
-Unique persisted permissions: 182
-Duplicate definitions: 0
+Current source permission catalog: 182
+Current staging persisted permission rows: 178
 Permission domains: 14
 
-## 2. Domain Inventory
+## 2. Source vs Staging Permission Drift
+
+Source catalog: 182
+Staging persisted: 178
+
+Missing from staging:
+- `accounting.view`
+- `labor.operations.edit`
+- `labor.operations.delete`
+- `payroll.periods.reopen`
+
+Classification: SOURCE-ACTIVE / STAGING-MISSING
+
+This is a deployment/data-seeding discrepancy, not a permission-definition discrepancy.
+
+## 3. Domain Inventory
 
 1. **administration.***: 18 permissions (Owning module: Administration, Manual: Chapter 1)
 2. **system.***: 0 persisted permissions (Access is role-based via SystemOwner)
@@ -27,7 +41,7 @@ Permission domains: 14
 
 *(Total Domains: 14 unique prefixes used)*
 
-## 3. Master Permission Table
+## 4. Master Permission Table
 
 | Domain | Permission Code | Arabic Meaning | Frontend Usage | Backend Enforcement | Notes |
 |--------|-----------------|----------------|----------------|---------------------|-------|
@@ -70,8 +84,8 @@ Permission domains: 14
 | Labor | `labor.operational-jobs.change-status` | تغيير حالة الوظيفة التشغيلية| ACTION GUARD | COMMAND | |
 | Labor | `labor.operations.view` | عرض سجل العمليات | ROUTE GUARD | ENDPOINT | |
 | Labor | `labor.operations.create` | إنشاء عملية | ACTION GUARD | COMMAND | |
-| Labor | `labor.operations.edit` | تعديل عملية | ACTION GUARD | COMMAND | |
-| Labor | `labor.operations.delete` | حذف عملية | ACTION GUARD | COMMAND | |
+| Labor | `labor.operations.edit` | تعديل عملية | ACTION GUARD | COMMAND | Defined in source: YES, Backend enforcement: YES, Frontend usage: ACTION GUARD, Persisted in staging: NO |
+| Labor | `labor.operations.delete` | حذف عملية | ACTION GUARD | COMMAND | Defined in source: YES, Backend enforcement: YES, Frontend usage: ACTION GUARD, Persisted in staging: NO |
 | Labor | `labor.monthly-movements.view` | عرض الحركات الشهرية للعمال | ROUTE GUARD | ENDPOINT | |
 | Labor | `labor.monthly-movements.create` | إضافة حركة شهرية | ACTION GUARD | COMMAND | |
 | Labor | `labor.monthly-movements.edit` | تعديل حركة شهرية | ACTION GUARD | COMMAND | |
@@ -82,7 +96,7 @@ Permission domains: 14
 | Payroll | `payroll.periods.create` | إنشاء فترة رواتب | ACTION GUARD | COMMAND | |
 | Payroll | `payroll.periods.calculate` | حساب الرواتب | ACTION GUARD | COMMAND | Includes recalculate |
 | Payroll | `payroll.periods.approve` | اعتماد فترة رواتب | ACTION GUARD | COMMAND | |
-| Payroll | `payroll.periods.reopen` | إعادة فتح فترة رواتب | ACTION GUARD | COMMAND | |
+| Payroll | `payroll.periods.reopen` | إعادة فتح فترة رواتب | ACTION GUARD | COMMAND | Defined in source: YES, Backend enforcement: YES, Frontend usage: ACTION GUARD, Persisted in staging: NO |
 | Payroll | `payroll.periods.pay` | صرف الرواتب | ACTION GUARD | COMMAND | Includes reverse pay |
 | Payroll | `payroll.periods.delete` | حذف فترة رواتب | ACTION GUARD | COMMAND | |
 | Treasury | `treasury.view` | عرض الخزينة | ROUTE GUARD | ENDPOINT | Protects Receipts & Payments |
@@ -189,7 +203,7 @@ Permission domains: 14
 | Manufact | `manufacturing.workcenters.delete`| حذف مركز عمل | ACTION GUARD | COMMAND | |
 | Manufact | `manufacturing.reports.view` | عرض تقارير التصنيع | ROUTE GUARD | ENDPOINT | |
 | Manufact | `manufacturing.dashboard.view`| عرض لوحة التصنيع | ROUTE GUARD | ENDPOINT | |
-| Accounting | `accounting.view` | عرض المحاسبة | ROUTE GUARD | ENDPOINT | |
+| Accounting | `accounting.view` | عرض المحاسبة | ROUTE GUARD | ENDPOINT | Defined in source: YES, Backend enforcement: YES, Frontend usage: ROUTE GUARD, Persisted in staging: NO |
 | Accounting | `accounting.accounts.view` | عرض الحسابات | ROUTE GUARD | ENDPOINT | |
 | Accounting | `accounting.accounts.create` | إنشاء الحسابات | ACTION GUARD | COMMAND | |
 | Accounting | `accounting.accounts.update` | تعديل الحسابات | ACTION GUARD | COMMAND | |
@@ -214,14 +228,14 @@ Permission domains: 14
 | Accounting | `accounting.journal-entries.cancel`| إلغاء القيود اليومية | ACTION GUARD | COMMAND | |
 | Accounting | `accounting.journal-entries.delete`| حذف القيود اليومية المسودة | ACTION GUARD | COMMAND | |
 
-## 4. Frontend / Backend Mismatches
+## 5. Frontend / Backend Mismatches
 
 | Feature | Frontend Permission | Backend Permission | Match? | Impact |
 |---------|---------------------|--------------------|--------|--------|
 | Purchase Invoices Report | `accounting.reports.view` | `purchases.invoices.view` | NO | Requires user to have BOTH. |
 | Receipts & Payments Report| `accounting.reports.view` | `treasury.view` | NO | Requires user to have BOTH. |
 
-## 5. Permission Reuse
+## 6. Permission Reuse
 
 | Permission | Actions Controlled | Notes |
 |------------|--------------------|-------|
@@ -230,14 +244,14 @@ Permission domains: 14
 | `payroll.periods.calculate` | Calculate, Recalculate | |
 | `payroll.periods.pay` | Pay Payroll, Reverse Payroll Payment | |
 
-## 6. High-Risk Permissions
+## 7. High-Risk Permissions
 
 * **Administration:** `administration.users.delete`, `administration.roles.delete`
 * **Accounting:** `accounting.fiscal-years.rollover`, `accounting.year-end.close`, `accounting.journal-entries.post`
 * **Payroll:** `payroll.periods.pay`, `payroll.periods.approve`
 * **Inventory/Manufacturing:** `inventory.movements.adjust`, `manufacturing.orders.cancel`
 
-## 7. Role-Based Access
+## 8. Role-Based Access
 
 The following features bypass or require role-based access instead of normal permissions:
 * **System Dashboard:** Requires `SystemOwnerRouteGuard` (Role).
