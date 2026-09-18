@@ -122,7 +122,7 @@
 
 > [!WARNING]
 > **تعارض مع دليل المحاسبة (Phase 8 Conflict Resolution):**
-> دليل المحاسبة يزعم أن صرف المواد يُحمّل `ManufacturingWorkInProgress` مالياً بقيد يومية مباشر. 
+> دليل المحاسبة يزعم أن صرف المواد يُحمّل `ManufacturingWorkInProgress` مالياً بقيد يومية مباشر.
 > **الواقع (التحقق الفعلي):** حساب الـ WIP لا يُستخدم لإنشاء قيد يومية (Journal Entry) في وحدة التصنيع (NO GL JOURNAL IS CREATED IN THE CURRENT IMPLEMENTATION). الترحيل المحاسبي متروك للنظام المخزني المالي.
 
 ### مصفوفة الإجراءات (Procedure Matrix)

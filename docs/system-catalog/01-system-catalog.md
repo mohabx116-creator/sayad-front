@@ -4,6 +4,7 @@
 
 * إجمالي وحدات العمل / المجالات الوظيفية: 16 (Dashboard, Notifications, Account/Auth, Settings, Administration, System, Parties, Inventory, Treasury, Expenses, Purchases, Sales, Accounting, Labor, Payroll, Manufacturing)
 * مجموعات التنقل الجانبية (Navigation Groups): 12 (Dashboard, Parties, Inventory, Purchases, Sales, Treasury, Expenses, Labor (incl. Payroll), Accounting, Manufacturing, Administration, System)
+* عناصر القوائم (Menu Items): 130
 * المسارات القابلة للتنقل (Navigable Routes): 142
 * الشاشات الفريدة للمستخدم: 136
 * مسارات إعادة التوجيه (Redirects): 5
@@ -20,23 +21,28 @@
 
 ## 3. كتالوج الصلاحيات (Permission Domain Census)
 
-إجمالي النطاقات: 14
+* إجمالي الصلاحيات في الكود المصدري: 182
+* إجمالي الصلاحيات في بيئة الاختبار (Staging): 178
+* الصلاحيات المفقودة في بيئة الاختبار: 4 (`accounting.view`, `labor.operations.edit`, `labor.operations.delete`, `payroll.periods.reopen`)
+* إجمالي نطاقات الصلاحيات المُسجلة: 14 نطاقاً فعلياً
 
-* `administration.*`
-* `system.*`
-* `parties.*`
-* `inventory.*`
-* `purchases.*`
-* `sales.*`
-* `treasury.*`
-* `expenses.*`
-* `accounting.*`
-* `workers.*`
-* `monthly-movements.*`
-* `payroll.*`
-* `operational-jobs.*`
-* `operations.*`
-* `manufacturing.*`
+النطاقات الفعلية (14):
+1. `administration.*` (18 صلاحية)
+2. `parties.*` (10 صلاحيات)
+3. `inventory.*` (30 صلاحية)
+4. `treasury.*` (17 صلاحية)
+5. `expenses.*` (8 صلاحيات)
+6. `purchases.*` (11 صلاحية)
+7. `sales.*` (11 صلاحية)
+8. `accounting.*` (24 صلاحية)
+9. `labor.*` (24 صلاحية)
+10. `payroll.*` (7 صلاحيات)
+11. `manufacturing.*` (18 صلاحية)
+12. `settings.*` (2 صلاحية)
+13. `audit.*` (1 صلاحية)
+14. `notifications.*` (1 صلاحية)
+
+*(ملاحظة: نطاق `system.*` لا يحتوي على أي صلاحيات مخزنة في قاعدة البيانات؛ الوصول إلى وحدة النظام ولوحة إدارة النظام role-based عبر دور SystemOwner فقط).*
 
 ## 4. كتالوج سير العمل (Workflow Catalog)
 
@@ -91,38 +97,30 @@
 * **إلغاء حركات التصنيع:** غير متاح بشكل مستقل للمستخدم، ويتم فقط ضمناً عند إلغاء الأمر بالكامل.
 * **تقارير وتكاليف التصنيع الإضافية:** شاشات أعباء الإنتاج وتقارير WIP والتكاليف لا تزال Backend Only.
 
-## 7. تراكم شاشات التوثيق البصري (Screenshot Placeholders)
+## 7. تراكم شاشات التوثيق والتحقق البصري (Reconciled Visual Checkpoints)
 
-إجمالي العدد: 171
+إجمالي نقاط التحقق البصري المعتمدة: 156 (155 إجراء SOP + شاشة لوحة تحكم التصنيع قيد التنفيذ)
 
-* 01-getting-started-and-administration.md (35)
-* 02-parties.md (13)
-* 03-inventory.md (16)
-* 04-treasury.md (30)
-* 05-expenses.md (9)
-* 06-purchases.md (9)
-* 07-sales.md (7)
-* 08-accounting.md (30)
-* 09-labor.md (7)
-* 10-payroll.md (6)
-* 11-manufacturing.md (9)
-
-لا توجد معرّفات مكررة (No duplicate screenshot IDs).
+تمت التسوية والاعتماد وفق سجل أدلة الجودة التاريخية (Phase 18 Evidence Reconciliation) إلى 3 فئات مانعة للجمع:
+* **أدلة بصرية تاريخية مباشرة (Historical Visual QA Evidence):** 24 نقطة فحص
+* **أدلة جودة تاريخية غير بصرية (Existing Non-Visual QA Evidence):** 104 نقاط فحص
+* **غير معاد التحقق منها بصرياً في المرحلة الحالية (Not Visually Re-Verified):** 28 نقطة فحص
+* **المجموع المطابق:** 24 + 104 + 28 = 156
 
 ## 8. حالة أدلة المستخدم (User Manual Index)
 
-| الملف (Chapter) | الحالة (Static Review) | المراجعة البصرية (Visual Review) |
-|-----------------|------------------------|--------------------------------|
-| 01-getting-started.md | COMPLETE | PENDING |
-| 02-parties.md | COMPLETE | PENDING |
-| 03-inventory.md | COMPLETE | PENDING |
-| 04-treasury.md | COMPLETE | PENDING |
-| 05-expenses.md | COMPLETE | PENDING |
-| 06-purchases.md | COMPLETE | PENDING |
-| 07-sales.md | COMPLETE | PENDING |
-| 08-accounting.md | COMPLETE | PENDING |
-| 09-labor.md | COMPLETE | PENDING |
-| 10-payroll.md | COMPLETE | PENDING |
-| 11-manufacturing.md | COMPLETE | PENDING |
+| الملف (Chapter) | الحالة التحليلية (Static Review) | حالة التحقق البصري (Visual Evidence Status) |
+|-----------------|----------------------------------|--------------------------------------------|
+| 01-getting-started-and-administration.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 02-parties.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 03-inventory.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 04-treasury.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 05-expenses.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 06-purchases.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 07-sales.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 08-accounting.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 09-labor.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 10-payroll.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
+| 11-manufacturing.md | COMPLETE | RECONCILED (EXISTING QA EVIDENCE) |
 
-جميع المسارات التنفيذية مغطاة ولا توجد مسارات يتيمة أو شاشات مفقودة في الأدلة.
+جميع المسارات التنفيذية مغطاة بالكامل ولا توجد مسارات يتيمة أو شاشات مفقودة في الأدلة.

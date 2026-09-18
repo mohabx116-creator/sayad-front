@@ -11,8 +11,7 @@
 * **المسار:** `/sales/invoices`
 * **الصلاحيات المطلوبة:** `sales.invoices.view`
 * **الإجراءات المتاحة:** إنشاء، عرض التفاصيل، تعديل (Draft)، ترحيل (Post)، وإلغاء الفواتير المرحلة.
-* **صورة توضيحية:**
-  ![Sales Invoices List Placeholder](SAL-INVOICES-001)
+* **مرجع التحقق البصري:** `SAL-INVOICES-001` (قائمة فواتير المبيعات)
 
 ### شاشة إنشاء/تعديل فاتورة مبيعات (Create / Edit Sales Invoice)
 * **الغرض:** إدخال بيانات فاتورة بيع جديدة أو تعديل مسودة.
@@ -28,21 +27,19 @@
   * **Treasury Account (حساب الخزينة/البنك):** (مطلوب للدفع الفوري)
   * **Discount (الخصم):** (اختياري)
   * **Lines (الأصناف):** الصنف، الكمية، الوحدة، السعر، الخصم، الإجمالي. يمنع السعر السالب، ويسمح بالسعر الصفري. لا يظهر تأثير الضرائب إذا كانت غير مدعومة.
-* **صور توضيحية:**
-  ![Create Sales Invoice Placeholder](SAL-INVOICE-CREATE-001)
-  ![Edit Sales Invoice Placeholder](SAL-INVOICE-EDIT-001)
+* **مراجع التحقق البصري:**
+  * `SAL-INVOICE-CREATE-001` (إنشاء فاتورة مبيعات)
+  * `SAL-INVOICE-EDIT-001` (تعديل فاتورة مبيعات)
 
 ### شاشة تفاصيل فاتورة مبيعات (Sales Invoice Details)
 * **المسار:** `/sales/invoices/details/{id}`
 * **الإجراءات المتاحة:** ترحيل، إلغاء، تحصيل (للفواتير الآجلة)، وإرجاع.
-* **صورة توضيحية:**
-  ![Sales Invoice Detail Placeholder](SAL-INVOICE-DETAIL-001)
+* **مرجع التحقق البصري:** `SAL-INVOICE-DETAIL-001` (تفاصيل فاتورة مبيعات)
 
 ### شاشة تحصيل فاتورة (Invoice Collection)
 * **الغرض:** تسجيل تحصيل فوري لفاتورة آجلة مباشرة من شاشة المبيعات.
 * **الصلاحيات المطلوبة:** `sales.invoices.post`
-* **صورة توضيحية:**
-  ![Sales Collection Placeholder](SAL-COLLECTION-001)
+* **مرجع التحقق البصري:** `SAL-COLLECTION-001` (تحصيل فاتورة مبيعات)
 
 ### شاشات مرتجعات المبيعات (Sales Returns)
 * **القائمة:** `/sales/returns`
@@ -57,17 +54,17 @@
    * **المسار:** `/accounting/reports/sales-customer-item-analysis`
    * **الغرض:** تحليل المبيعات المجمعة لكل عميل ولكل صنف بناءً على الفواتير المرحلة.
    * **الصلاحيات المطلوبة:** `accounting.reports.view`
-   * **صورة توضيحية:** ![Sales Customer Item Analysis Placeholder](SAL-REPORT-CUSTOMER-ITEM-001)
+   * **مرجع التحقق البصري:** `SAL-REPORT-CUSTOMER-ITEM-001` (تحليل مبيعات الأصناف للعملاء)
 2. **تقرير ربحية المبيعات (Sales Profitability):**
    * **المسار:** `/accounting/reports/sales-profitability`
    * **الغرض:** عرض الأرباح بناءً على تكلفة المخزون المعتمدة.
    * **الصلاحيات المطلوبة:** `accounting.reports.view`
-   * **صورة توضيحية:** ![Sales Profitability Placeholder](SAL-REPORT-PROFITABILITY-001)
+   * **مرجع التحقق البصري:** `SAL-REPORT-PROFITABILITY-001` (ربحية المبيعات)
 3. **تقرير فواتير المبيعات (Sales Invoices Report)**
    * **الوصف:** يعرض قائمة فواتير المبيعات مع إمكانية الفلترة.
    * **المسار:** `/sales/reports/invoices`
    * **الصلاحية المطلوبة:** `sales.invoices.view`
-   * **لقطة الشاشة:** ![Sales Invoices Report](RPT-SALES-INVOICES-001)
+   * **مرجع التحقق البصري:** `RPT-SALES-INVOICES-001` (تقرير فواتير المبيعات)
 
 ---
 
@@ -81,7 +78,7 @@
 ### الترحيل (Posting) والتأثير المالي والمخزني
 * **المخزون (StockOut):** يتم خصم الكمية من المخزون (مملوك للشركة). **تكلفة البضاعة المباعة (COGS):** يتحدد بناءً على "متوسط التكلفة" للصنف وقت الترحيل، ويتم "تجميده" (Frozen Cost) وحفظه مع حركة الصرف.
 * **رصيد العميل (Customer Balance):** تزداد المديونية بمبلغ الفاتورة (SalesInvoiceDebit).
-* **المحاسبة:** 
+* **المحاسبة:**
   * قيد الاستحقاق: زيادة "مراقبة العملاء" وزيادة "إيرادات المبيعات".
   * قيد التكلفة: زيادة "تكلفة البضاعة المباعة" وتخفيض "حساب المخزون" استناداً للتكلفة المخزنية المجمدة.
 * **نقص المخزون:** يحظر النظام ترحيل الفاتورة في حال عدم كفاية رصيد الصنف، إلا إذا كان الصنف مفعلاً لخيار (AllowNegativeStock).
