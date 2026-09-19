@@ -2,7 +2,7 @@
 
 > **Official Deliverable**: Single-File Self-Contained Interactive Documentation  
 > **Primary Artifact**: [`index.html`](./index.html)  
-> **Version**: 1.0 (FINAL) • September 2026  
+> **Version**: 1.0.1 (Arabic Localization Revision) • September 2026  
 > **Documentation Baseline**: `424f4b8` | **Final Delivery Baseline**: `2232938`
 
 ---
