@@ -1,0 +1,55 @@
+name: Deploy SAYAD User Guide to GitHub Pages
+
+on:
+  push:
+    branches:
+      - migration/postgresql-supabase
+    paths:
+      - 'docs/complete-user-guide/index.html'
+      - '.github/workflows/deploy-sayad-user-guide.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare isolated Pages publication artifact
+        run: |
+          mkdir -p _public-guide
+          cp docs/complete-user-guide/index.html _public-guide/index.html
+          touch _public-guide/.nojekyll
+          echo "=== Verifying isolated artifact inventory ==="
+          ls -la _public-guide/
+          COUNT=$(find _public-guide/ -type f | wc -l)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "ERROR: Artifact contains unexpected files ($COUNT found)!"
+            exit 1
+          fi
+          echo "Artifact verification passed: exactly index.html and .nojekyll present."
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _public-guide
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
