@@ -1,0 +1,12 @@
+1673bde1f06c2ae5c023961bc70b263011c4d1737a8b4d36bdcb2476cea32e54  pdf/00-SAYAD-ERP-Master-Documentation.pdf
+5566db322f06a5f0351de1472b9ea0d6d610f389eea91a3fc9cf63bda715fc7d  pdf/01-SAYAD-ERP-User-Manual.pdf
+02661a9d1f3a5f9f85a02fd2394bf63d2e927f965d1a1fc5b9b38f19e3aae707  pdf/02-SAYAD-ERP-System-Catalog.pdf
+58d51399874ef4f45d3d3d7ddc26c6766fc26bf5050c48a83154c845b54d7800  pdf/03-SAYAD-ERP-Reports-Guide.pdf
+b39f9cae66fe25c80d19c10dfc3ea76beb696c1a11fb346cc387e2a2a7204f8a  pdf/04-SAYAD-ERP-Permissions-Reference.pdf
+2fd491cadb0a4908590fa9521a903815340c8d3dcdb1c4c8624ef097410fff2c  pdf/05-SAYAD-ERP-Standard-Operating-Procedures.pdf
+5d663830ff007b22b429c4c258057991d27758f5aebbf2c66bc631d9ec44d2de  pdf/06-SAYAD-ERP-Troubleshooting-Guide.pdf
+09b177edc60f398b2f05f790ad94e46ab6db60857bf8993248d331b37bb343e2  pdf/07-SAYAD-ERP-Technical-Operations-Guide.pdf
+3f34f249f2cb1b895c37e4b0b3d7138c2a1a04f1119e06a7761aba8e3fcab978  pdf/08-SAYAD-ERP-QA-Evidence-and-Traceability.pdf
+198aa4628065c6585319ff6ca02e26249adccc47d95ff8f37348ae465112f240  pdf/09-SAYAD-ERP-QA-Evidence-Arabic.pdf
+1762cb638c506bf5b7a013e3d008cfff1ef7cb562e1da9f807ff76cf09f676bd  pdf/10-SAYAD-ERP-Final-Documentation-Audit.pdf
+d35397adf418dc8cac1b1956b3964c2e1703416e8f574a92d8f793e4cd76fa8a  manifest/README.md
