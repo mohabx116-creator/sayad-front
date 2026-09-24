@@ -294,3 +294,11 @@ export type PartyStatementParams = {
   pageSize?: number;
   entryType?: string;
 };
+
+export type PartiesSummaryDto = {
+  totalCount: number;
+  totalDebit: number;
+  totalCredit: number;
+  netBalance: number;
+  netNature: 'Debit' | 'Credit' | 'Settled';
+};

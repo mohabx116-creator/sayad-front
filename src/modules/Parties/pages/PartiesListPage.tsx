@@ -24,6 +24,9 @@ import Grid from '@mui/material/GridLegacy';
 import Skeleton from '@mui/material/Skeleton';
 import GroupIcon from '@mui/icons-material/Group';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import BalanceIcon from '@mui/icons-material/Balance';
 
 import HoverDataCard from 'ui-component/cards/HoverDataCard';
 import CreatePartyDialog from '../components/CreatePartyDialog';
@@ -39,7 +42,7 @@ import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Loader from 'ui-component/Loader';
 import { useDispatch } from 'store';
 import { openSnackbar } from 'store/slices/snackbar';
-import { useParties } from '../hooks/useParties';
+import { useParties, usePartiesSummary } from '../hooks/useParties';
 import { PARTIES_PERMISSIONS } from '../utils/parties.constants';
 import { TREASURY_PERMISSIONS } from 'modules/Treasury/utils/treasury.constants';
 import { resolveLocalizedText } from 'shared/utils/localizedText';
@@ -161,6 +164,34 @@ export default function PartiesListPage() {
   } else if (partyType === 'both') {
     totalTitleId = 'total-dual-parties';
     activeTitleId = 'active-dual-parties';
+  }
+
+  const { summary, isLoading: summaryLoading, error: summaryError } = usePartiesSummary();
+
+  const isDebit = !summaryError && summary?.netNature === 'Debit';
+  const isCredit = !summaryError && summary?.netNature === 'Credit';
+  const isSettled = !summaryError && summary?.netNature === 'Settled';
+
+  let netPrimaryDisplay = '-';
+  let netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.error' });
+  let netIcon = BalanceIcon;
+  let netColor = 'text.secondary';
+
+  if (isDebit) {
+    netPrimaryDisplay = `${intl.formatMessage({ id: 'parties.net-position.receivable' })} ${formatTreasuryMoney(summary?.netBalance ?? 0, 'ج.م')}`;
+    netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.receivable-desc' });
+    netIcon = TrendingUpIcon;
+    netColor = 'success.main';
+  } else if (isCredit) {
+    netPrimaryDisplay = `${intl.formatMessage({ id: 'parties.net-position.payable' })} ${formatTreasuryMoney(summary?.netBalance ?? 0, 'ج.م')}`;
+    netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.payable-desc' });
+    netIcon = TrendingDownIcon;
+    netColor = 'error.main';
+  } else if (isSettled) {
+    netPrimaryDisplay = `${intl.formatMessage({ id: 'parties.net-position.settled' })} ${formatTreasuryMoney(0, 'ج.م')}`;
+    netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.settled-desc' });
+    netIcon = BalanceIcon;
+    netColor = 'text.secondary';
   }
 
   return (
@@ -291,26 +322,76 @@ export default function PartiesListPage() {
       </Box>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={3}>
-          {totalLoading ? <Skeleton variant="rounded" height={100} /> : (
+        <Grid item xs={12} sm={6} md={4}>
+          {totalLoading ? (
+            <Skeleton variant="rounded" height={100} />
+          ) : (
             <HoverDataCard
               title={intl.formatMessage({ id: totalTitleId })}
-              primary={totalError ? '-' : totalMeta?.totalCount ?? 0}
+              primary={totalError ? '-' : (totalMeta?.totalCount ?? 0)}
               secondary={intl.formatMessage({ id: 'all-statuses' })}
               iconPrimary={GroupIcon}
               color="primary.main"
             />
           )}
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          {activeLoading ? <Skeleton variant="rounded" height={100} /> : (
+        <Grid item xs={12} sm={6} md={4}>
+          {activeLoading ? (
+            <Skeleton variant="rounded" height={100} />
+          ) : (
             <HoverDataCard
               title={intl.formatMessage({ id: activeTitleId })}
-              primary={activeError ? '-' : activeMeta?.totalCount ?? 0}
+              primary={activeError ? '-' : (activeMeta?.totalCount ?? 0)}
               secondary={intl.formatMessage({ id: 'active' })}
               iconPrimary={VerifiedUserIcon}
               color="success.main"
             />
+          )}
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          {summaryLoading ? (
+            <Skeleton variant="rounded" height={100} />
+          ) : (
+            <Box
+              sx={(theme) => ({
+                height: '100%',
+                '& .MuiCard-root': {
+                  height: '100%',
+                  transition: 'all 0.2s ease-in-out',
+                  ...(isDebit && {
+                    borderColor: `${theme.palette.success.light} !important`,
+                    border: '1px solid',
+                    boxShadow: '0 2px 14px 0 rgba(46, 125, 50, 0.12)',
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.06)' : 'rgba(46, 125, 50, 0.03)',
+                    '&:hover': {
+                      boxShadow: '0 4px 20px 0 rgba(46, 125, 50, 0.2) !important'
+                    }
+                  }),
+                  ...(isCredit && {
+                    borderColor: `${theme.palette.error.light} !important`,
+                    border: '1px solid',
+                    boxShadow: '0 2px 14px 0 rgba(211, 47, 47, 0.12)',
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(211, 47, 47, 0.06)' : 'rgba(211, 47, 47, 0.03)',
+                    '&:hover': {
+                      boxShadow: '0 4px 20px 0 rgba(211, 47, 47, 0.2) !important'
+                    }
+                  }),
+                  '& .MuiTypography-h3': {
+                    color: isDebit ? 'success.dark' : isCredit ? 'error.main' : 'text.primary',
+                    fontSize: '1.25rem',
+                    fontWeight: 700
+                  }
+                }
+              })}
+            >
+              <HoverDataCard
+                title={intl.formatMessage({ id: 'parties.net-position.title' })}
+                primary={netPrimaryDisplay}
+                secondary={netSecondaryDisplay}
+                iconPrimary={netIcon}
+                color={netColor}
+              />
+            </Box>
           )}
         </Grid>
       </Grid>

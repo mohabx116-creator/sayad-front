@@ -10,7 +10,8 @@ import type {
   PartySettlementDirection,
   PartySettlementOpenDocumentDto,
   PartyStatementDto,
-  PartyStatementParams
+  PartyStatementParams,
+  PartiesSummaryDto
 } from '../types/parties.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
@@ -56,4 +57,11 @@ export function usePartyOpenDocuments(id?: string, direction?: PartySettlementDi
   const key = id && direction ? `/api/parties/${id}/open-documents?direction=${encodeURIComponent(direction)}` : null;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartySettlementOpenDocumentDto[]>>(key, fetcher);
   return useMemo(() => ({ items: data?.data ?? [], error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
+}
+
+export function usePartiesSummary(params: Record<string, string | number | boolean | undefined | null> = {}) {
+  const query = buildQuery(params);
+  const key = `/api/parties/summary${query ? `?${query}` : ''}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartiesSummaryDto>>(key, fetcher);
+  return useMemo(() => ({ summary: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
