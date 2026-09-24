@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
@@ -707,6 +709,11 @@ function UserDialog({
     }
   };
 
+  const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    save();
+  };
+
   return (
     <Dialog
       open={Boolean(dialog)}
@@ -716,11 +723,12 @@ function UserDialog({
       maxWidth={dialog?.mode === 'create' ? 'md' : 'sm'}
       PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2 } }}
     >
-      <DialogTitle>
-        <FormattedMessage id={dialog?.mode === 'create' ? 'create-user' : 'reset-password'} />
-      </DialogTitle>
-      <DialogContent dividers>
-        <Stack spacing={3} sx={{ mt: 1 }}>
+      <Box component="form" onSubmit={handleFormSubmit} noValidate>
+        <DialogTitle>
+          <FormattedMessage id={dialog?.mode === 'create' ? 'create-user' : 'reset-password'} />
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={3} sx={{ mt: 1 }}>
           {dialog?.mode === 'create' && (
             <>
               <Alert severity="info">
@@ -914,16 +922,17 @@ function UserDialog({
               />
             </Stack>
           )}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={isSaving}>
-          <FormattedMessage id="cancel" />
-        </Button>
-        <Button variant="contained" onClick={save} disabled={isSaving}>
-          <FormattedMessage id={isSaving ? 'loading' : dialog?.mode === 'create' ? 'create-user' : 'save'} />
-        </Button>
-      </DialogActions>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={onClose} disabled={isSaving}>
+            <FormattedMessage id="cancel" />
+          </Button>
+          <Button type="submit" variant="contained" disabled={isSaving}>
+            <FormattedMessage id={isSaving ? 'loading' : dialog?.mode === 'create' ? 'create-user' : 'save'} />
+          </Button>
+        </DialogActions>
+      </Box>
     </Dialog>
   );
 }
