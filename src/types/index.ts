@@ -35,7 +35,7 @@ export interface TabsProps {
 
 export interface GenericCardProps {
   title?: string;
-  primary?: string | number | undefined;
+  primary?: React.ReactNode;
   secondary?: string;
   content?: string;
   image?: string;

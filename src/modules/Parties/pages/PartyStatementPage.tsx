@@ -267,13 +267,17 @@ export default function PartyStatementPage() {
     party && statement
       ? summaryCardOrder.map((cardKey) => {
           switch (cardKey) {
-            case 'openingBalance':
+            case 'openingBalance': {
+              const hasDateFrom = Boolean(dateFrom);
               return {
                 key: cardKey,
-                label: summaryLabels?.openingBalance ?? 'opening-balance',
-                amount: statement.openingBalance.amount,
-                helper: getBalanceNatureLabel(intl, statement.openingBalance.balanceNature)
+                label: hasDateFrom
+                  ? intl.formatMessage({ id: 'parties.statement.brought-forward-balance', defaultMessage: 'الرصيد المرحّل' })
+                  : (summaryLabels?.openingBalance ?? intl.formatMessage({ id: 'parties.statement.opening-balance' })),
+                amount: hasDateFrom ? statement.broughtForwardBalance : statement.openingBalance.amount,
+                helper: getBalanceNatureLabel(intl, hasDateFrom ? statement.broughtForwardNature : statement.openingBalance.balanceNature)
               };
+            }
             case 'debitTotal':
               return {
                 key: cardKey,

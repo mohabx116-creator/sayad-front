@@ -26,7 +26,7 @@ export default function HoverDataCard({ title, iconPrimary, primary, secondary, 
         </Typography>
         <Stack direction="row" sx={{ gap: 0.5, alignItems: 'center', mx: 'auto' }}>
           {primaryIcon}
-          <Typography variant="h3">{primary}</Typography>
+          <Typography variant="h3" component="div">{primary}</Typography>
         </Stack>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {secondary}

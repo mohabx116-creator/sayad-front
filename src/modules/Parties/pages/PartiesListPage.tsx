@@ -172,24 +172,86 @@ export default function PartiesListPage() {
   const isCredit = !summaryError && summary?.netNature === 'Credit';
   const isSettled = !summaryError && summary?.netNature === 'Settled';
 
-  let netPrimaryDisplay = '-';
+  const formatBidiAmount = (value: number) =>
+    new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+
+  const currencyText = intl.formatMessage({ id: 'currency', defaultMessage: 'ج.م' });
+
+  let netPrimaryDisplay: React.ReactNode = '-';
   let netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.error' });
   let netIcon = BalanceIcon;
   let netColor = 'text.secondary';
 
-  if (isDebit) {
-    netPrimaryDisplay = `${intl.formatMessage({ id: 'parties.net-position.receivable' })} ${formatTreasuryMoney(summary?.netBalance ?? 0, 'ج.م')}`;
-    netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.receivable-desc' });
-    netIcon = TrendingUpIcon;
-    netColor = 'success.main';
-  } else if (isCredit) {
-    netPrimaryDisplay = `${intl.formatMessage({ id: 'parties.net-position.payable' })} ${formatTreasuryMoney(summary?.netBalance ?? 0, 'ج.م')}`;
-    netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.payable-desc' });
-    netIcon = TrendingDownIcon;
-    netColor = 'error.main';
-  } else if (isSettled) {
-    netPrimaryDisplay = `${intl.formatMessage({ id: 'parties.net-position.settled' })} ${formatTreasuryMoney(0, 'ج.م')}`;
-    netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.settled-desc' });
+  if (isDebit || isCredit || isSettled) {
+    const stateLabel = isDebit
+      ? intl.formatMessage({ id: 'parties.net-position.receivable' })
+      : isCredit
+      ? intl.formatMessage({ id: 'parties.net-position.payable' })
+      : intl.formatMessage({ id: 'parties.net-position.settled' });
+
+    const balanceAmount = isSettled ? 0 : (summary?.netBalance ?? 0);
+
+    netPrimaryDisplay = (
+      <Box
+        component="span"
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'baseline',
+          justifyContent: 'center',
+          gap: 1,
+          flexWrap: 'wrap'
+        }}
+      >
+        <Typography component="span" sx={{ fontSize: 'inherit', fontWeight: 700, color: 'inherit' }}>
+          {stateLabel}
+        </Typography>
+        <Box
+          component="span"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            gap: 0.5,
+            fontSize: 'inherit',
+            fontWeight: 700,
+            color: 'inherit'
+          }}
+        >
+          <Box
+            component="span"
+            dir="ltr"
+            sx={{
+              unicodeBidi: 'isolate',
+              display: 'inline-block'
+            }}
+          >
+            {formatBidiAmount(balanceAmount)}
+          </Box>
+          <Box component="span">
+            {currencyText}
+          </Box>
+        </Box>
+      </Box>
+    );
+
+    if (isDebit) {
+      netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.receivable-desc' });
+      netIcon = TrendingUpIcon;
+      netColor = 'success.main';
+    } else if (isCredit) {
+      netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.payable-desc' });
+      netIcon = TrendingDownIcon;
+      netColor = 'error.main';
+    } else {
+      netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.settled-desc' });
+      netIcon = BalanceIcon;
+      netColor = 'text.secondary';
+    }
+  } else if (!summaryError && summary) {
+    netPrimaryDisplay = '-';
+    netSecondaryDisplay = intl.formatMessage({ id: 'parties.net-position.unknown', defaultMessage: 'تعذر تحديد الموقف المالي' });
     netIcon = BalanceIcon;
     netColor = 'text.secondary';
   }
