@@ -59,7 +59,16 @@ type EditableLine = SalesLineInput & {
 
 const today = dayjs().format('YYYY-MM-DD');
 const invoiceCurrencyCode = 'EGP';
+const SALES_VAT_RATE = 0.14;
 const DIRECT_SETTLEMENT_TREASURY_REQUIRED_MESSAGE_ID = 'sales-invoice-direct-settlement-treasury-required';
+
+function roundMoney(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function safeNumber(value: number) {
+  return Number.isFinite(value) ? value : 0;
+}
 
 function emptyLine(): EditableLine {
   return {
@@ -273,7 +282,7 @@ export default function SalesInvoiceFormPage() {
             quantity: line.quantity,
             unitPrice: line.unitPrice,
             discountAmount: line.discountAmount,
-            taxAmount: line.taxAmount,
+            taxAmount: 0,
             notes: line.notes ?? '',
             itemCode: line.itemCode,
             unitCode: line.unitCode,
@@ -413,13 +422,13 @@ export default function SalesInvoiceFormPage() {
     }
     const lines = rows
       .filter((row) => row.itemId && row.unitOfMeasureId)
-      .map(({ itemId, unitOfMeasureId, quantity, unitPrice, discountAmount, taxAmount, notes }) => ({
+      .map(({ itemId, unitOfMeasureId, quantity, unitPrice, discountAmount, notes }) => ({
         itemId,
         unitOfMeasureId,
-        quantity: Number(quantity) || 0,
-        unitPrice: Number(unitPrice) || 0,
-        discountAmount: Number(discountAmount) || 0,
-        taxAmount: Number(taxAmount) || 0,
+        quantity: safeNumber(Number(quantity)),
+        unitPrice: safeNumber(Number(unitPrice)),
+        discountAmount: safeNumber(Number(discountAmount)),
+        taxAmount: 0,
         notes: notes || null
       }));
 
@@ -474,10 +483,12 @@ export default function SalesInvoiceFormPage() {
     }
   };
 
-  const subtotal = rows.reduce((sum, row) => sum + (Number(row.quantity) || 0) * (Number(row.unitPrice) || 0), 0);
-  const totalLineDiscount = rows.reduce((sum, row) => sum + (Number(row.discountAmount) || 0), 0);
-  const totalTax = rows.reduce((sum, row) => sum + (Number(row.taxAmount) || 0), 0);
-  const grandTotal = subtotal - totalLineDiscount - (Number(form.headerDiscount) || 0) + totalTax + (Number(form.otherCharges) || 0);
+  const subtotal = roundMoney(rows.reduce((sum, row) => sum + safeNumber(Number(row.quantity)) * safeNumber(Number(row.unitPrice)), 0));
+  const totalLineDiscount = roundMoney(rows.reduce((sum, row) => sum + safeNumber(Number(row.discountAmount)), 0));
+  const headerDiscount = roundMoney(safeNumber(Number(form.headerDiscount)));
+  const taxableSales = roundMoney(Math.max(0, subtotal - totalLineDiscount - headerDiscount));
+  const totalTax = roundMoney(taxableSales * SALES_VAT_RATE);
+  const grandTotal = roundMoney(taxableSales + totalTax);
 
   if (isEdit && isLoading) return <Loader />;
 
@@ -685,14 +696,13 @@ export default function SalesInvoiceFormPage() {
                      <TableCell sx={{ minWidth: 100 }}><FormattedMessage id="unit" /></TableCell>
                      <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="unit-price" /></TableCell>
                      <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="discount" /></TableCell>
-                     <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="tax" /></TableCell>
                      <TableCell sx={{ minWidth: 120 }}><FormattedMessage id="line-total" /></TableCell>
                      <TableCell align="center" width={60}><FormattedMessage id="actions" /></TableCell>
                    </TableRow>
                  </TableHead>
                  <TableBody>
                    {rows.map((row, index) => {
-                      const lineTotal = (Number(row.quantity) || 0) * (Number(row.unitPrice) || 0) - (Number(row.discountAmount) || 0) + (Number(row.taxAmount) || 0);
+                      const lineTotal = roundMoney(safeNumber(Number(row.quantity)) * safeNumber(Number(row.unitPrice)) - safeNumber(Number(row.discountAmount)));
                       return (
                       <TableRow key={`${row.itemId || 'line'}-${index}`} hover>
                         {[
@@ -746,9 +756,6 @@ export default function SalesInvoiceFormPage() {
                           </TableCell>,
                           <TableCell key="discount">
                             <TextField size="small" fullWidth type="number" value={row.discountAmount} onChange={(event) => updateRow(index, { discountAmount: Number(event.target.value) })} />
-                          </TableCell>,
-                          <TableCell key="tax">
-                            <TextField size="small" fullWidth type="number" value={row.taxAmount} onChange={(event) => updateRow(index, { taxAmount: Number(event.target.value) })} />
                           </TableCell>,
                           <TableCell key="total">
                              <Typography fontWeight={600} color="primary.main">{lineTotal.toFixed(2)}</Typography>
@@ -827,7 +834,7 @@ export default function SalesInvoiceFormPage() {
                         <TextField size="small" type="number" value={form.headerDiscount} onChange={(e) => setForm({ ...form, headerDiscount: Number(e.target.value) })} sx={{ width: 120 }} />
                       </Box>
                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography fontWeight={500}><FormattedMessage id="total-tax" /></Typography>
+                        <Typography fontWeight={500}><FormattedMessage id="sales-vat-14" defaultMessage="ضريبة القيمة المضافة (14%)" /></Typography>
                         <Typography fontWeight={600} color="text.secondary">{totalTax.toFixed(2)}</Typography>
                      </Box>
                      <Divider sx={{ my: 1 }} />

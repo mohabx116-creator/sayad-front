@@ -319,6 +319,10 @@ export default function SalesInvoiceDetailsPage() {
                            <Typography fontWeight={600} color="error.main">- {(invoice.headerDiscount || 0).toFixed(2)}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                           <Typography><FormattedMessage id="sales-vat-14" defaultMessage="ضريبة القيمة المضافة (14%)" /></Typography>
+                           <Typography fontWeight={600}>{(invoice.taxTotal || 0).toFixed(2)}</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                            <Typography><FormattedMessage id="other-charges" /></Typography>
                            <Typography fontWeight={600}>{(invoice.otherCharges || 0).toFixed(2)}</Typography>
                         </Box>
