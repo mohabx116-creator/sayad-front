@@ -86,6 +86,10 @@ export function finalDeleteParty(id: string, request: PartyFinalDeleteRequest) {
   return unwrap(axiosServices.post<ApiResponse<object>>(`/api/parties/${id}/final-delete`, request));
 }
 
+export function deleteParty(id: string) {
+  return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/parties/${id}`));
+}
+
 export function getPartyOpeningBalance(id: string) {
   return unwrap(axiosServices.get<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance`));
 }

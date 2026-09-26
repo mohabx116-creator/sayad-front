@@ -1,4 +1,7 @@
 {
+  "party-delete-title": "Delete customer",
+  "party-delete-confirmation": "Are you sure you want to delete {name}? Deletion is allowed only when the customer has no opening balance or linked business history.",
+  "party-delete-success": "Customer deleted successfully.",
   "opening-balance-debit-party": "Due to us",
   "opening-balance-credit-party": "Due from us",
   "By": "By",

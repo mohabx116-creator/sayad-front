@@ -5,6 +5,10 @@ import { useSWRConfig } from 'swr';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -19,7 +23,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import { IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight, IconReportMoney, IconReceipt } from '@tabler/icons-react';
+import { IconEdit, IconEye, IconPlus, IconSearch, IconToggleLeft, IconToggleRight, IconReportMoney, IconReceipt, IconTrash } from '@tabler/icons-react';
 import Grid from '@mui/material/GridLegacy';
 import Skeleton from '@mui/material/Skeleton';
 import GroupIcon from '@mui/icons-material/Group';
@@ -33,7 +37,7 @@ import CreatePartyDialog from '../components/CreatePartyDialog';
 import PartySettlementDialog from '../components/PartySettlementDialog';
 import PartyImportWizard from '../components/PartyImportWizard';
 
-import { activateParty, deactivateParty, downloadPartiesImportTemplate, exportPartiesToExcel } from '../api/partiesApi';
+import { activateParty, deactivateParty, deleteParty, downloadPartiesImportTemplate, exportPartiesToExcel } from '../api/partiesApi';
 import PartyClassificationChips from '../components/PartyClassificationChips';
 import PartyStatusChip from '../components/PartyStatusChip';
 import PermissionGuard from 'modules/Administration/components/PermissionGuard';
@@ -87,6 +91,8 @@ export default function PartiesListPage() {
   const [cashDialogParty, setCashDialogParty] = useState<{ id: string; name: string; isCustomer: boolean } | null>(null);
   const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [partyToDelete, setPartyToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     items: parties,
@@ -114,6 +120,22 @@ export default function PartiesListPage() {
       notify(intl.formatMessage({ id: 'parties-action-success' }));
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!partyToDelete) return;
+    try {
+      setIsDeleting(true);
+      await deleteParty(partyToDelete.id);
+      await mutateParties((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+      await mutate();
+      notify(intl.formatMessage({ id: 'party-delete-success', defaultMessage: 'Customer deleted successfully.' }));
+      setPartyToDelete(null);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -585,6 +607,19 @@ export default function PartiesListPage() {
                               </IconButton>
                             </Tooltip>
                           </PermissionGuard>
+                          {party.isCustomer && !party.isSupplier && (
+                            <PermissionGuard permission={PARTIES_PERMISSIONS.delete}>
+                              <Tooltip title={<FormattedMessage id="delete" defaultMessage="Delete" />}>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => setPartyToDelete({ id: party.id, name: resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic) })}
+                                >
+                                  <IconTrash size={18} />
+                                </IconButton>
+                              </Tooltip>
+                            </PermissionGuard>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -609,6 +644,27 @@ export default function PartiesListPage() {
           </>
         )}
       </Box>
+
+      <Dialog open={Boolean(partyToDelete)} onClose={isDeleting ? undefined : () => setPartyToDelete(null)} maxWidth="sm" fullWidth>
+        <DialogTitle><FormattedMessage id="party-delete-title" defaultMessage="Delete customer" /></DialogTitle>
+        <DialogContent>
+          <Typography>
+            <FormattedMessage
+              id="party-delete-confirmation"
+              defaultMessage="Are you sure you want to delete {name}? Deletion is allowed only when the customer has no opening balance or linked business history."
+              values={{ name: partyToDelete?.name ?? '' }}
+            />
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPartyToDelete(null)} disabled={isDeleting} color="inherit">
+            <FormattedMessage id="cancel" defaultMessage="Cancel" />
+          </Button>
+          <Button onClick={handleDelete} disabled={isDeleting} color="error" variant="contained" startIcon={<IconTrash size={18} />}>
+            <FormattedMessage id="delete" defaultMessage="Delete" />
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <CreatePartyDialog
         open={isCreateDialogOpen}

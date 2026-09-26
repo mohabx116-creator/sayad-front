@@ -1,4 +1,7 @@
 {
+  "party-delete-title": "حذف العميل",
+  "party-delete-confirmation": "هل أنت متأكد من حذف {name}؟ لا يمكن الحذف إذا كان لدى العميل رصيد افتتاحي أو معاملات مرتبطة.",
+  "party-delete-success": "تم حذف العميل بنجاح.",
   "opening-balance-debit-party": "لينا",
   "opening-balance-credit-party": "علينا",
   "By": "بواسطة",
