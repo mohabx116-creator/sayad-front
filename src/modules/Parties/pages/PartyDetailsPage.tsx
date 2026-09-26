@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import { IconToggleLeft, IconToggleRight } from '@tabler/icons-react';
 
 import { activateParty, correctPartyOpeningBalance, deactivateParty, setPartyOpeningBalance } from '../api/partiesApi';
-import type { CorrectOpeningBalanceRequest, OpeningBalanceRequest } from '../types/parties.types';
+import type { CorrectOpeningBalanceRequest, OpeningBalanceRequest, PartySettlementDirection } from '../types/parties.types';
 import OpeningBalanceDialog from '../components/OpeningBalanceDialog';
 import PartySettlementDialog from '../components/PartySettlementDialog';
 import PartyClassificationChips from '../components/PartyClassificationChips';
@@ -40,7 +40,10 @@ export default function PartyDetailsPage() {
   const { party, error, isLoading, mutate } = useParty(id);
   const canViewOpeningBalance = hasPermission(user, PARTIES_PERMISSIONS.openingBalanceView);
   const { openingBalance, error: openingBalanceError, isLoading: openingBalanceLoading } = usePartyOpeningBalance(id, canViewOpeningBalance);
-  const [cashTransactionMode, setCashTransactionMode] = useState<'receipt' | 'payment' | null>(null);
+  const [cashTransaction, setCashTransaction] = useState<{
+    mode: 'receipt' | 'payment';
+    direction: PartySettlementDirection;
+  } | null>(null);
   const [openingBalanceDialogOpen, setOpeningBalanceDialogOpen] = useState(false);
   const [isSavingOpeningBalance, setIsSavingOpeningBalance] = useState(false);
 
@@ -59,7 +62,26 @@ export default function PartyDetailsPage() {
     }
   };
 
-  const closeCashTransactionDialog = () => setCashTransactionMode(null);
+  const closeCashTransactionDialog = () => setCashTransaction(null);
+  const settlementDirection =
+    party && party.balanceNature === 'Debit'
+      ? party.isCustomer
+        ? party.isSupplier
+          ? null
+          : 'CustomerReceipt'
+        : party.isSupplier
+          ? 'SupplierReceipt'
+          : null
+      : party && party.balanceNature === 'Credit'
+        ? party.isCustomer
+          ? party.isSupplier
+            ? null
+            : 'CustomerRefund'
+          : party.isSupplier
+            ? 'SupplierPayment'
+            : null
+        : null;
+  const settlementMode = settlementDirection === 'CustomerReceipt' || settlementDirection === 'SupplierReceipt' ? 'receipt' : 'payment';
   const refreshPartyData = async () => {
     await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/parties'));
   };
@@ -101,26 +123,34 @@ export default function PartyDetailsPage() {
                   <FormattedMessage id="party-account-statement" />
                 </Button>
               </PermissionGuard>
-              <PermissionGuard
-                allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]}
-                fallback={null}
-              >
-                {party.isCustomer && (
-                  <Button variant="contained" color="success" onClick={() => setCashTransactionMode('receipt')}>
-                    <FormattedMessage id="party-customer-receipt-submit" />
+              {settlementDirection && (
+                <PermissionGuard
+                  allPermissions={
+                    settlementMode === 'receipt'
+                      ? [TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]
+                      : [TREASURY_PERMISSIONS.paymentsCreate, TREASURY_PERMISSIONS.paymentsPost]
+                  }
+                  fallback={null}
+                >
+                  <Button
+                    variant="contained"
+                    color={settlementMode === 'receipt' ? 'success' : 'warning'}
+                    onClick={() => setCashTransaction({ mode: settlementMode, direction: settlementDirection })}
+                  >
+                    <FormattedMessage
+                      id={
+                        settlementDirection === 'CustomerReceipt'
+                          ? 'party-customer-receipt-submit'
+                          : settlementDirection === 'CustomerRefund'
+                            ? 'party-customer-payment-submit'
+                            : settlementDirection === 'SupplierReceipt'
+                              ? 'party-supplier-receipt-submit'
+                              : 'party-supplier-payment-submit'
+                      }
+                    />
                   </Button>
-                )}
-              </PermissionGuard>
-              <PermissionGuard
-                allPermissions={[TREASURY_PERMISSIONS.paymentsCreate, TREASURY_PERMISSIONS.paymentsPost]}
-                fallback={null}
-              >
-                {party.isSupplier && (
-                  <Button variant="contained" color="warning" onClick={() => setCashTransactionMode('payment')}>
-                    <FormattedMessage id="party-supplier-payment-submit" />
-                  </Button>
-                )}
-              </PermissionGuard>
+                </PermissionGuard>
+              )}
               <PermissionGuard permission={PARTIES_PERMISSIONS.update}>
                 <Button component={Link} to={`/parties/${party.id}/edit`} variant="outlined">
                   <FormattedMessage id="edit" />
@@ -175,14 +205,15 @@ export default function PartyDetailsPage() {
                   title={<FormattedMessage id="opening-balance" />}
                   secondary={
                     <PermissionGuard permission={PARTIES_PERMISSIONS.openingBalanceManage}>
-                      {!openingBalanceError && (
+                      {!openingBalanceError && !(party.isCustomer && party.isSupplier) ? (
                         <Button variant="outlined" onClick={() => setOpeningBalanceDialogOpen(true)} disabled={openingBalanceLoading}>
                           <FormattedMessage id={openingBalance?.entryId ? 'correct-opening-balance' : 'add-opening-balance'} />
                         </Button>
-                      )}
+                      ) : null}
                     </PermissionGuard>
                   }
                 >
+                  {party.isCustomer && party.isSupplier && <Alert severity="info"><FormattedMessage id="opening-balance-dual-party-help" /></Alert>}
                   {openingBalanceLoading && <Loader />}
                   {!openingBalanceLoading && openingBalanceError && (
                     <Alert severity="error"><FormattedMessage id="opening-balance-load-error" /></Alert>
@@ -218,8 +249,10 @@ export default function PartyDetailsPage() {
       )}
       {party && id && (
         <PartySettlementDialog
-          open={cashTransactionMode !== null}
-          mode={cashTransactionMode ?? 'receipt'}
+          open={cashTransaction !== null}
+          mode={cashTransaction?.mode ?? 'receipt'}
+          settlementDirection={cashTransaction?.direction}
+          maxSettlementAmount={party.balance}
           partyId={id}
           partyName={resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
           onClose={closeCashTransactionDialog}

@@ -86,7 +86,7 @@ export function cleanCreate(values: PartyFormValues): CreatePartyRequest {
     email: null,
     address: values.address || null,
     notes: values.notes || null,
-    openingBalance: values.includeOpeningBalance ? {
+    openingBalance: values.includeOpeningBalance && values.partyType !== 'both' ? {
       entryDate: values.openingBalanceDate,
       amount: values.openingBalanceAmount ?? 0,
       balanceNature: values.openingBalanceNature,

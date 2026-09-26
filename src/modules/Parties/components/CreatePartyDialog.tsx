@@ -75,6 +75,17 @@ export default function CreatePartyDialog({
     }
   }, [open, initialPartyType, form]);
 
+  const partyType = form.watch('partyType');
+  const isDualParty = partyType === 'both';
+
+  useEffect(() => {
+    if (isDualParty && form.getValues('includeOpeningBalance')) {
+      form.setValue('includeOpeningBalance', false, { shouldValidate: true });
+      form.setValue('openingBalanceAmount', undefined);
+      form.setValue('openingBalanceNature', '');
+    }
+  }, [form, isDualParty]);
+
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
   };
@@ -281,13 +292,14 @@ export default function CreatePartyDialog({
                 control={form.control}
                 render={({ field }) => (
                   <FormControlLabel
-                    control={<Switch checked={field.value} onChange={(event) => field.onChange(event.target.checked)} />}
+                    control={<Switch checked={field.value} disabled={isDualParty} onChange={(event) => field.onChange(event.target.checked)} />}
                     label={<FormattedMessage id="add-opening-balance" defaultMessage="Add opening balance" />}
                   />
                 )}
               />
+              {isDualParty && <FormHelperText><FormattedMessage id="opening-balance-dual-party-help" defaultMessage="Opening balance is unavailable for dual parties; record customer and supplier balances separately." /></FormHelperText>}
 
-              {form.watch('includeOpeningBalance') && (
+              {!isDualParty && form.watch('includeOpeningBalance') && (
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 1 }}>
                   <Controller
                     name="openingBalanceAmount"

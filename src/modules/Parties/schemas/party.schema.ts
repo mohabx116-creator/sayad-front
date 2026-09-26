@@ -21,6 +21,10 @@ export const createPartySchema = z
     openingBalanceDate: z.string().optional()
   })
   .superRefine((value, context) => {
+    if (value.partyType === 'both' && value.includeOpeningBalance) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['includeOpeningBalance'], message: 'Opening balance is not available for dual parties.' });
+      return;
+    }
     if (!value.includeOpeningBalance) return;
 
     if (value.openingBalanceAmount == null || value.openingBalanceAmount <= 0) {

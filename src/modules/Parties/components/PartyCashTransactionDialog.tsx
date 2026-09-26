@@ -53,6 +53,7 @@ type PartyCashTransactionDialogProps = {
   partyName: string;
   settlementDirection?: PartySettlementDirection;
   settlementAmount?: number;
+  maxSettlementAmount?: number;
   openDocuments?: PartySettlementOpenDocumentDto[];
   settlementDescriptionArabic?: string | null;
   settlementDescriptionEnglish?: string | null;
@@ -85,13 +86,13 @@ function getSettlementCopy(mode: PartyCashTransactionMode, settlementDirection?:
   switch (resolveDirection(mode, settlementDirection)) {
     case 'CustomerRefund':
       return {
-        titleLabel: 'party-customer-refund-title',
-        helpLabel: 'party-customer-refund-help',
-        submitLabel: 'party-customer-refund-submit',
-        successLabel: 'party-customer-refund-success',
-        failureLabel: 'party-customer-refund-failed',
+        titleLabel: 'party-customer-payment-title',
+        helpLabel: 'party-customer-payment-help',
+        submitLabel: 'party-customer-payment-submit',
+        successLabel: 'party-customer-payment-success',
+        failureLabel: 'party-customer-payment-failed',
         dateLabel: 'settlement-date',
-        defaultDescription: 'Customer refund'
+        defaultDescription: 'Customer payment'
       };
     case 'SupplierReceipt':
       return {
@@ -127,14 +128,18 @@ function getSettlementCopy(mode: PartyCashTransactionMode, settlementDirection?:
   }
 }
 
-function buildSchema(intl: ReturnType<typeof useIntl>) {
+function buildSchema(intl: ReturnType<typeof useIntl>, maxSettlementAmount?: number) {
   return z.object({
     treasuryAccountId: z.string().min(1, intl.formatMessage({ id: 'cashbox-required' })),
     transactionDate: z.string().min(1, intl.formatMessage({ id: 'party-cash-transaction-date-required' })),
     amount: z
       .string()
       .min(1, intl.formatMessage({ id: 'payment-amount-required' }))
-      .refine((value) => Number(value) > 0, intl.formatMessage({ id: 'party-cash-transaction-amount-positive' })),
+      .refine((value) => Number(value) > 0, intl.formatMessage({ id: 'party-cash-transaction-amount-positive' }))
+      .refine(
+        (value) => maxSettlementAmount == null || Number(value) <= maxSettlementAmount,
+        intl.formatMessage({ id: 'party-settlement-amount-exceeds-balance' })
+      ),
     notes: z.string().max(1000, intl.formatMessage({ id: 'party-cash-transaction-notes-too-long' }))
   });
 }
@@ -146,6 +151,7 @@ export default function PartyCashTransactionDialog({
   partyName,
   settlementDirection,
   settlementAmount,
+  maxSettlementAmount,
   openDocuments,
   settlementDescriptionArabic,
   settlementDescriptionEnglish,
@@ -158,7 +164,7 @@ export default function PartyCashTransactionDialog({
   const dispatch = useDispatch();
   const { createSettlement } = usePartySettlementActions();
   const { items: cashboxes, isLoading } = useCashboxAccounts();
-  const schema = useMemo(() => buildSchema(intl), [intl]);
+  const schema = useMemo(() => buildSchema(intl, maxSettlementAmount), [intl, maxSettlementAmount]);
   const copy = useMemo(() => getSettlementCopy(mode, settlementDirection), [mode, settlementDirection]);
   const settlementOpenDocuments = useMemo(() => openDocuments ?? [], [openDocuments]);
   const hasOpenDocuments = settlementOpenDocuments.length > 0 && !buildAllocations;
@@ -326,10 +332,18 @@ export default function PartyCashTransactionDialog({
                   {...field}
                   fullWidth
                   type="number"
-                  inputProps={{ min: 0, step: '0.01' }}
+                  inputProps={{ min: 0, max: maxSettlementAmount, step: '0.01' }}
                   label={<FormattedMessage id="payment-amount" />}
                   error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
+                  helperText={
+                    fieldState.error?.message ??
+                    (maxSettlementAmount != null ? (
+                      <FormattedMessage
+                        id="party-settlement-max-amount"
+                        values={{ amount: new Intl.NumberFormat(intl.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(maxSettlementAmount) }}
+                      />
+                    ) : undefined)
+                  }
                 />
               )}
             />
