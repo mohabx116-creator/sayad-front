@@ -11,7 +11,8 @@ import type {
   PartySettlementOpenDocumentDto,
   PartyStatementDto,
   PartyStatementParams,
-  PartiesSummaryDto
+  PartiesSummaryDto,
+  OpeningBalanceDto
 } from '../types/parties.types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
@@ -38,6 +39,12 @@ export function useParties(params: Record<string, string | number | boolean | un
 export function useParty(id?: string) {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<PartyDto>>(id ? `/api/parties/${id}` : null, fetcher);
   return useMemo(() => ({ party: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
+}
+
+export function usePartyOpeningBalance(id?: string, enabled = true) {
+  const key = id && enabled ? `/api/parties/${id}/opening-balance` : null;
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<OpeningBalanceDto>>(key, fetcher);
+  return useMemo(() => ({ openingBalance: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }
 
 export function usePartyStatement(id?: string, params: PartyStatementParams = {}) {

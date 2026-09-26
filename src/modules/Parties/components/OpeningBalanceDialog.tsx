@@ -2,6 +2,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -63,42 +65,49 @@ export default function OpeningBalanceDialog({ openingBalance, isSaving, onClose
 
   return (
     <Dialog open onClose={isSaving ? undefined : onClose} fullWidth maxWidth="sm">
-      <DialogTitle><FormattedMessage id={hasOpeningBalance ? 'correct-opening-balance' : 'opening-balance'} /></DialogTitle>
-      <DialogContent>
-        {hasOpeningBalance && (
-          <Typography color="text.secondary" sx={{ mb: 2 }}>
-            <FormattedMessage id="opening-balance-correction-help" />
-          </Typography>
-        )}
-        <Grid container spacing={2} sx={{ mt: 0.5 }}>
-          <Grid item xs={12} md={4}>
-            <Controller name="amount" control={form.control} render={({ field, fieldState }) => <TextField {...field} type="number" onChange={(event) => field.onChange(Number(event.target.value))} fullWidth label={<FormattedMessage id="opening-balance" />} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
+      <Box component="form" onSubmit={form.handleSubmit(submit as any)} noValidate>
+        <DialogTitle><FormattedMessage id={hasOpeningBalance ? 'correct-opening-balance' : 'opening-balance'} /></DialogTitle>
+        <DialogContent>
+          {hasOpeningBalance && (
+            <Typography color="text.secondary" sx={{ mb: 2 }}>
+              <FormattedMessage id="opening-balance-correction-help" />
+            </Typography>
+          )}
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid item xs={12} md={4}>
+              <Controller name="amount" control={form.control} render={({ field, fieldState }) => <TextField {...field} type="number" inputProps={{ min: 0.01, step: 0.01 }} onChange={(event) => field.onChange(Number(event.target.value))} fullWidth label={<FormattedMessage id="opening-balance-amount" />} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Controller name="balanceNature" control={form.control} render={({ field, fieldState }) => (
+                <>
+                  <TextField {...field} fullWidth select label={<FormattedMessage id="balance-direction" />} error={!!fieldState.error} helperText={fieldState.error?.message}>
+                    <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
+                    <MenuItem value="Debit"><FormattedMessage id="parties.statement.debit-against-party" /></MenuItem>
+                    <MenuItem value="Credit"><FormattedMessage id="parties.statement.credit-for-party" /></MenuItem>
+                  </TextField>
+                  <Alert severity="info" sx={{ mt: 1 }}>
+                    <FormattedMessage id="opening-balance-direction-help" />
+                  </Alert>
+                </>
+              )} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Controller name="entryDate" control={form.control} render={({ field }) => <TextField {...field} type="date" fullWidth label={<FormattedMessage id="opening-balance-date" />} InputLabelProps={{ shrink: true }} />} />
+            </Grid>
+            <Grid item xs={12}>
+              {hasOpeningBalance ? (
+                <Controller name="reason" control={form.control} render={({ field, fieldState }) => <TextField {...field} fullWidth multiline minRows={2} label={<FormattedMessage id="correction-reason" />} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
+              ) : (
+                <Controller name="notes" control={form.control} render={({ field, fieldState }) => <TextField {...field} value={field.value ?? ''} fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
+              )}
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <Controller name="balanceNature" control={form.control} render={({ field, fieldState }) => (
-              <TextField {...field} fullWidth select label={<FormattedMessage id="balance-direction" />} error={!!fieldState.error} helperText={fieldState.error?.message}>
-                <MenuItem value=""><FormattedMessage id="none" /></MenuItem>
-                <MenuItem value="Debit"><FormattedMessage id="debit" /></MenuItem>
-                <MenuItem value="Credit"><FormattedMessage id="credit" /></MenuItem>
-              </TextField>
-            )} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Controller name="entryDate" control={form.control} render={({ field }) => <TextField {...field} type="date" fullWidth label={<FormattedMessage id="opening-balance-date" />} InputLabelProps={{ shrink: true }} />} />
-          </Grid>
-          <Grid item xs={12}>
-            {hasOpeningBalance ? (
-              <Controller name="reason" control={form.control} render={({ field, fieldState }) => <TextField {...field} fullWidth multiline minRows={2} label={<FormattedMessage id="correction-reason" />} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
-            ) : (
-              <Controller name="notes" control={form.control} render={({ field, fieldState }) => <TextField {...field} value={field.value ?? ''} fullWidth multiline minRows={2} label={<FormattedMessage id="notes" />} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
-            )}
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={isSaving}><FormattedMessage id="cancel" /></Button>
-        <Button variant="contained" onClick={form.handleSubmit(submit as any)} disabled={isSaving}>{isSaving ? intl.formatMessage({ id: 'loading' }) : intl.formatMessage({ id: 'save' })}</Button>
-      </DialogActions>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={onClose} disabled={isSaving}><FormattedMessage id="cancel" /></Button>
+          <Button type="submit" variant="contained" disabled={isSaving}>{isSaving ? intl.formatMessage({ id: 'loading' }) : intl.formatMessage({ id: 'save' })}</Button>
+        </DialogActions>
+      </Box>
     </Dialog>
   );
 }
