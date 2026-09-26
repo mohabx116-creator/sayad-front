@@ -15,7 +15,9 @@ export type CreateUserValidationMessages = {
   duplicateRole: string;
 };
 
-export function buildCreateUserSchema(messages: CreateUserValidationMessages) {
+export function buildCreateUserSchema(messages: CreateUserValidationMessages, options: { requireRole?: boolean } = {}) {
+  const requireRole = options.requireRole ?? true;
+
   return z
     .object({
       displayName: z.string().min(1, messages.displayNameRequired).max(200, messages.displayNameTooLong),
@@ -36,7 +38,7 @@ export function buildCreateUserSchema(messages: CreateUserValidationMessages) {
       const normalizedRoleIds = value.roleIds.map((roleId) => roleId.trim()).filter(Boolean);
       const uniqueRoleIds = Array.from(new Set(normalizedRoleIds));
 
-      if (uniqueRoleIds.length === 0) {
+      if (requireRole && uniqueRoleIds.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['roleIds'],

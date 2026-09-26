@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import type { FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
 
@@ -498,8 +499,8 @@ function UserDialog({
   const [inactiveRoleWarning, setInactiveRoleWarning] = useState<string | null>(null);
 
   const createUserSchema = useMemo(
-    () => buildCreateUserSchema(buildCreateUserValidationMessages(intl)),
-    [intl]
+    () => buildCreateUserSchema(buildCreateUserValidationMessages(intl), { requireRole: !includeCustomRole }),
+    [includeCustomRole, intl]
   );
 
   const customRoleSchema = useMemo(
@@ -589,6 +590,27 @@ function UserDialog({
     );
   };
 
+  const notifyCreateValidationError = (errors: FieldErrors<CreateUserRequest>) => {
+    const firstInvalidField = (['displayName', 'email', 'password', 'confirmPassword', 'roleIds'] as const).find((fieldName) => Boolean(errors[fieldName]));
+    const firstInvalidMessage = firstInvalidField ? errors[firstInvalidField]?.message : undefined;
+
+    if (firstInvalidField) {
+      createForm.setFocus(firstInvalidField);
+    }
+
+    dispatch(
+      openSnackbar({
+        open: true,
+        message:
+          typeof firstInvalidMessage === 'string'
+            ? firstInvalidMessage
+            : intl.formatMessage({ id: 'create-user-failed-summary', defaultMessage: 'The user could not be created. Review the entered data and try again.' }),
+        variant: 'alert',
+        severity: 'error'
+      })
+    );
+  };
+
   const persist = async (action: () => Promise<unknown>) => {
     try {
       setIsSaving(true);
@@ -616,7 +638,7 @@ function UserDialog({
           const activeRoleIds = new Set(availableRoles.filter((role) => role.isActive).map((role) => role.id));
           const knownRoleIds = new Set(availableRoles.map((role) => role.id));
 
-          if (roleIds.length === 0) {
+          if (roleIds.length === 0 && !includeCustomRole) {
             const message = intl.formatMessage({
               id: 'create-user-no-role-selected',
               defaultMessage: 'Select at least one active role.'
@@ -660,7 +682,26 @@ function UserDialog({
           if (includeCustomRole) {
             if (!createdRoleForAttempt) {
               const isValid = await customRoleForm.trigger();
-              if (!isValid) return;
+              if (!isValid) {
+                const firstInvalidCustomRoleField = (['name', 'descriptionArabic', 'descriptionEnglish', 'permissionIds'] as const).find(
+                  (fieldName) => customRoleForm.getFieldState(fieldName).invalid
+                );
+                if (firstInvalidCustomRoleField) {
+                  customRoleForm.setFocus(firstInvalidCustomRoleField);
+                }
+                dispatch(
+                  openSnackbar({
+                    open: true,
+                    message: intl.formatMessage({
+                      id: 'create-user-failed-summary',
+                      defaultMessage: 'The user could not be created. Review the entered data and try again.'
+                    }),
+                    variant: 'alert',
+                    severity: 'error'
+                  })
+                );
+                return;
+              }
 
               createdRoleForAttempt = await createRole(customRoleForm.getValues());
               setCreatedCustomRole(createdRoleForAttempt);
@@ -677,6 +718,16 @@ function UserDialog({
             createForm.setValue('roleIds', roleIds, { shouldDirty: true, shouldTouch: true });
           }
 
+          if (roleIds.length === 0) {
+            const message = intl.formatMessage({
+              id: 'create-user-no-role-selected',
+              defaultMessage: 'Select at least one active role.'
+            });
+            createForm.setError('roleIds', { type: 'manual', message });
+            setInactiveRoleWarning(message);
+            return;
+          }
+
           createForm.clearErrors('roleIds');
           await createUser({ ...values, roleIds });
           setCreatedCustomRole(null);
@@ -685,7 +736,9 @@ function UserDialog({
         } catch (error) {
           if (createdRoleForAttempt) {
             const roleName = createdRoleForAttempt.name || customRoleForm.getValues('name');
-            const message = intl.formatMessage({ id: 'custom-role-created-user-failed' }, { role: roleName });
+            const partialSuccessMessage = intl.formatMessage({ id: 'custom-role-created-user-failed' }, { role: roleName });
+            const validation = resolveCreateUserValidationState(error, intl);
+            const message = `${partialSuccessMessage} ${validation.summary}`;
             setPartialSuccessMessage(message);
             dispatch(openSnackbar({ open: true, message, variant: 'alert', severity: 'warning' }));
             return;
@@ -700,7 +753,7 @@ function UserDialog({
         } finally {
           setIsSaving(false);
         }
-      })();
+      }, notifyCreateValidationError)();
       return;
     }
 
