@@ -166,6 +166,7 @@ export default function PartyCashTransactionDialog({
   const { items: cashboxes, isLoading } = useCashboxAccounts();
   const schema = useMemo(() => buildSchema(intl, maxSettlementAmount), [intl, maxSettlementAmount]);
   const copy = useMemo(() => getSettlementCopy(mode, settlementDirection), [mode, settlementDirection]);
+  const isCashInDirection = resolveDirection(mode, settlementDirection) === 'CustomerReceipt' || resolveDirection(mode, settlementDirection) === 'SupplierReceipt';
   const settlementOpenDocuments = useMemo(() => openDocuments ?? [], [openDocuments]);
   const hasOpenDocuments = settlementOpenDocuments.length > 0 && !buildAllocations;
   const [allocationMode, setAllocationMode] = useState<PartyCashTransactionAllocationMode>('onAccount');
@@ -233,7 +234,7 @@ export default function PartyCashTransactionDialog({
               .filter((row) => row.allocatedAmount > 0)
               .map((row, index) => ({
                 lineNumber: index + 1,
-                documentType: 'SalesInvoice' as const,
+                documentType: settlementOpenDocuments.find((document) => document.documentId === row.invoiceId)?.documentType ?? 'SalesInvoice',
                 documentId: row.invoiceId,
                 documentNumber: row.invoiceNumber,
                 allocatedAmount: row.allocatedAmount,
@@ -367,7 +368,7 @@ export default function PartyCashTransactionDialog({
                     <FormControlLabel
                       value="onAccount"
                       control={<Radio />}
-                      label={<FormattedMessage id="settle-on-account" defaultMessage="قبض على الحساب" />}
+                      label={<FormattedMessage id={isCashInDirection ? 'settle-on-account' : 'settle-on-account-payment'} />}
                     />
                   </RadioGroup>
                 </FormControl>

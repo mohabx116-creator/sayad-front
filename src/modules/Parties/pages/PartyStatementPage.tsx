@@ -44,6 +44,10 @@ const MOVEMENT_TYPE_OPTIONS: MovementTypeOption[] = [
   { value: 'TreasuryReceiptCredit', labelId: 'customer-receipt' },
   { value: 'PurchaseInvoiceCredit', labelId: 'purchase-invoice' },
   { value: 'TreasuryPaymentDebit', labelId: 'supplier-payment' },
+  { value: 'PartySettlementCredit', labelId: 'party-settlement.credit' },
+  { value: 'PartySettlementCreditReversal', labelId: 'party-settlement.credit-reversal' },
+  { value: 'PartySettlementDebit', labelId: 'party-settlement.debit' },
+  { value: 'PartySettlementDebitReversal', labelId: 'party-settlement.debit-reversal' },
   { value: 'OpeningBalance', labelId: 'opening-balance' },
   { value: 'PartyAdjustmentDebit', labelId: 'party-adjustment.debit' },
   { value: 'PartyAdjustmentCredit', labelId: 'party-adjustment.credit' },
@@ -117,16 +121,16 @@ function getStatementSummaryLabels(intl: ReturnType<typeof useIntl>, isCustomer:
   if (isCustomer) {
     return {
       openingBalance: intl.formatMessage({ id: 'parties.statement.opening-balance' }),
-      debitTotal: intl.formatMessage({ id: 'parties.statement.total-due-from-customer' }),
-      creditTotal: intl.formatMessage({ id: 'parties.statement.total-collected-from-customer' }),
+      debitTotal: intl.formatMessage({ id: 'parties.statement.total-debit-ledger' }),
+      creditTotal: intl.formatMessage({ id: 'parties.statement.total-credit-ledger' }),
       currentBalance: intl.formatMessage({ id: 'parties.statement.current-balance' })
     };
   }
 
   return {
     openingBalance: intl.formatMessage({ id: 'parties.statement.opening-balance' }),
-    debitTotal: intl.formatMessage({ id: 'parties.statement.total-paid-to-supplier' }),
-    creditTotal: intl.formatMessage({ id: 'parties.statement.total-owed-to-supplier' }),
+    debitTotal: intl.formatMessage({ id: 'parties.statement.total-debit-ledger' }),
+    creditTotal: intl.formatMessage({ id: 'parties.statement.total-credit-ledger' }),
     currentBalance: intl.formatMessage({ id: 'parties.statement.current-balance' })
   };
 }
@@ -162,6 +166,14 @@ function getMovementLabel(intl: ReturnType<typeof useIntl>, entryType: string) {
     case 'TreasuryPaymentDebit':
     case 'TreasuryPaymentDebitReversal':
       return intl.formatMessage({ id: 'supplier-payment' });
+    case 'PartySettlementCredit':
+      return intl.formatMessage({ id: 'party-settlement.credit' });
+    case 'PartySettlementCreditReversal':
+      return intl.formatMessage({ id: 'party-settlement.credit-reversal' });
+    case 'PartySettlementDebit':
+      return intl.formatMessage({ id: 'party-settlement.debit' });
+    case 'PartySettlementDebitReversal':
+      return intl.formatMessage({ id: 'party-settlement.debit-reversal' });
     case 'PartyAdjustmentDebit':
       return intl.formatMessage({ id: 'party-adjustment.debit' });
     case 'PartyAdjustmentCredit':
@@ -177,7 +189,7 @@ function getMovementLabel(intl: ReturnType<typeof useIntl>, entryType: string) {
 
 function getMovementTypeSummary(intl: ReturnType<typeof useIntl>, entryType: string) {
   const label = getMovementLabel(intl, entryType);
-  if (entryType.endsWith('Reversal')) {
+  if (entryType.endsWith('Reversal') && !entryType.startsWith('PartySettlement')) {
     return `${label} (${intl.formatMessage({ id: 'statement-reversal' })})`;
   }
 
@@ -234,6 +246,7 @@ export default function PartyStatementPage() {
 
   const { party, error: partyError, isLoading: isPartyLoading, mutate: mutateParty } = useParty(id);
   const { items: customerReceiptOpenDocuments, mutate: mutateCustomerReceiptOpenDocuments } = usePartyOpenDocuments(id, 'CustomerReceipt');
+  const { items: supplierPaymentOpenDocuments, mutate: mutateSupplierPaymentOpenDocuments } = usePartyOpenDocuments(id, 'SupplierPayment');
   const {
     statement,
     error: statementError,
@@ -304,7 +317,7 @@ export default function PartyStatementPage() {
       : [];
 
   const refreshPartyData = async () => {
-    await Promise.all([mutateParty(), mutateStatement(), mutateCustomerReceiptOpenDocuments()]);
+    await Promise.all([mutateParty(), mutateStatement(), mutateCustomerReceiptOpenDocuments(), mutateSupplierPaymentOpenDocuments()]);
   };
 
   const closeCashTransactionDialog = () => setCashTransactionMode(null);
@@ -333,14 +346,14 @@ export default function PartyStatementPage() {
                 <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]} fallback={null}>
                   {party.isCustomer && (
                     <Button variant="contained" color="success" onClick={() => setCashTransactionMode('receipt')}>
-                      <FormattedMessage id="party-customer-receipt-submit" />
+                      <FormattedMessage id={party.isSupplier ? 'party-dual-customer-receipt-submit' : 'party-customer-receipt-submit'} />
                     </Button>
                   )}
                 </PermissionGuard>
                 <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.paymentsCreate, TREASURY_PERMISSIONS.paymentsPost]} fallback={null}>
                   {party.isSupplier && (
                     <Button variant="contained" color="warning" onClick={() => setCashTransactionMode('payment')}>
-                      <FormattedMessage id="party-supplier-payment-submit" />
+                      <FormattedMessage id={party.isCustomer ? 'party-dual-supplier-payment-submit' : 'party-supplier-payment-submit'} />
                     </Button>
                   )}
                 </PermissionGuard>
@@ -636,7 +649,7 @@ export default function PartyStatementPage() {
           mode={cashTransactionMode ?? 'receipt'}
           partyId={id}
           partyName={resolveLocalizedText(intl.locale, party.nameArabic, party.nameEnglish, party.nameArabic)}
-          openDocuments={customerReceiptOpenDocuments}
+          openDocuments={cashTransactionMode === 'payment' ? supplierPaymentOpenDocuments : customerReceiptOpenDocuments}
           onClose={closeCashTransactionDialog}
           onSaved={async () => {
             await refreshPartyData();
