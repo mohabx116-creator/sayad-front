@@ -1,4 +1,6 @@
 {
+  "opening-balance-debit-party": "Due to us",
+  "opening-balance-credit-party": "Due from us",
   "By": "By",
   "Ref": "Ref",
   "abnormal-balance": "Abnormal balance",

@@ -26,6 +26,10 @@ export type PartyFormValues = {
   notes: string;
   partyType: PartyType;
   isActive: boolean;
+  includeOpeningBalance: boolean;
+  openingBalanceAmount?: number;
+  openingBalanceNature: 'Debit' | 'Credit' | '';
+  openingBalanceDate: string;
   rowVersion?: string;
 };
 
@@ -43,7 +47,10 @@ export const emptyCreateValues: PartyFormValues = {
   address: '',
   notes: '',
   partyType: 'customer',
-  isActive: true
+  isActive: true,
+  includeOpeningBalance: false,
+  openingBalanceNature: '',
+  openingBalanceDate: ''
 };
 
 export function toPartyFormValues(party: UpdatePartyRequest & { nameArabic?: string; primaryPhone?: string | null; isActive?: boolean; isCustomer?: boolean; isSupplier?: boolean; address?: string | null; notes?: string | null }): PartyFormValues {
@@ -54,6 +61,9 @@ export function toPartyFormValues(party: UpdatePartyRequest & { nameArabic?: str
     notes: party.notes ?? '',
     partyType: party.isCustomer && party.isSupplier ? 'both' : party.isSupplier ? 'supplier' : 'customer',
     isActive: party.isActive ?? true,
+    includeOpeningBalance: false,
+    openingBalanceNature: '',
+    openingBalanceDate: '',
     rowVersion: party.rowVersion
   };
 }
@@ -75,7 +85,13 @@ export function cleanCreate(values: PartyFormValues): CreatePartyRequest {
     secondaryPhone: null,
     email: null,
     address: values.address || null,
-    notes: values.notes || null
+    notes: values.notes || null,
+    openingBalance: values.includeOpeningBalance ? {
+      entryDate: values.openingBalanceDate,
+      amount: values.openingBalanceAmount ?? 0,
+      balanceNature: values.openingBalanceNature,
+      notes: null
+    } : undefined
   };
 }
 

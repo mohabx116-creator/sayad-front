@@ -14,7 +14,24 @@ export const createPartySchema = z
     mobileNumber: z.string().max(50).optional().nullable(),
     address: z.string().max(500).optional().nullable(),
     notes: z.string().max(1000).optional().nullable(),
-    isActive: z.boolean()
+    isActive: z.boolean(),
+    includeOpeningBalance: z.boolean(),
+    openingBalanceAmount: z.number().optional().nullable(),
+    openingBalanceNature: z.enum(['Debit', 'Credit', '']),
+    openingBalanceDate: z.string().optional()
+  })
+  .superRefine((value, context) => {
+    if (!value.includeOpeningBalance) return;
+
+    if (value.openingBalanceAmount == null || value.openingBalanceAmount <= 0) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['openingBalanceAmount'], message: 'Opening balance amount must be greater than zero.' });
+    }
+    if (!value.openingBalanceNature) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['openingBalanceNature'], message: 'Opening balance direction is required.' });
+    }
+    if (!value.openingBalanceDate) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['openingBalanceDate'], message: 'Opening balance date is required.' });
+    }
   });
 
 export const updatePartySchema = z

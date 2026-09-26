@@ -11,8 +11,11 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import FormHelperText from '@mui/material/FormHelperText';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -37,8 +40,18 @@ const getDefaultValues = (partyType: 'customer' | 'supplier' | 'both' = 'custome
   address: '',
   notes: '',
   partyType,
-  isActive: true
+  isActive: true,
+  includeOpeningBalance: false,
+  openingBalanceNature: '',
+  openingBalanceDate: getToday()
 });
+
+function getToday() {
+  const date = new Date();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
 
 export default function CreatePartyDialog({
   open,
@@ -257,6 +270,79 @@ export default function CreatePartyDialog({
                   />
                 )}
               />
+            </Box>
+
+            <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                <FormattedMessage id="opening-balance" defaultMessage="Opening balance" />
+              </Typography>
+              <Controller
+                name="includeOpeningBalance"
+                control={form.control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={<Switch checked={field.value} onChange={(event) => field.onChange(event.target.checked)} />}
+                    label={<FormattedMessage id="add-opening-balance" defaultMessage="Add opening balance" />}
+                  />
+                )}
+              />
+
+              {form.watch('includeOpeningBalance') && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 1 }}>
+                  <Controller
+                    name="openingBalanceAmount"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={(event) => field.onChange(event.target.value === '' ? undefined : Number(event.target.value))}
+                        type="number"
+                        inputProps={{ min: 0, step: 0.01 }}
+                        fullWidth
+                        label={<FormattedMessage id="opening-balance-amount" defaultMessage="Amount" />}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                        required
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="openingBalanceDate"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        type="date"
+                        fullWidth
+                        label={<FormattedMessage id="opening-balance-date" defaultMessage="Opening balance date" />}
+                        InputLabelProps={{ shrink: true }}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                        required
+                      />
+                    )}
+                  />
+                  <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <FormattedMessage id="balance-direction" defaultMessage="Balance direction" />
+                    </Typography>
+                    <Controller
+                      name="openingBalanceNature"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <>
+                          <RadioGroup row {...field}>
+                            <FormControlLabel value="Debit" control={<Radio />} label={<FormattedMessage id="opening-balance-debit-party" defaultMessage="Due to us" />} />
+                            <FormControlLabel value="Credit" control={<Radio />} label={<FormattedMessage id="opening-balance-credit-party" defaultMessage="Due from us" />} />
+                          </RadioGroup>
+                          <FormHelperText error={!!fieldState.error}>{fieldState.error?.message || <FormattedMessage id="opening-balance-direction-help" defaultMessage="Debit: the party owes us. Credit: we owe the party." />}</FormHelperText>
+                        </>
+                      )}
+                    />
+                  </Box>
+                </Box>
+              )}
             </Box>
           </Box>
         </DialogContent>
