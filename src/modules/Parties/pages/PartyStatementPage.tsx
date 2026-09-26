@@ -341,7 +341,7 @@ export default function PartyStatementPage() {
             <Button component={Link} to={`/parties/${id}`} variant="outlined">
               <FormattedMessage id="party-details" />
             </Button>
-            {party && (
+            {party && party.balanceNature !== 'Settled' && (
               <>
                 <PermissionGuard allPermissions={[TREASURY_PERMISSIONS.receiptsCreate, TREASURY_PERMISSIONS.receiptsPost]} fallback={null}>
                   {party.isCustomer && (
