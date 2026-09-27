@@ -39,9 +39,9 @@ export default function PartyDetailsPage() {
   const { mutate: mutateGlobal } = useSWRConfig();
   const { party, error, isLoading, mutate } = useParty(id);
   const canViewOpeningBalance = hasPermission(user, PARTIES_PERMISSIONS.openingBalanceView);
-  const { openingBalance, error: openingBalanceError, isLoading: openingBalanceLoading } = usePartyOpeningBalance(id, canViewOpeningBalance);
-  const { openingBalance: customerOpeningBalance, error: customerOpeningBalanceError, isLoading: customerOpeningBalanceLoading } = usePartyOpeningBalance(id, canViewOpeningBalance && !!party?.isCustomer && !!party?.isSupplier, 'Customer');
-  const { openingBalance: supplierOpeningBalance, error: supplierOpeningBalanceError, isLoading: supplierOpeningBalanceLoading } = usePartyOpeningBalance(id, canViewOpeningBalance && !!party?.isCustomer && !!party?.isSupplier, 'Supplier');
+  const { openingBalance, error: openingBalanceError, isLoading: openingBalanceLoading, mutate: mutateOpeningBalance } = usePartyOpeningBalance(id, canViewOpeningBalance);
+  const { openingBalance: customerOpeningBalance, error: customerOpeningBalanceError, isLoading: customerOpeningBalanceLoading, mutate: mutateCustomerOpeningBalance } = usePartyOpeningBalance(id, canViewOpeningBalance && !!party?.isCustomer && !!party?.isSupplier, 'Customer');
+  const { openingBalance: supplierOpeningBalance, error: supplierOpeningBalanceError, isLoading: supplierOpeningBalanceLoading, mutate: mutateSupplierOpeningBalance } = usePartyOpeningBalance(id, canViewOpeningBalance && !!party?.isCustomer && !!party?.isSupplier, 'Supplier');
   const [cashTransaction, setCashTransaction] = useState<{
     mode: 'receipt' | 'payment';
     direction: PartySettlementDirection;
@@ -86,7 +86,13 @@ export default function PartyDetailsPage() {
         : null;
   const settlementMode = settlementDirection === 'CustomerReceipt' || settlementDirection === 'SupplierReceipt' ? 'receipt' : 'payment';
   const refreshPartyData = async () => {
-    await mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/parties'));
+    await Promise.all([
+      mutate(),
+      mutateOpeningBalance(),
+      mutateCustomerOpeningBalance(),
+      mutateSupplierOpeningBalance(),
+      mutateGlobal((key) => typeof key === 'string' && key.startsWith('/api/parties'))
+    ]);
   };
 
   const saveOpeningBalance = async (request: OpeningBalanceRequest | CorrectOpeningBalanceRequest) => {
@@ -105,7 +111,17 @@ export default function PartyDetailsPage() {
       setOpeningBalanceDialogOpen(false);
       setOpeningBalanceSide(null);
     } catch (actionError) {
-      notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+      const status = actionError && typeof actionError === 'object' && 'response' in actionError
+        ? (actionError as { response?: { status?: number } }).response?.status
+        : undefined;
+      if (status === 409) {
+        await refreshPartyData();
+        setOpeningBalanceDialogOpen(false);
+        setOpeningBalanceSide(null);
+        notify(intl.formatMessage({ id: 'opening-balance-conflict' }), 'error');
+      } else {
+        notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
+      }
     } finally {
       setIsSavingOpeningBalance(false);
     }

@@ -1246,6 +1246,7 @@
   "opening-balance-load-error": "Unable to load the opening balance.",
   "opening-balance-created-success": "Opening balance recorded successfully.",
   "opening-balance-corrected-success": "Opening balance corrected successfully.",
+  "opening-balance-conflict": "The opening balance has already changed. The data was refreshed; please try again.",
   "opening-balance-dual-party-help": "Opening balance is unavailable for dual parties; record customer and supplier balances separately.",
   "opening-cash-balance": "Opening cash balance",
   "opening-credit": "Opening Credit",

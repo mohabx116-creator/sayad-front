@@ -1246,6 +1246,7 @@
   "opening-balance-load-error": "تعذر تحميل الرصيد الافتتاحي.",
   "opening-balance-created-success": "تم تسجيل الرصيد الافتتاحي بنجاح.",
   "opening-balance-corrected-success": "تم تصحيح الرصيد الافتتاحي بنجاح.",
+  "opening-balance-conflict": "تم تغيير الرصيد الافتتاحي بالفعل. تم تحديث البيانات، يرجى المحاولة مرة أخرى.",
   "opening-balance-dual-party-help": "لا يمكن تسجيل رصيد افتتاحي موحد لطرف من نوع عميل ومورد؛ يجب تسجيل رصيد العميل والمورد بشكل منفصل.",
   "opening-cash-balance": "الرصيد النقدي الافتتاحي",
   "opening-credit": "دائن افتتاحي",
