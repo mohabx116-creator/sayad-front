@@ -7,6 +7,9 @@ type MovementValidationValues = {
   movementType: string;
   quantity: string;
   amount: string;
+  overtimeCalculationType: string;
+  overtimeRate: string;
+  nightWorkMultiplier: string;
 };
 
 const baseSchema = {
@@ -20,6 +23,13 @@ const baseSchema = {
   }),
   amount: z.string().refine((value) => value === '' || decimal2Pattern.test(value), {
     message: 'Amount must be greater than zero.'
+  }),
+  overtimeCalculationType: z.string(),
+  overtimeRate: z.string().refine((value) => value === '' || decimal4Pattern.test(value), {
+    message: 'Rate must be greater than zero.'
+  }),
+  nightWorkMultiplier: z.string().refine((value) => value === '' || decimal4Pattern.test(value), {
+    message: 'Multiplier must be greater than zero.'
   }),
   reason: z.string().min(1, 'Reason is required').max(1000),
   notes: z.string().max(1000)
@@ -75,6 +85,22 @@ function withConditionalValidation<T extends z.ZodRawShape>(schema: z.ZodObject<
           message: 'Quantity is not used for this movement type.'
         });
       }
+    }
+
+    if (movementValues.movementType !== '2' && (movementValues.overtimeCalculationType !== '' || movementValues.overtimeRate.trim() !== '')) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['overtimeCalculationType'], message: 'Overtime settings are only used for overtime.' });
+    }
+
+    if (movementValues.movementType === '2' && movementValues.overtimeCalculationType !== '' && !['0', '1', '2'].includes(movementValues.overtimeCalculationType)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['overtimeCalculationType'], message: 'Select a valid overtime method.' });
+    }
+
+    if (movementValues.movementType === '2' && ['1', '2'].includes(movementValues.overtimeCalculationType) && movementValues.overtimeRate.trim() === '') {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['overtimeRate'], message: 'Rate is required for the selected overtime method.' });
+    }
+
+    if (movementValues.movementType !== '3' && movementValues.nightWorkMultiplier.trim() !== '') {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nightWorkMultiplier'], message: 'Night multiplier is only used for night work.' });
     }
   });
 }

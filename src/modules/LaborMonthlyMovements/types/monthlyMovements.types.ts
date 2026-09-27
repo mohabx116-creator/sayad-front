@@ -31,6 +31,7 @@ export type MonthlyMovementDto = {
   rejectedBy: string | null;
   rejectionReason: string | null;
   dailyWageSnapshot: number;
+  baseHourlyRate: number;
   monthlyDaysBasisSnapshot: number;
   standardHoursPerDaySnapshot: number;
   overtimeCalculationTypeSnapshot: number;
@@ -55,6 +56,7 @@ export type MonthlyMovementPreviewDto = {
   unitRateSnapshot: number | null;
   amount: number;
   dailyWageSnapshot: number;
+  baseHourlyRate: number;
   monthlyDaysBasisSnapshot: number;
   standardHoursPerDaySnapshot: number;
   overtimeCalculationTypeSnapshot: number;
@@ -70,6 +72,9 @@ export type MonthlyMovementRequest = {
   amount: number | null;
   reason: string;
   notes?: string | null;
+  overtimeCalculationTypeOverride?: number | null;
+  overtimeRateOverride?: number | null;
+  nightWorkMultiplierOverride?: number | null;
   rowVersion?: string | null;
 };
 
@@ -94,6 +99,9 @@ export type MonthlyMovementFormValues = {
   amount: string;
   reason: string;
   notes: string;
+  overtimeCalculationType: string;
+  overtimeRate: string;
+  nightWorkMultiplier: string;
   rowVersion?: string;
 };
 

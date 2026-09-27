@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -101,10 +101,18 @@ export const emptyMonthlyMovementValues: MonthlyMovementFormValues = {
   quantity: '',
   amount: '',
   reason: '',
-  notes: ''
+  notes: '',
+  overtimeCalculationType: '',
+  overtimeRate: '',
+  nightWorkMultiplier: ''
 };
 
 export function toMonthlyMovementFormValues(movement: MonthlyMovementDto): MonthlyMovementFormValues {
+  const isOvertime = movement.movementType === 2;
+  const persistedOvertimeMethod = isOvertime && movement.overtimeCalculationTypeSnapshot !== 0
+    ? String(movement.overtimeCalculationTypeSnapshot)
+    : '';
+
   return {
     workerId: movement.workerId,
     movementDate: movement.movementDate,
@@ -113,6 +121,9 @@ export function toMonthlyMovementFormValues(movement: MonthlyMovementDto): Month
     amount: movement.amount == null ? '' : Math.abs(movement.amount).toString(),
     reason: movement.reason ?? '',
     notes: movement.notes ?? '',
+    overtimeCalculationType: persistedOvertimeMethod,
+    overtimeRate: persistedOvertimeMethod === '' ? '' : movement.overtimeRateSnapshot.toString(),
+    nightWorkMultiplier: movement.movementType === 3 ? movement.nightWorkMultiplierSnapshot.toString() : '',
     rowVersion: movement.rowVersion
   };
 }
@@ -126,6 +137,15 @@ function toRequestPayload(values: MonthlyMovementFormValues): MonthlyMovementReq
     amount: isAmountMovement(values.movementType) ? Number(values.amount || 0) : null,
     reason: values.reason.trim(),
     notes: values.notes.trim() || null,
+    overtimeCalculationTypeOverride: values.movementType === '2' && values.overtimeCalculationType !== '' && values.overtimeCalculationType !== '0'
+      ? Number(values.overtimeCalculationType)
+      : null,
+    overtimeRateOverride: values.movementType === '2' && values.overtimeCalculationType !== '' && values.overtimeCalculationType !== '0'
+      ? Number(values.overtimeRate || 0)
+      : null,
+    nightWorkMultiplierOverride: values.movementType === '3' && values.nightWorkMultiplier.trim() !== ''
+      ? Number(values.nightWorkMultiplier)
+      : null,
     rowVersion: values.rowVersion ?? null
   };
 }
@@ -175,6 +195,9 @@ export default function MonthlyMovementForm({ mode, initialValues, workers, isSa
   const watchedAmount = useWatch({ control: form.control, name: 'amount' });
   const watchedReason = useWatch({ control: form.control, name: 'reason' });
   const watchedNotes = useWatch({ control: form.control, name: 'notes' });
+  const watchedOvertimeCalculationType = useWatch({ control: form.control, name: 'overtimeCalculationType' });
+  const watchedOvertimeRate = useWatch({ control: form.control, name: 'overtimeRate' });
+  const watchedNightWorkMultiplier = useWatch({ control: form.control, name: 'nightWorkMultiplier' });
 
   const selectedWorker = useMemo(() => findWorker(workers, watchedWorkerId), [workers, watchedWorkerId]);
 
@@ -199,15 +222,45 @@ export default function MonthlyMovementForm({ mode, initialValues, workers, isSa
       amount: watchedAmount,
       reason: watchedReason,
       notes: watchedNotes,
+      overtimeCalculationType: watchedOvertimeCalculationType,
+      overtimeRate: watchedOvertimeRate,
+      nightWorkMultiplier: watchedNightWorkMultiplier,
       rowVersion: initialValues.rowVersion
     });
-  }, [initialValues.rowVersion, watchedAmount, watchedMovementDate, watchedMovementType, watchedNotes, watchedQuantity, watchedReason, watchedWorkerId]);
+  }, [initialValues.rowVersion, watchedAmount, watchedMovementDate, watchedMovementType, watchedNotes, watchedNightWorkMultiplier, watchedOvertimeCalculationType, watchedOvertimeRate, watchedQuantity, watchedReason, watchedWorkerId]);
 
   const { preview, isLoading: previewLoading, error: previewError } = useMonthlyMovementPreview(previewRequest);
 
+  const previousMovementType = useRef(initialValues.movementType);
+  const previousOvertimeCalculationType = useRef(initialValues.overtimeCalculationType);
+
   useEffect(() => {
+    previousMovementType.current = initialValues.movementType;
+    previousOvertimeCalculationType.current = initialValues.overtimeCalculationType;
     form.reset(initialValues);
   }, [form, initialValues]);
+
+  useEffect(() => {
+    const movementTypeChanged = previousMovementType.current !== watchedMovementType;
+    const overtimeMethodChanged = previousOvertimeCalculationType.current !== watchedOvertimeCalculationType;
+
+    if (movementTypeChanged && watchedMovementType !== '2') {
+      form.setValue('overtimeCalculationType', '');
+      form.setValue('overtimeRate', '');
+      form.clearErrors(['overtimeCalculationType', 'overtimeRate']);
+    } else if (overtimeMethodChanged) {
+      form.setValue('overtimeRate', '');
+      form.clearErrors('overtimeRate');
+    }
+
+    if (movementTypeChanged && watchedMovementType !== '3') {
+      form.setValue('nightWorkMultiplier', '');
+      form.clearErrors('nightWorkMultiplier');
+    }
+
+    previousMovementType.current = watchedMovementType;
+    previousOvertimeCalculationType.current = watchedOvertimeCalculationType;
+  }, [form, watchedMovementType, watchedNightWorkMultiplier, watchedOvertimeCalculationType]);
 
   return (
     <Stack component="form" spacing={4} onSubmit={form.handleSubmit(onSubmit)}>
@@ -328,6 +381,107 @@ export default function MonthlyMovementForm({ mode, initialValues, workers, isSa
                   />
                 </Grid>
               )}
+              {watchedMovementType === '2' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="overtimeCalculationType"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          select
+                          fullWidth
+                          disabled={isSaving || readOnly}
+                          label={<FormattedMessage id="monthly-movement-overtime-method" />}
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        >
+                          <MenuItem value=""><FormattedMessage id="monthly-movement-overtime-worker-default" /></MenuItem>
+                          <MenuItem value="1"><FormattedMessage id="monthly-movement-overtime-hourly-rate" /></MenuItem>
+                          <MenuItem value="2"><FormattedMessage id="monthly-movement-overtime-multiplier" /></MenuItem>
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
+                  {watchedOvertimeCalculationType === '' && selectedWorker?.currentWageProfile && (
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="body2" color="text.secondary" sx={{ pt: 1 }}>
+                        <FormattedMessage id="monthly-movement-overtime-default-context" />:{' '}
+                        <FormattedMessage id={`overtime-calculation-${selectedWorker.currentWageProfile.overtimeCalculationType}`} />{' '}
+                        {formatRate(intl.locale, selectedWorker.currentWageProfile.overtimeRate)}
+                      </Typography>
+                    </Grid>
+                  )}
+                  {watchedOvertimeCalculationType === '1' && (
+                    <Grid item xs={12} md={6}>
+                      <Controller
+                        name="overtimeRate"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            type="number"
+                            disabled={isSaving || readOnly}
+                            label={<FormattedMessage id="monthly-movement-overtime-hourly-rate" />}
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
+                            inputProps={{ min: 0, step: '0.0001', dir: 'ltr', inputMode: 'decimal' }}
+                            sx={numberInputSx}
+                            onChange={(event) => field.onChange(event.target.value)}
+                          />
+                        )}
+                      />
+                    </Grid>
+                  )}
+                  {watchedOvertimeCalculationType === '2' && (
+                    <Grid item xs={12} md={6}>
+                      <Controller
+                        name="overtimeRate"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            type="number"
+                            disabled={isSaving || readOnly}
+                            label={<FormattedMessage id="monthly-movement-overtime-multiplier" />}
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
+                            inputProps={{ min: 0, step: '0.0001', dir: 'ltr', inputMode: 'decimal' }}
+                            sx={numberInputSx}
+                            onChange={(event) => field.onChange(event.target.value)}
+                          />
+                        )}
+                      />
+                    </Grid>
+                  )}
+                </>
+              )}
+              {watchedMovementType === '3' && (
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="nightWorkMultiplier"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        type="number"
+                        disabled={isSaving || readOnly}
+                        label={<FormattedMessage id="monthly-movement-night-multiplier-override" />}
+                        placeholder="1.25"
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                        inputProps={{ min: 0, step: '0.0001', dir: 'ltr', inputMode: 'decimal' }}
+                        sx={numberInputSx}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
+                    )}
+                  />
+                </Grid>
+              )}
               <Grid item xs={12}>
                 <Controller
                   name="reason"
@@ -441,6 +595,9 @@ export default function MonthlyMovementForm({ mode, initialValues, workers, isSa
                     <FormattedMessage id="worker-daily-wage" />: {formatMoney(intl.locale, preview.dailyWageSnapshot)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
+                    <FormattedMessage id="monthly-movement-base-hourly-rate" />: {formatRate(intl.locale, preview.baseHourlyRate)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
                     <FormattedMessage id="worker-monthly-days-basis" />: {preview.monthlyDaysBasisSnapshot}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -450,7 +607,7 @@ export default function MonthlyMovementForm({ mode, initialValues, workers, isSa
                     <FormattedMessage id="overtime-calculation-type" />: <FormattedMessage id={`overtime-calculation-${preview.overtimeCalculationTypeSnapshot}`} />
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    <FormattedMessage id="overtime-rate" />: {formatRate(intl.locale, preview.overtimeRateSnapshot)}
+                    <FormattedMessage id="monthly-movement-effective-rate" />: {formatRate(intl.locale, preview.unitRateSnapshot ?? 0)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     <FormattedMessage id="monthly-movement-night-multiplier" />: {formatRate(intl.locale, preview.nightWorkMultiplierSnapshot)}
