@@ -49,6 +49,8 @@ const MOVEMENT_TYPE_OPTIONS: MovementTypeOption[] = [
   { value: 'PartySettlementDebit', labelId: 'party-settlement.debit' },
   { value: 'PartySettlementDebitReversal', labelId: 'party-settlement.debit-reversal' },
   { value: 'OpeningBalance', labelId: 'opening-balance' },
+  { value: 'CustomerOpeningBalance', labelId: 'customer-opening-balance' },
+  { value: 'SupplierOpeningBalance', labelId: 'supplier-opening-balance' },
   { value: 'PartyAdjustmentDebit', labelId: 'party-adjustment.debit' },
   { value: 'PartyAdjustmentCredit', labelId: 'party-adjustment.credit' },
   { value: 'PartyAdjustmentDebitReversal', labelId: 'party-adjustment.debit-reversal' },
@@ -145,6 +147,12 @@ function getStatementSummaryCardOrder(isCustomer: boolean, isSupplier: boolean) 
 
 function getMovementLabel(intl: ReturnType<typeof useIntl>, entryType: string) {
   switch (entryType) {
+    case 'CustomerOpeningBalance':
+    case 'CustomerOpeningBalanceReversal':
+      return intl.formatMessage({ id: 'customer-opening-balance' });
+    case 'SupplierOpeningBalance':
+    case 'SupplierOpeningBalanceReversal':
+      return intl.formatMessage({ id: 'supplier-opening-balance' });
     case 'OpeningBalance':
     case 'OpeningBalanceReversal':
       return intl.formatMessage({ id: 'opening-balance' });

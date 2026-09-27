@@ -90,16 +90,17 @@ export function deleteParty(id: string) {
   return unwrap(axiosServices.delete<ApiResponse<object>>(`/api/parties/${id}`));
 }
 
-export function getPartyOpeningBalance(id: string) {
-  return unwrap(axiosServices.get<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance`));
+export function getPartyOpeningBalance(id: string, side?: 'Customer' | 'Supplier') {
+  return unwrap(axiosServices.get<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance`, { params: side ? { side } : undefined }));
 }
 
 export function setPartyOpeningBalance(id: string, request: OpeningBalanceRequest) {
-  return unwrap(axiosServices.put<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance`, request));
+  const { side, ...body } = request;
+  return unwrap(axiosServices.put<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance`, body, { params: side ? { side } : undefined }));
 }
 
-export function correctPartyOpeningBalance(id: string, request: CorrectOpeningBalanceRequest) {
-  return unwrap(axiosServices.post<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance/correct`, request));
+export function correctPartyOpeningBalance(id: string, request: CorrectOpeningBalanceRequest, side?: 'Customer' | 'Supplier') {
+  return unwrap(axiosServices.post<ApiResponse<OpeningBalanceDto>>(`/api/parties/${id}/opening-balance/correct`, request, { params: side ? { side } : undefined }));
 }
 
 export function getPartyStatement(id: string, params?: PartyStatementParams) {

@@ -43,7 +43,9 @@ const getDefaultValues = (partyType: 'customer' | 'supplier' | 'both' = 'custome
   isActive: true,
   includeOpeningBalance: false,
   openingBalanceNature: '',
-  openingBalanceDate: getToday()
+  openingBalanceDate: getToday(),
+  customerOpeningBalance: { enabled: false, nature: '', date: getToday() },
+  supplierOpeningBalance: { enabled: false, nature: '', date: getToday() }
 });
 
 function getToday() {
@@ -77,14 +79,6 @@ export default function CreatePartyDialog({
 
   const partyType = form.watch('partyType');
   const isDualParty = partyType === 'both';
-
-  useEffect(() => {
-    if (isDualParty && form.getValues('includeOpeningBalance')) {
-      form.setValue('includeOpeningBalance', false, { shouldValidate: true });
-      form.setValue('openingBalanceAmount', undefined);
-      form.setValue('openingBalanceNature', '');
-    }
-  }, [form, isDualParty]);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -297,7 +291,19 @@ export default function CreatePartyDialog({
                   />
                 )}
               />
-              {isDualParty && <FormHelperText><FormattedMessage id="opening-balance-dual-party-help" defaultMessage="Opening balance is unavailable for dual parties; record customer and supplier balances separately." /></FormHelperText>}
+              {isDualParty && <FormHelperText><FormattedMessage id="opening-balance-dual-party-help" defaultMessage="Enter customer and supplier opening balances independently." /></FormHelperText>}
+
+              {isDualParty && (['customerOpeningBalance', 'supplierOpeningBalance'] as const).map((side) => (
+                <Box key={side} sx={{ borderTop: '1px solid', borderColor: 'divider', mt: 2, pt: 2 }}>
+                  <Typography variant="subtitle2"><FormattedMessage id={side === 'customerOpeningBalance' ? 'customer-opening-balance' : 'supplier-opening-balance'} /></Typography>
+                  <Controller name={`${side}.enabled` as const} control={form.control} render={({ field }) => <FormControlLabel control={<Switch checked={field.value} onChange={(event) => field.onChange(event.target.checked)} />} label={<FormattedMessage id="add-opening-balance" />} />} />
+                  {form.watch(`${side}.enabled` as const) && <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mt: 1 }}>
+                    <Controller name={`${side}.amount` as const} control={form.control} render={({ field, fieldState }) => <TextField {...field} value={field.value ?? ''} onChange={(event) => field.onChange(event.target.value === '' ? undefined : Number(event.target.value))} type="number" inputProps={{ min: 0.01, step: 0.01 }} label={<FormattedMessage id="opening-balance-amount" />} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
+                    <Controller name={`${side}.date` as const} control={form.control} render={({ field, fieldState }) => <TextField {...field} type="date" label={<FormattedMessage id="opening-balance-date" />} InputLabelProps={{ shrink: true }} error={!!fieldState.error} helperText={fieldState.error?.message} />} />
+                    <Controller name={`${side}.nature` as const} control={form.control} render={({ field, fieldState }) => <TextField {...field} select label={<FormattedMessage id="balance-direction" />} error={!!fieldState.error} helperText={fieldState.error?.message}><MenuItem value="Debit"><FormattedMessage id="opening-balance-debit-party" /></MenuItem><MenuItem value="Credit"><FormattedMessage id="opening-balance-credit-party" /></MenuItem></TextField>} />
+                  </Box>}
+                </Box>
+              ))}
 
               {!isDualParty && form.watch('includeOpeningBalance') && (
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 1 }}>

@@ -40,12 +40,15 @@ export default function PartyDetailsPage() {
   const { party, error, isLoading, mutate } = useParty(id);
   const canViewOpeningBalance = hasPermission(user, PARTIES_PERMISSIONS.openingBalanceView);
   const { openingBalance, error: openingBalanceError, isLoading: openingBalanceLoading } = usePartyOpeningBalance(id, canViewOpeningBalance);
+  const { openingBalance: customerOpeningBalance, error: customerOpeningBalanceError, isLoading: customerOpeningBalanceLoading } = usePartyOpeningBalance(id, canViewOpeningBalance && !!party?.isCustomer && !!party?.isSupplier, 'Customer');
+  const { openingBalance: supplierOpeningBalance, error: supplierOpeningBalanceError, isLoading: supplierOpeningBalanceLoading } = usePartyOpeningBalance(id, canViewOpeningBalance && !!party?.isCustomer && !!party?.isSupplier, 'Supplier');
   const [cashTransaction, setCashTransaction] = useState<{
     mode: 'receipt' | 'payment';
     direction: PartySettlementDirection;
   } | null>(null);
   const [openingBalanceDialogOpen, setOpeningBalanceDialogOpen] = useState(false);
   const [isSavingOpeningBalance, setIsSavingOpeningBalance] = useState(false);
+  const [openingBalanceSide, setOpeningBalanceSide] = useState<'Customer' | 'Supplier' | null>(null);
 
   const notify = (message: string, severity: 'success' | 'error' = 'success') => {
     dispatch(openSnackbar({ open: true, message, variant: 'alert', severity }));
@@ -90,15 +93,17 @@ export default function PartyDetailsPage() {
     if (!id) return;
     try {
       setIsSavingOpeningBalance(true);
-      if (openingBalance?.entryId) {
-        await correctPartyOpeningBalance(id, request as CorrectOpeningBalanceRequest);
+      const selectedOpening = openingBalanceSide === 'Customer' ? customerOpeningBalance : openingBalanceSide === 'Supplier' ? supplierOpeningBalance : openingBalance;
+      if (selectedOpening?.entryId) {
+        await correctPartyOpeningBalance(id, request as CorrectOpeningBalanceRequest, openingBalanceSide ?? undefined);
         notify(intl.formatMessage({ id: 'opening-balance-corrected-success' }));
       } else {
-        await setPartyOpeningBalance(id, request as OpeningBalanceRequest);
+        await setPartyOpeningBalance(id, { ...(request as OpeningBalanceRequest), side: openingBalanceSide ?? undefined });
         notify(intl.formatMessage({ id: 'opening-balance-created-success' }));
       }
       await refreshPartyData();
       setOpeningBalanceDialogOpen(false);
+      setOpeningBalanceSide(null);
     } catch (actionError) {
       notify(actionError instanceof Error ? actionError.message : intl.formatMessage({ id: 'parties-action-failed' }), 'error');
     } finally {
@@ -233,6 +238,23 @@ export default function PartyDetailsPage() {
                     </Stack>
                   )}
                 </MainCard>
+                {party.isCustomer && party.isSupplier && (
+                  <Grid container spacing={2} sx={{ mt: 1 }}>
+                    {([['Customer', customerOpeningBalance, customerOpeningBalanceError, customerOpeningBalanceLoading], ['Supplier', supplierOpeningBalance, supplierOpeningBalanceError, supplierOpeningBalanceLoading]] as const).map(([side, value, sideError, sideLoading]) => (
+                      <Grid item xs={12} md={6} key={side}>
+                        <MainCard
+                          title={<FormattedMessage id={side === 'Customer' ? 'customer-opening-balance' : 'supplier-opening-balance'} />}
+                          secondary={<PermissionGuard permission={PARTIES_PERMISSIONS.openingBalanceManage}><Button variant="outlined" onClick={() => { setOpeningBalanceSide(side); setOpeningBalanceDialogOpen(true); }} disabled={sideLoading || !!sideError}><FormattedMessage id={value?.entryId ? 'correct-opening-balance' : 'add-opening-balance'} /></Button></PermissionGuard>}
+                        >
+                          {sideLoading && <Loader />}
+                          {!sideLoading && sideError && <Alert severity="error"><FormattedMessage id="opening-balance-load-error" /></Alert>}
+                          {!sideLoading && !sideError && !value?.entryId && <Typography color="text.secondary"><FormattedMessage id="no-opening-balance" /></Typography>}
+                          {!sideLoading && !sideError && value?.entryId && <Stack spacing={0.5}><Typography variant="h4">{intl.formatNumber(value.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography><Typography color="text.secondary"><FormattedMessage id={value.balanceNature === 'Debit' ? 'parties.statement.debit-against-party' : 'parties.statement.credit-for-party'} /></Typography>{value.entryDate && <Typography variant="caption">{value.entryDate}</Typography>}</Stack>}
+                        </MainCard>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
               </PermissionGuard>
             </Grid>
           </Grid>
@@ -240,11 +262,12 @@ export default function PartyDetailsPage() {
       </MainCard>
       {party && id && openingBalanceDialogOpen && (
         <OpeningBalanceDialog
-          openingBalance={openingBalance ?? { entryId: null, entryDate: null, amount: 0, balanceNature: 'Settled', notes: null }}
+          openingBalance={(openingBalanceSide === 'Customer' ? customerOpeningBalance : openingBalanceSide === 'Supplier' ? supplierOpeningBalance : openingBalance) ?? { entryId: null, entryDate: null, amount: 0, balanceNature: 'Settled', notes: null }}
           isSaving={isSavingOpeningBalance}
           onClose={() => setOpeningBalanceDialogOpen(false)}
           onCreate={async (request) => saveOpeningBalance(request)}
           onCorrect={async (request) => saveOpeningBalance(request)}
+          side={openingBalanceSide ?? undefined}
         />
       )}
       {party && id && (

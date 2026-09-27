@@ -2360,5 +2360,7 @@
   "production-activity-type.GoodsReceived": "استلام بضاعة",
   "production-activity-type.CostRecalculated": "إعادة احتساب التكلفة",
   "production-activity-type.Cancelled": "إلغاء",
-  "production-activity-type.Closed": "إغلاق"
+  "production-activity-type.Closed": "إغلاق",
+  "customer-opening-balance": "الرصيد الافتتاحي للعميل",
+  "supplier-opening-balance": "الرصيد الافتتاحي للمورد"
 }

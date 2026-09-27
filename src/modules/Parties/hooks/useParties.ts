@@ -41,8 +41,8 @@ export function useParty(id?: string) {
   return useMemo(() => ({ party: data?.data ?? null, error, isLoading, mutate }), [data, error, isLoading, mutate]);
 }
 
-export function usePartyOpeningBalance(id?: string, enabled = true) {
-  const key = id && enabled ? `/api/parties/${id}/opening-balance` : null;
+export function usePartyOpeningBalance(id?: string, enabled = true, side?: 'Customer' | 'Supplier') {
+  const key = id && enabled ? `/api/parties/${id}/opening-balance${side ? `?side=${side}` : ''}` : null;
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<OpeningBalanceDto>>(key, fetcher);
   return useMemo(() => ({ openingBalance: data?.data ?? null, error, isLoading, mutate, key }), [data, error, isLoading, key, mutate]);
 }

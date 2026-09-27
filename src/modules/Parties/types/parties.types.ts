@@ -87,6 +87,7 @@ export type OpeningBalanceDto = {
   amount: number;
   balanceNature: string;
   notes: string | null;
+  side?: 'Customer' | 'Supplier' | null;
 };
 
 export type PartyStatementDto = {
@@ -161,6 +162,8 @@ export type CreatePartyRequest = {
   address?: string | null;
   notes?: string | null;
   openingBalance?: OpeningBalanceRequest | null;
+  customerOpeningBalance?: OpeningBalanceRequest | null;
+  supplierOpeningBalance?: OpeningBalanceRequest | null;
 };
 
 export type UpdatePartyRequest = {
@@ -219,6 +222,7 @@ export type OpeningBalanceRequest = {
   amount: number;
   balanceNature: 'Debit' | 'Credit' | '';
   notes?: string | null;
+  side?: 'Customer' | 'Supplier';
 };
 
 export type PartyCashTransactionRequest = {

@@ -30,6 +30,8 @@ export type PartyFormValues = {
   openingBalanceAmount?: number;
   openingBalanceNature: 'Debit' | 'Credit' | '';
   openingBalanceDate: string;
+  customerOpeningBalance?: { amount?: number; nature: 'Debit' | 'Credit' | ''; date: string; enabled: boolean };
+  supplierOpeningBalance?: { amount?: number; nature: 'Debit' | 'Credit' | ''; date: string; enabled: boolean };
   rowVersion?: string;
 };
 
@@ -51,6 +53,8 @@ export const emptyCreateValues: PartyFormValues = {
   includeOpeningBalance: false,
   openingBalanceNature: '',
   openingBalanceDate: ''
+  ,customerOpeningBalance: { enabled: false, nature: '', date: '' }
+  ,supplierOpeningBalance: { enabled: false, nature: '', date: '' }
 };
 
 export function toPartyFormValues(party: UpdatePartyRequest & { nameArabic?: string; primaryPhone?: string | null; isActive?: boolean; isCustomer?: boolean; isSupplier?: boolean; address?: string | null; notes?: string | null }): PartyFormValues {
@@ -91,6 +95,20 @@ export function cleanCreate(values: PartyFormValues): CreatePartyRequest {
       amount: values.openingBalanceAmount ?? 0,
       balanceNature: values.openingBalanceNature,
       notes: null
+    } : undefined,
+    customerOpeningBalance: values.partyType === 'both' && values.customerOpeningBalance?.enabled ? {
+      entryDate: values.customerOpeningBalance.date,
+      amount: values.customerOpeningBalance.amount ?? 0,
+      balanceNature: values.customerOpeningBalance.nature,
+      notes: null,
+      side: 'Customer'
+    } : undefined,
+    supplierOpeningBalance: values.partyType === 'both' && values.supplierOpeningBalance?.enabled ? {
+      entryDate: values.supplierOpeningBalance.date,
+      amount: values.supplierOpeningBalance.amount ?? 0,
+      balanceNature: values.supplierOpeningBalance.nature,
+      notes: null,
+      side: 'Supplier'
     } : undefined
   };
 }

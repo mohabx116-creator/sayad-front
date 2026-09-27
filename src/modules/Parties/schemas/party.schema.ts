@@ -18,11 +18,22 @@ export const createPartySchema = z
     includeOpeningBalance: z.boolean(),
     openingBalanceAmount: z.number().optional().nullable(),
     openingBalanceNature: z.enum(['Debit', 'Credit', '']),
-    openingBalanceDate: z.string().optional()
+    openingBalanceDate: z.string().optional(),
+    customerOpeningBalance: z.object({ enabled: z.boolean(), amount: z.number().optional(), nature: z.enum(['Debit', 'Credit', '']), date: z.string() }),
+    supplierOpeningBalance: z.object({ enabled: z.boolean(), amount: z.number().optional(), nature: z.enum(['Debit', 'Credit', '']), date: z.string() })
   })
   .superRefine((value, context) => {
     if (value.partyType === 'both' && value.includeOpeningBalance) {
       context.addIssue({ code: z.ZodIssueCode.custom, path: ['includeOpeningBalance'], message: 'Opening balance is not available for dual parties.' });
+      return;
+    }
+    if (value.partyType === 'both') {
+      for (const [key, opening] of [['customerOpeningBalance', value.customerOpeningBalance], ['supplierOpeningBalance', value.supplierOpeningBalance]] as const) {
+        if (!opening.enabled) continue;
+        if (opening.amount == null || opening.amount <= 0) context.addIssue({ code: z.ZodIssueCode.custom, path: [key, 'amount'], message: 'Opening balance amount must be greater than zero.' });
+        if (!opening.nature) context.addIssue({ code: z.ZodIssueCode.custom, path: [key, 'nature'], message: 'Opening balance direction is required.' });
+        if (!opening.date) context.addIssue({ code: z.ZodIssueCode.custom, path: [key, 'date'], message: 'Opening balance date is required.' });
+      }
       return;
     }
     if (!value.includeOpeningBalance) return;

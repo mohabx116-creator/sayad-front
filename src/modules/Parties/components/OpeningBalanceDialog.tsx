@@ -23,11 +23,12 @@ type OpeningBalanceDialogProps = {
   onClose: () => void;
   onCreate: (values: OpeningBalanceRequest) => Promise<void>;
   onCorrect: (values: CorrectOpeningBalanceRequest) => Promise<void>;
+  side?: 'Customer' | 'Supplier';
 };
 
 type OpeningBalanceFormValues = CorrectOpeningBalanceRequest & { notes?: string | null };
 
-export default function OpeningBalanceDialog({ openingBalance, isSaving, onClose, onCreate, onCorrect }: OpeningBalanceDialogProps) {
+export default function OpeningBalanceDialog({ openingBalance, isSaving, onClose, onCreate, onCorrect, side }: OpeningBalanceDialogProps) {
   const intl = useIntl();
   const hasOpeningBalance=Boolean(openingBalance.entryId);
   const schema=hasOpeningBalance ? correctOpeningBalanceSchema : openingBalanceSchema;
@@ -60,6 +61,7 @@ export default function OpeningBalanceDialog({ openingBalance, isSaving, onClose
       amount: Number(values.amount),
       balanceNature: values.balanceNature,
       notes: values.notes ?? null
+      ,side
     });
   };
 

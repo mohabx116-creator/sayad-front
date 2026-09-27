@@ -2360,5 +2360,7 @@
   "production-activity-type.GoodsReceived": "Goods Received",
   "production-activity-type.CostRecalculated": "Cost Recalculated",
   "production-activity-type.Cancelled": "Cancelled",
-  "production-activity-type.Closed": "Closed"
+  "production-activity-type.Closed": "Closed",
+  "customer-opening-balance": "Customer opening balance",
+  "supplier-opening-balance": "Supplier opening balance"
 }
