@@ -1,23 +1,24 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 
-// material-ui
 import { useTheme } from '@mui/material/styles';
 import Avatar, { AvatarProps } from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Popper from '@mui/material/Popper';
-import Box from '@mui/material/Box';
 
-// third party
-import PopupState, { bindPopper, bindToggle } from 'material-ui-popup-state';
+import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
 
-// project imports
+import menuItems from 'menu-items';
+import useAuth from 'hooks/useAuth';
 import Transitions from 'ui-component/extended/Transitions';
 
-// assets
-import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
+import GlobalSearchResults from './GlobalSearchResults';
+import { flattenSearchableNavigation, searchNavigation, type GlobalNavigationEntry } from './search-navigation-utils';
 
 interface HeaderAvatarProps extends AvatarProps {
   children: ReactNode;
@@ -39,7 +40,6 @@ function HeaderAvatar({ children, ref, ...others }: HeaderAvatarProps) {
           color: theme.vars.palette.secondary.light,
           background: theme.vars.palette.secondary.dark
         },
-
         ...theme.applyStyles('dark', {
           color: theme.vars.palette.secondary.main,
           background: theme.vars.palette.dark.main,
@@ -56,23 +56,28 @@ function HeaderAvatar({ children, ref, ...others }: HeaderAvatarProps) {
   );
 }
 
-interface Props {
+type SearchInputProps = {
   value: string;
-  setValue: (value: string) => void;
-  popupState: any;
-}
+  onChange: (value: string) => void;
+  onFocus: () => void;
+  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  placeholder: string;
+  mobile?: boolean;
+  onCloseMobile?: () => void;
+};
 
-// ==============================|| SEARCH INPUT - MOBILE||============================== //
-
-function MobileSearch({ value, setValue, popupState }: Props) {
+function SearchInput({ value, onChange, onFocus, onKeyDown, inputRef, placeholder, mobile, onCloseMobile }: SearchInputProps) {
   const theme = useTheme();
-
-  return (
+  const input = (
     <OutlinedInput
       id="input-search-header"
+      inputRef={inputRef}
       value={value}
-      onChange={(e) => setValue(e.target.value)}
-      placeholder="Search"
+      onChange={(event) => onChange(event.target.value)}
+      onFocus={onFocus}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
       startAdornment={
         <InputAdornment position="start">
           <IconSearch stroke={1.5} size="16px" />
@@ -83,95 +88,162 @@ function MobileSearch({ value, setValue, popupState }: Props) {
           <HeaderAvatar>
             <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
           </HeaderAvatar>
-          <Box sx={{ ml: 2 }}>
-            <Avatar
-              variant="rounded"
-              sx={{
-                ...theme.typography.commonAvatar,
-                ...theme.typography.mediumAvatar,
-                bgcolor: 'orange.light',
-                color: 'orange.dark',
-                '&:hover': { bgcolor: 'orange.dark', color: 'orange.light' },
-
-                ...theme.applyStyles('dark', { bgcolor: theme.vars.palette.dark.main })
-              }}
-              {...bindToggle(popupState)}
-            >
-              <IconX stroke={1.5} size="20px" />
-            </Avatar>
-          </Box>
+          {mobile && (
+            <Box sx={{ ml: 2 }}>
+              <Avatar
+                variant="rounded"
+                sx={{
+                  ...theme.typography.commonAvatar,
+                  ...theme.typography.mediumAvatar,
+                  bgcolor: 'orange.light',
+                  color: 'orange.dark',
+                  '&:hover': { bgcolor: 'orange.dark', color: 'orange.light' },
+                  ...theme.applyStyles('dark', { bgcolor: theme.vars.palette.dark.main })
+                }}
+                onClick={onCloseMobile}
+              >
+                <IconX stroke={1.5} size="20px" />
+              </Avatar>
+            </Box>
+          )}
         </InputAdornment>
       }
-      aria-describedby="search-helper-text"
-      slotProps={{ input: { 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } } }}
-      sx={{ width: '100%', ml: 0.5, px: 2, bgcolor: 'background.paper' }}
+      aria-label="Search SAYAD navigation"
+      aria-controls="global-search-results"
+      slotProps={{ input: { sx: { bgcolor: 'transparent', pl: 0.5 } } }}
+      sx={mobile ? { width: '100%', ml: 0.5, px: 2, bgcolor: 'background.paper' } : { width: { md: 250, lg: 434 }, ml: 2, px: 2 }}
     />
   );
+
+  return input;
 }
 
-// ==============================|| SEARCH INPUT ||============================== //
-
 export default function SearchSection() {
-  const [value, setValue] = useState('');
+  const intl = useIntl();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const desktopInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const mobileAnchorRef = useRef<HTMLDivElement>(null);
+  const desktopAnchorRef = useRef<HTMLDivElement>(null);
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const entries = useMemo(() => flattenSearchableNavigation(menuItems.items, intl, user), [intl, user]);
+  const results = useMemo(() => searchNavigation(entries, query), [entries, query]);
+
+  const close = () => {
+    setOpen(false);
+    setSelectedIndex(0);
+  };
+
+  const clearAndClose = () => {
+    setQuery('');
+    close();
+  };
+
+  const selectEntry = (entry: GlobalNavigationEntry) => {
+    navigate(entry.route);
+    clearAndClose();
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setSelectedIndex((index) => (results.length ? (index + 1) % results.length : 0));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setSelectedIndex((index) => (results.length ? (index - 1 + results.length) % results.length : 0));
+    } else if (event.key === 'Enter' && results[selectedIndex]) {
+      event.preventDefault();
+      selectEntry(results[selectedIndex]);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      clearAndClose();
+    }
+  };
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setOpen(true);
+        const input = window.matchMedia('(max-width: 899px)').matches ? mobileInputRef.current : desktopInputRef.current;
+        if (window.matchMedia('(max-width: 899px)').matches) setMobileOpen(true);
+        window.requestAnimationFrame(() => input?.focus());
+      }
+    };
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
+  const getInputProps = (inputRef: React.RefObject<HTMLInputElement | null>) => ({
+    value: query,
+    onChange: setQuery,
+    onFocus: () => setOpen(true),
+    onKeyDown: handleKeyDown,
+    inputRef,
+    placeholder: intl.formatMessage({ id: 'global-search-placeholder', defaultMessage: 'Search in SAYAD...' })
+  });
 
   return (
     <>
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-        <PopupState variant="popper" popupId="demo-popup-popper">
-          {(popupState) => (
-            <>
-              <Box sx={{ ml: 2 }}>
-                <HeaderAvatar {...bindToggle(popupState)}>
-                  <IconSearch stroke={1.5} size="19.2px" />
-                </HeaderAvatar>
-              </Box>
-              <Popper
-                {...bindPopper(popupState)}
-                transition
-                sx={{ zIndex: 1100, width: '99%', top: '-55px !important', px: { xs: 1.25, sm: 1.5 } }}
-              >
-                {({ TransitionProps }) => (
-                  <>
-                    <Transitions type="zoom" {...TransitionProps} sx={{ transformOrigin: 'center left' }}>
-                      <Card sx={{ bgcolor: 'background.default', border: 0, boxShadow: 'none' }}>
-                        <Box sx={{ p: 2 }}>
-                          <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Grid size="grow">
-                              <MobileSearch value={value} setValue={setValue} popupState={popupState} />
-                            </Grid>
-                          </Grid>
-                        </Box>
-                      </Card>
-                    </Transitions>
-                  </>
-                )}
-              </Popper>
-            </>
-          )}
-        </PopupState>
+        <>
+          <Box ref={mobileAnchorRef} sx={{ ml: 2 }}>
+            <HeaderAvatar onClick={() => setMobileOpen((value) => !value)}>
+              <IconSearch stroke={1.5} size="19.2px" />
+            </HeaderAvatar>
+          </Box>
+          <Popper
+            open={mobileOpen}
+            anchorEl={mobileAnchorRef.current}
+            transition
+            sx={{ zIndex: 1100, width: '99%', top: '-55px !important', px: { xs: 1.25, sm: 1.5 } }}
+          >
+            {({ TransitionProps }) => (
+              <Transitions type="zoom" {...TransitionProps} sx={{ transformOrigin: 'center left' }}>
+                <Card sx={{ bgcolor: 'background.default', border: 0, boxShadow: 'none' }}>
+                  <Box sx={{ p: 2 }}>
+                    <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Grid size="grow">
+                        <SearchInput
+                          {...getInputProps(mobileInputRef)}
+                          mobile
+                          onCloseMobile={() => {
+                            clearAndClose();
+                            setMobileOpen(false);
+                          }}
+                        />
+                        {open && (
+                          <GlobalSearchResults
+                            entries={results}
+                            selectedIndex={selectedIndex}
+                            onSelect={selectEntry}
+                            onHover={setSelectedIndex}
+                          />
+                        )}
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Card>
+              </Transitions>
+            )}
+          </Popper>
+        </>
       </Box>
-      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-        <OutlinedInput
-          id="input-search-header"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Search"
-          startAdornment={
-            <InputAdornment position="start">
-              <IconSearch stroke={1.5} size="16px" />
-            </InputAdornment>
-          }
-          endAdornment={
-            <InputAdornment position="end">
-              <HeaderAvatar>
-                <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
-              </HeaderAvatar>
-            </InputAdornment>
-          }
-          aria-describedby="search-helper-text"
-          slotProps={{ input: { 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } } }}
-          sx={{ width: { md: 250, lg: 434 }, ml: 2, px: 2 }}
-        />
+      <Box ref={desktopAnchorRef} sx={{ display: { xs: 'none', md: 'block' }, position: 'relative' }}>
+        <SearchInput {...getInputProps(desktopInputRef)} />
+        <Popper open={open} anchorEl={desktopAnchorRef.current} placement="bottom-start" sx={{ zIndex: 1200, width: { md: 250, lg: 434 } }}>
+          <GlobalSearchResults entries={results} selectedIndex={selectedIndex} onSelect={selectEntry} onHover={setSelectedIndex} />
+        </Popper>
       </Box>
     </>
   );
