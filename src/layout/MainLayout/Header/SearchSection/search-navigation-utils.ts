@@ -12,6 +12,12 @@ export type GlobalNavigationEntry = {
   parentTitle?: string;
 };
 
+export type GlobalSearchEntry = GlobalNavigationEntry & {
+  kind: 'navigation' | 'party' | 'item' | 'worker';
+  subtitle?: string;
+  detail?: string;
+};
+
 type PermissionContext = {
   user: UserProfile | null | undefined;
   parentTitle?: string;

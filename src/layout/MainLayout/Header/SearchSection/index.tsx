@@ -19,7 +19,8 @@ import useAuth from 'hooks/useAuth';
 import Transitions from 'ui-component/extended/Transitions';
 
 import GlobalSearchResults from './GlobalSearchResults';
-import { flattenSearchableNavigation, searchNavigation, type GlobalNavigationEntry } from './search-navigation-utils';
+import useGlobalEntitySearch from './useGlobalEntitySearch';
+import { flattenSearchableNavigation, searchNavigation, type GlobalSearchEntry } from './search-navigation-utils';
 
 interface HeaderAvatarProps extends AvatarProps {
   children: ReactNode;
@@ -134,7 +135,10 @@ export default function SearchSection() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const entries = useMemo(() => flattenSearchableNavigation(menuItems.items, intl, user), [intl, user]);
-  const results = useMemo(() => searchNavigation(entries, query), [entries, query]);
+  const navigationResults = useMemo(() => searchNavigation(entries, query), [entries, query]);
+  const entitySearch = useGlobalEntitySearch(query, user);
+  const results = useMemo<GlobalSearchEntry[]>(() => navigationResults.map((entry) => ({ ...entry, kind: 'navigation' as const })), [navigationResults]);
+  const allResults = useMemo(() => [...results, ...entitySearch.groups.flatMap((group) => group.entries)], [results, entitySearch.groups]);
 
   const close = () => {
     setOpen(false);
@@ -147,7 +151,7 @@ export default function SearchSection() {
     close();
   };
 
-  const selectEntry = (entry: GlobalNavigationEntry) => {
+  const selectEntry = (entry: GlobalSearchEntry) => {
     navigate(entry.route);
     clearAndClose();
   };
@@ -159,13 +163,13 @@ export default function SearchSection() {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setSelectedIndex((index) => (results.length ? (index + 1) % results.length : 0));
+      setSelectedIndex((index) => (allResults.length ? (index + 1) % allResults.length : 0));
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      setSelectedIndex((index) => (results.length ? (index - 1 + results.length) % results.length : 0));
-    } else if (event.key === 'Enter' && results[selectedIndex]) {
+      setSelectedIndex((index) => (allResults.length ? (index - 1 + allResults.length) % allResults.length : 0));
+    } else if (event.key === 'Enter' && allResults[selectedIndex]) {
       event.preventDefault();
-      selectEntry(results[selectedIndex]);
+      selectEntry(allResults[selectedIndex]);
     } else if (event.key === 'Escape') {
       event.preventDefault();
       clearAndClose();
@@ -257,6 +261,9 @@ export default function SearchSection() {
                           {open && (
                             <GlobalSearchResults
                               entries={results}
+                              entityGroups={entitySearch.groups}
+                              meaningfulQuery={entitySearch.meaningfulQuery}
+                              loading={entitySearch.loading}
                               selectedIndex={selectedIndex}
                               onSelect={selectEntry}
                               onHover={setSelectedIndex}
@@ -279,7 +286,7 @@ export default function SearchSection() {
             placement="bottom-start"
             sx={{ zIndex: 1200, width: { md: 250, lg: 434 } }}
           >
-            <GlobalSearchResults entries={results} selectedIndex={selectedIndex} onSelect={selectEntry} onHover={setSelectedIndex} />
+            <GlobalSearchResults entries={results} entityGroups={entitySearch.groups} meaningfulQuery={entitySearch.meaningfulQuery} loading={entitySearch.loading} selectedIndex={selectedIndex} onSelect={selectEntry} onHover={setSelectedIndex} />
           </Popper>
         </Box>
       </Box>

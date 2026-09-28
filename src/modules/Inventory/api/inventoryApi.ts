@@ -50,6 +50,18 @@ function unwrap<T>(request: Promise<AxiosResponse<ApiResponse<T>>>): Promise<T> 
   });
 }
 
+function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') search.set(key, String(value));
+  });
+  return search.toString();
+}
+
+export function getItems(params: Record<string, string | number | boolean | undefined | null>) {
+  return unwrap(axiosServices.get<ApiResponse<ItemDto[]>>(`/api/inventory/items?${buildQuery(params)}`));
+}
+
 export function createItem(request: CreateItemRequest) {
   return unwrap(axiosServices.post<ApiResponse<ItemDto>>('/api/inventory/items', request));
 }

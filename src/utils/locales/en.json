@@ -2374,5 +2374,9 @@
   "supplier-opening-balance": "Supplier opening balance",
   "global-search-placeholder": "Search in SAYAD...",
   "global-search-navigation": "Navigation",
-  "global-search-no-results": "No navigation results"
+  "global-search-no-results": "No results",
+  "global-search-parties": "Customers & Suppliers",
+  "global-search-items": "Items",
+  "global-search-workers": "Workers",
+  "global-search-searching": "Searching…"
 }
