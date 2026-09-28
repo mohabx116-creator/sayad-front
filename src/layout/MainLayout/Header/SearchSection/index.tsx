@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useTheme } from '@mui/material/styles';
 import Avatar, { AvatarProps } from '@mui/material/Avatar';
@@ -10,6 +10,7 @@ import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Popper from '@mui/material/Popper';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 
 import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
 
@@ -120,6 +121,7 @@ function SearchInput({ value, onChange, onFocus, onKeyDown, inputRef, placeholde
 
 export default function SearchSection() {
   const intl = useIntl();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const desktopInputRef = useRef<HTMLInputElement>(null);
@@ -136,6 +138,7 @@ export default function SearchSection() {
 
   const close = () => {
     setOpen(false);
+    setMobileOpen(false);
     setSelectedIndex(0);
   };
 
@@ -146,6 +149,10 @@ export default function SearchSection() {
 
   const selectEntry = (entry: GlobalNavigationEntry) => {
     navigate(entry.route);
+    clearAndClose();
+  };
+
+  const handleClickAway = () => {
     clearAndClose();
   };
 
@@ -169,6 +176,11 @@ export default function SearchSection() {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
+        if (open) {
+          clearAndClose();
+          return;
+        }
+
         setOpen(true);
         const input = window.matchMedia('(max-width: 899px)').matches ? mobileInputRef.current : desktopInputRef.current;
         if (window.matchMedia('(max-width: 899px)').matches) setMobileOpen(true);
@@ -178,7 +190,11 @@ export default function SearchSection() {
 
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
-  }, []);
+  }, [open]);
+
+  useEffect(() => {
+    close();
+  }, [location.pathname]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -194,57 +210,79 @@ export default function SearchSection() {
   });
 
   return (
-    <>
-      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-        <>
-          <Box ref={mobileAnchorRef} sx={{ ml: 2 }}>
-            <HeaderAvatar onClick={() => setMobileOpen((value) => !value)}>
-              <IconSearch stroke={1.5} size="19.2px" />
-            </HeaderAvatar>
-          </Box>
-          <Popper
-            open={mobileOpen}
-            anchorEl={mobileAnchorRef.current}
-            transition
-            sx={{ zIndex: 1100, width: '99%', top: '-55px !important', px: { xs: 1.25, sm: 1.5 } }}
-          >
-            {({ TransitionProps }) => (
-              <Transitions type="zoom" {...TransitionProps} sx={{ transformOrigin: 'center left' }}>
-                <Card sx={{ bgcolor: 'background.default', border: 0, boxShadow: 'none' }}>
-                  <Box sx={{ p: 2 }}>
-                    <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Grid size="grow">
-                        <SearchInput
-                          {...getInputProps(mobileInputRef)}
-                          mobile
-                          onCloseMobile={() => {
-                            clearAndClose();
-                            setMobileOpen(false);
-                          }}
-                        />
-                        {open && (
-                          <GlobalSearchResults
-                            entries={results}
-                            selectedIndex={selectedIndex}
-                            onSelect={selectEntry}
-                            onHover={setSelectedIndex}
+    <ClickAwayListener onClickAway={handleClickAway}>
+      <Box
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            clearAndClose();
+          }
+        }}
+      >
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <>
+            <Box ref={mobileAnchorRef} sx={{ ml: 2 }}>
+              <HeaderAvatar
+                onClick={() => {
+                  if (mobileOpen) {
+                    clearAndClose();
+                  } else {
+                    setMobileOpen(true);
+                  }
+                }}
+              >
+                <IconSearch stroke={1.5} size="19.2px" />
+              </HeaderAvatar>
+            </Box>
+            <Popper
+              open={mobileOpen}
+              anchorEl={mobileAnchorRef.current}
+              transition
+              sx={{ zIndex: 1100, width: '99%', top: '-55px !important', px: { xs: 1.25, sm: 1.5 } }}
+            >
+              {({ TransitionProps }) => (
+                <Transitions type="zoom" {...TransitionProps} sx={{ transformOrigin: 'center left' }}>
+                  <Card sx={{ bgcolor: 'background.default', border: 0, boxShadow: 'none' }}>
+                    <Box sx={{ p: 2 }}>
+                      <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Grid size="grow">
+                          <SearchInput
+                            {...getInputProps(mobileInputRef)}
+                            mobile
+                            onCloseMobile={() => {
+                              clearAndClose();
+                              setMobileOpen(false);
+                            }}
                           />
-                        )}
+                          {open && (
+                            <GlobalSearchResults
+                              entries={results}
+                              selectedIndex={selectedIndex}
+                              onSelect={selectEntry}
+                              onHover={setSelectedIndex}
+                            />
+                          )}
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </Box>
-                </Card>
-              </Transitions>
-            )}
+                    </Box>
+                  </Card>
+                </Transitions>
+              )}
+            </Popper>
+          </>
+        </Box>
+        <Box ref={desktopAnchorRef} sx={{ display: { xs: 'none', md: 'block' }, position: 'relative' }}>
+          <SearchInput {...getInputProps(desktopInputRef)} />
+          <Popper
+            open={open}
+            anchorEl={desktopAnchorRef.current}
+            placement="bottom-start"
+            sx={{ zIndex: 1200, width: { md: 250, lg: 434 } }}
+          >
+            <GlobalSearchResults entries={results} selectedIndex={selectedIndex} onSelect={selectEntry} onHover={setSelectedIndex} />
           </Popper>
-        </>
+        </Box>
       </Box>
-      <Box ref={desktopAnchorRef} sx={{ display: { xs: 'none', md: 'block' }, position: 'relative' }}>
-        <SearchInput {...getInputProps(desktopInputRef)} />
-        <Popper open={open} anchorEl={desktopAnchorRef.current} placement="bottom-start" sx={{ zIndex: 1200, width: { md: 250, lg: 434 } }}>
-          <GlobalSearchResults entries={results} selectedIndex={selectedIndex} onSelect={selectEntry} onHover={setSelectedIndex} />
-        </Popper>
-      </Box>
-    </>
+    </ClickAwayListener>
   );
 }
