@@ -10,6 +10,7 @@ import type { EntitySearchGroup } from './useGlobalEntitySearch';
 import type { GlobalSearchEntry } from './search-navigation-utils';
 
 type Props = {
+  quickActions: GlobalSearchEntry[];
   entries: GlobalSearchEntry[];
   entityGroups: EntitySearchGroup[];
   meaningfulQuery: boolean;
@@ -19,7 +20,7 @@ type Props = {
   onHover: (index: number) => void;
 };
 
-export default function GlobalSearchResults({ entries, entityGroups, meaningfulQuery, loading, selectedIndex, onSelect, onHover }: Props) {
+export default function GlobalSearchResults({ quickActions, entries, entityGroups, meaningfulQuery, loading, selectedIndex, onSelect, onHover }: Props) {
   let resultIndex = 0;
   const renderEntry = (entry: GlobalSearchEntry) => {
     const index = resultIndex++;
@@ -36,6 +37,10 @@ export default function GlobalSearchResults({ entries, entityGroups, meaningfulQ
   };
   return (
     <Paper elevation={8} sx={{ mt: 1, overflowY: 'auto', maxHeight: 'min(70vh, 420px)', width: '100%' }}>
+      {quickActions.length > 0 && <>
+        <Box sx={{ px: 2, pt: 1.5 }}><Typography variant="overline" color="text.secondary"><FormattedMessage id="global-search-quick-actions" defaultMessage="Quick Actions" /></Typography></Box>
+        <MenuList dense aria-label="Quick actions">{quickActions.map(renderEntry)}</MenuList>
+      </>}
       {entries.length > 0 && <>
         <Box sx={{ px: 2, pt: 1.5 }}><Typography variant="overline" color="text.secondary"><FormattedMessage id="global-search-navigation" defaultMessage="Navigation" /></Typography></Box>
         <MenuList dense aria-label="Global search results">{entries.map(renderEntry)}</MenuList>

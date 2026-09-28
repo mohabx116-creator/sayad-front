@@ -13,10 +13,12 @@ export type GlobalNavigationEntry = {
 };
 
 export type GlobalSearchEntry = GlobalNavigationEntry & {
-  kind: 'navigation' | 'party' | 'item' | 'worker' | 'sales-invoice' | 'purchase-invoice';
+  kind: 'navigation' | 'quick-action' | 'party' | 'item' | 'worker' | 'sales-invoice' | 'purchase-invoice';
   subtitle?: string;
   detail?: string;
 };
+
+export type GlobalSearchScope = 'all' | 'navigation' | 'parties' | 'items' | 'workers' | 'sales' | 'purchases';
 
 type PermissionContext = {
   user: UserProfile | null | undefined;

@@ -15,7 +15,7 @@ import type { WorkerListItemDto } from 'modules/Workers/types/workers.types';
 import { hasPermission } from 'modules/Administration/utils/permission-utils';
 import type { UserProfile } from 'types/user-profile';
 
-import type { GlobalSearchEntry } from './search-navigation-utils';
+import type { GlobalSearchEntry, GlobalSearchScope } from './search-navigation-utils';
 
 export type EntitySearchGroup = {
   kind: 'party' | 'item' | 'worker' | 'sales-invoice' | 'purchase-invoice';
@@ -104,7 +104,7 @@ function mapPurchaseInvoices(items: PurchaseInvoiceListItem[], query: string): G
   })), query);
 }
 
-export default function useGlobalEntitySearch(query: string, user: UserProfile | null | undefined) {
+export default function useGlobalEntitySearch(query: string, user: UserProfile | null | undefined, scope: GlobalSearchScope = 'all') {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [groups, setGroups] = useState(emptyGroups);
   const meaningfulQuery = query.trim().length >= 2;
@@ -122,11 +122,11 @@ export default function useGlobalEntitySearch(query: string, user: UserProfile |
 
     let active = true;
     const canSearch = {
-      party: hasPermission(user, 'parties.view'),
-      item: hasPermission(user, 'inventory.items.view'),
-      worker: hasPermission(user, 'labor.workers.view'),
-      'sales-invoice': hasPermission(user, 'sales.invoices.view'),
-      'purchase-invoice': hasPermission(user, 'purchases.invoices.view')
+      party: (scope === 'all' || scope === 'parties') && hasPermission(user, 'parties.view'),
+      item: (scope === 'all' || scope === 'items') && hasPermission(user, 'inventory.items.view'),
+      worker: (scope === 'all' || scope === 'workers') && hasPermission(user, 'labor.workers.view'),
+      'sales-invoice': (scope === 'all' || scope === 'sales') && hasPermission(user, 'sales.invoices.view'),
+      'purchase-invoice': (scope === 'all' || scope === 'purchases') && hasPermission(user, 'purchases.invoices.view')
     };
     const nextGroups = emptyGroups.map((group) => ({ ...group, loading: canSearch[group.kind] }));
     setGroups(nextGroups);
@@ -145,7 +145,7 @@ export default function useGlobalEntitySearch(query: string, user: UserProfile |
     return () => {
       active = false;
     };
-  }, [debouncedQuery, meaningfulQuery, user]);
+  }, [debouncedQuery, meaningfulQuery, scope, user]);
 
   return { groups, meaningfulQuery, loading: groups.some((group) => group.loading) };
 }

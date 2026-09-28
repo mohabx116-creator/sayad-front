@@ -6,21 +6,30 @@ import { useTheme } from '@mui/material/styles';
 import Avatar, { AvatarProps } from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 
-import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
+import { IconAdjustmentsHorizontal, IconBriefcase, IconFileInvoice, IconPackage, IconReceipt2, IconSearch, IconX } from '@tabler/icons-react';
 
 import menuItems from 'menu-items';
 import useAuth from 'hooks/useAuth';
+import { hasPermission } from 'modules/Administration/utils/permission-utils';
+import { EXPENSES_PERMISSIONS } from 'modules/Expenses/utils/expense.constants';
+import { INVENTORY_PERMISSIONS } from 'modules/Inventory/utils/inventory.constants';
+import { PURCHASES_PERMISSIONS } from 'modules/Purchases/utils/purchases.constants';
+import { SALES_PERMISSIONS } from 'modules/Sales/utils/sales.constants';
+import { WORKERS_PERMISSIONS } from 'modules/Workers/utils/workers.constants';
 import Transitions from 'ui-component/extended/Transitions';
 
 import GlobalSearchResults from './GlobalSearchResults';
 import useGlobalEntitySearch from './useGlobalEntitySearch';
-import { flattenSearchableNavigation, searchNavigation, type GlobalSearchEntry } from './search-navigation-utils';
+import { flattenSearchableNavigation, searchNavigation, type GlobalSearchEntry, type GlobalSearchScope } from './search-navigation-utils';
 
 interface HeaderAvatarProps extends AvatarProps {
   children: ReactNode;
@@ -65,11 +74,13 @@ type SearchInputProps = {
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   placeholder: string;
+  scopeLabel?: string;
+  onScopeClick?: (event: React.MouseEvent<HTMLElement>) => void;
   mobile?: boolean;
   onCloseMobile?: () => void;
 };
 
-function SearchInput({ value, onChange, onFocus, onKeyDown, inputRef, placeholder, mobile, onCloseMobile }: SearchInputProps) {
+function SearchInput({ value, onChange, onFocus, onKeyDown, inputRef, placeholder, scopeLabel, onScopeClick, mobile, onCloseMobile }: SearchInputProps) {
   const theme = useTheme();
   const input = (
     <OutlinedInput
@@ -83,11 +94,12 @@ function SearchInput({ value, onChange, onFocus, onKeyDown, inputRef, placeholde
       startAdornment={
         <InputAdornment position="start">
           <IconSearch stroke={1.5} size="16px" />
+          {scopeLabel && <Chip size="small" label={scopeLabel} onClick={onScopeClick} sx={{ ml: 0.5, maxWidth: 120, height: 22, cursor: 'pointer' }} />}
         </InputAdornment>
       }
       endAdornment={
         <InputAdornment position="end">
-          <HeaderAvatar>
+          <HeaderAvatar onClick={onScopeClick} aria-label="Search scope" aria-haspopup="menu">
             <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
           </HeaderAvatar>
           {mobile && (
@@ -129,16 +141,40 @@ export default function SearchSection() {
   const mobileInputRef = useRef<HTMLInputElement>(null);
   const mobileAnchorRef = useRef<HTMLDivElement>(null);
   const desktopAnchorRef = useRef<HTMLDivElement>(null);
+  const [scopeAnchorEl, setScopeAnchorEl] = useState<HTMLElement | null>(null);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [scope, setScope] = useState<GlobalSearchScope>('all');
 
   const entries = useMemo(() => flattenSearchableNavigation(menuItems.items, intl, user), [intl, user]);
-  const navigationResults = useMemo(() => searchNavigation(entries, query), [entries, query]);
-  const entitySearch = useGlobalEntitySearch(query, user);
+  const scopeOptions = useMemo(() => [
+    { value: 'all' as const, label: intl.formatMessage({ id: 'global-search-scope-all', defaultMessage: 'All' }) },
+    { value: 'navigation' as const, label: intl.formatMessage({ id: 'global-search-scope-navigation', defaultMessage: 'Navigation' }) },
+    { value: 'parties' as const, label: intl.formatMessage({ id: 'global-search-scope-parties', defaultMessage: 'Parties' }), permission: 'parties.view' },
+    { value: 'items' as const, label: intl.formatMessage({ id: 'global-search-scope-items', defaultMessage: 'Items' }), permission: INVENTORY_PERMISSIONS.itemsView },
+    { value: 'workers' as const, label: intl.formatMessage({ id: 'global-search-scope-workers', defaultMessage: 'Workers' }), permission: WORKERS_PERMISSIONS.view },
+    { value: 'sales' as const, label: intl.formatMessage({ id: 'global-search-scope-sales', defaultMessage: 'Sales Invoices' }), permission: SALES_PERMISSIONS.invoicesView },
+    { value: 'purchases' as const, label: intl.formatMessage({ id: 'global-search-scope-purchases', defaultMessage: 'Purchase Invoices' }), permission: PURCHASES_PERMISSIONS.invoicesView }
+  ].filter((option) => !option.permission || hasPermission(user, option.permission)), [intl, user]);
+  const activeScopeLabel = scope === 'all' ? undefined : scopeOptions.find((option) => option.value === scope)?.label;
+  const quickActions = useMemo<GlobalSearchEntry[]>(() => {
+    const actions: Array<GlobalSearchEntry | false> = [
+    hasPermission(user, INVENTORY_PERMISSIONS.itemsCreate) && { id: 'quick-add-item', kind: 'quick-action' as const, title: intl.formatMessage({ id: 'global-search-action-add-item', defaultMessage: 'Add Item' }), route: '/inventory/items/new', icon: IconPackage },
+    hasPermission(user, WORKERS_PERMISSIONS.create) && { id: 'quick-add-worker', kind: 'quick-action' as const, title: intl.formatMessage({ id: 'global-search-action-add-worker', defaultMessage: 'Add Worker' }), route: '/labor/workers/new', icon: IconBriefcase },
+    hasPermission(user, SALES_PERMISSIONS.invoicesCreate) && { id: 'quick-new-sales-invoice', kind: 'quick-action' as const, title: intl.formatMessage({ id: 'global-search-action-new-sales-invoice', defaultMessage: 'New Sales Invoice' }), route: '/sales/invoices/new', icon: IconFileInvoice },
+    hasPermission(user, PURCHASES_PERMISSIONS.invoicesCreate) && { id: 'quick-new-purchase-invoice', kind: 'quick-action' as const, title: intl.formatMessage({ id: 'global-search-action-new-purchase-invoice', defaultMessage: 'New Purchase Invoice' }), route: '/purchases/invoices/new', icon: IconFileInvoice },
+    hasPermission(user, EXPENSES_PERMISSIONS.create) && { id: 'quick-new-expense', kind: 'quick-action' as const, title: intl.formatMessage({ id: 'global-search-action-new-expense', defaultMessage: 'New Expense' }), route: '/expenses/new', icon: IconReceipt2 }
+    ];
+    return actions.filter((action): action is GlobalSearchEntry => Boolean(action));
+  }, [intl, user]);
+  const showQuickActions = scope === 'all' && query.trim().length === 0;
+  const navigationResults = useMemo(() => scope === 'all' || scope === 'navigation' ? searchNavigation(entries, query) : [], [entries, query, scope]);
+  const entitySearch = useGlobalEntitySearch(query, user, scope);
   const results = useMemo<GlobalSearchEntry[]>(() => navigationResults.map((entry) => ({ ...entry, kind: 'navigation' as const })), [navigationResults]);
-  const allResults = useMemo(() => [...results, ...entitySearch.groups.flatMap((group) => group.entries)], [results, entitySearch.groups]);
+  const visibleQuickActions = showQuickActions ? quickActions : [];
+  const allResults = useMemo(() => [...visibleQuickActions, ...results, ...entitySearch.groups.flatMap((group) => group.entries)], [entitySearch.groups, results, visibleQuickActions]);
 
   const close = () => {
     setOpen(false);
@@ -150,6 +186,10 @@ export default function SearchSection() {
     setQuery('');
     close();
   };
+
+  useEffect(() => {
+    if (!scopeOptions.some((option) => option.value === scope)) setScope('all');
+  }, [scope, scopeOptions]);
 
   const selectEntry = (entry: GlobalSearchEntry) => {
     navigate(entry.route);
@@ -210,7 +250,9 @@ export default function SearchSection() {
     onFocus: () => setOpen(true),
     onKeyDown: handleKeyDown,
     inputRef,
-    placeholder: intl.formatMessage({ id: 'global-search-placeholder', defaultMessage: 'Search in SAYAD...' })
+    placeholder: intl.formatMessage({ id: 'global-search-placeholder', defaultMessage: 'Search in SAYAD...' }),
+    scopeLabel: activeScopeLabel,
+    onScopeClick: (event: React.MouseEvent<HTMLElement>) => setScopeAnchorEl(event.currentTarget)
   });
 
   return (
@@ -260,6 +302,7 @@ export default function SearchSection() {
                           />
                           {open && (
                             <GlobalSearchResults
+                              quickActions={visibleQuickActions}
                               entries={results}
                               entityGroups={entitySearch.groups}
                               meaningfulQuery={entitySearch.meaningfulQuery}
@@ -286,9 +329,12 @@ export default function SearchSection() {
             placement="bottom-start"
             sx={{ zIndex: 1200, width: { md: 250, lg: 434 } }}
           >
-            <GlobalSearchResults entries={results} entityGroups={entitySearch.groups} meaningfulQuery={entitySearch.meaningfulQuery} loading={entitySearch.loading} selectedIndex={selectedIndex} onSelect={selectEntry} onHover={setSelectedIndex} />
+            <GlobalSearchResults quickActions={visibleQuickActions} entries={results} entityGroups={entitySearch.groups} meaningfulQuery={entitySearch.meaningfulQuery} loading={entitySearch.loading} selectedIndex={selectedIndex} onSelect={selectEntry} onHover={setSelectedIndex} />
           </Popper>
         </Box>
+        <Menu anchorEl={scopeAnchorEl} open={Boolean(scopeAnchorEl)} onClose={() => setScopeAnchorEl(null)} MenuListProps={{ 'aria-label': intl.formatMessage({ id: 'global-search-scope-menu', defaultMessage: 'Search scope' }) }}>
+          {scopeOptions.map((option) => <MenuItem key={option.value} selected={option.value === scope} onClick={() => { setScope(option.value); setSelectedIndex(0); setScopeAnchorEl(null); }}>{option.label}</MenuItem>)}
+        </Menu>
       </Box>
     </ClickAwayListener>
   );
