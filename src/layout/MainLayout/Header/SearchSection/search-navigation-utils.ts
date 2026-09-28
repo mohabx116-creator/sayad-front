@@ -13,7 +13,7 @@ export type GlobalNavigationEntry = {
 };
 
 export type GlobalSearchEntry = GlobalNavigationEntry & {
-  kind: 'navigation' | 'party' | 'item' | 'worker';
+  kind: 'navigation' | 'party' | 'item' | 'worker' | 'sales-invoice' | 'purchase-invoice';
   subtitle?: string;
   detail?: string;
 };

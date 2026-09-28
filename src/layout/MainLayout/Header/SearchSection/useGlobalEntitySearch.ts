@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 
 import { IconBriefcase, IconPackage, IconUsers } from '@tabler/icons-react';
 
+import { listInvoices as listSalesInvoices } from 'modules/Sales/api/salesApi';
+import type { SalesInvoiceListItem } from 'modules/Sales/types/sales.types';
+import { listInvoices as listPurchaseInvoices } from 'modules/Purchases/api/purchasesApi';
+import type { PurchaseInvoiceListItem } from 'modules/Purchases/types/purchases.types';
 import { getParties } from 'modules/Parties/api/partiesApi';
 import type { PartyDto } from 'modules/Parties/types/parties.types';
 import { getItems } from 'modules/Inventory/api/inventoryApi';
@@ -14,7 +18,7 @@ import type { UserProfile } from 'types/user-profile';
 import type { GlobalSearchEntry } from './search-navigation-utils';
 
 export type EntitySearchGroup = {
-  kind: 'party' | 'item' | 'worker';
+  kind: 'party' | 'item' | 'worker' | 'sales-invoice' | 'purchase-invoice';
   entries: GlobalSearchEntry[];
   loading: boolean;
   error: boolean;
@@ -23,7 +27,9 @@ export type EntitySearchGroup = {
 const emptyGroups: EntitySearchGroup[] = [
   { kind: 'party', entries: [], loading: false, error: false },
   { kind: 'item', entries: [], loading: false, error: false },
-  { kind: 'worker', entries: [], loading: false, error: false }
+  { kind: 'worker', entries: [], loading: false, error: false },
+  { kind: 'sales-invoice', entries: [], loading: false, error: false },
+  { kind: 'purchase-invoice', entries: [], loading: false, error: false }
 ];
 
 function rank(values: Array<string | null | undefined>, query: string) {
@@ -74,6 +80,30 @@ function mapWorkers(items: WorkerListItemDto[], query: string): GlobalSearchEntr
   })), query);
 }
 
+function mapSalesInvoices(items: SalesInvoiceListItem[], query: string): GlobalSearchEntry[] {
+  return sortEntries(items.slice(0, 5).map((invoice) => ({
+    id: `sales-invoice-${invoice.id}`,
+    kind: 'sales-invoice' as const,
+    title: invoice.number,
+    subtitle: invoice.customerNameArabic || invoice.customerNameEnglish || invoice.customerCode,
+    detail: invoice.customerReferenceNumber || invoice.customerCode,
+    route: `/sales/invoices/${invoice.id}`,
+    icon: IconPackage
+  })), query);
+}
+
+function mapPurchaseInvoices(items: PurchaseInvoiceListItem[], query: string): GlobalSearchEntry[] {
+  return sortEntries(items.slice(0, 5).map((invoice) => ({
+    id: `purchase-invoice-${invoice.id}`,
+    kind: 'purchase-invoice' as const,
+    title: invoice.number,
+    subtitle: invoice.supplierNameArabic || invoice.supplierNameEnglish || invoice.supplierCode,
+    detail: invoice.supplierInvoiceNumber || invoice.supplierCode,
+    route: `/purchases/invoices/${invoice.id}`,
+    icon: IconPackage
+  })), query);
+}
+
 export default function useGlobalEntitySearch(query: string, user: UserProfile | null | undefined) {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [groups, setGroups] = useState(emptyGroups);
@@ -94,7 +124,9 @@ export default function useGlobalEntitySearch(query: string, user: UserProfile |
     const canSearch = {
       party: hasPermission(user, 'parties.view'),
       item: hasPermission(user, 'inventory.items.view'),
-      worker: hasPermission(user, 'labor.workers.view')
+      worker: hasPermission(user, 'labor.workers.view'),
+      'sales-invoice': hasPermission(user, 'sales.invoices.view'),
+      'purchase-invoice': hasPermission(user, 'purchases.invoices.view')
     };
     const nextGroups = emptyGroups.map((group) => ({ ...group, loading: canSearch[group.kind] }));
     setGroups(nextGroups);
@@ -107,6 +139,8 @@ export default function useGlobalEntitySearch(query: string, user: UserProfile |
     if (canSearch.party) getParties({ page: 1, pageSize: 5, search: debouncedQuery }).then((items) => update('party', mapParties(items, debouncedQuery))).catch(() => update('party', [], true));
     if (canSearch.item) getItems({ page: 1, pageSize: 5, search: debouncedQuery }).then((items) => update('item', mapItems(items, debouncedQuery))).catch(() => update('item', [], true));
     if (canSearch.worker) getWorkers({ page: 1, pageSize: 5, search: debouncedQuery }).then((items) => update('worker', mapWorkers(items, debouncedQuery))).catch(() => update('worker', [], true));
+    if (canSearch['sales-invoice']) listSalesInvoices({ page: 1, pageSize: 5, search: debouncedQuery }).then(({ items }) => update('sales-invoice', mapSalesInvoices(items, debouncedQuery))).catch(() => update('sales-invoice', [], true));
+    if (canSearch['purchase-invoice']) listPurchaseInvoices({ page: 1, pageSize: 5, search: debouncedQuery }).then(({ items }) => update('purchase-invoice', mapPurchaseInvoices(items, debouncedQuery))).catch(() => update('purchase-invoice', [], true));
 
     return () => {
       active = false;

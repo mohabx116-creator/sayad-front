@@ -42,9 +42,26 @@ export default function GlobalSearchResults({ entries, entityGroups, meaningfulQ
       </>}
       {entityGroups.map((group) => {
         if (!meaningfulQuery || (!group.loading && group.entries.length === 0)) return null;
-        const label = group.kind === 'party' ? 'global-search-parties' : group.kind === 'item' ? 'global-search-items' : 'global-search-workers';
+        const label = group.kind === 'party'
+          ? 'global-search-parties'
+          : group.kind === 'item'
+            ? 'global-search-items'
+            : group.kind === 'worker'
+              ? 'global-search-workers'
+              : group.kind === 'sales-invoice'
+                ? 'global-search-sales-invoices'
+                : 'global-search-purchase-invoices';
+        const defaultLabel = group.kind === 'party'
+          ? 'Customers & Suppliers'
+          : group.kind === 'item'
+            ? 'Items'
+            : group.kind === 'worker'
+              ? 'Workers'
+              : group.kind === 'sales-invoice'
+                ? 'Sales Invoices'
+                : 'Purchase Invoices';
         return <Box key={group.kind}>
-          <Box sx={{ px: 2, pt: 1.5 }}><Typography variant="overline" color="text.secondary"><FormattedMessage id={label} defaultMessage={group.kind === 'party' ? 'Customers & Suppliers' : group.kind === 'item' ? 'Items' : 'Workers'} /></Typography></Box>
+          <Box sx={{ px: 2, pt: 1.5 }}><Typography variant="overline" color="text.secondary"><FormattedMessage id={label} defaultMessage={defaultLabel} /></Typography></Box>
           {group.loading ? <Typography variant="caption" color="text.secondary" sx={{ display: 'block', px: 2, pb: 1 }}><FormattedMessage id="global-search-searching" defaultMessage="Searching…" /></Typography> : <MenuList dense>{group.entries.map(renderEntry)}</MenuList>}
         </Box>;
       })}
